@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { initializeFirebase } from "@/firebase"
-import { getFirestore, collection, getDocs, doc, updateDoc } from "firebase/firestore"
+import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Trash2 } from "lucide-react"
 
 // Define the structure for a potential user
 interface PotentialUser {
@@ -72,6 +72,31 @@ export default function UserManagementPage() {
     }
   }
 
+  const handleDelete = async (userId: string, userEmail: string) => {
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const app = initializeFirebase()
+      const db = getFirestore(app)
+      const userRef = doc(db, "potential_users", userId)
+      await deleteDoc(userRef)
+
+      // Remove user from local state immediately for better UX
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId))
+
+      // Show success message
+      setError(null)
+    } catch (err) {
+      console.error("Error deleting user:", err)
+      setError("Failed to delete user. Please try again.")
+      // Refresh the list in case of error to ensure consistency
+      fetchUsers()
+    }
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gray-100 p-4 dark:bg-gray-950">
       <div className="w-full max-w-6xl space-y-6">
@@ -111,14 +136,12 @@ export default function UserManagementPage() {
             {error && <div className="mb-4 text-red-500">{error}</div>}
 
             <div className="overflow-x-auto">
-              {" "}
-              {/* Added for horizontal scrolling on small screens */}
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Email</TableHead>
                     <TableHead>User Type</TableHead>
-                    <TableHead>Clients</TableHead> {/* New column header */}
+                    <TableHead>Clients</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -136,7 +159,7 @@ export default function UserManagementPage() {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.email}</TableCell>
                       <TableCell>{user.user_type}</TableCell>
-                      <TableCell>{user.numClients}</TableCell> {/* Display numClients */}
+                      <TableCell>{user.numClients}</TableCell>
                       <TableCell>
                         <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                           {user.status} ({user.status === "waitlist" ? "potential_users" : user.status})
@@ -144,15 +167,25 @@ export default function UserManagementPage() {
                       </TableCell>
                       <TableCell>{user.created_at}</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAccept(user.id)}
-                          disabled={user.status !== "waitlist"}
-                          className="juice-bg text-black hover:bg-juice/80"
-                        >
-                          Accept
-                        </Button>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAccept(user.id)}
+                            disabled={user.status !== "waitlist"}
+                            className="juice-bg text-black hover:bg-juice/80"
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(user.id, user.email)}
+                            className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
