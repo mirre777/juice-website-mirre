@@ -13,7 +13,7 @@ export function Navbar() {
   const { isCoach, setIsCoach } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const isNavbarDark = pathname === "/marketplace" || pathname === "/findatrainer"
+  const isNavbarDark = pathname === "/marketplace"
   const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
