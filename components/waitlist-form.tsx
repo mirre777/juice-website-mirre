@@ -163,40 +163,7 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
         </div>
 
         {/* Client Count Stepper */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="numClients" className={`text-sm font-medium text-left block text-white`}>
-            Get clients
-          </label>
-          <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
-              className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-            >
-              -
-            </Button>
-            <input
-              id="numClients"
-              name="numClients"
-              type="number"
-              value={clientCount}
-              onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
-              className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min="1"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setClientCount((prev) => prev + 1)}
-              className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-            >
-              +
-            </Button>
-          </div>
-        </div>
+        
       </div>
       <input type="hidden" name="plan" value={selectedPlan || ""} />
       <input type="hidden" name="user_type" value={isCoach ? "trainer" : "client"} />
