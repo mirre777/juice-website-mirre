@@ -14,7 +14,11 @@ export function Footer() {
   // Determine if the footer background should be dark
   // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app
   const isFooterDark =
-    pathname === "/marketplace" || pathname.startsWith("/client") || (pathname !== "/download-juice-app" && !isCoach)
+    pathname === "/marketplace" ||
+    pathname === "/100trainers" ||
+    pathname === "/findatrainer" ||
+    pathname.startsWith("/client") ||
+    (pathname !== "/download-juice-app" && !isCoach)
 
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
 
