@@ -5,12 +5,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { TrainerGrid } from "@/components/trainer-grid"
 import { Users, Shield, Network } from "lucide-react"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
 
 export default function FindATrainerClientPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Navbar />
+
       {/* Hero Section */}
       <section className="relative py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
@@ -71,6 +75,8 @@ export default function FindATrainerClientPage() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   )
 }
