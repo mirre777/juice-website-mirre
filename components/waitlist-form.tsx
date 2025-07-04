@@ -10,9 +10,10 @@ import { successAnimations } from "@/utils/animations"
 
 interface WaitlistFormProps {
   selectedPlan: string | null
+  showClientCounter?: boolean
 }
 
-export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
+export function WaitlistForm({ selectedPlan, showClientCounter = true }: WaitlistFormProps) {
   const { isCoach } = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStatus, setFormStatus] = useState<{
@@ -27,8 +28,10 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
   async function handleSubmit(formData: FormData) {
-    // Add clientCount to formData
-    formData.append("numClients", clientCount.toString())
+    // Add clientCount to formData only if showClientCounter is true
+    if (showClientCounter) {
+      formData.append("numClients", clientCount.toString())
+    }
     formData.append("city", city) // Add city to formData
 
     // Provide immediate visual feedback
@@ -66,7 +69,9 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
         // Clear form if successful
         setEmail("")
         setCity("") // Clear city field
-        setClientCount(1) // Reset client count
+        if (showClientCounter) {
+          setClientCount(1) // Reset client count only if counter is shown
+        }
       }
 
       // Re-enable the button after 2 seconds
@@ -163,40 +168,42 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
         </div>
 
         {/* Client Count Stepper */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="numClients" className={`text-sm font-medium text-left block text-white`}>
-            Get clients
-          </label>
-          <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
-              className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-            >
-              -
-            </Button>
-            <input
-              id="numClients"
-              name="numClients"
-              type="number"
-              value={clientCount}
-              onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
-              className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min="1"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setClientCount((prev) => prev + 1)}
-              className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-            >
-              +
-            </Button>
+        {showClientCounter && (
+          <div className="space-y-1 flex-1">
+            <label htmlFor="numClients" className={`text-sm font-medium text-left block text-white`}>
+              Get clients
+            </label>
+            <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
+                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
+              >
+                -
+              </Button>
+              <input
+                id="numClients"
+                name="numClients"
+                type="number"
+                value={clientCount}
+                onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
+                className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                min="1"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setClientCount((prev) => prev + 1)}
+                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
+              >
+                +
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <input type="hidden" name="plan" value={selectedPlan || ""} />
       <input type="hidden" name="user_type" value={isCoach ? "trainer" : "client"} />
