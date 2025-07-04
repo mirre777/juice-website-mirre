@@ -26,7 +26,7 @@ This shift empowers trainers to scale their businesses, offer more flexible serv
 
 Next, we'll update the main blog listing page (`app/blog/page.tsx`) to fetch posts from our new system.
 
-```typescriptreact file="app/blog/page.tsx"
+\`\`\`typescriptreact file="app/blog/page.tsx"
 [v0-no-op-code-block-prefix]import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
