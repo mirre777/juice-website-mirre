@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 import TempTrainerPage from "./TempTrainerPage"
 
 interface PageProps {
@@ -11,7 +11,7 @@ export default function Page({ params }: PageProps) {
   const { tempId } = params
 
   if (!tempId) {
-    notFound()
+    redirect("/marketplace")
   }
 
   return <TempTrainerPage tempId={tempId} />

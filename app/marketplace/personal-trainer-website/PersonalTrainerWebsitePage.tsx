@@ -1,467 +1,515 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { CheckCircle, Star, Users, Calendar, DollarSign, Globe, Smartphone, Zap } from "lucide-react"
-import { toast } from "sonner"
-import { logger } from "@/lib/logger"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { User, Mail, Clock, DollarSign, Star, CheckCircle, AlertCircle, Loader2, ExternalLink } from "lucide-react"
 
 interface FormData {
-  fullName: string
+  name: string
   email: string
-  phone: string
-  location: string
-  specialty: string
-  experience: string
+  specialization: string
   bio: string
-  certifications: string
-  services: string[]
+  experience: string
+  certifications: string[]
+  location: string
+  phone: string
+  website: string
+  instagram: string
+  facebook: string
+  hourlyRate: string
+  consultationFee: string
 }
 
-const specialties = [
-  "Weight Loss",
-  "Strength Training",
-  "Cardio Fitness",
-  "Yoga",
-  "Pilates",
-  "CrossFit",
-  "Bodybuilding",
-  "Sports Performance",
-  "Rehabilitation",
-  "Senior Fitness",
-  "Youth Training",
-  "Nutrition Coaching",
-]
-
-const experienceLevels = ["Less than 1 year", "1-2 years", "3-5 years", "5+ years", "10+ years"]
-
-const serviceOptions = [
-  "Personal Training",
-  "Group Classes",
-  "Online Coaching",
-  "Nutrition Coaching",
-  "Meal Planning",
-  "Fitness Assessments",
-  "Workout Plans",
-  "Progress Tracking",
-]
+interface SubmissionResult {
+  success: boolean
+  trainerId?: string
+  tempId?: string
+  tempUrl?: string
+  message: string
+  error?: string
+}
 
 export default function PersonalTrainerWebsitePage() {
   const [formData, setFormData] = useState<FormData>({
-    fullName: "",
+    name: "",
     email: "",
-    phone: "",
-    location: "",
-    specialty: "",
-    experience: "",
+    specialization: "",
     bio: "",
-    certifications: "",
-    services: [],
+    experience: "",
+    certifications: [],
+    location: "",
+    phone: "",
+    website: "",
+    instagram: "",
+    facebook: "",
+    hourlyRate: "",
+    consultationFee: "",
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null)
+  const [currentCertification, setCurrentCertification] = useState("")
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
-    }
-  }
-
-  const handleServiceToggle = (service: string) => {
     setFormData((prev) => ({
       ...prev,
-      services: prev.services.includes(service)
-        ? prev.services.filter((s) => s !== service)
-        : [...prev.services, service],
+      [field]: value,
     }))
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.fullName.trim()) newErrors.fullName = "Full name is required"
-    if (!formData.email.trim()) newErrors.email = "Email is required"
-    if (!formData.location.trim()) newErrors.location = "Location is required"
-    if (!formData.specialty) newErrors.specialty = "Please select a specialty"
-    if (!formData.experience) newErrors.experience = "Please select experience level"
-    if (!formData.bio.trim()) newErrors.bio = "Bio is required"
-    if (formData.bio.length < 50) newErrors.bio = "Bio must be at least 50 characters"
-    if (formData.services.length === 0) newErrors.services = "Please select at least one service"
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+  const addCertification = () => {
+    if (currentCertification.trim() && !formData.certifications.includes(currentCertification.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        certifications: [...prev.certifications, currentCertification.trim()],
+      }))
+      setCurrentCertification("")
     }
+  }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  const removeCertification = (cert: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      certifications: prev.certifications.filter((c) => c !== cert),
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      toast.error("Please fix the errors in the form")
-      return
-    }
-
     setIsSubmitting(true)
+    setSubmissionResult(null)
 
     try {
-      logger.info("Submitting trainer form", {
+      // Prepare the data for submission
+      const submissionData = {
+        name: formData.name,
         email: formData.email,
-        specialty: formData.specialty,
-        servicesCount: formData.services.length,
-      })
+        specialization: formData.specialization,
+        bio: formData.bio,
+        experience: formData.experience,
+        certifications: formData.certifications,
+        location: formData.location,
+        contactInfo: {
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website,
+        },
+        socialMedia: {
+          instagram: formData.instagram,
+          facebook: formData.facebook,
+        },
+        pricing: {
+          hourlyRate: formData.hourlyRate ? Number.parseFloat(formData.hourlyRate) : undefined,
+          consultationFee: formData.consultationFee ? Number.parseFloat(formData.consultationFee) : undefined,
+        },
+        services: [],
+        availability: {},
+        profileImage: "",
+        status: "pending",
+      }
+
+      console.log("Submitting trainer data:", submissionData)
 
       const response = await fetch("/api/trainer/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       })
 
       const result = await response.json()
+      console.log("API Response:", result)
 
-      if (result.success) {
-        logger.info("Trainer form submitted successfully", {
+      if (response.ok && result.success) {
+        setSubmissionResult({
+          success: true,
+          trainerId: result.trainerId,
           tempId: result.tempId,
-          email: formData.email,
+          tempUrl: result.tempUrl,
+          message: result.message || "Your trainer profile has been created successfully!",
         })
-
-        toast.success("Profile created successfully! Redirecting to your temporary profile...")
-
-        // Redirect to temporary profile page
-        setTimeout(() => {
-          window.location.href = result.redirectUrl
-        }, 1500)
       } else {
-        logger.error("Trainer form submission failed", {
+        setSubmissionResult({
+          success: false,
+          message: result.error || "Failed to create trainer profile. Please try again.",
           error: result.error,
-          details: result.details,
-          email: formData.email,
         })
-
-        toast.error(result.error || "Failed to create profile. Please try again.")
-
-        if (result.details) {
-          // Handle validation errors
-          const newErrors: Record<string, string> = {}
-          result.details.forEach((detail: any) => {
-            if (detail.path && detail.path.length > 0) {
-              newErrors[detail.path[0]] = detail.message
-            }
-          })
-          setErrors(newErrors)
-        }
       }
     } catch (error) {
-      logger.error("Trainer form submission error", {
-        error: error instanceof Error ? error.message : String(error),
-        email: formData.email,
+      console.error("Submission error:", error)
+      setSubmissionResult({
+        success: false,
+        message: "An unexpected error occurred. Please try again.",
+        error: error instanceof Error ? error.message : "Unknown error",
       })
-
-      toast.error("Network error. Please check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const specializations = [
+    "Weight Loss",
+    "Strength Training",
+    "Cardio Fitness",
+    "Yoga",
+    "Pilates",
+    "CrossFit",
+    "Bodybuilding",
+    "Functional Training",
+    "Sports Performance",
+    "Rehabilitation",
+    "Senior Fitness",
+    "Youth Training",
+  ]
+
+  if (submissionResult?.success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <CardTitle className="text-2xl text-green-800">Profile Created Successfully!</CardTitle>
+              <CardDescription className="text-green-600">{submissionResult.message}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-white p-4 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-gray-800 mb-2">What happens next?</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Your profile has been submitted for review
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-500" />
+                    We'll review your information within 24-48 hours
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-purple-500" />
+                    You'll receive an email confirmation once approved
+                  </li>
+                </ul>
+              </div>
+
+              {submissionResult.tempUrl && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold text-blue-800 mb-2">Preview Your Profile</h3>
+                  <p className="text-sm text-blue-600 mb-3">
+                    You can preview your temporary profile while we review your submission:
+                  </p>
+                  <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                    <a
+                      href={submissionResult.tempUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2"
+                    >
+                      View Temporary Profile
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    setSubmissionResult(null)
+                    setFormData({
+                      name: "",
+                      email: "",
+                      specialization: "",
+                      bio: "",
+                      experience: "",
+                      certifications: [],
+                      location: "",
+                      phone: "",
+                      website: "",
+                      instagram: "",
+                      facebook: "",
+                      hourlyRate: "",
+                      consultationFee: "",
+                    })
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Create Another Profile
+                </Button>
+                <Button asChild className="flex-1">
+                  <a href="/marketplace">Browse Trainers</a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Create Your Personal Trainer Website</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Join thousands of fitness professionals who have built their online presence with our platform. Get your
-            professional website in minutes, not weeks.
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Create Your Personal Trainer Profile</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Join our platform and connect with clients looking for professional fitness guidance. Build your online
+            presence and grow your training business.
           </p>
         </div>
 
-        {/* Benefits Section */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Globe className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Professional Website</h3>
-              <p className="text-gray-600">Get a stunning, mobile-responsive website that showcases your expertise</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Zap className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Quick Setup</h3>
-              <p className="text-gray-600">Launch your website in under 10 minutes with our simple form</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Smartphone className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Mobile Optimized</h3>
-              <p className="text-gray-600">Your website looks perfect on all devices and screen sizes</p>
-            </CardContent>
-          </Card>
-        </div>
+        {submissionResult && !submissionResult.success && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              {submissionResult.message}
+              {submissionResult.error && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-sm">Technical Details</summary>
+                  <pre className="text-xs mt-1 p-2 bg-red-100 rounded overflow-auto">{submissionResult.error}</pre>
+                </details>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Form Section */}
-          <Card className="shadow-xl">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Information */}
+          <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Create Your Profile</CardTitle>
-              <CardDescription>Fill out the form below to get started with your trainer website</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Basic Information
+              </CardTitle>
+              <CardDescription>Tell us about yourself and your fitness expertise</CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Personal Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="fullName">Full Name *</Label>
-                      <Input
-                        id="fullName"
-                        value={formData.fullName}
-                        onChange={(e) => handleInputChange("fullName", e.target.value)}
-                        placeholder="John Doe"
-                        className={errors.fullName ? "border-red-500" : ""}
-                      />
-                      {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        placeholder="john@example.com"
-                        className={errors.email ? "border-red-500" : ""}
-                      />
-                      {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                    </div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange("phone", e.target.value)}
-                        placeholder="(555) 123-4567"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="location">Location *</Label>
-                      <Input
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) => handleInputChange("location", e.target.value)}
-                        placeholder="Los Angeles, CA"
-                        className={errors.location ? "border-red-500" : ""}
-                      />
-                      {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
-                    </div>
-                  </div>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="Enter your full name"
+                    required
+                  />
                 </div>
-
-                <Separator />
-
-                {/* Professional Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Professional Information</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="specialty">Specialty *</Label>
-                      <Select
-                        value={formData.specialty}
-                        onValueChange={(value) => handleInputChange("specialty", value)}
-                      >
-                        <SelectTrigger className={errors.specialty ? "border-red-500" : ""}>
-                          <SelectValue placeholder="Select your specialty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {specialties.map((specialty) => (
-                            <SelectItem key={specialty} value={specialty}>
-                              {specialty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="experience">Experience Level *</Label>
-                      <Select
-                        value={formData.experience}
-                        onValueChange={(value) => handleInputChange("experience", value)}
-                      >
-                        <SelectTrigger className={errors.experience ? "border-red-500" : ""}>
-                          <SelectValue placeholder="Select experience level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {experienceLevels.map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {level}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.experience && <p className="text-red-500 text-sm mt-1">{errors.experience}</p>}
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="bio">Professional Bio *</Label>
-                    <Textarea
-                      id="bio"
-                      value={formData.bio}
-                      onChange={(e) => handleInputChange("bio", e.target.value)}
-                      placeholder="Tell potential clients about your background, training philosophy, and what makes you unique..."
-                      rows={4}
-                      className={errors.bio ? "border-red-500" : ""}
-                    />
-                    <div className="flex justify-between items-center mt-1">
-                      {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
-                      <p className="text-gray-500 text-sm ml-auto">{formData.bio.length}/500 characters</p>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="certifications">Certifications</Label>
-                    <Input
-                      id="certifications"
-                      value={formData.certifications}
-                      onChange={(e) => handleInputChange("certifications", e.target.value)}
-                      placeholder="NASM, ACE, ACSM, etc."
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    placeholder="your.email@example.com"
+                    required
+                  />
                 </div>
+              </div>
 
-                <Separator />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Primary Specialization *</label>
+                <select
+                  value={formData.specialization}
+                  onChange={(e) => handleInputChange("specialization", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select your specialization</option>
+                  {specializations.map((spec) => (
+                    <option key={spec} value={spec}>
+                      {spec}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                {/* Services */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Services Offered *</h3>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {serviceOptions.map((service) => (
-                      <div key={service} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={service}
-                          checked={formData.services.includes(service)}
-                          onCheckedChange={() => handleServiceToggle(service)}
-                        />
-                        <Label htmlFor={service} className="text-sm font-normal">
-                          {service}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {errors.services && <p className="text-red-500 text-sm">{errors.services}</p>}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Professional Bio</label>
+                <Textarea
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange("bio", e.target.value)}
+                  placeholder="Tell potential clients about your background, training philosophy, and what makes you unique..."
+                  rows={4}
+                />
+              </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating Your Website..." : "Create My Trainer Website"}
-                </Button>
-              </form>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+                <Input
+                  value={formData.experience}
+                  onChange={(e) => handleInputChange("experience", e.target.value)}
+                  placeholder="e.g., 5 years of personal training experience"
+                />
+              </div>
             </CardContent>
           </Card>
 
-          {/* Preview Section */}
-          <div className="space-y-6">
-            <Card className="shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl">What You'll Get</CardTitle>
-                <CardDescription>Your professional trainer website will include all these features</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Professional Profile Page</h4>
-                    <p className="text-gray-600 text-sm">Showcase your expertise, certifications, and services</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Contact Form</h4>
-                    <p className="text-gray-600 text-sm">Let potential clients reach out to you directly</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Mobile Responsive Design</h4>
-                    <p className="text-gray-600 text-sm">Looks great on all devices and screen sizes</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">SEO Optimized</h4>
-                    <p className="text-gray-600 text-sm">Help potential clients find you online</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Easy Content Management</h4>
-                    <p className="text-gray-600 text-sm">Update your profile and content anytime</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Certifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5" />
+                Certifications & Qualifications
+              </CardTitle>
+              <CardDescription>Add your professional certifications and qualifications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  value={currentCertification}
+                  onChange={(e) => setCurrentCertification(e.target.value)}
+                  placeholder="e.g., NASM-CPT, ACE Personal Trainer"
+                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addCertification())}
+                />
+                <Button type="button" onClick={addCertification} variant="outline">
+                  Add
+                </Button>
+              </div>
 
-            {/* Pricing */}
-            <Card className="shadow-xl border-2 border-blue-200">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-blue-600">Launch Special</CardTitle>
-                <CardDescription>Limited time offer for new trainers</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="mb-4">
-                  <span className="text-4xl font-bold text-gray-900">$29</span>
-                  <span className="text-gray-600">/month</span>
+              {formData.certifications.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {formData.certifications.map((cert, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-red-100"
+                      onClick={() => removeCertification(cert)}
+                    >
+                      {cert} ×
+                    </Badge>
+                  ))}
                 </div>
-                <div className="space-y-2 text-sm text-gray-600 mb-6">
-                  <div className="flex items-center justify-center space-x-2">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span>Professional website</span>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Contact Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Contact Information
+              </CardTitle>
+              <CardDescription>How can clients reach you?</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <Input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <Input
+                    value={formData.location}
+                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    placeholder="City, State"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <Input
+                  type="url"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange("website", e.target.value)}
+                  placeholder="https://yourwebsite.com"
+                />
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Social Media</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                    <Input
+                      value={formData.instagram}
+                      onChange={(e) => handleInputChange("instagram", e.target.value)}
+                      placeholder="@yourusername"
+                    />
                   </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <Users className="h-4 w-4 text-blue-500" />
-                    <span>Unlimited client inquiries</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <Calendar className="h-4 w-4 text-green-500" />
-                    <span>Booking integration</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-purple-500" />
-                    <span>Payment processing</span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                    <Input
+                      value={formData.facebook}
+                      onChange={(e) => handleInputChange("facebook", e.target.value)}
+                      placeholder="facebook.com/yourpage"
+                    />
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  7-day free trial included
-                </Badge>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pricing */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5" />
+                Pricing Information
+              </CardTitle>
+              <CardDescription>Set your rates (you can update these later)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate ($)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.hourlyRate}
+                    onChange={(e) => handleInputChange("hourlyRate", e.target.value)}
+                    placeholder="75.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Consultation Fee ($)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.consultationFee}
+                    onChange={(e) => handleInputChange("consultationFee", e.target.value)}
+                    placeholder="25.00"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submit Button */}
+          <div className="flex justify-center">
+            <Button type="submit" size="lg" disabled={isSubmitting} className="px-8 py-3 text-lg">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Creating Profile...
+                </>
+              ) : (
+                "Create My Profile"
+              )}
+            </Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )
