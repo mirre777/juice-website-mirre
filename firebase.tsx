@@ -30,7 +30,7 @@ if (hasRealFirebaseConfig) {
     // Only initialize Firestore if we have a valid project ID
     if (firebaseConfig.projectId && firebaseConfig.projectId !== "mock-project-id") {
       db = getFirestore(app)
-      console.log("Client-side Firebase configuration initialized with Firestore")
+      console.log("Client-side Firebase initialized with real configuration")
     } else {
       console.log("Firebase app initialized but Firestore not available")
       db = null
@@ -44,7 +44,7 @@ if (hasRealFirebaseConfig) {
   // Use null for mock scenarios - the actions will handle this
   db = null
   app = null
-  console.log("Using mock Firebase configuration - db set to null")
+  console.log("Using mock Firebase configuration on client-side")
 }
 
 export { db, app, hasRealFirebaseConfig }

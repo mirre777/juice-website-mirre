@@ -1,304 +1,280 @@
 # Trainer Website Implementation Plan
 
 ## Overview
-This document outlines the comprehensive implementation plan for the trainer website editor feature, building upon the existing trainer profile system.
+This document outlines the comprehensive implementation plan for the trainer website creation system. The system allows personal trainers to create professional websites through a simple form submission process.
 
-## Current System Status ✅
-- **Form Submission**: Complete trainer registration form
-- **Temporary Profiles**: 24-hour temporary profiles with session tokens
-- **Database Integration**: Firebase Firestore with proper error handling
-- **Payment Integration**: Stripe payment processing for profile activation
-- **Profile Management**: Basic CRUD operations for trainer profiles
+## System Architecture
 
-## Phase 1: Enhanced Profile Management (Week 1-2)
+### 1. Frontend Components
+- **PersonalTrainerWebsitePage**: Main form for trainer registration
+- **TempTrainerPage**: Preview page for temporary profiles
+- **TrainerProfilePage**: Public trainer profile pages
+- **TrainerDashboard**: Management interface for trainers
+- **TrainerContentEditor**: Content editing interface
 
-### 1.1 Profile Dashboard Enhancement
-- **Current**: Basic dashboard with profile stats
-- **Enhancement**: Add comprehensive analytics and management tools
+### 2. Backend API Routes
+- **POST /api/trainer/create**: Creates temporary trainer profiles
+- **GET /api/trainer/temp/[tempId]**: Retrieves temporary trainer data
+- **POST /api/trainer/activate**: Activates trainer profiles after payment
+- **GET /api/trainer/[id]**: Retrieves public trainer profiles
+- **PUT /api/trainer/[id]**: Updates trainer profiles
 
+### 3. Database Schema (Firebase Firestore)
+
+#### Trainers Collection
 \`\`\`typescript
-interface DashboardMetrics {
-  profileViews: number
-  clientInquiries: number
-  bookingsThisMonth: number
-  revenue: number
-  averageRating: number
-  responseRate: number
-}
-\`\`\`
-
-### 1.2 Profile Customization
-- **Theme Selection**: Multiple color schemes and layouts
-- **Custom Branding**: Logo upload and brand color customization
-- **Layout Options**: Different profile layout templates
-
-## Phase 2: Content Management System (Week 3-4)
-
-### 2.1 Rich Content Editor
-\`\`\`typescript
-interface ContentSection {
+interface TrainerData {
   id: string
-  type: 'text' | 'image' | 'video' | 'testimonial' | 'pricing' | 'schedule'
-  content: any
-  order: number
-  isVisible: boolean
-}
-\`\`\`
-
-### 2.2 Media Management
-- **Image Upload**: Profile photos, gallery images, certification photos
-- **Video Integration**: YouTube/Vimeo embedding for workout demos
-- **File Storage**: Secure cloud storage with CDN delivery
-
-### 2.3 Dynamic Sections
-- **About Me**: Rich text editor with formatting options
-- **Services**: Detailed service descriptions with pricing
-- **Testimonials**: Client testimonial management
-- **Before/After Gallery**: Client transformation photos (with permission)
-- **Blog/Articles**: SEO-optimized content creation
-
-## Phase 3: Advanced Features (Week 5-6)
-
-### 3.1 SEO Optimization
-\`\`\`typescript
-interface SEOSettings {
-  metaTitle: string
-  metaDescription: string
-  keywords: string[]
-  customSlug: string
-  structuredData: any
-}
-\`\`\`
-
-### 3.2 Social Media Integration
-- **Social Links**: Instagram, Facebook, TikTok, YouTube
-- **Social Feed**: Display recent social media posts
-- **Share Buttons**: Easy sharing of trainer profiles
-
-### 3.3 Client Interaction Tools
-- **Contact Forms**: Customizable inquiry forms
-- **Booking Integration**: Calendar scheduling system
-- **Live Chat**: Real-time client communication
-- **Email Automation**: Welcome sequences and follow-ups
-
-## Phase 4: E-commerce Integration (Week 7-8)
-
-### 4.1 Service Booking
-\`\`\`typescript
-interface Service {
-  id: string
-  name: string
-  description: string
-  duration: number
-  price: number
-  category: 'personal' | 'group' | 'online'
-  availability: TimeSlot[]
-}
-\`\`\`
-
-### 4.2 Digital Products
-- **Workout Plans**: Downloadable PDF programs
-- **Nutrition Guides**: Meal plans and recipes
-- **Video Courses**: Online training programs
-- **Merchandise**: Branded fitness products
-
-### 4.3 Subscription Services
-- **Monthly Coaching**: Recurring coaching subscriptions
-- **Meal Plans**: Weekly/monthly meal plan subscriptions
-- **App Access**: Premium app features for clients
-
-## Technical Architecture
-
-### Database Schema Extensions
-\`\`\`typescript
-// Extended trainer profile
-interface TrainerProfile extends TrainerData {
-  website: {
-    theme: string
-    customCSS?: string
-    sections: ContentSection[]
-    seoSettings: SEOSettings
-    socialLinks: SocialLinks
-    customDomain?: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications?: string
+  services: string[]
+  status: "temp" | "active" | "inactive"
+  createdAt: Timestamp
+  expiresAt?: Date
+  sessionToken?: string
+  isActive: boolean
+  isPaid: boolean
+  profileImage?: string
+  website?: string
+  socialLinks?: {
+    instagram?: string
+    facebook?: string
+    twitter?: string
+    linkedin?: string
   }
-  services: Service[]
-  availability: Schedule
-  pricing: PricingTier[]
-  media: MediaAsset[]
-  analytics: AnalyticsData
+  pricing?: {
+    sessionRate?: number
+    packageDeals?: string
+  }
+  availability?: {
+    schedule?: string
+    timezone?: string
+  }
 }
 \`\`\`
 
-### API Endpoints
-\`\`\`typescript
-// Content management
-POST /api/trainer/[id]/content
-PUT /api/trainer/[id]/content/[sectionId]
-DELETE /api/trainer/[id]/content/[sectionId]
+## Implementation Phases
 
-// Media management
-POST /api/trainer/[id]/media/upload
-GET /api/trainer/[id]/media
-DELETE /api/trainer/[id]/media/[mediaId]
+### Phase 1: Core Infrastructure ✅
+- [x] Firebase configuration and setup
+- [x] Basic form validation and submission
+- [x] Temporary profile creation
+- [x] Session token generation and validation
+- [x] Error handling and logging
 
-// Website settings
-PUT /api/trainer/[id]/website/settings
-PUT /api/trainer/[id]/website/theme
-PUT /api/trainer/[id]/website/seo
+### Phase 2: Profile Management ✅
+- [x] Temporary profile preview pages
+- [x] Profile activation workflow
+- [x] Payment integration preparation
+- [x] Profile expiration handling
+
+### Phase 3: Content Management (In Progress)
+- [ ] Trainer dashboard implementation
+- [ ] Content editor for profiles
+- [ ] Image upload and management
+- [ ] Social media integration
+
+### Phase 4: Advanced Features (Planned)
+- [ ] Custom domain support
+- [ ] SEO optimization
+- [ ] Analytics integration
+- [ ] Client booking system
+- [ ] Payment processing for services
+
+## API Endpoints
+
+### Trainer Creation
+\`\`\`
+POST /api/trainer/create
+Body: TrainerFormData
+Response: { success: boolean, tempId: string, redirectUrl: string }
 \`\`\`
 
-### State Management
-\`\`\`typescript
-// Zustand store for editor state
-interface EditorStore {
-  currentTrainer: TrainerProfile | null
-  editMode: boolean
-  selectedSection: string | null
-  unsavedChanges: boolean
-  
-  // Actions
-  updateSection: (sectionId: string, content: any) => void
-  addSection: (type: string, position: number) => void
-  removeSection: (sectionId: string) => void
-  saveChanges: () => Promise<void>
-  toggleEditMode: () => void
-}
+### Temporary Profile Access
 \`\`\`
+GET /api/trainer/temp/[tempId]?token=[sessionToken]
+Response: { success: boolean, data: TrainerData }
+\`\`\`
+
+### Profile Activation
+\`\`\`
+POST /api/trainer/activate
+Body: { tempId: string, paymentData: PaymentInfo }
+Response: { success: boolean, profileUrl: string }
+\`\`\`
+
+## State Management
+
+### Form State
+- Form validation with Zod schemas
+- Real-time error handling
+- Progress tracking
+- Auto-save functionality (planned)
+
+### Profile State
+- Temporary profile management
+- Session token validation
+- Expiration tracking
+- Activation status
 
 ## User Experience Flow
 
-### 1. Editor Access
-1. Trainer logs into dashboard
-2. Clicks "Edit Website" button
-3. Enters visual editor mode
-4. Real-time preview with edit controls
+### 1. Registration Flow
+1. User fills out trainer registration form
+2. Form validation and submission
+3. Temporary profile creation
+4. Redirect to preview page with session token
+5. Profile preview and activation prompt
 
-### 2. Content Editing
-1. Click any section to edit
-2. Inline editing with rich text tools
-3. Drag-and-drop section reordering
-4. Live preview updates
-5. Auto-save functionality
+### 2. Activation Flow
+1. User reviews temporary profile
+2. Payment processing
+3. Profile activation
+4. Live website generation
+5. Dashboard access provision
 
-### 3. Media Management
-1. Upload images via drag-and-drop
-2. Automatic image optimization
-3. Alt text and SEO metadata
-4. Gallery organization tools
-
-### 4. Publishing
-1. Preview changes before publishing
-2. SEO checklist validation
-3. Mobile responsiveness check
-4. One-click publish to live site
+### 3. Management Flow
+1. Trainer accesses dashboard
+2. Content editing and updates
+3. Analytics and insights
+4. Client management (planned)
 
 ## Security Considerations
 
-### 1. Content Validation
-- XSS prevention in rich text content
-- Image file type and size validation
-- URL validation for external links
+### Data Protection
+- Input validation with Zod schemas
+- SQL injection prevention
+- XSS protection
+- CSRF token implementation (planned)
 
-### 2. Access Control
-- Session-based authentication
-- Role-based permissions
-- Rate limiting for API endpoints
+### Access Control
+- Session token validation
+- Profile ownership verification
+- Rate limiting on API endpoints
+- Secure payment processing
 
-### 3. Data Protection
-- GDPR compliance for client data
-- Secure file storage with encryption
-- Regular security audits
+### Privacy
+- GDPR compliance measures
+- Data retention policies
+- User consent management
+- Secure data transmission
 
 ## Performance Optimization
 
-### 1. Image Optimization
-- Automatic WebP conversion
-- Responsive image generation
-- Lazy loading implementation
-- CDN delivery
+### Frontend
+- Component lazy loading
+- Image optimization
+- Bundle size optimization
+- Caching strategies
 
-### 2. Caching Strategy
-- Redis caching for frequently accessed data
-- Browser caching for static assets
+### Backend
 - Database query optimization
+- API response caching
+- CDN integration for static assets
+- Background job processing
 
-### 3. Code Splitting
-- Lazy loading of editor components
-- Progressive enhancement
-- Minimal initial bundle size
+### Database
+- Efficient indexing strategies
+- Query optimization
+- Connection pooling
+- Data archiving for expired profiles
 
 ## Testing Strategy
 
-### 1. Unit Tests
-- Component testing with Jest/RTL
-- API endpoint testing
-- Utility function testing
+### Unit Tests
+- Form validation logic
+- API endpoint functionality
+- Database operations
+- Utility functions
 
-### 2. Integration Tests
-- End-to-end editor workflows
-- Payment processing tests
-- Database operation tests
+### Integration Tests
+- End-to-end user flows
+- Payment processing
+- Email notifications
+- Third-party integrations
 
-### 3. Performance Tests
-- Load testing for high traffic
-- Image optimization validation
-- Mobile performance testing
+### Performance Tests
+- Load testing for form submissions
+- Database performance under load
+- API response times
+- Frontend rendering performance
 
 ## Deployment Plan
 
-### 1. Staging Environment
-- Feature branch deployments
-- QA testing environment
-- Performance monitoring
+### Environment Setup
+- Development environment configuration
+- Staging environment for testing
+- Production deployment with monitoring
+- Backup and disaster recovery
 
-### 2. Production Rollout
-- Gradual feature rollout
-- A/B testing for new features
-- Monitoring and alerting
+### CI/CD Pipeline
+- Automated testing on commits
+- Staging deployment for review
+- Production deployment approval process
+- Rollback procedures
 
-### 3. Post-Launch
-- User feedback collection
-- Performance monitoring
-- Iterative improvements
+### Monitoring
+- Application performance monitoring
+- Error tracking and alerting
+- User analytics
+- System health checks
 
 ## Success Metrics
 
-### 1. User Engagement
-- Time spent in editor
-- Number of sections created
-- Publish rate (drafts to live)
+### Technical Metrics
+- Form submission success rate
+- API response times
+- Database query performance
+- Error rates and resolution times
 
-### 2. Business Metrics
-- Trainer retention rate
+### Business Metrics
+- Trainer registration conversion rate
+- Profile activation rate
+- User engagement metrics
 - Revenue per trainer
-- Client conversion rates
 
-### 3. Technical Metrics
-- Page load times
-- Error rates
-- Uptime percentage
+## Future Enhancements
 
-## Timeline Summary
+### Short Term (Next 3 months)
+- Advanced content editor
+- Image management system
+- Basic analytics dashboard
+- Email notification system
 
-- **Week 1-2**: Enhanced dashboard and profile customization
-- **Week 3-4**: Content management system and media handling
-- **Week 5-6**: Advanced features and SEO optimization
-- **Week 7-8**: E-commerce integration and final testing
-- **Week 9**: Deployment and launch
-- **Week 10+**: Monitoring, feedback, and iterations
+### Medium Term (3-6 months)
+- Client booking integration
+- Payment processing for services
+- Advanced SEO features
+- Mobile app companion
 
-## Resource Requirements
+### Long Term (6+ months)
+- AI-powered content suggestions
+- Advanced analytics and insights
+- Multi-language support
+- White-label solutions
 
-### Development Team
-- 2 Frontend developers (React/Next.js)
-- 1 Backend developer (Node.js/Firebase)
-- 1 UI/UX designer
-- 1 QA engineer
+## Risk Mitigation
 
-### Infrastructure
-- Enhanced Firebase plan for increased storage
-- CDN for media delivery
-- Monitoring and analytics tools
-- Staging environment resources
+### Technical Risks
+- Database scalability concerns
+- Third-party service dependencies
+- Security vulnerabilities
+- Performance bottlenecks
 
-This implementation plan provides a comprehensive roadmap for building a world-class trainer website editor that will significantly enhance the value proposition for personal trainers on the platform.
+### Business Risks
+- Market competition
+- Regulatory compliance
+- User adoption challenges
+- Revenue model validation
+
+## Conclusion
+
+This implementation plan provides a comprehensive roadmap for building a robust trainer website creation system. The phased approach ensures steady progress while maintaining system stability and user experience quality.
+
+Regular reviews and updates to this plan will ensure alignment with business objectives and technical requirements as the system evolves.

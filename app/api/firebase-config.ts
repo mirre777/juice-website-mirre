@@ -36,7 +36,7 @@ if (hasRealFirebaseConfig && missingFields.length === 0) {
 
     // Initialize Firestore
     db = getFirestore(app)
-    console.log("Firebase initialized successfully with Firestore")
+    console.log("Firebase initialized successfully with real configuration")
   } catch (error) {
     console.error("Firebase initialization failed:", error)
     db = null
@@ -48,6 +48,7 @@ if (hasRealFirebaseConfig && missingFields.length === 0) {
   app = null
 }
 
+// Export the database and app
 export { db, app }
 
 // Helper function to validate Firebase connection

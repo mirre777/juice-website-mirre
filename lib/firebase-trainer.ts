@@ -1,18 +1,5 @@
 import { db } from "@/firebase"
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-} from "firebase/firestore"
+import { collection, doc, getDoc, updateDoc, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
 import { logger } from "@/lib/logger"
 
 export interface TrainerData {
@@ -65,6 +52,7 @@ const mockTrainers: TrainerData[] = [
     createdAt: new Date(),
     isActive: true,
     isPaid: true,
+    profileImage: "/placeholder-user.jpg",
   },
   {
     id: "mock-trainer-2",
@@ -73,33 +61,40 @@ const mockTrainers: TrainerData[] = [
     location: "New York, NY",
     specialty: "Strength Training",
     experience: "3-5 years",
-    bio: "Former competitive athlete turned personal trainer. I focus on building functional strength and helping clients develop proper form and technique.",
+    bio: "Former athlete turned personal trainer. I focus on building strength and improving athletic performance for clients of all fitness levels.",
     services: ["Personal Training", "Group Classes"],
     status: "active",
     createdAt: new Date(),
     isActive: true,
     isPaid: true,
+    profileImage: "/placeholder-user.jpg",
   },
 ]
 
 export async function createTrainer(trainerData: Omit<TrainerData, "id" | "createdAt">): Promise<string> {
   try {
     if (!db) {
-      logger.warn("Firebase not available, using mock mode for trainer creation")
+      logger.warn("Firebase not available, using mock trainer creation")
       const mockId = `mock-${Date.now()}`
       return mockId
     }
 
-    const docData = {
+    const docRef = await addDoc(collection(db, "trainers"), {
       ...trainerData,
       createdAt: serverTimestamp(),
-    }
+    })
 
-    const docRef = await addDoc(collection(db, "trainers"), docData)
-    logger.info("Trainer created successfully", { trainerId: docRef.id, email: trainerData.email })
+    logger.info("Trainer created successfully", {
+      trainerId: docRef.id,
+      email: trainerData.email,
+    })
+
     return docRef.id
   } catch (error) {
-    logger.error("Error creating trainer", { error: error instanceof Error ? error.message : String(error) })
+    logger.error("Error creating trainer", {
+      error: error instanceof Error ? error.message : String(error),
+      email: trainerData.email,
+    })
     throw error
   }
 }
@@ -107,7 +102,7 @@ export async function createTrainer(trainerData: Omit<TrainerData, "id" | "creat
 export async function getTrainer(trainerId: string): Promise<TrainerData | null> {
   try {
     if (!db) {
-      logger.warn("Firebase not available, using mock data")
+      logger.warn("Firebase not available, using mock trainer data")
       return mockTrainers.find((trainer) => trainer.id === trainerId) || null
     }
 
@@ -124,85 +119,47 @@ export async function getTrainer(trainerId: string): Promise<TrainerData | null>
 
     return null
   } catch (error) {
-    logger.error("Error fetching trainer", { trainerId, error: error instanceof Error ? error.message : String(error) })
-    throw error
-  }
-}
-
-export async function getTrainerByEmail(email: string): Promise<TrainerData | null> {
-  try {
-    if (!db) {
-      logger.warn("Firebase not available, using mock data")
-      return mockTrainers.find((trainer) => trainer.email === email) || null
-    }
-
-    const q = query(collection(db, "trainers"), where("email", "==", email), limit(1))
-    const querySnapshot = await getDocs(q)
-
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0]
-      return {
-        id: doc.id,
-        ...doc.data(),
-      } as TrainerData
-    }
-
-    return null
-  } catch (error) {
-    logger.error("Error fetching trainer by email", {
-      email,
+    logger.error("Error fetching trainer", {
       error: error instanceof Error ? error.message : String(error),
+      trainerId,
     })
-    throw error
+    return null
   }
 }
 
-export async function updateTrainer(trainerId: string, updates: Partial<TrainerData>): Promise<void> {
+export async function updateTrainer(trainerId: string, updates: Partial<TrainerData>): Promise<boolean> {
   try {
     if (!db) {
-      logger.warn("Firebase not available, mock update")
-      return
+      logger.warn("Firebase not available, mock trainer update")
+      return true
     }
 
     const docRef = doc(db, "trainers", trainerId)
     await updateDoc(docRef, updates)
-    logger.info("Trainer updated successfully", { trainerId })
+
+    logger.info("Trainer updated successfully", {
+      trainerId,
+      updatedFields: Object.keys(updates),
+    })
+
+    return true
   } catch (error) {
-    logger.error("Error updating trainer", { trainerId, error: error instanceof Error ? error.message : String(error) })
-    throw error
+    logger.error("Error updating trainer", {
+      error: error instanceof Error ? error.message : String(error),
+      trainerId,
+    })
+    return false
   }
 }
 
-export async function deleteTrainer(trainerId: string): Promise<void> {
+export async function getActiveTrainers(): Promise<TrainerData[]> {
   try {
     if (!db) {
-      logger.warn("Firebase not available, mock delete")
-      return
+      logger.warn("Firebase not available, using mock trainer data")
+      return mockTrainers.filter((trainer) => trainer.status === "active")
     }
 
-    const docRef = doc(db, "trainers", trainerId)
-    await deleteDoc(docRef)
-    logger.info("Trainer deleted successfully", { trainerId })
-  } catch (error) {
-    logger.error("Error deleting trainer", { trainerId, error: error instanceof Error ? error.message : String(error) })
-    throw error
-  }
-}
-
-export async function getActiveTrainers(limitCount = 10): Promise<TrainerData[]> {
-  try {
-    if (!db) {
-      logger.warn("Firebase not available, using mock data")
-      return mockTrainers.filter((trainer) => trainer.status === "active").slice(0, limitCount)
-    }
-
-    const q = query(
-      collection(db, "trainers"),
-      where("status", "==", "active"),
-      where("isActive", "==", true),
-      orderBy("createdAt", "desc"),
-      limit(limitCount),
-    )
+    const q = query(collection(db, "trainers"), where("status", "==", "active"), where("isActive", "==", true))
 
     const querySnapshot = await getDocs(q)
     const trainers: TrainerData[] = []
@@ -216,96 +173,38 @@ export async function getActiveTrainers(limitCount = 10): Promise<TrainerData[]>
 
     return trainers
   } catch (error) {
-    logger.error("Error fetching active trainers", { error: error instanceof Error ? error.message : String(error) })
-    throw error
-  }
-}
-
-export async function searchTrainers(searchParams: {
-  location?: string
-  specialty?: string
-  experience?: string
-}): Promise<TrainerData[]> {
-  try {
-    if (!db) {
-      logger.warn("Firebase not available, using mock data")
-      let filtered = mockTrainers.filter((trainer) => trainer.status === "active")
-
-      if (searchParams.location) {
-        filtered = filtered.filter((trainer) =>
-          trainer.location.toLowerCase().includes(searchParams.location!.toLowerCase()),
-        )
-      }
-      if (searchParams.specialty) {
-        filtered = filtered.filter((trainer) => trainer.specialty === searchParams.specialty)
-      }
-      if (searchParams.experience) {
-        filtered = filtered.filter((trainer) => trainer.experience === searchParams.experience)
-      }
-
-      return filtered
-    }
-
-    let q = query(collection(db, "trainers"), where("status", "==", "active"), where("isActive", "==", true))
-
-    if (searchParams.specialty) {
-      q = query(q, where("specialty", "==", searchParams.specialty))
-    }
-    if (searchParams.experience) {
-      q = query(q, where("experience", "==", searchParams.experience))
-    }
-
-    const querySnapshot = await getDocs(q)
-    let trainers: TrainerData[] = []
-
-    querySnapshot.forEach((doc) => {
-      trainers.push({
-        id: doc.id,
-        ...doc.data(),
-      } as TrainerData)
-    })
-
-    // Filter by location on client side since Firestore doesn't support contains queries
-    if (searchParams.location) {
-      trainers = trainers.filter((trainer) =>
-        trainer.location.toLowerCase().includes(searchParams.location!.toLowerCase()),
-      )
-    }
-
-    return trainers
-  } catch (error) {
-    logger.error("Error searching trainers", {
-      searchParams,
+    logger.error("Error fetching active trainers", {
       error: error instanceof Error ? error.message : String(error),
     })
-    throw error
+    return []
   }
 }
 
-export async function activateTrainer(trainerId: string, sessionToken: string): Promise<boolean> {
+export async function activateTrainer(trainerId: string): Promise<boolean> {
   try {
     if (!db) {
-      logger.warn("Firebase not available, mock activation")
+      logger.warn("Firebase not available, mock trainer activation")
       return true
     }
 
-    const trainer = await getTrainer(trainerId)
-    if (!trainer || trainer.sessionToken !== sessionToken) {
-      return false
-    }
-
-    await updateTrainer(trainerId, {
-      status: "active",
+    const updates = {
+      status: "active" as const,
       isActive: true,
       isPaid: true,
+    }
+
+    const docRef = doc(db, "trainers", trainerId)
+    await updateDoc(docRef, updates)
+
+    logger.info("Trainer activated successfully", {
+      trainerId,
     })
 
-    logger.info("Trainer activated successfully", { trainerId })
     return true
   } catch (error) {
     logger.error("Error activating trainer", {
-      trainerId,
       error: error instanceof Error ? error.message : String(error),
+      trainerId,
     })
     return false
   }
