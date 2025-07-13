@@ -1,30 +1,67 @@
-interface LogContext {
-  [key: string]: any
+type LogLevel = "info" | "warn" | "error" | "debug"
+
+interface LogEntry {
+  level: LogLevel
+  message: string
+  data?: any
+  timestamp: Date
 }
 
 class Logger {
-  private formatMessage(level: string, message: string, context?: LogContext): string {
-    const timestamp = new Date().toISOString()
-    const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : ""
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${contextStr}`
-  }
+  private logs: LogEntry[] = []
+  private maxLogs = 1000
 
-  info(message: string, context?: LogContext): void {
-    console.log(this.formatMessage("info", message, context))
-  }
-
-  warn(message: string, context?: LogContext): void {
-    console.warn(this.formatMessage("warn", message, context))
-  }
-
-  error(message: string, context?: LogContext): void {
-    console.error(this.formatMessage("error", message, context))
-  }
-
-  debug(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV === "development") {
-      console.debug(this.formatMessage("debug", message, context))
+  private log(level: LogLevel, message: string, data?: any) {
+    const entry: LogEntry = {
+      level,
+      message,
+      data,
+      timestamp: new Date(),
     }
+
+    this.logs.push(entry)
+
+    // Keep only the most recent logs
+    if (this.logs.length > this.maxLogs) {
+      this.logs = this.logs.slice(-this.maxLogs)
+    }
+
+    // Console output with formatting
+    const timestamp = entry.timestamp.toISOString()
+    const prefix = `[${timestamp}] [${level.toUpperCase()}]`
+
+    if (data) {
+      console.log(`${prefix} ${message}`, data)
+    } else {
+      console.log(`${prefix} ${message}`)
+    }
+  }
+
+  info(message: string, data?: any) {
+    this.log("info", message, data)
+  }
+
+  warn(message: string, data?: any) {
+    this.log("warn", message, data)
+  }
+
+  error(message: string, data?: any) {
+    this.log("error", message, data)
+  }
+
+  debug(message: string, data?: any) {
+    this.log("debug", message, data)
+  }
+
+  getLogs(level?: LogLevel): LogEntry[] {
+    if (level) {
+      return this.logs.filter((log) => log.level === level)
+    }
+    return [...this.logs]
+  }
+
+  clearLogs() {
+    this.logs = []
   }
 }
 

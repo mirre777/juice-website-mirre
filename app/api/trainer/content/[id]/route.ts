@@ -1,102 +1,112 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { TrainerService } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
+import type { TrainerContent } from "@/types/trainer"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-    logger.info("Fetching trainer content", { trainerId })
+    logger.info("Fetching trainer content for editing", { trainerId })
 
     const trainer = await TrainerService.getTrainer(trainerId)
-
     if (!trainer) {
       logger.warn("Trainer not found", { trainerId })
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    // Return trainer data with content for editing
-    const response = {
-      id: trainer.id,
-      name: trainer.name,
-      email: trainer.email,
-      specialization: trainer.specialization,
-      experience: trainer.experience,
-      location: trainer.location,
-      bio: trainer.bio,
-      heroTitle: trainer.content?.heroTitle || `Transform Your Fitness with ${trainer.name}`,
-      heroSubtitle:
-        trainer.content?.heroSubtitle ||
-        `Professional ${trainer.specialization} trainer with ${trainer.experience} years of experience in ${trainer.location}`,
-      aboutTitle: trainer.content?.aboutTitle || "About Me",
-      aboutContent: trainer.content?.aboutContent || trainer.bio,
-      services: trainer.content?.services || TrainerService.generateDefaultServices(trainer),
-      contactTitle: trainer.content?.contactTitle || "Get in Touch",
-      contactDescription:
-        trainer.content?.contactDescription ||
-        "Ready to start your fitness journey? Contact me to schedule your first session.",
-      seoTitle:
-        trainer.content?.seoTitle || `${trainer.name} - ${trainer.specialization} Trainer in ${trainer.location}`,
-      seoDescription:
-        trainer.content?.seoDescription ||
-        `Professional ${trainer.specialization} training with ${trainer.name}. ${trainer.experience} years experience in ${trainer.location}. Book your session today!`,
-      lastModified: trainer.content?.lastModified || new Date().toISOString(),
-      version: trainer.content?.version || 1,
+    // Check if trainer is active
+    if (trainer.status !== "active") {
+      logger.warn("Trainer not active", { trainerId, status: trainer.status })
+      return NextResponse.json({ error: "Trainer profile is not active" }, { status: 403 })
     }
 
-    logger.info("Trainer content fetched successfully", { trainerId })
-    return NextResponse.json(response)
-  } catch (error) {
-    logger.error("Error fetching trainer content", {
-      trainerId: params.id,
-      error: error instanceof Error ? error.message : "Unknown error",
+    logger.info("Trainer content fetched successfully", {
+      trainerId,
+      hasContent: !!trainer.content,
     })
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+
+    return NextResponse.json({
+      trainer,
+      content: trainer.content || null,
+    })
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    logger.error("Failed to fetch trainer content", {
+      trainerId: params.id,
+      error: errorMessage,
+    })
+
+    return NextResponse.json({ error: "Failed to fetch trainer content" }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-    const contentData = await request.json()
+    const body = await request.json()
+    const { content } = body as { content: TrainerContent }
 
     logger.info("Updating trainer content", { trainerId })
 
+    // Validate content structure
+    if (!content || typeof content !== "object") {
+      return NextResponse.json({ error: "Invalid content data" }, { status: 400 })
+    }
+
     // Validate required fields
-    if (!contentData.heroTitle || !contentData.aboutContent) {
-      return NextResponse.json({ error: "Missing required content fields" }, { status: 400 })
+    const requiredFields = ["hero", "about", "services", "contact", "seo"]
+    for (const field of requiredFields) {
+      if (!content[field as keyof TrainerContent]) {
+        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
+      }
+    }
+
+    // Validate services array
+    if (!Array.isArray(content.services)) {
+      return NextResponse.json({ error: "Services must be an array" }, { status: 400 })
+    }
+
+    // Validate each service
+    for (const service of content.services) {
+      if (!service.id || !service.title || !service.description || !service.price) {
+        return NextResponse.json({ error: "Each service must have id, title, description, and price" }, { status: 400 })
+      }
+    }
+
+    // Check if trainer exists and is active
+    const trainer = await TrainerService.getTrainer(trainerId)
+    if (!trainer) {
+      logger.warn("Trainer not found for content update", { trainerId })
+      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
+    }
+
+    if (trainer.status !== "active") {
+      logger.warn("Trainer not active for content update", {
+        trainerId,
+        status: trainer.status,
+      })
+      return NextResponse.json({ error: "Trainer profile is not active" }, { status: 403 })
     }
 
     // Update trainer content
-    const success = await TrainerService.updateTrainerContent(trainerId, {
-      heroTitle: contentData.heroTitle,
-      heroSubtitle: contentData.heroSubtitle,
-      aboutTitle: contentData.aboutTitle,
-      aboutContent: contentData.aboutContent,
-      services: contentData.services || [],
-      contactTitle: contentData.contactTitle,
-      contactDescription: contentData.contactDescription,
-      seoTitle: contentData.seoTitle,
-      seoDescription: contentData.seoDescription,
-      lastModified: new Date().toISOString(),
-      version: (contentData.version || 1) + 1,
+    const updatedTrainer = await TrainerService.updateTrainerContent(trainerId, content)
+
+    logger.info("Trainer content updated successfully", {
+      trainerId,
+      contentVersion: updatedTrainer.content?.version || 1,
     })
 
-    if (!success) {
-      logger.error("Failed to update trainer content", { trainerId })
-      return NextResponse.json({ error: "Failed to update content" }, { status: 500 })
-    }
-
-    logger.info("Trainer content updated successfully", { trainerId })
     return NextResponse.json({
       success: true,
-      message: "Content updated successfully",
-      lastModified: new Date().toISOString(),
+      trainer: updatedTrainer,
     })
   } catch (error) {
-    logger.error("Error updating trainer content", {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    logger.error("Failed to update trainer content", {
       trainerId: params.id,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: errorMessage,
     })
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+
+    return NextResponse.json({ error: "Failed to update trainer content" }, { status: 500 })
   }
 }

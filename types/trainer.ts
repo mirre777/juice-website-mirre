@@ -3,10 +3,11 @@ import type { Timestamp } from "firebase/firestore"
 export interface TrainerFormData {
   name: string
   email: string
+  phone?: string
+  location: string
   specialization: string
   experience: string
-  location: string
-  bio: string
+  bio?: string
 }
 
 // NEW: Extended content interface for editing
@@ -14,7 +15,7 @@ export interface EditableTrainerContent {
   // Hero Section
   heroTitle?: string // "Transform Your Body, Transform Your Life"
   heroSubtitle?: string // "Certified Personal Trainer specializing in..."
-  heroCallToAction?: string // "Book Your Free Consultation"
+  heroDescription?: string // Additional description for hero section
 
   // About Section
   aboutTitle?: string // "About [Name]"
@@ -42,6 +43,10 @@ export interface EditableTrainerContent {
   // Contact Section
   contactHeading?: string // "Ready to Start Your Journey?"
   contactSubtext?: string // "Get in touch to schedule your consultation"
+  contactEmail?: string // Trainer's email for contact
+  contactPhone?: string // Trainer's phone number for contact
+  contactLocation?: string // Trainer's location for contact
+  contactAvailability?: string // Availability information for contact
 
   // Styling Options
   primaryColor?: string // "#D2FF28" (brand color)
@@ -69,7 +74,7 @@ export interface TrainerCustomization {
 export interface TrainerDocument extends TrainerFormData {
   id: string
   tempId?: string
-  status: "temp" | "pending_payment" | "active"
+  status: "pending" | "active" | "inactive"
   createdAt: Timestamp
   updatedAt: Timestamp
   activatedAt?: Timestamp
@@ -126,28 +131,42 @@ export interface TrainerProfile extends TrainerFormData {
 }
 
 export interface TrainerContent {
-  heroTitle: string
-  heroSubtitle: string
-  aboutTitle: string
-  aboutContent: string
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    content: string
+  }
   services: Service[]
-  contactTitle: string
-  contactDescription: string
-  seoTitle: string
-  seoDescription: string
-  lastModified: string
-  version: number
+  contact: {
+    title: string
+    description: string
+    email: string
+    phone: string
+    location: string
+    availability: string
+  }
+  seo: {
+    title: string
+    description: string
+  }
+  version?: number
+  lastModified?: Date
 }
 
 export interface Trainer {
   id: string
   name: string
   email: string
+  phone?: string
   specialization: string
   experience: string
   location: string
-  bio: string
-  status: "temp" | "active"
+  bio?: string
+  status: "pending" | "active" | "inactive"
   tempId?: string
   paymentIntentId?: string
   createdAt: string
@@ -160,7 +179,6 @@ interface Service {
   id: string
   title: string
   description: string
-  price: number
+  price: string
   duration: string
-  category: string
 }
