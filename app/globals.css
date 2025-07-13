@@ -202,7 +202,7 @@ body {
 
 .service-form input,
 .service-form textarea {
-  @apply editor-input;
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
 }
 
 /* Responsive design improvements */
@@ -227,15 +227,15 @@ body {
 }
 
 .loading-text {
-  @apply loading-skeleton h-4 mb-2;
+  @apply h-4 mb-2 animate-pulse bg-gray-200 rounded;
 }
 
 .loading-title {
-  @apply loading-skeleton h-6 mb-4;
+  @apply h-6 mb-4 animate-pulse bg-gray-200 rounded;
 }
 
 .loading-avatar {
-  @apply loading-skeleton w-16 h-16 rounded-full;
+  @apply w-16 h-16 rounded-full animate-pulse bg-gray-200;
 }
 
 /* Success and error states */
@@ -304,7 +304,8 @@ body {
 }
 
 .trainer-editor-content {
-  @apply resize-y min-h-[200px] w-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  @apply resize-y w-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  min-height: 200px;
 }
 
 /* Form validation styles */
