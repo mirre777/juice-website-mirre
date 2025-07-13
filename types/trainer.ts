@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore"
+
 export interface TrainerFormData {
   firstName: string
   lastName: string
@@ -7,6 +9,7 @@ export interface TrainerFormData {
   experience: string
   location: string
   bio: string
+  certifications: string
 }
 
 // NEW: Extended content interface for editing
@@ -69,9 +72,9 @@ export interface TrainerDocument extends TrainerFormData {
   id: string
   tempId?: string
   status: "temp" | "pending_payment" | "active"
-  createdAt: Date
-  updatedAt: Date
-  activatedAt?: Date
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  activatedAt?: Timestamp
   stripePaymentIntentId?: string
 
   // NEW: Editable content
@@ -124,62 +127,36 @@ export interface TrainerProfile extends TrainerFormData {
   content?: TrainerContent
 }
 
-// NEW: Trainer Content interface
 export interface TrainerContent {
   heroTitle?: string
   heroSubtitle?: string
   aboutTitle?: string
   aboutContent?: string
-  services?: Service[]
+  services?: any[] // Declare Service type or import it
   contactTitle?: string
-  contactMessage?: string
+  contactContent?: string
   seoTitle?: string
   seoDescription?: string
-  version?: number
-  lastModified?: string
+  contentVersion?: number
+  lastContentUpdate?: Timestamp
 }
 
-// NEW: Service interface
-export interface Service {
+export interface TrainerData extends TrainerContent {
   id: string
-  title: string
-  description: string
-  price: number
-  duration: string
-}
-
-// NEW: Temp Trainer Data interface
-export interface TempTrainerData {
-  tempId: string
   firstName: string
   lastName: string
   email: string
   phone: string
   location: string
-  specializations: string[]
-  experience: string
-  certifications: string[]
-  bio: string
-  hourlyRate: string
-  availability: string
-  createdAt: string
-  expiresAt: string
-}
-
-export interface TrainerData {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
   specialization: string
   experience: string
-  location: string
+  certifications: string
   bio: string
   status: "temp" | "active"
-  createdAt: Date
   tempId?: string
-  stripePaymentIntentId?: string
+  paymentIntentId?: string
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 export interface Trainer extends TrainerFormData {
@@ -190,4 +167,12 @@ export interface Trainer extends TrainerFormData {
   activatedAt?: string
   paymentIntentId?: string
   content?: TrainerContent
+}
+
+// Declare Service type if not imported
+interface Service {
+  title: string
+  description: string
+  price?: number
+  duration?: string
 }

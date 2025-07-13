@@ -1,13 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { toast } from "@/hooks/use-toast"
-import { ArrowLeft, Save, Plus, Trash2, Eye } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+import { Save, Plus, Trash2, ArrowLeft, Eye } from "lucide-react"
 import Link from "next/link"
 import type { TrainerContent, Service } from "@/types/trainer"
 
@@ -31,19 +33,11 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
         const data = await response.json()
         setContent(data)
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to load trainer content",
-          variant: "destructive",
-        })
+        toast.error("Failed to load trainer content")
       }
     } catch (error) {
       console.error("Error fetching trainer content:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load trainer content",
-        variant: "destructive",
-      })
+      toast.error("Failed to load trainer content")
     } finally {
       setLoading(false)
     }
@@ -63,20 +57,13 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
       })
 
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Content saved successfully",
-        })
+        toast.success("Content saved successfully!")
       } else {
-        throw new Error("Failed to save content")
+        toast.error("Failed to save content")
       }
     } catch (error) {
       console.error("Error saving content:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save content",
-        variant: "destructive",
-      })
+      toast.error("Failed to save content")
     } finally {
       setSaving(false)
     }
@@ -114,11 +101,13 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="p-8">
+              <div className="text-center">Loading content editor...</div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -126,46 +115,46 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
 
   if (!content) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Content Not Found</h1>
-          <p className="text-gray-600">Unable to load trainer content for editing.</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="p-8">
+              <div className="text-center">Trainer not found</div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-4">
-          <Link href={`/marketplace/trainer/${trainerId}`}>
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Profile
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href={`/marketplace/trainer/${trainerId}`}>
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Profile
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold">Edit Website Content</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href={`/marketplace/trainer/${trainerId}`}>
+              <Button variant="outline" size="sm">
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </Button>
+            </Link>
+            <Button onClick={saveContent} disabled={saving}>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? "Saving..." : "Save Changes"}
             </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Content Editor</h1>
-            <p className="text-gray-600">Customize your trainer profile content</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Link href={`/marketplace/trainer/${trainerId}`}>
-            <Button variant="outline" size="sm">
-              <Eye className="w-4 h-4 mr-2" />
-              Preview
-            </Button>
-          </Link>
-          <Button onClick={saveContent} disabled={saving}>
-            <Save className="w-4 h-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </div>
 
-      <div className="space-y-8">
         {/* Hero Section */}
         <Card>
           <CardHeader>
@@ -173,20 +162,22 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Main Title</label>
+              <Label htmlFor="hero-title">Title</Label>
               <Input
+                id="hero-title"
                 value={content.heroTitle || ""}
                 onChange={(e) => updateContent("heroTitle", e.target.value)}
                 placeholder="Your main headline"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+              <Label htmlFor="hero-subtitle">Subtitle</Label>
               <Textarea
+                id="hero-subtitle"
                 value={content.heroSubtitle || ""}
                 onChange={(e) => updateContent("heroSubtitle", e.target.value)}
-                placeholder="Your subtitle or tagline"
-                rows={2}
+                placeholder="Supporting text for your headline"
+                rows={3}
               />
             </div>
           </CardContent>
@@ -199,19 +190,21 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">About Title</label>
+              <Label htmlFor="about-title">About Title</Label>
               <Input
+                id="about-title"
                 value={content.aboutTitle || ""}
                 onChange={(e) => updateContent("aboutTitle", e.target.value)}
                 placeholder="About section title"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">About Content</label>
+              <Label htmlFor="about-content">About Content</Label>
               <Textarea
+                id="about-content"
                 value={content.aboutContent || ""}
                 onChange={(e) => updateContent("aboutContent", e.target.value)}
-                placeholder="Tell your story, experience, and approach..."
+                placeholder="Tell your story and share your expertise"
                 rows={6}
               />
             </div>
@@ -229,59 +222,56 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            {content.services && content.services.length > 0 ? (
-              <div className="space-y-4">
-                {content.services.map((service, index) => (
-                  <div key={service.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge variant="outline">Service {index + 1}</Badge>
-                      <Button onClick={() => removeService(service.id)} variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Service Title</label>
-                        <Input
-                          value={service.title}
-                          onChange={(e) => updateService(service.id, "title", e.target.value)}
-                          placeholder="Service name"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-                        <Input
-                          value={service.duration}
-                          onChange={(e) => updateService(service.id, "duration", e.target.value)}
-                          placeholder="e.g., 60 minutes"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Price (€)</label>
-                        <Input
-                          type="number"
-                          value={service.price}
-                          onChange={(e) => updateService(service.id, "price", Number.parseInt(e.target.value) || 0)}
-                          placeholder="Price"
-                        />
-                      </div>
-                      <div className="md:col-span-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <Textarea
-                          value={service.description}
-                          onChange={(e) => updateService(service.id, "description", e.target.value)}
-                          placeholder="Service description"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
+          <CardContent className="space-y-6">
+            {content.services?.map((service, index) => (
+              <div key={service.id} className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">Service {index + 1}</Badge>
+                  <Button variant="destructive" size="sm" onClick={() => removeService(service.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Service Title</Label>
+                    <Input
+                      value={service.title}
+                      onChange={(e) => updateService(service.id, "title", e.target.value)}
+                      placeholder="Service name"
+                    />
                   </div>
-                ))}
+                  <div>
+                    <Label>Duration</Label>
+                    <Input
+                      value={service.duration}
+                      onChange={(e) => updateService(service.id, "duration", e.target.value)}
+                      placeholder="e.g., 60 minutes"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    value={service.description}
+                    onChange={(e) => updateService(service.id, "description", e.target.value)}
+                    placeholder="Describe this service"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Price (€)</Label>
+                  <Input
+                    type="number"
+                    value={service.price}
+                    onChange={(e) => updateService(service.id, "price", Number.parseInt(e.target.value) || 0)}
+                    placeholder="Price in euros"
+                  />
+                </div>
               </div>
-            ) : (
+            ))}
+            {(!content.services || content.services.length === 0) && (
               <div className="text-center py-8 text-gray-500">
-                <p>No services added yet. Click "Add Service" to get started.</p>
+                No services added yet. Click "Add Service" to get started.
               </div>
             )}
           </CardContent>
@@ -294,20 +284,22 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Contact Title</label>
+              <Label htmlFor="contact-title">Contact Title</Label>
               <Input
+                id="contact-title"
                 value={content.contactTitle || ""}
                 onChange={(e) => updateContent("contactTitle", e.target.value)}
                 placeholder="Contact section title"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Contact Message</label>
+              <Label htmlFor="contact-content">Contact Content</Label>
               <Textarea
-                value={content.contactMessage || ""}
-                onChange={(e) => updateContent("contactMessage", e.target.value)}
-                placeholder="Your contact message or call-to-action"
-                rows={3}
+                id="contact-content"
+                value={content.contactContent || ""}
+                onChange={(e) => updateContent("contactContent", e.target.value)}
+                placeholder="How clients can reach you"
+                rows={4}
               />
             </div>
           </CardContent>
@@ -320,32 +312,36 @@ export default function TrainerContentEditor({ trainerId }: TrainerContentEditor
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">SEO Title</label>
+              <Label htmlFor="seo-title">Page Title</Label>
               <Input
+                id="seo-title"
                 value={content.seoTitle || ""}
                 onChange={(e) => updateContent("seoTitle", e.target.value)}
-                placeholder="Page title for search engines"
+                placeholder="SEO title for search engines"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">SEO Description</label>
+              <Label htmlFor="seo-description">Meta Description</Label>
               <Textarea
+                id="seo-description"
                 value={content.seoDescription || ""}
                 onChange={(e) => updateContent("seoDescription", e.target.value)}
-                placeholder="Page description for search engines"
-                rows={2}
+                placeholder="Brief description for search results"
+                rows={3}
               />
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Save Button */}
-      <div className="mt-8 flex justify-end">
-        <Button onClick={saveContent} disabled={saving} size="lg">
-          <Save className="w-4 h-4 mr-2" />
-          {saving ? "Saving..." : "Save All Changes"}
-        </Button>
+        <Separator />
+
+        {/* Save Button */}
+        <div className="flex justify-center pb-8">
+          <Button onClick={saveContent} disabled={saving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {saving ? "Saving Changes..." : "Save All Changes"}
+          </Button>
+        </div>
       </div>
     </div>
   )
