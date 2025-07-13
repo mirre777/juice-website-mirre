@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { PaymentModal } from "@/components/payment/payment-modal"
 import {
-  Sparkles,
   Clock,
   CheckCircle,
   Star,
@@ -18,6 +17,8 @@ import {
   Database,
   Palette,
   TrendingUp,
+  X,
+  CreditCard,
 } from "lucide-react"
 import Navbar from "@/components/navbar"
 
@@ -26,6 +27,7 @@ export default function TempTrainerPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isGenerated, setIsGenerated] = useState(false)
+  const [paymentCompleted, setPaymentCompleted] = useState(false)
 
   const generationSteps = [
     {
@@ -70,17 +72,39 @@ export default function TempTrainerPage() {
     }
   }, [showGenerationModal])
 
-  const handlePaymentComplete = () => {
-    // Here you would create the actual trainer ID and redirect
-    // For now, we'll simulate the process
-    alert("Payment successful! Your trainer profile is now live. You'll receive your unique URL via email.")
-    // In real implementation:
-    // 1. Create actual trainer profile with unique ID
-    // 2. Send email with the URL
-    // 3. Redirect to the live profile
+  const handlePaymentComplete = async () => {
+    try {
+      setPaymentCompleted(true)
+      setShowPaymentModal(false)
+
+      // Here you would create the actual trainer profile with unique ID
+      // For now, we'll simulate the process
+
+      // Generate a unique trainer ID (in real implementation, this would come from your database)
+      const trainerId = Math.floor(Math.random() * 9000) + 1000 // Random 4-digit ID
+
+      // In a real implementation, you would:
+      // 1. Save trainer data to database with the generated ID
+      // 2. Create the actual trainer profile page
+      // 3. Send email with the unique URL
+
+      // Simulate API call to create trainer profile
+      console.log("Creating trainer profile with ID:", trainerId)
+
+      // Show success message with the new URL
+      alert(
+        `Payment successful! Your trainer profile is now live at: /marketplace/trainer/${trainerId}\n\nYou'll receive a confirmation email with your unique URL shortly.`,
+      )
+
+      // Redirect to the new trainer profile (in real implementation)
+      // window.location.href = `/marketplace/trainer/${trainerId}`
+    } catch (error) {
+      console.error("Error processing payment completion:", error)
+      alert("Payment was successful, but there was an error setting up your profile. Please contact support.")
+    }
   }
 
-  // Sample trainer data (this would come from the Google Form)
+  // Sample trainer data (this would come from the form submission)
   const trainerData = {
     name: "Your Name",
     specialty: "Personal Training",
@@ -101,15 +125,23 @@ export default function TempTrainerPage() {
       <Navbar />
 
       {/* Generation Modal */}
-      <Dialog open={showGenerationModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md" hideCloseButton>
+      <Dialog open={showGenerationModal} onOpenChange={setShowGenerationModal}>
+        <DialogContent className="sm:max-w-md">
+          <button
+            onClick={() => setShowGenerationModal(false)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+
           <div className="text-center py-8">
             <div className="mb-8">
               <div className="w-20 h-20 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-6 relative">
                 <div className="absolute inset-0 bg-[#D2FF28] rounded-full animate-ping opacity-75"></div>
-                <div className="relative">{generationSteps[currentStep]?.icon}</div>
+                <div className="relative text-black">{generationSteps[currentStep]?.icon}</div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">AI is Creating Your Website</h3>
+              <h3 className="text-2xl font-bold text-black mb-2">AI is Creating Your Website</h3>
               <p className="text-[#D2FF28] font-medium text-lg mb-2">{generationSteps[currentStep]?.message}</p>
               <p className="text-gray-600 text-sm">{generationSteps[currentStep]?.description}</p>
             </div>
@@ -126,7 +158,7 @@ export default function TempTrainerPage() {
                 <div
                   key={index}
                   className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
-                    index <= currentStep ? "bg-[#D2FF28]/10 text-[#D2FF28]" : "text-gray-400"
+                    index <= currentStep ? "bg-[#D2FF28]/10" : ""
                   }`}
                 >
                   {index < currentStep ? (
@@ -136,7 +168,9 @@ export default function TempTrainerPage() {
                   ) : (
                     <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
                   )}
-                  <span className="text-sm font-medium">{step.message}</span>
+                  <span className={`text-sm font-medium ${index <= currentStep ? "text-black" : "text-gray-400"}`}>
+                    {step.message}
+                  </span>
                 </div>
               ))}
             </div>
@@ -144,60 +178,54 @@ export default function TempTrainerPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Overlay when generation is complete but not paid */}
-      {isGenerated && !showPaymentModal && (
-        <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-black" />
-              </div>
-              <CardTitle className="text-2xl">Your Website is Ready!</CardTitle>
-              <p className="text-gray-600">
-                Complete your payment to make your trainer profile live and start attracting clients.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">What you get:</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>✓ Professional trainer website</li>
-                  <li>✓ Listed in Juice marketplace</li>
-                  <li>✓ Client booking system</li>
-                  <li>✓ Custom shareable URL</li>
-                  <li>✓ Mobile-optimized design</li>
-                </ul>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-transparent"
-                  onClick={() => setShowGenerationModal(true)}
-                >
-                  Preview Again
-                </Button>
-                <Button
-                  className="flex-1 bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90"
-                  onClick={() => setShowPaymentModal(true)}
-                >
-                  Pay €29
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Floating Pay Button - only shows when generation is complete and payment not completed */}
+      {isGenerated && !showPaymentModal && !paymentCompleted && (
+        <div className="fixed bottom-8 right-8 z-50">
+          <Button
+            onClick={() => setShowPaymentModal(true)}
+            className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90 shadow-lg text-lg px-8 py-6 rounded-full"
+            size="lg"
+          >
+            <CreditCard className="w-5 h-5 mr-2" />
+            Pay €29
+          </Button>
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* Payment Modal with Stripe Integration */}
       {showPaymentModal && (
         <PaymentModal
           triggerText="Pay €29"
           amount="29.00"
-          description="Professional Trainer Website"
+          description="Professional Trainer Website - AI Generated Profile"
           planName="Trainer Website"
           onPaymentComplete={handlePaymentComplete}
           children={<div />}
         />
+      )}
+
+      {/* Success Message after Payment */}
+      {paymentCompleted && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="text-center py-8">
+              <div className="w-16 h-16 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-black" />
+              </div>
+              <h3 className="text-2xl font-bold text-black mb-2">Payment Successful!</h3>
+              <p className="text-gray-600 mb-4">Your trainer profile is now live and ready to attract clients.</p>
+              <p className="text-sm text-gray-500 mb-6">
+                You'll receive a confirmation email with your unique profile URL shortly.
+              </p>
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90"
+              >
+                View Your Profile
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Preview of the Generated Trainer Page */}
