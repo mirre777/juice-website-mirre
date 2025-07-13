@@ -1,168 +1,319 @@
-import { db } from "@/firebase"
-import {
-  collection,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  query,
-  where,
-  getDocs,
-  serverTimestamp,
-  Timestamp,
-} from "firebase/firestore"
-import type { TrainerData, TrainerContent, Service } from "@/types/trainer"
-import { logger } from "@/lib/logger"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { collection, doc, getDoc, setDoc, updateDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore"
+import { logger } from "./logger"
+
+export interface TrainerContent {
+  heroTitle?: string
+  heroSubtitle?: string
+  aboutTitle?: string
+  aboutDescription?: string
+  services?: Array<{
+    id: string
+    title: string
+    description: string
+    price: string
+    duration: string
+  }>
+  contactEmail?: string
+  contactPhone?: string
+  contactLocation?: string
+  seoTitle?: string
+  seoDescription?: string
+  lastModified?: string
+  version?: number
+}
+
+export interface Trainer {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  specialization: string
+  experience: string
+  location?: string
+  bio?: string
+  certifications?: string[]
+  status: "temp" | "active" | "inactive"
+  content?: TrainerContent
+  createdAt: string
+  activatedAt?: string
+  tempId?: string
+  stripePaymentIntentId?: string
+}
 
 export class TrainerService {
-  private static readonly COLLECTION = "trainers"
+  private static readonly COLLECTION_NAME = "trainers"
 
-  static async createTrainer(trainerData: Omit<TrainerData, "id" | "createdAt" | "updatedAt">): Promise<string> {
+  static async createTrainer(trainerData: Omit<Trainer, "id" | "createdAt">): Promise<string> {
+    logger.info("Creating new trainer", { email: trainerData.email })
+
+    if (!hasRealFirebaseConfig || !db) {
+      logger.info("Using mock mode for trainer creation")
+      const mockId = `trainer_${Date.now()}`
+      return mockId
+    }
+
     try {
       const trainerId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-      const newTrainer: TrainerData = {
+      const trainer: Trainer = {
         ...trainerData,
         id: trainerId,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        status: "temp",
+        createdAt: new Date().toISOString(),
       }
 
-      await setDoc(doc(db, this.COLLECTION, trainerId), newTrainer)
+      await setDoc(doc(db, this.COLLECTION_NAME, trainerId), {
+        ...trainer,
+        createdAt: serverTimestamp(),
+      })
 
-      logger.info("Trainer created successfully", { trainerId })
+      logger.info("Trainer created successfully", { trainerId, email: trainerData.email })
       return trainerId
     } catch (error) {
-      logger.error("Error creating trainer", { error })
-      throw new Error("Failed to create trainer")
+      logger.error("Error creating trainer", {
+        error: error instanceof Error ? error.message : String(error),
+        email: trainerData.email,
+      })
+      throw error
     }
   }
 
-  static async getTrainer(trainerId: string): Promise<TrainerData | null> {
-    try {
-      const trainerDoc = await getDoc(doc(db, this.COLLECTION, trainerId))
+  static async getTrainer(trainerId: string): Promise<Trainer | null> {
+    logger.info("Fetching trainer", { trainerId })
 
-      if (!trainerDoc.exists()) {
+    if (!hasRealFirebaseConfig || !db) {
+      logger.info("Using mock mode for trainer fetch")
+      return this.getMockTrainer(trainerId)
+    }
+
+    try {
+      const docRef = doc(db, this.COLLECTION_NAME, trainerId)
+      const docSnap = await getDoc(docRef)
+
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        const trainer: Trainer = {
+          ...data,
+          id: docSnap.id,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          activatedAt: data.activatedAt?.toDate?.()?.toISOString() || data.activatedAt,
+        } as Trainer
+
+        logger.info("Trainer fetched successfully", { trainerId })
+        return trainer
+      } else {
+        logger.warn("Trainer not found", { trainerId })
+        return null
+      }
+    } catch (error) {
+      logger.error("Error fetching trainer", {
+        trainerId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  }
+
+  static async updateTrainerContent(trainerId: string, content: TrainerContent): Promise<Trainer | null> {
+    logger.info("Updating trainer content", { trainerId, contentKeys: Object.keys(content) })
+
+    if (!hasRealFirebaseConfig || !db) {
+      logger.info("Using mock mode for content update")
+      const mockTrainer = this.getMockTrainer(trainerId)
+      if (mockTrainer) {
+        mockTrainer.content = {
+          ...content,
+          lastModified: new Date().toISOString(),
+          version: (mockTrainer.content?.version || 0) + 1,
+        }
+        return mockTrainer
+      }
+      return null
+    }
+
+    try {
+      const docRef = doc(db, this.COLLECTION_NAME, trainerId)
+      const docSnap = await getDoc(docRef)
+
+      if (!docSnap.exists()) {
+        logger.warn("Trainer not found for content update", { trainerId })
         return null
       }
 
-      const data = trainerDoc.data() as TrainerData
-      return { ...data, id: trainerDoc.id }
-    } catch (error) {
-      logger.error("Error fetching trainer", { error, trainerId })
-      throw new Error("Failed to fetch trainer")
-    }
-  }
+      const updatedContent: TrainerContent = {
+        ...content,
+        lastModified: new Date().toISOString(),
+        version: (docSnap.data().content?.version || 0) + 1,
+      }
 
-  static async updateTrainerStatus(trainerId: string, status: "temp" | "active"): Promise<boolean> {
-    try {
-      await updateDoc(doc(db, this.COLLECTION, trainerId), {
-        status,
+      await updateDoc(docRef, {
+        content: updatedContent,
         updatedAt: serverTimestamp(),
       })
 
-      logger.info("Trainer status updated", { trainerId, status })
-      return true
-    } catch (error) {
-      logger.error("Error updating trainer status", { error, trainerId })
-      throw new Error("Failed to update trainer status")
-    }
-  }
-
-  static async updateTrainerContent(trainerId: string, content: Partial<TrainerContent>): Promise<TrainerData | null> {
-    try {
-      const trainer = await this.getTrainer(trainerId)
-      if (!trainer) {
-        return null
-      }
-
-      // Generate default content if not provided
-      const defaultContent = this.generateDefaultContent(trainer)
-
-      const updatedContent = {
-        ...defaultContent,
-        ...content,
-        contentVersion: (trainer.contentVersion || 0) + 1,
-        lastContentUpdate: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      }
-
-      await updateDoc(doc(db, this.COLLECTION, trainerId), updatedContent)
-
-      logger.info("Trainer content updated", { trainerId, contentVersion: updatedContent.contentVersion })
-
-      // Return updated trainer
+      logger.info("Trainer content updated successfully", { trainerId })
       return await this.getTrainer(trainerId)
     } catch (error) {
-      logger.error("Error updating trainer content", { error, trainerId })
-      throw new Error("Failed to update trainer content")
+      logger.error("Error updating trainer content", {
+        trainerId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
     }
   }
 
-  static generateDefaultContent(trainer: TrainerData): TrainerContent {
-    const defaultServices: Service[] = [
-      {
-        id: "service_1",
-        title: "Personal Training Session",
-        description: "One-on-one personalized training session tailored to your fitness goals.",
-        price: 60,
-        duration: "60 minutes",
-      },
-      {
-        id: "service_2",
-        title: "Consultation",
-        description: "Initial consultation to discuss your goals and create a personalized plan.",
-        price: 30,
-        duration: "30 minutes",
-      },
-    ]
+  static async activateTrainer(tempId: string, paymentIntentId: string): Promise<string> {
+    logger.info("Activating trainer", { tempId, paymentIntentId })
 
-    return {
-      heroTitle: `${trainer.firstName} ${trainer.lastName}`,
-      heroSubtitle: `Professional ${trainer.specialization} Trainer`,
-      aboutTitle: "About Me",
-      aboutContent: `Hi, I'm ${trainer.firstName}! I'm a certified ${trainer.specialization} trainer with ${trainer.experience} of experience. I'm passionate about helping people achieve their fitness goals and live healthier lives.`,
-      services: defaultServices,
-      contactTitle: "Get In Touch",
-      contactContent: "Ready to start your fitness journey? Contact me to schedule your first session!",
-      seoTitle: `${trainer.firstName} ${trainer.lastName} - ${trainer.specialization} Trainer in ${trainer.location}`,
-      seoDescription: `Professional ${trainer.specialization} trainer in ${trainer.location}. ${trainer.experience} of experience helping clients achieve their fitness goals.`,
+    if (!hasRealFirebaseConfig || !db) {
+      logger.info("Using mock mode for trainer activation")
+      return `trainer_${Date.now()}`
     }
-  }
 
-  static async getTrainerByTempId(tempId: string): Promise<TrainerData | null> {
     try {
-      const q = query(collection(db, this.COLLECTION), where("tempId", "==", tempId))
+      // Find temp trainer
+      const tempQuery = query(
+        collection(db, this.COLLECTION_NAME),
+        where("tempId", "==", tempId),
+        where("status", "==", "temp"),
+      )
+      const tempDocs = await getDocs(tempQuery)
 
-      const querySnapshot = await getDocs(q)
-
-      if (querySnapshot.empty) {
-        return null
+      if (tempDocs.empty) {
+        throw new Error("Temp trainer not found")
       }
 
-      const doc = querySnapshot.docs[0]
-      const data = doc.data() as TrainerData
-      return { ...data, id: doc.id }
+      const tempDoc = tempDocs.docs[0]
+      const tempData = tempDoc.data()
+
+      // Update to active status
+      await updateDoc(tempDoc.ref, {
+        status: "active",
+        stripePaymentIntentId: paymentIntentId,
+        activatedAt: serverTimestamp(),
+        content: this.generateDefaultContent(tempData),
+      })
+
+      logger.info("Trainer activated successfully", {
+        trainerId: tempDoc.id,
+        tempId,
+        paymentIntentId,
+      })
+      return tempDoc.id
     } catch (error) {
-      logger.error("Error fetching trainer by temp ID", { error, tempId })
-      throw new Error("Failed to fetch trainer")
+      logger.error("Error activating trainer", {
+        tempId,
+        paymentIntentId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
     }
   }
 
-  static async getAllActiveTrainers(): Promise<TrainerData[]> {
+  static async getTempTrainer(tempId: string): Promise<Trainer | null> {
+    logger.info("Fetching temp trainer", { tempId })
+
+    if (!hasRealFirebaseConfig || !db) {
+      logger.info("Using mock mode for temp trainer fetch")
+      return this.getMockTrainer(tempId)
+    }
+
     try {
-      const q = query(collection(db, this.COLLECTION), where("status", "==", "active"))
+      const tempQuery = query(
+        collection(db, this.COLLECTION_NAME),
+        where("tempId", "==", tempId),
+        where("status", "==", "temp"),
+      )
+      const tempDocs = await getDocs(tempQuery)
 
-      const querySnapshot = await getDocs(q)
+      if (!tempDocs.empty) {
+        const doc = tempDocs.docs[0]
+        const data = doc.data()
+        return {
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+        } as Trainer
+      }
 
-      return querySnapshot.docs.map((doc) => ({
-        ...(doc.data() as TrainerData),
-        id: doc.id,
-      }))
+      logger.warn("Temp trainer not found", { tempId })
+      return null
     } catch (error) {
-      logger.error("Error fetching active trainers", { error })
-      throw new Error("Failed to fetch trainers")
+      logger.error("Error fetching temp trainer", {
+        tempId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  }
+
+  static generateDefaultContent(trainerData: any): TrainerContent {
+    return {
+      heroTitle: `Transform Your Fitness with ${trainerData.name}`,
+      heroSubtitle: `Professional ${trainerData.specialization} training tailored to your goals`,
+      aboutTitle: "About Me",
+      aboutDescription: `Hi, I'm ${trainerData.name}, a certified ${trainerData.specialization} trainer with ${trainerData.experience} years of experience. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`,
+      services: [
+        {
+          id: "1",
+          title: "Personal Training",
+          description: "One-on-one training sessions tailored to your specific goals",
+          price: "€60",
+          duration: "60 min",
+        },
+        {
+          id: "2",
+          title: "Group Training",
+          description: "Small group sessions for motivation and community",
+          price: "€30",
+          duration: "45 min",
+        },
+      ],
+      contactEmail: trainerData.email,
+      contactPhone: trainerData.phone || "",
+      contactLocation: trainerData.location || "",
+      seoTitle: `${trainerData.name} - Professional ${trainerData.specialization} Trainer`,
+      seoDescription: `Book personal training sessions with ${trainerData.name}, a certified ${trainerData.specialization} trainer. Transform your fitness journey today.`,
+      lastModified: new Date().toISOString(),
+      version: 1,
+    }
+  }
+
+  private static getMockTrainer(id: string): Trainer {
+    return {
+      id,
+      name: "John Doe",
+      email: "john@example.com",
+      phone: "+31 6 12345678",
+      specialization: "Strength Training",
+      experience: "5",
+      location: "Amsterdam, Netherlands",
+      bio: "Passionate fitness trainer with 5 years of experience helping clients achieve their goals.",
+      certifications: ["NASM-CPT", "Nutrition Specialist"],
+      status: "active",
+      createdAt: new Date().toISOString(),
+      activatedAt: new Date().toISOString(),
+      content: {
+        heroTitle: "Transform Your Fitness with John Doe",
+        heroSubtitle: "Professional Strength Training tailored to your goals",
+        aboutTitle: "About Me",
+        aboutDescription: "Hi, I'm John Doe, a certified Strength Training trainer with 5 years of experience.",
+        services: [
+          {
+            id: "1",
+            title: "Personal Training",
+            description: "One-on-one training sessions tailored to your specific goals",
+            price: "€60",
+            duration: "60 min",
+          },
+        ],
+        contactEmail: "john@example.com",
+        contactPhone: "+31 6 12345678",
+        contactLocation: "Amsterdam, Netherlands",
+        seoTitle: "John Doe - Professional Strength Training Trainer",
+        seoDescription: "Book personal training sessions with John Doe, a certified Strength Training trainer.",
+        lastModified: new Date().toISOString(),
+        version: 1,
+      },
     }
   }
 }

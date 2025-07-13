@@ -1,15 +1,14 @@
 import type { Timestamp } from "firebase/firestore"
 
 export interface TrainerFormData {
-  firstName: string
-  lastName: string
+  name: string
   email: string
-  phone: string
+  phone?: string
   specialization: string
   experience: string
-  location: string
-  bio: string
-  certifications: string
+  location?: string
+  bio?: string
+  certifications?: string[]
 }
 
 // NEW: Extended content interface for editing
@@ -27,9 +26,10 @@ export interface EditableTrainerContent {
   // Services Section
   servicesHeading?: string // "My Training Services"
   customServices?: Array<{
+    id: string
     title: string // "Personal Training"
     description: string // "One-on-one customized workouts"
-    price?: number // "€80/session"
+    price?: string // "€80/session"
     duration?: string // "60 minutes"
   }>
 
@@ -131,48 +131,40 @@ export interface TrainerContent {
   heroTitle?: string
   heroSubtitle?: string
   aboutTitle?: string
-  aboutContent?: string
-  services?: any[] // Declare Service type or import it
-  contactTitle?: string
-  contactContent?: string
+  aboutDescription?: string
+  services?: Service[]
+  contactEmail?: string
+  contactPhone?: string
+  contactLocation?: string
   seoTitle?: string
   seoDescription?: string
-  contentVersion?: number
-  lastContentUpdate?: Timestamp
-}
-
-export interface TrainerData extends TrainerContent {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  location: string
-  specialization: string
-  experience: string
-  certifications: string
-  bio: string
-  status: "temp" | "active"
-  tempId?: string
-  paymentIntentId?: string
-  createdAt: Timestamp
-  updatedAt: Timestamp
+  lastModified?: string
+  version?: number
 }
 
 export interface Trainer extends TrainerFormData {
   id: string
-  status: "pending" | "active" | "inactive"
-  createdAt: string
-  updatedAt: string
-  activatedAt?: string
-  paymentIntentId?: string
+  name: string
+  email: string
+  phone?: string
+  specialization: string
+  experience: string
+  location?: string
+  bio?: string
+  certifications?: string[]
+  status: "temp" | "active" | "inactive"
   content?: TrainerContent
+  createdAt: string
+  activatedAt?: string
+  tempId?: string
+  stripePaymentIntentId?: string
 }
 
 // Declare Service type if not imported
 interface Service {
+  id: string
   title: string
   description: string
-  price?: number
-  duration?: string
+  price: string
+  duration: string
 }
