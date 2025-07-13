@@ -4,14 +4,12 @@ export interface TrainerFormData {
   firstName: string
   lastName: string
   email: string
-  phone: string
+  phone?: string
   location: string
   specialization: string
-  experience: number
+  experience: string
   certifications: string[]
   bio: string
-  website?: string
-  instagram?: string
 }
 
 // NEW: Extended content interface for editing
@@ -144,8 +142,9 @@ export interface TrainerContent {
   contactContent?: string
   seoTitle?: string
   seoDescription?: string
-  version?: number
-  lastModified?: Date
+  version: number
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Trainer {
@@ -154,20 +153,18 @@ export interface Trainer {
   firstName: string
   lastName: string
   email: string
-  phone: string
+  phone?: string
   location: string
   specialization: string
-  experience: number
-  certifications?: string[]
-  bio?: string
-  website?: string
-  instagram?: string
-  status: "pending" | "active" | "inactive"
-  paymentIntentId?: string
+  experience: string
+  certifications: string[]
+  bio: string
+  status: "temp" | "active"
+  paymentStatus?: "pending" | "completed" | "failed"
+  stripePaymentIntentId?: string
   content?: TrainerContent
-  createdAt?: any
-  updatedAt?: any
-  activatedAt?: any
+  createdAt: string
+  updatedAt: string
 }
 
 // Declare Service type if not imported
@@ -175,6 +172,6 @@ interface Service {
   id: string
   title: string
   description: string
-  price: string
+  price: number
   duration: string
 }

@@ -13,12 +13,12 @@ class Logger {
     console.log(this.formatMessage("info", message, context))
   }
 
-  error(message: string, context?: LogContext): void {
-    console.error(this.formatMessage("error", message, context))
-  }
-
   warn(message: string, context?: LogContext): void {
     console.warn(this.formatMessage("warn", message, context))
+  }
+
+  error(message: string, context?: LogContext): void {
+    console.error(this.formatMessage("error", message, context))
   }
 
   debug(message: string, context?: LogContext): void {
