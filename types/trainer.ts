@@ -3,12 +3,10 @@ import type { Timestamp } from "firebase/firestore"
 export interface TrainerFormData {
   name: string
   email: string
-  phone?: string
   specialization: string
   experience: string
-  location?: string
-  bio?: string
-  certifications?: string[]
+  location: string
+  bio: string
 }
 
 // NEW: Extended content interface for editing
@@ -128,36 +126,33 @@ export interface TrainerProfile extends TrainerFormData {
 }
 
 export interface TrainerContent {
-  heroTitle?: string
-  heroSubtitle?: string
-  aboutTitle?: string
-  aboutDescription?: string
-  services?: Service[]
-  contactEmail?: string
-  contactPhone?: string
-  contactLocation?: string
-  seoTitle?: string
-  seoDescription?: string
-  lastModified?: string
-  version?: number
+  heroTitle: string
+  heroSubtitle: string
+  aboutTitle: string
+  aboutContent: string
+  services: Service[]
+  contactTitle: string
+  contactDescription: string
+  seoTitle: string
+  seoDescription: string
+  lastModified: string
+  version: number
 }
 
-export interface Trainer extends TrainerFormData {
+export interface Trainer {
   id: string
   name: string
   email: string
-  phone?: string
   specialization: string
   experience: string
-  location?: string
-  bio?: string
-  certifications?: string[]
-  status: "temp" | "active" | "inactive"
-  content?: TrainerContent
-  createdAt: string
-  activatedAt?: string
+  location: string
+  bio: string
+  status: "temp" | "active"
   tempId?: string
-  stripePaymentIntentId?: string
+  paymentIntentId?: string
+  createdAt: string
+  updatedAt: string
+  content?: TrainerContent
 }
 
 // Declare Service type if not imported
@@ -165,6 +160,7 @@ interface Service {
   id: string
   title: string
   description: string
-  price: string
+  price: number
   duration: string
+  category: string
 }

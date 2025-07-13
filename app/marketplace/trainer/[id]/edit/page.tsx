@@ -2,7 +2,9 @@ import { Suspense } from "react"
 import TrainerContentEditor from "./TrainerContentEditor"
 
 interface PageProps {
-  params: { id: string }
+  params: {
+    id: string
+  }
 }
 
 export default function TrainerEditPage({ params }: PageProps) {
@@ -11,7 +13,7 @@ export default function TrainerEditPage({ params }: PageProps) {
       <Suspense
         fallback={
           <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-juice"></div>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
           </div>
         }
       >
