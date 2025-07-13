@@ -10,7 +10,7 @@ import {
   serverTimestamp,
   type Timestamp,
 } from "firebase/firestore"
-import { db } from "@/firebase"
+import { db } from "@/app/api/firebase-config"
 import { logger } from "./logger"
 
 export interface Service {
@@ -56,6 +56,10 @@ const TRAINERS_COLLECTION = "trainers"
 
 export async function createTrainer(trainerData: Omit<Trainer, "id" | "createdAt" | "updatedAt">): Promise<string> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const trainersRef = collection(db, TRAINERS_COLLECTION)
     const docRef = doc(trainersRef)
 
@@ -78,6 +82,10 @@ export async function createTrainer(trainerData: Omit<Trainer, "id" | "createdAt
 
 export async function getTrainer(id: string): Promise<Trainer | null> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const docRef = doc(db, TRAINERS_COLLECTION, id)
     const docSnap = await getDoc(docRef)
 
@@ -94,6 +102,10 @@ export async function getTrainer(id: string): Promise<Trainer | null> {
 
 export async function getTrainerByTempId(tempId: string): Promise<Trainer | null> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const q = query(collection(db, TRAINERS_COLLECTION), where("tempId", "==", tempId))
 
     const querySnapshot = await getDocs(q)
@@ -112,6 +124,10 @@ export async function getTrainerByTempId(tempId: string): Promise<Trainer | null
 
 export async function updateTrainer(id: string, updates: Partial<Trainer>): Promise<Trainer | null> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const docRef = doc(db, TRAINERS_COLLECTION, id)
 
     const updateData = {
@@ -131,6 +147,10 @@ export async function updateTrainer(id: string, updates: Partial<Trainer>): Prom
 
 export async function updateTrainerContent(id: string, content: TrainerContent): Promise<Trainer | null> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const docRef = doc(db, TRAINERS_COLLECTION, id)
 
     // Get current trainer to check existing content version
@@ -163,6 +183,10 @@ export async function updateTrainerContent(id: string, content: TrainerContent):
 
 export async function activateTrainer(id: string): Promise<Trainer | null> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const trainer = await getTrainer(id)
     if (!trainer) {
       throw new Error("Trainer not found")
@@ -228,6 +252,10 @@ async function generateDefaultContent(trainer: Trainer, existingContent?: Traine
 
 export async function getAllTrainers(): Promise<Trainer[]> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const querySnapshot = await getDocs(collection(db, TRAINERS_COLLECTION))
     const trainers: Trainer[] = []
 
@@ -244,6 +272,10 @@ export async function getAllTrainers(): Promise<Trainer[]> {
 
 export async function getActiveTrainers(): Promise<Trainer[]> {
   try {
+    if (!db) {
+      throw new Error("Firebase database not initialized")
+    }
+
     const q = query(collection(db, TRAINERS_COLLECTION), where("status", "==", "active"))
 
     const querySnapshot = await getDocs(q)

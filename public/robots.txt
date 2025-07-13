@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-
-# Disallow crawling of legal pages
-Disallow: /legal/
-
-Sitemap: https://juice.fitness/sitemap.xml

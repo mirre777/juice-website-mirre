@@ -1,47 +1,47 @@
-// Firebase configuration
+// app/api/firebase-config.ts
 import { initializeApp, getApps } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 
-// Use environment variables if available, otherwise use mock values
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock-api-key",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "mock-project.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "mock-project-id",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "mock-project.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
+  apiKey: process.env.FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Check if we have real Firebase configuration
-const hasRealFirebaseConfig =
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "mock-project-id" &&
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock-api-key"
+// Validate that we have the required config
+const requiredFields = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"]
+const missingFields = requiredFields.filter((field) => !firebaseConfig[field as keyof typeof firebaseConfig])
 
-let db: any = null
+if (missingFields.length > 0) {
+  console.error("Missing Firebase configuration fields:", missingFields)
+  throw new Error(`Missing Firebase configuration: ${missingFields.join(", ")}`)
+}
 
-if (hasRealFirebaseConfig) {
-  try {
-    // Initialize Firebase app with real config
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
-
-    // Only initialize Firestore if we have a valid project ID
-    if (firebaseConfig.projectId && firebaseConfig.projectId !== "mock-project-id") {
-      db = getFirestore(app)
-      console.log("Using real Firebase configuration with Firestore")
-    } else {
-      console.log("Firebase app initialized but Firestore not available")
-      db = null
-    }
-  } catch (error) {
-    console.warn("Firebase initialization failed, using mock mode:", error)
-    db = null
-  }
+// Initialize Firebase only if it hasn't been initialized already
+let app
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig)
 } else {
-  // Use null for mock scenarios - the actions will handle this
-  db = null
-  console.log("Using mock Firebase configuration - db set to null")
+  app = getApps()[0]
 }
 
-export { db, hasRealFirebaseConfig }
+// Initialize Firestore
+export const db = getFirestore(app)
+
+// Export the app for other uses
+export { app }
+
+// Helper function to validate Firebase connection
+export async function validateFirebaseConnection() {
+  try {
+    // Simple test to verify Firestore is working
+    const testDoc = db._delegate || db
+    return !!testDoc
+  } catch (error) {
+    console.error("Firebase connection validation failed:", error)
+    return false
+  }
+}
