@@ -2,65 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
-@layer base {
+@media (prefers-color-scheme: dark) {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
   }
+}
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
 
 @layer utilities {
@@ -69,168 +27,21 @@ body {
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/* Custom animations for trainer profiles */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.6s ease-out;
-}
-
-.animate-pulse-slow {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Trainer profile specific styles */
-.trainer-profile-hero {
+/* Custom styles for the application */
+.hero-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.trainer-card-hover {
-  transition: all 0.3s ease;
+.card-hover {
+  transition: transform 0.2s ease-in-out;
 }
 
-.trainer-card-hover:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+.card-hover:hover {
+  transform: translateY(-2px);
 }
 
-/* Content editor styles */
-.content-editor {
-  min-height: calc(100vh - 4rem);
-}
-
-.editor-section {
-  @apply bg-white rounded-lg shadow-sm border p-6 mb-6;
-}
-
-.editor-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
-
-.editor-textarea {
-  min-height: 120px;
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y;
-}
-
-.editor-button {
-  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
-}
-
-.editor-button-secondary {
-  @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors;
-}
-
-.service-card {
-  @apply border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow;
-}
-
-.specialization-badge {
-  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800;
-}
-
-/* Service management styles */
-.service-item {
-  @apply bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4;
-}
-
-.service-item:hover {
-  @apply bg-gray-100 border-gray-300;
-}
-
-.service-form {
-  @apply space-y-4;
-}
-
-.service-form input,
-.service-form textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
-
-.service-form label {
-  @apply block text-sm font-medium text-gray-700 mb-1;
-}
-
-.service-form .form-group {
-  @apply mb-4;
-}
-
-.service-form .form-row {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
-}
-
-.service-form .form-section {
-  @apply mb-6 p-4 bg-gray-50 rounded-lg;
-}
-
-.service-form .form-section h3 {
-  @apply text-lg font-semibold mb-4 text-gray-800;
-}
-
-.service-form .submit-button {
-  @apply w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-/* Responsive design improvements */
-@media (max-width: 768px) {
-  .trainer-profile-hero {
-    padding: 2rem 1rem;
-  }
-
-  .content-editor {
-    padding: 1rem;
-  }
-
-  .editor-section {
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-}
-
-/* Loading states */
-.loading-skeleton {
+/* Loading animations */
+.loading-pulse {
   @apply animate-pulse bg-gray-200 rounded;
 }
 
@@ -246,36 +57,134 @@ body {
   @apply w-16 h-16 rounded-full animate-pulse bg-gray-200;
 }
 
-/* Success and error states */
-.success-message {
-  @apply bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md;
+/* Form styles */
+.form-section {
+  @apply space-y-6 p-6 bg-white rounded-lg shadow-sm border;
 }
 
-.error-message {
-  @apply bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md;
+.form-group {
+  @apply space-y-2;
 }
 
-.warning-message {
-  @apply bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md;
+.form-label {
+  @apply text-sm font-medium text-gray-700;
 }
 
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+.form-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+.form-button {
+  @apply w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+/* Trainer editor specific styles */
+.trainer-editor-content {
+  min-height: 200px;
+  width: 100%;
+}
+
+.editor-input {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.editor-textarea {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical;
+}
+
+.editor-button {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+}
+
+.editor-button-secondary {
+  @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors;
+}
+
+/* Service form styles */
+.service-form input,
+.service-form textarea {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.service-form textarea {
+  @apply resize-vertical;
+}
+
+/* Navigation styles */
+.nav-link {
+  @apply text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors;
+}
+
+.nav-link-active {
+  @apply text-blue-600 bg-blue-50 px-3 py-2 rounded-md text-sm font-medium;
+}
+
+/* Card styles */
+.feature-card {
+  @apply bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow;
+}
+
+.stat-card {
+  @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg;
+}
+
+/* Utility classes */
+.gradient-text {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+}
+
+.section-padding {
+  @apply py-16 px-4;
+}
+
+.container-max {
+  @apply max-w-7xl mx-auto;
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .mobile-padding {
+    @apply px-4;
+  }
+
+  .mobile-text-sm {
+    @apply text-sm;
+  }
 }
 
 /* Print styles */
@@ -283,240 +192,22 @@ body {
   .no-print {
     display: none !important;
   }
-
-  .trainer-profile-hero {
-    background: white !important;
-    color: black !important;
-  }
 }
 
-/* Custom styles for trainer editor components */
-.trainer-editor-container {
-  @apply min-h-screen bg-gray-50;
+/* Focus styles for accessibility */
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
 }
 
-.trainer-editor-sidebar {
-  @apply w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full overflow-y-auto;
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
 }
 
-.trainer-editor-main {
-  @apply ml-64 p-6;
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
 }
 
-.trainer-editor-preview {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
-}
-
-.trainer-editor-toolbar {
-  @apply flex items-center space-x-2 p-4 bg-white border-b border-gray-200;
-}
-
-.trainer-editor-content {
-  @apply resize-y w-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-  min-height: 200px;
-  width: 100%;
-}
-
-/* Trainer profile card styles */
-.trainer-profile-card {
-  @apply bg-white rounded-lg shadow-md p-6 mb-6;
-}
-
-.trainer-profile-header {
-  @apply flex items-center space-x-4 mb-4;
-}
-
-.trainer-profile-avatar {
-  @apply w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center;
-}
-
-.trainer-profile-info h2 {
-  @apply text-xl font-bold text-gray-800;
-}
-
-.trainer-profile-info p {
-  @apply text-gray-600;
-}
-
-.trainer-profile-content {
-  @apply space-y-4;
-}
-
-.trainer-profile-section {
-  @apply border-t pt-4;
-}
-
-.trainer-profile-section h3 {
-  @apply font-semibold text-gray-800 mb-2;
-}
-
-.trainer-profile-section p {
-  @apply text-gray-600 leading-relaxed;
-}
-
-.trainer-profile-tags {
-  @apply flex flex-wrap gap-2 mt-2;
-}
-
-.trainer-profile-tag {
-  @apply bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm;
-}
-
-/* Trainer dashboard styles */
-.trainer-dashboard-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
-}
-
-.trainer-dashboard-card {
-  @apply bg-white rounded-lg shadow-md p-6;
-}
-
-.trainer-dashboard-card h3 {
-  @apply text-lg font-semibold mb-4 text-gray-800;
-}
-
-.trainer-dashboard-stat {
-  @apply text-3xl font-bold text-blue-600;
-}
-
-.trainer-dashboard-label {
-  @apply text-sm text-gray-600 mt-1;
-}
-
-/* Trainer content editor styles */
-.trainer-content-editor {
-  @apply space-y-6;
-}
-
-.trainer-content-section {
-  @apply bg-white rounded-lg shadow-md p-6;
-}
-
-.trainer-content-section h3 {
-  @apply text-lg font-semibold mb-4 text-gray-800;
-}
-
-.trainer-content-form {
-  @apply space-y-4;
-}
-
-.trainer-content-form input,
-.trainer-content-form textarea {
-  @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
-
-.trainer-content-form label {
-  @apply block text-sm font-medium text-gray-700 mb-1;
-}
-
-.trainer-content-form .form-group {
-  @apply mb-4;
-}
-
-.trainer-content-preview {
-  @apply bg-gray-50 p-4 rounded-lg;
-}
-
-.trainer-content-preview h4 {
-  @apply font-semibold text-gray-800 mb-2;
-}
-
-.trainer-content-preview p {
-  @apply text-gray-600 leading-relaxed;
-}
-
-/* Trainer temporary page styles */
-.trainer-temp-page {
-  @apply min-h-screen bg-gray-100 py-8;
-}
-
-.trainer-temp-container {
-  @apply max-w-4xl mx-auto px-4;
-}
-
-.trainer-temp-header {
-  @apply text-center mb-8;
-}
-
-.trainer-temp-header h1 {
-  @apply text-3xl font-bold text-gray-800 mb-4;
-}
-
-.trainer-temp-header p {
-  @apply text-lg text-gray-600;
-}
-
-.trainer-temp-content {
-  @apply bg-white rounded-lg shadow-md p-8;
-}
-
-.trainer-temp-section {
-  @apply mb-8 pb-8 border-b border-gray-200 last:border-b-0;
-}
-
-.trainer-temp-section h2 {
-  @apply text-2xl font-semibold text-gray-800 mb-4;
-}
-
-.trainer-temp-section h3 {
-  @apply text-lg font-semibold text-gray-800 mb-2;
-}
-
-.trainer-temp-section p {
-  @apply text-gray-600 leading-relaxed mb-4;
-}
-
-.trainer-temp-services {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
-}
-
-.trainer-temp-service {
-  @apply bg-gray-50 p-4 rounded-lg;
-}
-
-.trainer-temp-service h4 {
-  @apply font-semibold text-gray-800 mb-2;
-}
-
-.trainer-temp-service p {
-  @apply text-gray-600 text-sm;
-}
-
-.trainer-temp-contact {
-  @apply bg-blue-50 p-6 rounded-lg;
-}
-
-.trainer-temp-contact h3 {
-  @apply text-lg font-semibold text-blue-800 mb-4;
-}
-
-.trainer-temp-contact-info {
-  @apply space-y-2;
-}
-
-.trainer-temp-contact-item {
-  @apply flex items-center space-x-2 text-blue-700;
-}
-
-.trainer-temp-cta {
-  @apply text-center mt-8;
-}
-
-.trainer-temp-cta button {
-  @apply bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-}
-
-/* Responsive utilities */
-@media (max-width: 768px) {
-  .trainer-editor-sidebar {
-    @apply transform -translate-x-full transition-transform duration-300 ease-in-out;
-  }
-
-  .trainer-editor-sidebar.open {
-    @apply translate-x-0;
-  }
-
-  .trainer-editor-main {
-    @apply ml-0;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400;
 }
