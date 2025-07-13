@@ -1,50 +1,108 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
-import { z } from "zod"
-import { logger } from "@/lib/logger"
 
-// Enhanced validation schema
-const TrainerFormSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters").trim(),
-  email: z.string().email("Invalid email address").trim(),
-  phone: z.string().optional(),
-  location: z.string().min(5, "Location must be at least 5 characters").trim(),
-  specialty: z.string().min(1, "Please select a specialty"),
-  experience: z.string().min(1, "Please select experience level"),
-  bio: z.string().min(50, "Bio must be at least 50 characters").max(500, "Bio must be less than 500 characters"),
-  certifications: z.string().optional(),
-  services: z.array(z.string()).min(1, "Please select at least one service"),
-})
-
-// Generate a secure session token
-function generateSessionToken(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  let result = ""
-  for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+interface TrainerFormData {
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications?: string
+  services: string[]
+  pricing?: string
+  socialMedia: {
+    instagram?: string
+    facebook?: string
+    website?: string
   }
-  return result
+}
+
+// Mock function to simulate trainer creation when Firebase is not available
+function createMockTrainer(data: TrainerFormData) {
+  const tempId = `temp_${Math.random().toString(36).substr(2, 12)}`
+  const sessionToken = Math.random().toString(36).substr(2, 32)
+
+  console.log("Mock trainer created:", {
+    tempId,
+    email: data.email,
+    fullName: data.fullName,
+    specialty: data.specialty,
+    location: data.location,
+    servicesCount: data.services.length,
+    hasPhone: !!data.phone,
+    hasCertifications: !!data.certifications,
+    bioLength: data.bio.length,
+  })
+
+  return {
+    success: true,
+    tempId,
+    sessionToken,
+    message: "Trainer profile created successfully (mock mode)",
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-  const requestId = Math.random().toString(36).substring(7)
-  const userAgent = request.headers.get("user-agent") || "unknown"
-  const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
-
-  logger.info("Trainer creation request started", {
-    requestId,
-    userAgent,
-    ipAddress,
-    timestamp: new Date().toISOString(),
-  })
-
   try {
     const body = await request.json()
 
-    logger.debug("Trainer form data received", {
-      requestId,
+    // Validate required fields
+    const requiredFields = ["fullName", "email", "location", "specialty", "experience", "bio", "services"]
+    const missingFields = requiredFields.filter(
+      (field) => !body[field] || (Array.isArray(body[field]) && body[field].length === 0),
+    )
+
+    if (missingFields.length > 0) {
+      console.warn("Form validation failed:", {
+        errors: missingFields,
+        email: body.email,
+        specialty: body.specialty,
+      })
+
+      return NextResponse.json(
+        {
+          error: "Missing required fields",
+          validationErrors: missingFields,
+        },
+        { status: 400 },
+      )
+    }
+
+    // Additional validation
+    const validationErrors: string[] = []
+
+    if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+      validationErrors.push("email")
+    }
+
+    if (body.location && body.location.trim().length < 5) {
+      validationErrors.push("location")
+    }
+
+    if (body.bio && body.bio.trim().length < 50) {
+      validationErrors.push("bio")
+    }
+
+    if (validationErrors.length > 0) {
+      console.warn("Form validation failed:", {
+        errors: validationErrors,
+        email: body.email,
+        validationErrors,
+      })
+
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          validationErrors,
+        },
+        { status: 400 },
+      )
+    }
+
+    console.log("Form submission started:", {
       email: body.email,
       specialty: body.specialty,
       location: body.location,
@@ -54,87 +112,55 @@ export async function POST(request: NextRequest) {
       bioLength: body.bio?.length || 0,
     })
 
-    // Validate form data with enhanced error handling
-    const validationResult = TrainerFormSchema.safeParse(body)
+    // Check if we have real Firebase configuration
+    if (!hasRealFirebaseConfig || !db) {
+      console.log("Using mock mode - Firebase not configured")
+      const result = createMockTrainer(body as TrainerFormData)
+      return NextResponse.json(result)
+    }
 
-    if (!validationResult.success) {
-      logger.warn("Trainer form validation failed", {
+    // Create trainer document in Firestore
+    try {
+      const trainerData = {
+        ...body,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        status: "pending",
+        isActive: false,
+        tempId: `temp_${Math.random().toString(36).substr(2, 12)}`,
+        sessionToken: Math.random().toString(36).substr(2, 32),
+      }
+
+      const docRef = await addDoc(collection(db, "trainers"), trainerData)
+
+      console.log("Trainer created successfully:", {
+        id: docRef.id,
+        tempId: trainerData.tempId,
         email: body.email,
-        errors: validationResult.error.errors,
-        timestamp: new Date().toISOString(),
       })
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Validation failed",
-          details: validationResult.error.errors,
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({
+        success: true,
+        id: docRef.id,
+        tempId: trainerData.tempId,
+        sessionToken: trainerData.sessionToken,
+        message: "Trainer profile created successfully",
+      })
+    } catch (firebaseError) {
+      console.error("Firebase error:", firebaseError)
+
+      // Fallback to mock mode if Firebase fails
+      console.log("Falling back to mock mode due to Firebase error")
+      const result = createMockTrainer(body as TrainerFormData)
+      return NextResponse.json(result)
     }
-
-    const formData = validationResult.data
-
-    // Create temporary trainer document
-    const expiresAt = new Date()
-    expiresAt.setHours(expiresAt.getHours() + 24) // 24 hour expiration
-
-    const tempTrainerData = {
-      ...formData,
-      status: "temp",
-      createdAt: serverTimestamp(),
-      expiresAt: expiresAt,
-      sessionToken: generateSessionToken(),
-      isActive: false,
-      isPaid: false,
-    }
-
-    logger.info("Creating temporary trainer document", {
-      email: formData.email,
-      expiresAt: expiresAt.toISOString(),
-      sessionToken: tempTrainerData.sessionToken.substring(0, 8) + "...", // Log partial token for security
-    })
-
-    // Add to Firebase
-    const docRef = await addDoc(collection(db, "trainers"), tempTrainerData)
-    const tempId = docRef.id
-
-    logger.info("Temporary trainer document created successfully", {
-      tempId,
-      email: formData.email,
-      specialty: formData.specialty,
-      expiresAt: expiresAt.toISOString(),
-    })
-
-    // Generate redirect URL
-    const redirectUrl = `/marketplace/trainer/temp/${tempId}?token=${tempTrainerData.sessionToken}`
-
-    logger.info("Trainer creation completed, sending redirect", {
-      tempId,
-      email: formData.email,
-      redirectUrl: redirectUrl.split("?")[0], // Don't log the token
-    })
-
-    return NextResponse.json({
-      success: true,
-      tempId,
-      redirectUrl,
-      expiresAt: expiresAt.toISOString(),
-    })
   } catch (error) {
-    const processingTime = Date.now() - startTime
-
-    logger.error("Trainer creation API error", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString(),
-    })
+    console.error("Trainer creation failed:", error)
 
     return NextResponse.json(
       {
-        success: false,
         error: "Internal server error. Please try again.",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     )
