@@ -1,13 +1,17 @@
 import type { Timestamp } from "firebase/firestore"
 
 export interface TrainerFormData {
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  phone?: string
+  phone: string
   location: string
   specialization: string
-  experience: string
-  bio?: string
+  experience: number
+  certifications: string[]
+  bio: string
+  website?: string
+  instagram?: string
 }
 
 // NEW: Extended content interface for editing
@@ -131,47 +135,39 @@ export interface TrainerProfile extends TrainerFormData {
 }
 
 export interface TrainerContent {
-  hero: {
-    title: string
-    subtitle: string
-    description: string
-  }
-  about: {
-    title: string
-    content: string
-  }
-  services: Service[]
-  contact: {
-    title: string
-    description: string
-    email: string
-    phone: string
-    location: string
-    availability: string
-  }
-  seo: {
-    title: string
-    description: string
-  }
+  heroTitle?: string
+  heroSubtitle?: string
+  aboutTitle?: string
+  aboutContent?: string
+  services?: Service[]
+  contactTitle?: string
+  contactContent?: string
+  seoTitle?: string
+  seoDescription?: string
   version?: number
   lastModified?: Date
 }
 
 export interface Trainer {
   id: string
-  name: string
-  email: string
-  phone?: string
-  specialization: string
-  experience: string
-  location: string
-  bio?: string
-  status: "pending" | "active" | "inactive"
   tempId?: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  location: string
+  specialization: string
+  experience: number
+  certifications?: string[]
+  bio?: string
+  website?: string
+  instagram?: string
+  status: "pending" | "active" | "inactive"
   paymentIntentId?: string
-  createdAt: string
-  updatedAt: string
   content?: TrainerContent
+  createdAt?: any
+  updatedAt?: any
+  activatedAt?: any
 }
 
 // Declare Service type if not imported
