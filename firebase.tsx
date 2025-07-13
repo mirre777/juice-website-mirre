@@ -1,40 +1,50 @@
-// firebase.tsx
+// Firebase configuration for client-side usage
 import { initializeApp, getApps } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 
+// Use environment variables if available, otherwise use mock values
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock-api-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "mock-project.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "mock-project-id",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "mock-project.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
 }
 
-// Initialize Firebase only if it hasn't been initialized already
-let app
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig)
-} else {
-  app = getApps()[0]
-}
+// Check if we have real Firebase configuration
+const hasRealFirebaseConfig =
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "mock-project-id" &&
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock-api-key"
 
-// Initialize Firestore
-export const db = getFirestore(app)
+let db: any = null
+let app: any = null
 
-// Export the app for other uses
-export { app }
-
-// Add a helper function to check if Firestore is available
-export function isFirestoreAvailable() {
+if (hasRealFirebaseConfig) {
   try {
-    return !!db && typeof db.app !== "undefined"
+    // Initialize Firebase app with real config
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
+
+    // Only initialize Firestore if we have a valid project ID
+    if (firebaseConfig.projectId && firebaseConfig.projectId !== "mock-project-id") {
+      db = getFirestore(app)
+      console.log("Client-side Firebase configuration initialized with Firestore")
+    } else {
+      console.log("Firebase app initialized but Firestore not available")
+      db = null
+    }
   } catch (error) {
-    console.error("Firestore availability check failed:", error)
-    return false
+    console.warn("Client-side Firebase initialization failed, using mock mode:", error)
+    db = null
+    app = null
   }
+} else {
+  // Use null for mock scenarios - the actions will handle this
+  db = null
+  app = null
+  console.log("Using mock Firebase configuration - db set to null")
 }
 
-export function initializeFirebase() {
-  return app
-}
+export { db, app, hasRealFirebaseConfig }

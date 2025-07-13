@@ -2,86 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
   }
 }
 
@@ -91,194 +65,6 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-  }
-}
-
-/* Custom animations for trainer profiles */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.6s ease-out;
-}
-
-.animate-pulse-slow {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Trainer profile specific styles */
-.trainer-profile-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.trainer-card-hover {
-  transition: all 0.3s ease;
-}
-
-.trainer-card-hover:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Content editor styles */
-.content-editor {
-  min-height: calc(100vh - 4rem);
-}
-
-.editor-section {
-  @apply bg-white rounded-lg shadow-sm border p-6 mb-6;
-}
-
-.editor-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
-
-.editor-textarea {
-  min-height: 120px;
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y;
-}
-
-.editor-button {
-  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
-}
-
-.editor-button-secondary {
-  @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors;
-}
-
-.service-card {
-  @apply border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow;
-}
-
-.specialization-badge {
-  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800;
-}
-
-/* Service management styles */
-.service-item {
-  @apply bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4;
-}
-
-.service-item:hover {
-  @apply bg-gray-100 border-gray-300;
-}
-
-.service-form {
-  @apply space-y-4;
-}
-
-.service-form input,
-.service-form textarea {
-  @apply editor-input;
-}
-
-/* Responsive design improvements */
-@media (max-width: 768px) {
-  .trainer-profile-hero {
-    padding: 2rem 1rem;
-  }
-
-  .content-editor {
-    padding: 1rem;
-  }
-
-  .editor-section {
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-}
-
-/* Loading states */
-.loading-skeleton {
-  @apply animate-pulse bg-gray-200 rounded;
-}
-
-.loading-text {
-  @apply loading-skeleton h-4 mb-2;
-}
-
-.loading-title {
-  @apply loading-skeleton h-6 mb-4;
-}
-
-.loading-avatar {
-  @apply loading-skeleton w-16 h-16 rounded-full;
-}
-
-/* Success and error states */
-.success-message {
-  @apply bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md;
-}
-
-.error-message {
-  @apply bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md;
-}
-
-.warning-message {
-  @apply bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md;
-}
-
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .trainer-profile-hero {
-    background: white !important;
-    color: black !important;
   }
 }
 
@@ -295,106 +81,51 @@ body {
   @apply flex-1 overflow-hidden;
 }
 
-.trainer-editor-preview {
+.trainer-editor-canvas {
   @apply h-full overflow-y-auto bg-white;
 }
 
-.trainer-editor-toolbar {
-  @apply flex items-center justify-between p-4 bg-white border-b border-gray-200;
-}
-
 .trainer-editor-section {
-  @apply p-6 border-b border-gray-100 last:border-b-0;
+  @apply relative group hover:outline hover:outline-2 hover:outline-blue-500 hover:outline-offset-2;
 }
 
-.trainer-editor-field {
-  @apply space-y-2;
+.trainer-editor-section-controls {
+  @apply absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity;
 }
 
-.trainer-editor-label {
-  @apply text-sm font-medium text-gray-700;
+.trainer-editor-toolbar {
+  @apply sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-2;
 }
 
-.trainer-editor-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+/* Rich text editor styles */
+.trainer-rich-editor {
+  @apply min-h-32 p-3 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500;
 }
 
-.trainer-editor-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y min-h-24;
+.trainer-rich-editor .ProseMirror {
+  @apply outline-none;
 }
 
-.trainer-editor-button {
-  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+.trainer-rich-editor .ProseMirror p {
+  @apply mb-2;
 }
 
-.trainer-editor-button-secondary {
-  @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+.trainer-rich-editor .ProseMirror h1 {
+  @apply text-2xl font-bold mb-3;
 }
 
-.trainer-editor-preview-section {
-  @apply mb-8 last:mb-0;
+.trainer-rich-editor .ProseMirror h2 {
+  @apply text-xl font-semibold mb-2;
 }
 
-.trainer-editor-service-card {
-  @apply p-4 border border-gray-200 rounded-lg bg-white;
+.trainer-rich-editor .ProseMirror h3 {
+  @apply text-lg font-medium mb-2;
 }
 
-.trainer-editor-contact-info {
-  @apply space-y-2 text-sm text-gray-600;
+.trainer-rich-editor .ProseMirror ul {
+  @apply list-disc list-inside mb-2;
 }
 
-/* Responsive design for trainer editor */
-@media (max-width: 768px) {
-  .trainer-editor-sidebar {
-    @apply w-full;
-  }
-
-  .trainer-editor-container {
-    @apply flex-col;
-  }
-}
-
-/* Animation classes */
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.slide-in-right {
-  animation: slideInRight 0.3s ease-in-out;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Loading spinner */
-.spinner {
-  @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
-}
-
-/* Success and error states */
-.success-state {
-  @apply text-green-600 bg-green-50 border-green-200;
-}
-
-.error-state {
-  @apply text-red-600 bg-red-50 border-red-200;
+.trainer-rich-editor .ProseMirror ol {
+  @apply list-decimal list-inside mb-2;
 }

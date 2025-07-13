@@ -1,4 +1,4 @@
-// app/api/firebase-config.ts
+// Firebase configuration
 import { initializeApp, getApps } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 
@@ -11,32 +11,49 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
+// Check if we have real Firebase configuration
+export const hasRealFirebaseConfig =
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "mock-project-id" &&
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock-api-key"
+
 // Validate that we have the required config
 const requiredFields = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"]
 const missingFields = requiredFields.filter((field) => !firebaseConfig[field as keyof typeof firebaseConfig])
 
-if (missingFields.length > 0) {
-  console.error("Missing Firebase configuration fields:", missingFields)
-  throw new Error(`Missing Firebase configuration: ${missingFields.join(", ")}`)
-}
+let db: any = null
+let app: any = null
 
-// Initialize Firebase only if it hasn't been initialized already
-let app
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig)
+if (hasRealFirebaseConfig && missingFields.length === 0) {
+  try {
+    // Initialize Firebase only if it hasn't been initialized already
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig)
+    } else {
+      app = getApps()[0]
+    }
+
+    // Initialize Firestore
+    db = getFirestore(app)
+    console.log("Firebase initialized successfully with Firestore")
+  } catch (error) {
+    console.error("Firebase initialization failed:", error)
+    db = null
+    app = null
+  }
 } else {
-  app = getApps()[0]
+  console.log("Using mock Firebase configuration - missing fields:", missingFields)
+  db = null
+  app = null
 }
 
-// Initialize Firestore
-export const db = getFirestore(app)
-
-// Export the app for other uses
-export { app }
+export { db, app }
 
 // Helper function to validate Firebase connection
 export async function validateFirebaseConnection() {
   try {
+    if (!db) return false
     // Simple test to verify Firestore is working
     const testDoc = db._delegate || db
     return !!testDoc
