@@ -1,24 +1,7 @@
 import { Suspense } from "react"
 import TempTrainerPage from "./TempTrainerPage"
 
-interface PageProps {
-  searchParams: { tempId?: string }
-}
-
-export default function Page({ searchParams }: PageProps) {
-  const tempId = searchParams.tempId
-
-  if (!tempId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid Trainer Link</h1>
-          <p className="text-gray-600">No trainer ID provided in the URL.</p>
-        </div>
-      </div>
-    )
-  }
-
+export default function Page() {
   return (
     <Suspense
       fallback={
@@ -30,7 +13,7 @@ export default function Page({ searchParams }: PageProps) {
         </div>
       }
     >
-      <TempTrainerPage tempId={tempId} />
+      <TempTrainerPage />
     </Suspense>
   )
 }
