@@ -8,24 +8,12 @@ export async function POST(request: NextRequest) {
   try {
     console.log("Trainer creation request started", { requestId })
 
-    // Validate Firebase connection first
-    const isConnected = await validateFirebaseConnection()
-    if (!isConnected) {
-      console.error("Firebase connection validation failed", { requestId })
-      return NextResponse.json({ error: "Database connection failed" }, { status: 500 })
-    }
-
-    // Check if we have real Firebase config
-    if (!hasRealFirebaseConfig()) {
-      console.warn("Using mock Firebase configuration", { requestId })
-    }
-
-    // Parse request body
+    // Parse request body first
     const body = await request.json()
     console.log("Request body parsed", { requestId, bodyKeys: Object.keys(body) })
 
     // Validate required fields
-    const requiredFields = ["fullName", "email", "specialty"]
+    const requiredFields = ["fullName", "email", "specialty", "location"]
     const missingFields = requiredFields.filter((field) => !body[field])
 
     if (missingFields.length > 0) {
@@ -33,10 +21,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Missing required fields: ${missingFields.join(", ")}` }, { status: 400 })
     }
 
-    // Validate database instance
-    if (!db) {
-      console.error("Database instance not available", { requestId })
-      return NextResponse.json({ error: "Database not initialized" }, { status: 500 })
+    // Check if we have real Firebase config
+    if (!hasRealFirebaseConfig()) {
+      console.log("Using mock Firebase configuration - simulating success", { requestId })
+
+      // Simulate successful creation for mock mode
+      const mockResponse = {
+        success: true,
+        trainerId: `mock_${requestId}`,
+        tempId: `temp_${requestId}`,
+        message: "Trainer profile created successfully (mock mode)",
+        tempUrl: `/marketplace/trainer/temp/mock_${requestId}`,
+      }
+
+      return NextResponse.json(mockResponse, { status: 201 })
+    }
+
+    // Validate Firebase connection
+    const isConnected = await validateFirebaseConnection()
+    if (!isConnected || !db) {
+      console.error("Firebase connection validation failed", { requestId })
+      return NextResponse.json({ error: "Database connection failed" }, { status: 500 })
     }
 
     // Prepare trainer data
@@ -46,10 +51,10 @@ export async function POST(request: NextRequest) {
       phone: body.phone || "",
       location: body.location,
       specialty: body.specialty,
-      experience: body.experience,
+      experience: body.experience || "",
       bio: body.bio || "",
-      certifications: body.certifications || [],
-      services: body.services || [],
+      certifications: body.certifications || "",
+      services: Array.isArray(body.services) ? body.services : [],
       pricing: body.pricing || "",
       availability: body.availability || "",
       socialMedia: body.socialMedia || {},

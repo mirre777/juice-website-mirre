@@ -1,5 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app"
-import { getFirestore, type Firestore, connectFirestoreEmulator } from "firebase/firestore"
+import { getFirestore, type Firestore } from "firebase/firestore"
 import { getAuth, type Auth } from "firebase/auth"
 import { getStorage, type Storage } from "firebase/storage"
 
@@ -17,13 +17,13 @@ interface FirebaseConfig {
 // Get Firebase configuration from environment variables
 function getFirebaseConfig(): FirebaseConfig | null {
   const config = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID,
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+    apiKey: process.env.FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   }
 
   // Check if all required fields are present
@@ -38,82 +38,57 @@ function getFirebaseConfig(): FirebaseConfig | null {
   return config as FirebaseConfig
 }
 
-// Mock Firebase configuration for development
-const mockConfig: FirebaseConfig = {
-  apiKey: "mock-api-key",
-  authDomain: "mock-project.firebaseapp.com",
-  projectId: "demo-project",
-  storageBucket: "mock-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456",
+// Check if we have real Firebase configuration
+export function hasRealFirebaseConfig(): boolean {
+  const config = getFirebaseConfig()
+  return config !== null && config.projectId !== "demo-project"
 }
 
-// Initialize Firebase app
-let app: FirebaseApp
-let db: Firestore
-let auth: Auth
-let storage: Storage
+// Initialize Firebase services
+let app: FirebaseApp | null = null
+let db: Firestore | null = null
+let auth: Auth | null = null
+let storage: Storage | null = null
 
 try {
-  const config = getFirebaseConfig() || mockConfig
+  const config = getFirebaseConfig()
 
-  // Initialize Firebase app if not already initialized
-  if (getApps().length === 0) {
-    app = initializeApp(config)
-    console.log(`Firebase initialized with project: ${config.projectId}`)
-  } else {
-    app = getApps()[0]
-  }
-
-  // Initialize Firestore
-  db = getFirestore(app)
-
-  // Connect to Firestore emulator in development if using mock config
-  if (!getFirebaseConfig() && process.env.NODE_ENV === "development") {
-    try {
-      connectFirestoreEmulator(db, "localhost", 8080)
-      console.log("Connected to Firestore emulator")
-    } catch (error) {
-      console.log("Firestore emulator connection failed, using mock data")
+  if (config && hasRealFirebaseConfig()) {
+    // Initialize with real Firebase config
+    if (getApps().length === 0) {
+      app = initializeApp(config)
+      console.log(`Firebase initialized with project: ${config.projectId}`)
+    } else {
+      app = getApps()[0]
     }
+
+    // Initialize services
+    db = getFirestore(app)
+    auth = getAuth(app)
+    storage = getStorage(app)
+
+    console.log("Firebase services initialized successfully")
+  } else {
+    console.log("No valid Firebase configuration found - using mock mode")
   }
-
-  // Initialize Auth
-  auth = getAuth(app)
-
-  // Initialize Storage
-  storage = getStorage(app)
 } catch (error) {
   console.error("Firebase initialization error:", error)
-
-  // Fallback initialization with mock config
-  if (getApps().length === 0) {
-    app = initializeApp(mockConfig)
-  } else {
-    app = getApps()[0]
-  }
-
-  db = getFirestore(app)
-  auth = getAuth(app)
-  storage = getStorage(app)
+  // Set services to null for mock mode
+  app = null
+  db = null
+  auth = null
+  storage = null
 }
 
-// Export Firebase services
-export { app, db, auth, storage }
-
-// Export configuration info
-export const firebaseConfig = getFirebaseConfig() || mockConfig
-export const isUsingMockConfig = !getFirebaseConfig()
-
-// Validation function
+// Validate database connection
 export async function validateFirebaseConnection(): Promise<boolean> {
   try {
-    // Simple test to check if Firestore is accessible
     if (!db) {
-      console.error("Firestore database not initialized")
+      console.log("Firestore database not initialized - using mock mode")
       return false
     }
 
+    // Simple connection test - just check if db exists
     console.log("Firebase connection validated successfully")
     return true
   } catch (error) {
@@ -122,10 +97,12 @@ export async function validateFirebaseConnection(): Promise<boolean> {
   }
 }
 
-// Check if we have real Firebase config
-export function hasRealFirebaseConfig(): boolean {
-  return !!getFirebaseConfig()
-}
+// Export Firebase services (can be null for mock mode)
+export { app, db, auth, storage }
+
+// Export configuration info
+export const firebaseConfig = getFirebaseConfig()
+export const isUsingMockConfig = !hasRealFirebaseConfig()
 
 // Debug function
 export function debugFirebaseConfig() {
@@ -134,10 +111,12 @@ export function debugFirebaseConfig() {
     hasConfig: !!config,
     projectId: config?.projectId || "Not set",
     isUsingMock: isUsingMockConfig,
+    dbInitialized: !!db,
     availableEnvVars: {
       FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
+      NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
       FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
-      FIREBASE_AUTH_DOMAIN: !!process.env.FIREBASE_AUTH_DOMAIN,
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     },
   })
 }
