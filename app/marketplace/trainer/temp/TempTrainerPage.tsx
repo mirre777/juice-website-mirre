@@ -1,291 +1,570 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { PaymentModal } from "@/components/payment/payment-modal"
+import { Separator } from "@/components/ui/separator"
 import {
-  Sparkles,
   Clock,
   CheckCircle,
   Star,
   MapPin,
-  Calendar,
+  Mail,
+  Phone,
   Award,
   Zap,
-  Database,
-  Palette,
-  TrendingUp,
+  Loader2,
+  AlertCircle,
+  CreditCard,
+  Sparkles,
 } from "lucide-react"
-import Navbar from "@/components/navbar"
+import { loadStripe } from "@stripe/stripe-js"
+import { logger } from "@/lib/logger"
 
-export default function TempTrainerPage() {
-  const [showGenerationModal, setShowGenerationModal] = useState(true)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [isGenerated, setIsGenerated] = useState(false)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-  const generationSteps = [
-    {
-      message: "Creating base page structure",
-      icon: <Zap className="w-6 h-6" />,
-      description: "Setting up your professional trainer layout",
-    },
-    {
-      message: "Importing data from Google",
-      icon: <Database className="w-6 h-6" />,
-      description: "Pulling your information from the form",
-    },
-    {
-      message: "Personalizing design",
-      icon: <Palette className="w-6 h-6" />,
-      description: "Customizing colors and style for your brand",
-    },
-    {
-      message: "Boost trainer visibility",
-      icon: <TrendingUp className="w-6 h-6" />,
-      description: "Optimizing for client discovery",
-    },
-  ]
+interface TrainerData {
+  id: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications?: string
+  services: string[]
+  expiresAt: string
+  timeRemaining: number
+}
+
+interface TempTrainerPageProps {
+  tempId: string
+  token: string
+}
+
+export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [timeRemaining, setTimeRemaining] = useState(0)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [generationComplete, setGenerationComplete] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
-    if (showGenerationModal) {
-      const interval = setInterval(() => {
-        setCurrentStep((prev) => {
-          if (prev >= generationSteps.length - 1) {
-            clearInterval(interval)
-            setTimeout(() => {
-              setShowGenerationModal(false)
-              setIsGenerated(true)
-            }, 1000)
-            return prev
-          }
-          return prev + 1
+    fetchTrainerData()
+  }, [tempId, token])
+
+  useEffect(() => {
+    if (trainer) {
+      // Start generation animation
+      const generationTimer = setTimeout(() => {
+        setGenerationComplete(true)
+        logger.info("Website generation animation completed", {
+          tempId,
+          email: trainer.email,
         })
-      }, 1200) // 1.2 seconds per step = ~5 seconds total
+      }, 8000) // 8 second generation animation
+
+      return () => clearTimeout(generationTimer)
+    }
+  }, [trainer, tempId])
+
+  useEffect(() => {
+    if (trainer && timeRemaining > 0) {
+      const interval = setInterval(() => {
+        const now = new Date().getTime()
+        const expiresAt = new Date(trainer.expiresAt).getTime()
+        const remaining = expiresAt - now
+
+        if (remaining <= 0) {
+          setTimeRemaining(0)
+          logger.warn("Session expired during viewing", {
+            tempId,
+            email: trainer.email,
+          })
+        } else {
+          setTimeRemaining(remaining)
+        }
+      }, 1000)
 
       return () => clearInterval(interval)
     }
-  }, [showGenerationModal])
+  }, [trainer, timeRemaining, tempId])
 
-  const handlePaymentComplete = () => {
-    // Here you would create the actual trainer ID and redirect
-    // For now, we'll simulate the process
-    alert("Payment successful! Your trainer profile is now live. You'll receive your unique URL via email.")
-    // In real implementation:
-    // 1. Create actual trainer profile with unique ID
-    // 2. Send email with the URL
-    // 3. Redirect to the live profile
+  const fetchTrainerData = async () => {
+    try {
+      logger.info("Fetching temp trainer data", {
+        tempId,
+        hasToken: !!token,
+      })
+
+      const response = await fetch(`/api/trainer/temp/${tempId}?token=${token}`)
+      const result = await response.json()
+
+      if (result.success) {
+        if (result.isActivated) {
+          logger.info("Trainer already activated, redirecting", {
+            tempId,
+            finalId: result.finalId,
+          })
+          router.push(result.redirectUrl)
+          return
+        }
+
+        setTrainer(result.trainer)
+        setTimeRemaining(result.trainer.timeRemaining)
+
+        logger.info("Temp trainer data loaded successfully", {
+          tempId,
+          email: result.trainer.email,
+          specialty: result.trainer.specialty,
+          timeRemaining: Math.round(result.trainer.timeRemaining / (1000 * 60 * 60)) + " hours",
+        })
+      } else {
+        logger.error("Failed to fetch trainer data", {
+          tempId,
+          error: result.error,
+          expired: result.expired,
+        })
+
+        if (result.expired) {
+          setError("Your session has expired. Please create a new trainer profile.")
+        } else {
+          setError(result.error || "Failed to load trainer data")
+        }
+      }
+    } catch (err) {
+      logger.error("Network error fetching trainer data", {
+        tempId,
+        error: err,
+      })
+      setError("Network error. Please refresh the page.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Sample trainer data (this would come from the Google Form)
-  const trainerData = {
-    name: "Your Name",
-    specialty: "Personal Training",
-    location: "Your City",
-    experience: "5+ Years",
-    bio: "Passionate fitness professional dedicated to helping clients achieve their goals through personalized training programs.",
-    certifications: ["NASM-CPT", "Nutrition Specialist"],
-    specialties: ["Weight Loss", "Strength Training", "Functional Fitness"],
-    stats: {
-      clients: "50+",
-      experience: "5 Years",
-      rating: "4.9",
-    },
+  const handlePayment = async () => {
+    if (!trainer) return
+
+    setIsProcessingPayment(true)
+
+    try {
+      logger.info("Initiating payment process", {
+        tempId,
+        email: trainer.email,
+        amount: 2900,
+        currency: "EUR",
+      })
+
+      // Create payment intent
+      const response = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: 2900, // €29.00 in cents
+          currency: "eur",
+          metadata: {
+            type: "trainer_activation",
+            tempId,
+            email: trainer.email,
+            specialty: trainer.specialty,
+          },
+        }),
+      })
+
+      const { clientSecret, paymentIntentId } = await response.json()
+
+      if (!clientSecret) {
+        throw new Error("Failed to create payment intent")
+      }
+
+      logger.info("Payment intent created", {
+        tempId,
+        paymentIntentId,
+        email: trainer.email,
+      })
+
+      // Initialize Stripe
+      const stripe = await stripePromise
+      if (!stripe) {
+        throw new Error("Stripe failed to initialize")
+      }
+
+      // Confirm payment
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: {
+            // This would normally be a card element, but for demo purposes
+            // we'll simulate a successful payment
+          },
+        },
+      })
+
+      if (error) {
+        logger.error("Payment failed", {
+          tempId,
+          error: error.message,
+          email: trainer.email,
+        })
+        throw new Error(error.message)
+      }
+
+      if (paymentIntent?.status === "succeeded") {
+        logger.info("Payment succeeded, activating trainer", {
+          tempId,
+          paymentIntentId: paymentIntent.id,
+          email: trainer.email,
+        })
+
+        // Activate trainer profile
+        const activationResponse = await fetch("/api/trainer/activate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tempId,
+            paymentIntentId: paymentIntent.id,
+          }),
+        })
+
+        const activationResult = await activationResponse.json()
+
+        if (activationResult.success) {
+          logger.info("Trainer activation successful", {
+            tempId,
+            finalId: activationResult.finalId,
+            email: trainer.email,
+          })
+
+          // Redirect to final trainer page
+          router.push(activationResult.redirectUrl)
+        } else {
+          throw new Error(activationResult.error || "Activation failed")
+        }
+      }
+    } catch (err) {
+      logger.error("Payment process error", {
+        tempId,
+        error: err,
+        email: trainer?.email,
+      })
+      setError(err instanceof Error ? err.message : "Payment failed")
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
+  const formatTimeRemaining = (ms: number) => {
+    const hours = Math.floor(ms / (1000 * 60 * 60))
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000)
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`
+    } else {
+      return `${seconds}s`
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#D2FF28]" />
+          <p className="text-gray-600">Loading your trainer profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Error</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!trainer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600">Trainer data not found</p>
+      </div>
+    )
+  }
+
+  if (timeRemaining <= 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-6 text-center">
+            <Clock className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Session Expired</h2>
+            <p className="text-gray-600 mb-4">
+              Your 24-hour preview period has expired. Please create a new trainer profile.
+            </p>
+            <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      {/* Generation Modal */}
-      <Dialog open={showGenerationModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md" hideCloseButton>
-          <div className="text-center py-8">
-            <div className="mb-8">
-              <div className="w-20 h-20 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                <div className="absolute inset-0 bg-[#D2FF28] rounded-full animate-ping opacity-75"></div>
-                <div className="relative">{generationSteps[currentStep]?.icon}</div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#D2FF28] rounded-full">
+                <Sparkles className="w-6 h-6 text-black" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">AI is Creating Your Website</h3>
-              <p className="text-[#D2FF28] font-medium text-lg mb-2">{generationSteps[currentStep]?.message}</p>
-              <p className="text-gray-600 text-sm">{generationSteps[currentStep]?.description}</p>
+              <div>
+                <h1 className="text-xl font-semibold">Website Preview</h1>
+                <p className="text-sm text-gray-600">24-hour trial period</p>
+              </div>
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-8">
-              <div
-                className="bg-[#D2FF28] h-3 rounded-full transition-all duration-300"
-                style={{ width: `${((currentStep + 1) / generationSteps.length) * 100}%` }}
-              ></div>
-            </div>
-
-            <div className="space-y-3">
-              {generationSteps.map((step, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
-                    index <= currentStep ? "bg-[#D2FF28]/10 text-[#D2FF28]" : "text-gray-400"
-                  }`}
-                >
-                  {index < currentStep ? (
-                    <CheckCircle className="w-5 h-5 text-[#D2FF28]" />
-                  ) : index === currentStep ? (
-                    <Clock className="w-5 h-5 animate-spin text-[#D2FF28]" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
-                  )}
-                  <span className="text-sm font-medium">{step.message}</span>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>Time remaining: {formatTimeRemaining(timeRemaining)}</span>
                 </div>
-              ))}
+              </div>
+
+              {generationComplete && (
+                <Button
+                  onClick={handlePayment}
+                  disabled={isProcessingPayment}
+                  className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-6"
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Activate for €29
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
-      {/* Overlay when generation is complete but not paid */}
-      {isGenerated && !showPaymentModal && (
-        <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-black" />
+      {/* Generation Animation */}
+      {!generationComplete && (
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Zap className="w-8 h-8 text-[#D2FF28] animate-pulse" />
+                <h2 className="text-2xl font-bold">Generating Your Website...</h2>
               </div>
-              <CardTitle className="text-2xl">Your Website is Ready!</CardTitle>
-              <p className="text-gray-600">
-                Complete your payment to make your trainer profile live and start attracting clients.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">What you get:</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>✓ Professional trainer website</li>
-                  <li>✓ Listed in Juice marketplace</li>
-                  <li>✓ Client booking system</li>
-                  <li>✓ Custom shareable URL</li>
-                  <li>✓ Mobile-optimized design</li>
-                </ul>
+              <p className="text-gray-600 mb-6">Our AI is creating your professional trainer website</p>
+
+              <div className="max-w-md mx-auto">
+                <div className="bg-gray-200 rounded-full h-2 mb-4">
+                  <div className="bg-[#D2FF28] h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
+                </div>
+                <p className="text-sm text-gray-500">This will take just a few seconds...</p>
               </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-transparent"
-                  onClick={() => setShowGenerationModal(true)}
-                >
-                  Preview Again
-                </Button>
-                <Button
-                  className="flex-1 bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90"
-                  onClick={() => setShowPaymentModal(true)}
-                >
-                  Pay €29
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <PaymentModal
-          triggerText="Pay €29"
-          amount="29.00"
-          description="Professional Trainer Website"
-          planName="Trainer Website"
-          onPaymentComplete={handlePaymentComplete}
-          children={<div />}
-        />
+      {/* Website Preview */}
+      {generationComplete && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Hero Section */}
+          <Card className="mb-8 overflow-hidden">
+            <div className="bg-gradient-to-r from-[#D2FF28] to-[#B8E625] p-8 text-black">
+              <div className="max-w-4xl mx-auto text-center">
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Body, Transform Your Life</h1>
+                <p className="text-xl mb-6 opacity-90">
+                  {trainer.specialty} • {trainer.experience} Experience • {trainer.location}
+                </p>
+                <Button size="lg" className="bg-black text-white hover:bg-gray-800">
+                  Book Your Free Consultation
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* About Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="w-5 h-5 text-[#D2FF28]" />
+                    About {trainer.fullName}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed mb-4">{trainer.bio}</p>
+
+                  <div className="grid grid-cols-2 gap-4 mt-6">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-[#D2FF28]" />
+                      <span className="text-sm font-medium">{trainer.experience} Experience</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium">Certified Professional</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Services Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>My Training Services</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {trainer.services.map((service, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="font-semibold mb-2">{service}</h3>
+                        <p className="text-sm text-gray-600">
+                          Personalized {service.toLowerCase()} sessions tailored to your goals
+                        </p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-sm font-medium text-[#D2FF28]">From €60/session</span>
+                          <Badge variant="outline">60 min</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Testimonials */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>What My Clients Say</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-2">
+                        "Working with {trainer.fullName.split(" ")[0]} has been life-changing. Their expertise in{" "}
+                        {trainer.specialty.toLowerCase()} helped me achieve results I never thought possible."
+                      </p>
+                      <p className="text-sm font-medium">- Sarah M.</p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-2">
+                        "Professional, knowledgeable, and motivating. {trainer.fullName.split(" ")[0]} creates
+                        personalized programs that actually work."
+                      </p>
+                      <p className="text-sm font-medium">- Mike R.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Contact Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm">{trainer.email}</span>
+                  </div>
+
+                  {trainer.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm">{trainer.phone}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm">{trainer.location}</span>
+                  </div>
+
+                  <Separator />
+
+                  <Button className="w-full bg-[#D2FF28] hover:bg-[#B8E625] text-black">Schedule Consultation</Button>
+                </CardContent>
+              </Card>
+
+              {/* Specialties */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Specialties</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Badge className="bg-[#D2FF28] text-black">{trainer.specialty}</Badge>
+                    {trainer.certifications && (
+                      <div className="mt-4">
+                        <h4 className="font-medium mb-2">Certifications</h4>
+                        <p className="text-sm text-gray-600">{trainer.certifications}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* CTA */}
+              <Card className="bg-gradient-to-br from-[#D2FF28] to-[#B8E625] text-black">
+                <CardContent className="p-6 text-center">
+                  <h3 className="font-bold text-lg mb-2">Ready to Start?</h3>
+                  <p className="text-sm mb-4 opacity-90">
+                    Book your free consultation today and take the first step towards your fitness goals.
+                  </p>
+                  <Button className="bg-black text-white hover:bg-gray-800">Get Started Now</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       )}
-
-      {/* Preview of the Generated Trainer Page */}
-      <div className={`${isGenerated ? "" : "pointer-events-none opacity-50"}`}>
-        {/* Hero Section */}
-        <section className="relative bg-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <Badge className="mb-4 bg-[#D2FF28] text-black">
-                  <Star className="w-4 h-4 mr-2" />
-                  Verified Trainer
-                </Badge>
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{trainerData.name}</h1>
-                <p className="text-xl text-[#D2FF28] font-semibold mb-4">{trainerData.specialty}</p>
-                <div className="flex items-center space-x-6 mb-6 text-gray-600">
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    {trainerData.location}
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    {trainerData.experience}
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-8 leading-relaxed">{trainerData.bio}</p>
-                <div className="flex gap-4">
-                  <Button className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">Book Session</Button>
-                  <Button variant="outline">View Programs</Button>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-                  <img src="/images/lemon-trainer.png" alt={trainerData.name} className="w-full h-full object-cover" />
-                </div>
-
-                {/* Floating Stats */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-[#D2FF28]">{trainerData.stats.rating}</div>
-                    <div className="text-sm text-gray-600">Rating</div>
-                  </div>
-                </div>
-
-                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-[#D2FF28]">{trainerData.stats.clients}</div>
-                    <div className="text-sm text-gray-600">Clients</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Specialties Section */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-12">Specialties</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {trainerData.specialties.map((specialty, index) => (
-                <Card key={index} className="text-center p-6">
-                  <CardContent className="pt-6">
-                    <Award className="w-12 h-12 text-[#D2FF28] mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">{specialty}</h3>
-                    <p className="text-gray-600">Expert-level training and guidance</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Certifications */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-12">Certifications</h2>
-            <div className="flex justify-center gap-4 flex-wrap">
-              {trainerData.certifications.map((cert, index) => (
-                <Badge key={index} variant="outline" className="text-lg py-2 px-4">
-                  {cert}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
     </div>
   )
 }
