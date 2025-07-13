@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getTrainer, updateTrainerContent } from "@/lib/firebase-trainer"
+import { updateTrainerContent, getTrainer } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
+import type { TrainerContent } from "@/types/trainer"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -14,15 +15,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    logger.info("Successfully fetched trainer content", { trainerId })
-    return NextResponse.json({
-      trainer: trainer.data,
-      content: trainer.content || null,
-    })
+    // Return the trainer data with content
+    return NextResponse.json(trainer)
   } catch (error) {
     logger.error("Error fetching trainer content", {
       trainerId: params.id,
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : "Unknown error",
     })
 
     return NextResponse.json({ error: "Failed to fetch trainer content" }, { status: 500 })
@@ -32,35 +30,29 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-    const { content } = await request.json()
+    const contentData: TrainerContent = await request.json()
 
-    logger.info("Updating trainer content", { trainerId })
+    logger.info("Updating trainer content", { trainerId, contentData })
 
-    if (!content) {
-      return NextResponse.json({ error: "Content is required" }, { status: 400 })
+    // Validate required fields
+    if (!contentData.heroTitle && !contentData.aboutContent) {
+      return NextResponse.json({ error: "At least hero title or about content is required" }, { status: 400 })
     }
 
-    // Validate content structure
-    const requiredFields = ["hero", "about", "services", "contact", "seo"]
-    for (const field of requiredFields) {
-      if (!content[field]) {
-        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
-      }
+    // Update the trainer content
+    const updatedTrainer = await updateTrainerContent(trainerId, contentData)
+
+    if (!updatedTrainer) {
+      logger.warn("Trainer not found for update", { trainerId })
+      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const success = await updateTrainerContent(trainerId, content)
-
-    if (!success) {
-      logger.error("Failed to update trainer content", { trainerId })
-      return NextResponse.json({ error: "Failed to update content" }, { status: 500 })
-    }
-
-    logger.info("Successfully updated trainer content", { trainerId })
-    return NextResponse.json({ success: true })
+    logger.info("Trainer content updated successfully", { trainerId })
+    return NextResponse.json(updatedTrainer)
   } catch (error) {
     logger.error("Error updating trainer content", {
       trainerId: params.id,
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : "Unknown error",
     })
 
     return NextResponse.json({ error: "Failed to update trainer content" }, { status: 500 })

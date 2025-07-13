@@ -19,10 +19,10 @@ interface LogEntry {
 class Logger {
   private isDevelopment = process.env.NODE_ENV === "development"
 
-  private formatMessage(level: string, message: string, context?: LogContext): string {
+  private formatMessage(level: string, message: string, data?: LogData): string {
     const timestamp = new Date().toISOString()
-    const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : ""
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${contextStr}`
+    const dataStr = data ? ` | ${JSON.stringify(data)}` : ""
+    return `[${timestamp}] ${level.toUpperCase()}: ${message}${dataStr}`
   }
 
   private formatLog(level: LogEntry["level"], message: string, context?: LogContext): LogEntry {
@@ -60,21 +60,21 @@ class Logger {
     }
   }
 
-  info(message: string, context?: LogContext): void {
-    console.log(this.formatMessage("info", message, context))
+  info(message: string, data?: LogData): void {
+    console.log(this.formatMessage("info", message, data))
   }
 
-  warn(message: string, context?: LogContext): void {
-    console.warn(this.formatMessage("warn", message, context))
+  warn(message: string, data?: LogData): void {
+    console.warn(this.formatMessage("warn", message, data))
   }
 
-  error(message: string, context?: LogContext): void {
-    console.error(this.formatMessage("error", message, context))
+  error(message: string, data?: LogData): void {
+    console.error(this.formatMessage("error", message, data))
   }
 
-  debug(message: string, context?: LogContext): void {
+  debug(message: string, data?: LogData): void {
     if (process.env.NODE_ENV === "development") {
-      console.debug(this.formatMessage("debug", message, context))
+      console.debug(this.formatMessage("debug", message, data))
     }
   }
 

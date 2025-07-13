@@ -5,33 +5,32 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Clock, Euro, Mail, Phone, Edit, Calendar, Award, Users } from "lucide-react"
+import { MapPin, Mail, Phone, Edit, Star, Clock, Euro } from "lucide-react"
 import Link from "next/link"
-import type { TrainerData, TrainerContent } from "@/types/trainer"
+import Image from "next/image"
+import type { Trainer } from "@/types/trainer"
 
 interface TrainerProfilePageProps {
   trainerId: string
 }
 
 export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
-  const [trainer, setTrainer] = useState<TrainerData | null>(null)
-  const [content, setContent] = useState<TrainerContent | null>(null)
+  const [trainer, setTrainer] = useState<Trainer | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchTrainerData()
+    fetchTrainer()
   }, [trainerId])
 
-  const fetchTrainerData = async () => {
+  const fetchTrainer = async () => {
     try {
       const response = await fetch(`/api/trainer/content/${trainerId}`)
       if (response.ok) {
         const data = await response.json()
-        setTrainer(data.trainer)
-        setContent(data.content)
+        setTrainer(data)
       }
     } catch (error) {
-      console.error("Error fetching trainer data:", error)
+      console.error("Error fetching trainer:", error)
     } finally {
       setLoading(false)
     }
@@ -39,254 +38,192 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-juice/5 to-orange-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-juice"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-pulse">
+          <div className="w-96 h-96 bg-white rounded-2xl shadow-xl"></div>
+        </div>
       </div>
     )
   }
 
   if (!trainer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-juice/5 to-orange-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Trainer Not Found</h1>
-          <Link href="/marketplace">
-            <Button>Back to Marketplace</Button>
-          </Link>
+          <p className="text-gray-600">The trainer profile you're looking for doesn't exist.</p>
         </div>
       </div>
     )
   }
 
-  // Use custom content if available, otherwise fall back to original data
-  const heroTitle = content?.hero?.title || `Professional ${trainer.specialization} Training with ${trainer.name}`
-  const heroSubtitle = content?.hero?.subtitle || `${trainer.experience} Years of Experience`
-  const heroDescription =
-    content?.hero?.description ||
-    `Transform your fitness journey with personalized training from ${trainer.name}. Based in ${trainer.location}, offering professional ${trainer.specialization} services.`
-
-  const aboutTitle = content?.about?.title || "About Me"
+  // Use edited content if available, otherwise fall back to original form data
+  const heroTitle = trainer.content?.heroTitle || `${trainer.firstName} ${trainer.lastName}`
+  const heroSubtitle = trainer.content?.heroSubtitle || `Professional ${trainer.specialization} Trainer`
+  const aboutTitle = trainer.content?.aboutTitle || "About Me"
   const aboutContent =
-    content?.about?.content ||
-    `Hi, I'm ${trainer.name}, a certified ${trainer.specialization} trainer with ${trainer.experience} years of experience. I'm passionate about helping people achieve their fitness goals through personalized training programs.`
+    trainer.content?.aboutContent ||
+    `Experienced ${trainer.specialization.toLowerCase()} trainer with ${trainer.experience} of experience. Passionate about helping clients achieve their fitness goals through personalized training programs.`
+  const contactTitle = trainer.content?.contactTitle || "Get In Touch"
+  const contactMessage =
+    trainer.content?.contactMessage || "Ready to start your fitness journey? Contact me to schedule your first session!"
 
-  const services = content?.services || [
-    {
-      id: "1",
-      title: "Personal Training Session",
-      description: "One-on-one personalized training session",
-      price: "€60",
-      duration: "60 minutes",
-    },
-  ]
-
-  const contactTitle = content?.contact?.title || "Get Started Today"
-  const contactDescription =
-    content?.contact?.description ||
-    "Ready to begin your fitness transformation? Contact me to schedule your first session."
-  const contactEmail = content?.contact?.email || trainer.email
-  const contactPhone = content?.contact?.phone || trainer.phone || ""
-  const availability = content?.contact?.availability || "Contact me for availability"
+  // Use custom services if available, otherwise create default services
+  const services =
+    trainer.content?.services && trainer.content.services.length > 0
+      ? trainer.content.services
+      : [
+          {
+            id: "1",
+            title: "Personal Training Session",
+            description: "One-on-one personalized training session",
+            price: 60,
+            duration: "60 minutes",
+          },
+          {
+            id: "2",
+            title: "Fitness Assessment",
+            description: "Comprehensive fitness evaluation and goal setting",
+            price: 40,
+            duration: "45 minutes",
+          },
+        ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-juice/5 to-orange-50">
-      {/* Hero Section */}
-      <div className="relative py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">{heroTitle}</h1>
-            <p className="text-xl text-gray-600 mb-2">{heroSubtitle}</p>
-            <p className="text-lg text-gray-700 max-w-3xl mx-auto">{heroDescription}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Edit Button for Active Trainers */}
+        {trainer.status === "active" && (
+          <div className="mb-6 flex justify-end">
+            <Link href={`/marketplace/trainer/${trainerId}/edit`}>
+              <Button variant="outline" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Content
+              </Button>
+            </Link>
           </div>
+        )}
 
-          {/* Trainer Card */}
-          <Card className="max-w-4xl mx-auto shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <div className="flex flex-col lg:flex-row gap-8">
-                {/* Profile Image */}
-                <div className="flex-shrink-0">
-                  <div className="w-48 h-48 mx-auto lg:mx-0 rounded-2xl bg-gradient-to-br from-juice to-orange-400 flex items-center justify-center">
-                    <div className="w-44 h-44 rounded-xl bg-white flex items-center justify-center">
-                      <Users className="h-20 w-20 text-juice" />
-                    </div>
+        {/* Floating Card Design */}
+        <Card className="overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+          <CardContent className="p-0">
+            {/* Hero Section */}
+            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 md:p-12">
+              <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                <div className="relative">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/20 shadow-xl">
+                    <Image
+                      src="/placeholder-user.jpg"
+                      alt={`${trainer.firstName} ${trainer.lastName}`}
+                      width={160}
+                      height={160}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
+                  {trainer.status === "active" && (
+                    <div className="absolute -top-2 -right-2">
+                      <Badge className="bg-green-500 text-white border-0">
+                        <Star className="w-3 h-3 mr-1" />
+                        Active
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
-                {/* Profile Info */}
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6">
-                    <div>
-                      <h2 className="text-3xl font-bold text-gray-900 mb-2">{trainer.name}</h2>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Badge variant="secondary" className="bg-juice/10 text-juice">
-                          {trainer.specialization}
-                        </Badge>
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {trainer.location}
-                        </Badge>
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Award className="h-3 w-3" />
-                          {trainer.experience} years
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {trainer.status === "active" && (
-                      <Link href={`/marketplace/trainer/${trainerId}/edit`}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Content
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-juice">{trainer.experience}</div>
-                      <div className="text-sm text-gray-600">Years Exp.</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-juice">4.9</div>
-                      <div className="text-sm text-gray-600">Rating</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-juice">100+</div>
-                      <div className="text-sm text-gray-600">Clients</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-juice">24/7</div>
-                      <div className="text-sm text-gray-600">Support</div>
-                    </div>
-                  </div>
-
-                  {/* Contact Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button className="flex-1 bg-juice hover:bg-juice/90">
-                      <Mail className="h-4 w-4 mr-2" />
-                      Contact Now
-                    </Button>
-                    <Button variant="outline" className="flex-1 bg-transparent">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Book Session
-                    </Button>
+                <div className="flex-1 text-center md:text-left">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2">{heroTitle}</h1>
+                  <p className="text-xl text-blue-100 mb-4">{heroSubtitle}</p>
+                  <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                      {trainer.specialization}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                      {trainer.experience} Experience
+                    </Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      {trainer.location}
+                    </Badge>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
 
-      {/* Content Sections */}
-      <div className="max-w-6xl mx-auto px-4 pb-20">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">{aboutTitle}</h3>
-                <div className="prose prose-gray max-w-none">
-                  {aboutContent.split("\n").map((paragraph, index) => (
-                    <p key={index} className="text-gray-700 leading-relaxed mb-4">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="p-8 md:p-12 space-y-8">
+              {/* About Section */}
+              <section>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">{aboutTitle}</h2>
+                <p className="text-gray-600 leading-relaxed">{aboutContent}</p>
+              </section>
 
-            {/* Services Section */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Services & Pricing</h3>
-                <div className="space-y-6">
-                  {services.map((service, index) => (
-                    <div
-                      key={service.id}
-                      className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                        <h4 className="text-xl font-semibold text-gray-900">{service.title}</h4>
-                        <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Euro className="h-3 w-3" />
-                            {service.price}
-                          </Badge>
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {service.duration}
-                          </Badge>
+              <Separator />
+
+              {/* Services Section */}
+              <section>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Services</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {services.map((service) => (
+                    <Card key={service.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-semibold text-gray-900">{service.title}</h3>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-blue-600">
+                              <Euro className="w-4 h-4 inline mr-1" />
+                              {service.price}
+                            </div>
+                            <div className="text-sm text-gray-500 flex items-center">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {service.duration}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-gray-600 leading-relaxed">{service.description}</p>
-                    </div>
+                        <p className="text-gray-600 text-sm">{service.description}</p>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </section>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Info */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{contactTitle}</h3>
-                <p className="text-gray-600 mb-6">{contactDescription}</p>
+              <Separator />
 
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-juice" />
-                    <a href={`mailto:${contactEmail}`} className="text-gray-700 hover:text-juice">
-                      {contactEmail}
-                    </a>
-                  </div>
-                  {contactPhone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-juice" />
-                      <a href={`tel:${contactPhone}`} className="text-gray-700 hover:text-juice">
-                        {contactPhone}
-                      </a>
+              {/* Contact Section */}
+              <section>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">{contactTitle}</h2>
+                <p className="text-gray-600 mb-6">{contactMessage}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Email</p>
+                      <p className="text-gray-600">{trainer.email}</p>
                     </div>
-                  )}
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-juice mt-1" />
-                    <div className="text-gray-700">
-                      {availability.split("\n").map((line, index) => (
-                        <div key={index}>{line}</div>
-                      ))}
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                    <Phone className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Phone</p>
+                      <p className="text-gray-600">{trainer.phone}</p>
                     </div>
                   </div>
                 </div>
 
-                <Separator className="my-6" />
-
-                <Button className="w-full bg-juice hover:bg-juice/90">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Get Started Today
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Location */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Location</h3>
-                <div className="flex items-center gap-3 mb-4">
-                  <MapPin className="h-5 w-5 text-juice" />
-                  <span className="text-gray-700">{trainer.location}</span>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" className="flex-1">
+                    <Mail className="w-4 h-4 mr-2" />
+                    Send Message
+                  </Button>
+                  <Button variant="outline" size="lg" className="flex-1 bg-transparent">
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call Now
+                  </Button>
                 </div>
-                <div className="bg-gray-100 rounded-lg h-32 flex items-center justify-center">
-                  <span className="text-gray-500">Map placeholder</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </section>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

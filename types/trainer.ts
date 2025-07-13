@@ -1,12 +1,12 @@
 export interface TrainerFormData {
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  phone?: string
+  phone: string
   specialization: string
   experience: string
-  location?: string
-  bio?: string
-  certifications?: string[]
+  location: string
+  bio: string
 }
 
 // NEW: Extended content interface for editing
@@ -26,7 +26,7 @@ export interface EditableTrainerContent {
   customServices?: Array<{
     title: string // "Personal Training"
     description: string // "One-on-one customized workouts"
-    price?: string // "€80/session"
+    price?: number // "€80/session"
     duration?: string // "60 minutes"
   }>
 
@@ -120,35 +120,23 @@ export interface TrainerActivationResponse {
 }
 
 // NEW: Trainer Profile interface
-export interface TrainerProfile extends TrainerData {
+export interface TrainerProfile extends TrainerFormData {
   content?: TrainerContent
 }
 
 // NEW: Trainer Content interface
 export interface TrainerContent {
-  hero: {
-    title: string
-    subtitle: string
-    description: string
-  }
-  about: {
-    title: string
-    content: string
-  }
-  services: Service[]
-  contact: {
-    title: string
-    description: string
-    email: string
-    phone: string
-    availability: string
-  }
-  seo: {
-    title: string
-    description: string
-  }
-  updatedAt?: Date
+  heroTitle?: string
+  heroSubtitle?: string
+  aboutTitle?: string
+  aboutContent?: string
+  services?: Service[]
+  contactTitle?: string
+  contactMessage?: string
+  seoTitle?: string
+  seoDescription?: string
   version?: number
+  lastModified?: string
 }
 
 // NEW: Service interface
@@ -156,16 +144,17 @@ export interface Service {
   id: string
   title: string
   description: string
-  price: string
+  price: number
   duration: string
 }
 
 // NEW: Temp Trainer Data interface
 export interface TempTrainerData {
   tempId: string
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  phone?: string
+  phone: string
   location: string
   specializations: string[]
   experience: string
@@ -179,9 +168,10 @@ export interface TempTrainerData {
 
 export interface TrainerData {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  phone?: string
+  phone: string
   specialization: string
   experience: string
   location: string
@@ -192,36 +182,12 @@ export interface TrainerData {
   stripePaymentIntentId?: string
 }
 
-export interface Trainer {
+export interface Trainer extends TrainerFormData {
   id: string
-  name: string
-  email: string
-  phone: string
-  location: string
-  specializations: string[]
-  experience: string
-  certifications: string[]
-  bio: string
-  hourlyRate: string
-  availability: string
-  status: "temp" | "active"
-  tempId?: string
-  createdAt: Date
-  activatedAt?: Date
+  status: "pending" | "active" | "inactive"
+  createdAt: string
+  updatedAt: string
+  activatedAt?: string
+  paymentIntentId?: string
   content?: TrainerContent
-}
-
-export interface CreateTrainerRequest {
-  name: string
-  email: string
-  phone?: string
-  specialization: string
-  experience: string
-  location: string
-  bio: string
-}
-
-export interface ActivateTrainerRequest {
-  tempId: string
-  paymentIntentId: string
 }
