@@ -1,12 +1,21 @@
-import type { Timestamp } from "firebase/firestore"
-
 export interface TrainerFormData {
-  name: string
+  fullName: string
   email: string
-  specialization: string
-  experience: string
+  phone: string
   location: string
+  specialty: string
+  experience: string
+  certifications: string[]
   bio: string
+  services: string[]
+  pricing: string
+  availability: string
+  socialMedia: {
+    instagram?: string
+    facebook?: string
+    website?: string
+  }
+  profileImage?: string
 }
 
 // NEW: Extended content interface for editing
@@ -14,17 +23,16 @@ export interface EditableTrainerContent {
   // Hero Section
   heroTitle?: string // "Transform Your Body, Transform Your Life"
   heroSubtitle?: string // "Certified Personal Trainer specializing in..."
-  heroDescription?: string // Additional description for hero section
+  heroCallToAction?: string // "Book Your Free Consultation"
 
   // About Section
-  aboutTitle?: string // "About [Name]"
-  aboutDescription?: string // Bio paragraph
+  aboutHeading?: string // "About [Name]"
+  aboutContent?: string // Bio paragraph
   aboutHighlights?: string[] // ["5+ Years Experience", "200+ Clients Transformed"]
 
   // Services Section
   servicesHeading?: string // "My Training Services"
   customServices?: Array<{
-    id: string
     title: string // "Personal Training"
     description: string // "One-on-one customized workouts"
     price?: string // "€80/session"
@@ -42,10 +50,6 @@ export interface EditableTrainerContent {
   // Contact Section
   contactHeading?: string // "Ready to Start Your Journey?"
   contactSubtext?: string // "Get in touch to schedule your consultation"
-  contactEmail?: string // Trainer's email for contact
-  contactPhone?: string // Trainer's phone number for contact
-  contactLocation?: string // Trainer's location for contact
-  contactAvailability?: string // Availability information for contact
 
   // Styling Options
   primaryColor?: string // "#D2FF28" (brand color)
@@ -64,7 +68,7 @@ export interface TrainerWebsiteSettings {
 
 // NEW: Customization metadata
 export interface TrainerCustomization {
-  lastUpdated: Timestamp
+  lastUpdated: Date
   version: number
   isDraft: boolean
 }
@@ -73,11 +77,11 @@ export interface TrainerCustomization {
 export interface TrainerDocument extends TrainerFormData {
   id: string
   tempId?: string
-  status: "pending" | "active" | "inactive"
-  createdAt: Timestamp
-  updatedAt: Timestamp
-  activatedAt?: Timestamp
-  stripePaymentIntentId?: string
+  status: "temp" | "pending_payment" | "active"
+  createdAt: Date
+  updatedAt: Date
+  activatedAt?: Date
+  paymentIntentId?: string
 
   // NEW: Editable content
   content?: EditableTrainerContent
@@ -125,54 +129,72 @@ export interface TrainerActivationResponse {
 }
 
 // NEW: Trainer Profile interface
-export interface TrainerProfile extends TrainerFormData {
-  content?: TrainerContent
-}
-
-export interface TrainerContent {
-  heroTitle?: string
-  heroSubtitle?: string
-  aboutTitle?: string
-  aboutContent?: string
-  services?: Service[]
-  contactEmail?: string
-  contactPhone?: string
-  contactLocation?: string
-  seoTitle?: string
-  seoDescription?: string
-  version?: number
-  lastModified?: Timestamp
-}
-
-export interface Trainer {
+export interface TrainerProfile {
   id: string
   name: string
   email: string
+  phone?: string
+  location: string
   specialization: string
   experience: string
-  location: string
   bio: string
-  status: "active" | "pending" | "inactive"
-  tempId?: string
-  paymentIntentId?: string
+  certifications: string[]
+  status: "pending" | "active" | "inactive"
+  createdAt: string
+  updatedAt: string
+  tempId: string | null
+  paymentIntentId: string | null
   content?: TrainerContent
-  createdAt: Timestamp
-  updatedAt: Timestamp
 }
 
-// Declare Service type if not imported
+// NEW: Trainer Content interface
+export interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    content: string
+  }
+  services: Service[]
+  contact: {
+    title: string
+    description: string
+    email: string
+    phone: string
+    location: string
+  }
+  seo: {
+    title: string
+    description: string
+  }
+  version?: number
+  lastModified?: string
+}
+
+// NEW: Service interface
 export interface Service {
   id: string
   title: string
   description: string
-  price: string
+  price: number
   duration: string
+  featured: boolean
 }
 
-export interface TempTrainer {
-  id: string
-  formData: TrainerFormData
-  paymentIntentId?: string
-  createdAt: Timestamp
-  expiresAt: Timestamp
+// NEW: Temp Trainer Data interface
+export interface TempTrainerData {
+  tempId: string
+  name: string
+  email: string
+  phone?: string
+  location: string
+  specialization: string
+  experience: string
+  bio: string
+  certifications: string[]
+  createdAt: string
+  expiresAt: string
 }
