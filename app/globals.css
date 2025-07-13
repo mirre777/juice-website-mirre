@@ -27,20 +27,12 @@ body {
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -68,14 +60,6 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -205,6 +189,30 @@ body {
   @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
 }
 
+.service-form label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.service-form .form-group {
+  @apply mb-4;
+}
+
+.service-form .form-row {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.service-form .form-section {
+  @apply mb-6 p-4 bg-gray-50 rounded-lg;
+}
+
+.service-form .form-section h3 {
+  @apply text-lg font-semibold mb-4 text-gray-800;
+}
+
+.service-form .submit-button {
+  @apply w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
 /* Responsive design improvements */
 @media (max-width: 768px) {
   .trainer-profile-hero {
@@ -306,20 +314,196 @@ body {
 .trainer-editor-content {
   @apply resize-y w-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent;
   min-height: 200px;
+  width: 100%;
 }
 
-/* Form validation styles */
-.form-error {
-  @apply text-red-500 text-sm mt-1;
+/* Trainer profile card styles */
+.trainer-profile-card {
+  @apply bg-white rounded-lg shadow-md p-6 mb-6;
 }
 
-.form-success {
-  @apply text-green-500 text-sm mt-1;
+.trainer-profile-header {
+  @apply flex items-center space-x-4 mb-4;
 }
 
-/* Loading states */
-.loading-spinner {
-  @apply animate-spin rounded-full border-b-2 border-blue-600;
+.trainer-profile-avatar {
+  @apply w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center;
+}
+
+.trainer-profile-info h2 {
+  @apply text-xl font-bold text-gray-800;
+}
+
+.trainer-profile-info p {
+  @apply text-gray-600;
+}
+
+.trainer-profile-content {
+  @apply space-y-4;
+}
+
+.trainer-profile-section {
+  @apply border-t pt-4;
+}
+
+.trainer-profile-section h3 {
+  @apply font-semibold text-gray-800 mb-2;
+}
+
+.trainer-profile-section p {
+  @apply text-gray-600 leading-relaxed;
+}
+
+.trainer-profile-tags {
+  @apply flex flex-wrap gap-2 mt-2;
+}
+
+.trainer-profile-tag {
+  @apply bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm;
+}
+
+/* Trainer dashboard styles */
+.trainer-dashboard-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.trainer-dashboard-card {
+  @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.trainer-dashboard-card h3 {
+  @apply text-lg font-semibold mb-4 text-gray-800;
+}
+
+.trainer-dashboard-stat {
+  @apply text-3xl font-bold text-blue-600;
+}
+
+.trainer-dashboard-label {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+/* Trainer content editor styles */
+.trainer-content-editor {
+  @apply space-y-6;
+}
+
+.trainer-content-section {
+  @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.trainer-content-section h3 {
+  @apply text-lg font-semibold mb-4 text-gray-800;
+}
+
+.trainer-content-form {
+  @apply space-y-4;
+}
+
+.trainer-content-form input,
+.trainer-content-form textarea {
+  @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.trainer-content-form label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.trainer-content-form .form-group {
+  @apply mb-4;
+}
+
+.trainer-content-preview {
+  @apply bg-gray-50 p-4 rounded-lg;
+}
+
+.trainer-content-preview h4 {
+  @apply font-semibold text-gray-800 mb-2;
+}
+
+.trainer-content-preview p {
+  @apply text-gray-600 leading-relaxed;
+}
+
+/* Trainer temporary page styles */
+.trainer-temp-page {
+  @apply min-h-screen bg-gray-100 py-8;
+}
+
+.trainer-temp-container {
+  @apply max-w-4xl mx-auto px-4;
+}
+
+.trainer-temp-header {
+  @apply text-center mb-8;
+}
+
+.trainer-temp-header h1 {
+  @apply text-3xl font-bold text-gray-800 mb-4;
+}
+
+.trainer-temp-header p {
+  @apply text-lg text-gray-600;
+}
+
+.trainer-temp-content {
+  @apply bg-white rounded-lg shadow-md p-8;
+}
+
+.trainer-temp-section {
+  @apply mb-8 pb-8 border-b border-gray-200 last:border-b-0;
+}
+
+.trainer-temp-section h2 {
+  @apply text-2xl font-semibold text-gray-800 mb-4;
+}
+
+.trainer-temp-section h3 {
+  @apply text-lg font-semibold text-gray-800 mb-2;
+}
+
+.trainer-temp-section p {
+  @apply text-gray-600 leading-relaxed mb-4;
+}
+
+.trainer-temp-services {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.trainer-temp-service {
+  @apply bg-gray-50 p-4 rounded-lg;
+}
+
+.trainer-temp-service h4 {
+  @apply font-semibold text-gray-800 mb-2;
+}
+
+.trainer-temp-service p {
+  @apply text-gray-600 text-sm;
+}
+
+.trainer-temp-contact {
+  @apply bg-blue-50 p-6 rounded-lg;
+}
+
+.trainer-temp-contact h3 {
+  @apply text-lg font-semibold text-blue-800 mb-4;
+}
+
+.trainer-temp-contact-info {
+  @apply space-y-2;
+}
+
+.trainer-temp-contact-item {
+  @apply flex items-center space-x-2 text-blue-700;
+}
+
+.trainer-temp-cta {
+  @apply text-center mt-8;
+}
+
+.trainer-temp-cta button {
+  @apply bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
 }
 
 /* Responsive utilities */
