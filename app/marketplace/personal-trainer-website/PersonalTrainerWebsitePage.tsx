@@ -72,8 +72,31 @@ export default function PersonalTrainerWebsitePage() {
   const [error, setError] = useState("")
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
+  // Enhanced email validation function
+  const isValidEmail = (email: string): boolean => {
+    // Clean the email first - remove any unwanted characters
+    const cleanEmail = email.trim().replace(/[`'"]/g, "")
+
+    // More robust email regex
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+
+    return emailRegex.test(cleanEmail) && cleanEmail.length <= 254
+  }
+
   const handleInputChange = (field: keyof TrainerFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    // Clean the input value, especially for email
+    let cleanValue = value
+
+    if (field === "email") {
+      // Remove any backticks, quotes, or other problematic characters from email
+      cleanValue = value.trim().replace(/[`'"]/g, "").toLowerCase()
+    } else if (field === "fullName" || field === "location") {
+      // Trim whitespace for name and location fields
+      cleanValue = value.trim()
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: cleanValue }))
 
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
@@ -87,8 +110,8 @@ export default function PersonalTrainerWebsitePage() {
     // Log form interaction for analytics
     logger.debug("Form field updated", {
       field,
-      hasValue: !!value,
-      valueLength: value.length,
+      hasValue: !!cleanValue,
+      valueLength: cleanValue.length,
       timestamp: new Date().toISOString(),
     })
   }
@@ -111,34 +134,41 @@ export default function PersonalTrainerWebsitePage() {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {}
 
-    if (!formData.fullName || formData.fullName.length < 2) {
+    // Full name validation
+    if (!formData.fullName || formData.fullName.trim().length < 2) {
       errors.fullName = "Name must be at least 2 characters"
     }
 
+    // Enhanced email validation
     if (!formData.email) {
       errors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!isValidEmail(formData.email)) {
       errors.email = "Please enter a valid email address"
     }
 
-    if (!formData.location || formData.location.length < 5) {
-      errors.location = "Location must be at least 5 characters"
+    // Location validation
+    if (!formData.location || formData.location.trim().length < 2) {
+      errors.location = "Location must be at least 2 characters"
     }
 
+    // Specialty validation
     if (!formData.specialty) {
       errors.specialty = "Please select your specialty"
     }
 
+    // Experience validation
     if (!formData.experience) {
       errors.experience = "Please select your experience level"
     }
 
-    if (!formData.bio || formData.bio.length < 50) {
+    // Bio validation
+    if (!formData.bio || formData.bio.trim().length < 50) {
       errors.bio = "Bio must be at least 50 characters"
     } else if (formData.bio.length > 500) {
       errors.bio = "Bio must be less than 500 characters"
     }
 
+    // Services validation
     if (!formData.services || formData.services.length === 0) {
       errors.services = "Please select at least one service"
     }
@@ -159,19 +189,33 @@ export default function PersonalTrainerWebsitePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Clean form data before submission
+    const cleanFormData = {
+      ...formData,
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim().toLowerCase().replace(/[`'"]/g, ""),
+      phone: formData.phone.trim(),
+      location: formData.location.trim(),
+      bio: formData.bio.trim(),
+      certifications: formData.certifications.trim(),
+    }
+
     logger.info("Form submission started", {
-      email: formData.email,
-      specialty: formData.specialty,
-      location: formData.location,
-      servicesCount: formData.services?.length || 0,
-      hasPhone: !!formData.phone,
-      hasCertifications: !!formData.certifications,
-      bioLength: formData.bio.length,
+      email: cleanFormData.email,
+      specialty: cleanFormData.specialty,
+      location: cleanFormData.location,
+      servicesCount: cleanFormData.services?.length || 0,
+      hasPhone: !!cleanFormData.phone,
+      hasCertifications: !!cleanFormData.certifications,
+      bioLength: cleanFormData.bio.length,
     })
+
+    // Update form data with cleaned values
+    setFormData(cleanFormData)
 
     if (!validateForm()) {
       logger.warn("Form submission blocked by validation", {
-        email: formData.email,
+        email: cleanFormData.email,
         validationErrors: Object.keys(validationErrors),
       })
       return
@@ -182,8 +226,8 @@ export default function PersonalTrainerWebsitePage() {
 
     try {
       logger.info("Sending trainer creation request", {
-        email: formData.email,
-        specialty: formData.specialty,
+        email: cleanFormData.email,
+        specialty: cleanFormData.specialty,
       })
 
       const response = await fetch("/api/trainer/create", {
@@ -191,14 +235,14 @@ export default function PersonalTrainerWebsitePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(cleanFormData),
       })
 
       const result = await response.json()
 
       if (result.success) {
         logger.info("Trainer creation successful, redirecting", {
-          email: formData.email,
+          email: cleanFormData.email,
           tempId: result.tempId,
           redirectUrl: result.redirectUrl,
         })
@@ -207,7 +251,7 @@ export default function PersonalTrainerWebsitePage() {
         window.location.href = result.redirectUrl
       } else {
         logger.error("Trainer creation failed", {
-          email: formData.email,
+          email: cleanFormData.email,
           error: result.error,
           details: result.details,
         })
@@ -227,7 +271,7 @@ export default function PersonalTrainerWebsitePage() {
       }
     } catch (err) {
       logger.error("Network error during trainer creation", {
-        email: formData.email,
+        email: cleanFormData.email,
         error: err,
       })
       setError("Network error. Please check your connection and try again.")
@@ -405,6 +449,7 @@ export default function PersonalTrainerWebsitePage() {
                       placeholder="john@example.com"
                       className={`mt-2 h-12 ${validationErrors.email ? "border-red-500" : ""}`}
                       disabled={isSubmitting}
+                      autoComplete="email"
                     />
                     {validationErrors.email && <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>}
                   </div>
@@ -417,11 +462,13 @@ export default function PersonalTrainerWebsitePage() {
                     </Label>
                     <Input
                       id="phone"
+                      type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
                       placeholder="+1 (555) 123-4567"
                       className="mt-2 h-12"
                       disabled={isSubmitting}
+                      autoComplete="tel"
                     />
                   </div>
 
