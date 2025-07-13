@@ -68,20 +68,143 @@
   }
 }
 
-/* Custom styles for trainer website components */
-.trainer-hero-gradient {
-  background: linear-gradient(135deg, #d2ff28 0%, #b8e625 100%);
+/* Custom trainer website styles */
+.trainer-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.trainer-card-shadow {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+.trainer-card {
+  @apply bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
 }
 
+.trainer-form-section {
+  @apply mb-8 p-6 bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+.trainer-form-title {
+  @apply text-xl font-semibold text-gray-900 mb-4;
+}
+
+.trainer-form-subtitle {
+  @apply text-sm text-gray-600 mb-6;
+}
+
+.form-group {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.form-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y;
+}
+
+.form-button {
+  @apply w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
+}
+
+.form-button:disabled {
+  @apply bg-gray-400 cursor-not-allowed;
+}
+
+.specialty-badge {
+  @apply inline-block px-3 py-1 m-1 text-sm bg-blue-100 text-blue-800 rounded-full cursor-pointer hover:bg-blue-200 transition-colors duration-200;
+}
+
+.specialty-badge.selected {
+  @apply bg-blue-600 text-white;
+}
+
+.feature-icon {
+  @apply w-8 h-8 text-blue-600 mb-2;
+}
+
+.feature-card {
+  @apply text-center p-4;
+}
+
+.feature-title {
+  @apply font-semibold text-gray-900 mb-2;
+}
+
+.feature-description {
+  @apply text-sm text-gray-600;
+}
+
+.success-animation {
+  @apply animate-bounce;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .trainer-form-section {
+    @apply p-4;
+  }
+
+  .form-button {
+    @apply py-4;
+  }
+}
+
+/* Animation classes */
+.fade-in {
+  @apply animate-in fade-in duration-500;
+}
+
+.slide-up {
+  @apply animate-in slide-in-from-bottom-4 duration-500;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Trainer editor specific styles */
 .trainer-editor-content {
   min-height: 200px;
   width: 100%;
 }
 
+.editor-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.editor-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y min-h-24;
+}
+
+.editor-button {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors;
+}
+
+.editor-button-secondary {
+  @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors;
+}
+
+/* Loading states */
 .loading-text {
   @apply h-4 mb-2 animate-pulse bg-gray-200 rounded;
 }
@@ -94,53 +217,16 @@
   @apply w-16 h-16 rounded-full animate-pulse bg-gray-200;
 }
 
-.form-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
-}
-
-.form-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y;
-}
-
-.form-button {
-  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
+/* Service form styles */
 .service-form input,
 .service-form textarea {
   @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
 }
 
-.service-form button {
-  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+.service-form label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
 }
 
-/* Animation utilities */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Responsive utilities */
-@media (max-width: 640px) {
-  .trainer-hero-gradient {
-    padding: 2rem 1rem;
-  }
-}
-
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
+.service-form .form-group {
+  @apply mb-4;
 }
