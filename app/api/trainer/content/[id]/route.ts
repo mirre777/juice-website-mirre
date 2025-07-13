@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
-import { doc, getDoc, setDoc } from "firebase/firestore"
+import { getTrainer, updateTrainerContent } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -8,110 +7,62 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const trainerId = params.id
     logger.info("Fetching trainer content", { trainerId })
 
-    if (!hasRealFirebaseConfig || !db) {
-      // Mock data for development
-      const mockTrainer = {
-        id: trainerId,
-        name: "John Doe",
-        email: "john@example.com",
-        specialization: "Strength Training",
-        experience: "5 years",
-        location: "New York, NY",
-        phone: "+1 (555) 123-4567",
-        status: "active",
-      }
+    const trainer = await getTrainer(trainerId)
 
-      const mockContent = {
-        heroTitle: `Transform Your Fitness with ${mockTrainer.name}`,
-        heroSubtitle: `Professional ${mockTrainer.specialization} training tailored to your goals`,
-        aboutTitle: "About Me",
-        aboutDescription: `Hi, I'm ${mockTrainer.name}, a certified ${mockTrainer.specialization} trainer with ${mockTrainer.experience} of experience.`,
-        services: [
-          {
-            id: "1",
-            title: "Personal Training",
-            description: "One-on-one training sessions",
-            price: "€60",
-            duration: "60 min",
-          },
-        ],
-        contactEmail: mockTrainer.email,
-        contactPhone: mockTrainer.phone,
-        contactLocation: mockTrainer.location,
-      }
-
-      return NextResponse.json({
-        trainer: mockTrainer,
-        content: mockContent,
-      })
-    }
-
-    // Real Firebase implementation
-    const trainerRef = doc(db, "trainers", trainerId)
-    const trainerSnap = await getDoc(trainerRef)
-
-    if (!trainerSnap.exists()) {
+    if (!trainer) {
+      logger.warn("Trainer not found", { trainerId })
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainerData = { id: trainerSnap.id, ...trainerSnap.data() }
-
-    // Get content if it exists
-    const contentRef = doc(db, "trainer_content", trainerId)
-    const contentSnap = await getDoc(contentRef)
-
-    let content = null
-    if (contentSnap.exists()) {
-      content = contentSnap.data()
-    }
-
-    logger.info("Trainer content fetched successfully", { trainerId })
-
+    logger.info("Successfully fetched trainer content", { trainerId })
     return NextResponse.json({
-      trainer: trainerData,
-      content: content,
+      trainer: trainer.data,
+      content: trainer.content || null,
     })
   } catch (error) {
-    logger.error("Error fetching trainer content", { error, trainerId: params.id })
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    logger.error("Error fetching trainer content", {
+      trainerId: params.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+
+    return NextResponse.json({ error: "Failed to fetch trainer content" }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-    const content = await request.json()
+    const { content } = await request.json()
 
     logger.info("Updating trainer content", { trainerId })
 
-    if (!hasRealFirebaseConfig || !db) {
-      // Mock response for development
-      logger.info("Mock: Trainer content updated", { trainerId })
-      return NextResponse.json({
-        success: true,
-        message: "Content updated successfully (mock mode)",
-      })
+    if (!content) {
+      return NextResponse.json({ error: "Content is required" }, { status: 400 })
     }
 
-    // Real Firebase implementation
-    const contentRef = doc(db, "trainer_content", trainerId)
-
-    const updatedContent = {
-      ...content,
-      lastModified: new Date().toISOString(),
-      version: (content.version || 0) + 1,
+    // Validate content structure
+    const requiredFields = ["hero", "about", "services", "contact", "seo"]
+    for (const field of requiredFields) {
+      if (!content[field]) {
+        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
+      }
     }
 
-    await setDoc(contentRef, updatedContent, { merge: true })
+    const success = await updateTrainerContent(trainerId, content)
 
-    logger.info("Trainer content updated successfully", { trainerId })
+    if (!success) {
+      logger.error("Failed to update trainer content", { trainerId })
+      return NextResponse.json({ error: "Failed to update content" }, { status: 500 })
+    }
 
-    return NextResponse.json({
-      success: true,
-      message: "Content updated successfully",
-    })
+    logger.info("Successfully updated trainer content", { trainerId })
+    return NextResponse.json({ success: true })
   } catch (error) {
-    logger.error("Error updating trainer content", { error, trainerId: params.id })
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    logger.error("Error updating trainer content", {
+      trainerId: params.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+
+    return NextResponse.json({ error: "Failed to update trainer content" }, { status: 500 })
   }
 }

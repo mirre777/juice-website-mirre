@@ -72,7 +72,7 @@ export interface TrainerDocument extends TrainerFormData {
   createdAt: Date
   updatedAt: Date
   activatedAt?: Date
-  paymentIntentId?: string
+  stripePaymentIntentId?: string
 
   // NEW: Editable content
   content?: EditableTrainerContent
@@ -126,17 +126,28 @@ export interface TrainerProfile extends TrainerData {
 
 // NEW: Trainer Content interface
 export interface TrainerContent {
-  heroTitle?: string
-  heroSubtitle?: string
-  aboutTitle?: string
-  aboutDescription?: string
-  services?: Service[]
-  contactEmail?: string
-  contactPhone?: string
-  contactLocation?: string
-  seoTitle?: string
-  seoDescription?: string
-  lastModified?: string
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    content: string
+  }
+  services: Service[]
+  contact: {
+    title: string
+    description: string
+    email: string
+    phone: string
+    availability: string
+  }
+  seo: {
+    title: string
+    description: string
+  }
+  updatedAt?: Date
   version?: number
 }
 
@@ -166,13 +177,19 @@ export interface TempTrainerData {
   expiresAt: string
 }
 
-export interface TrainerData extends TrainerFormData {
-  id?: string
-  status: "temp" | "active" | "inactive"
-  createdAt: string
+export interface TrainerData {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  specialization: string
+  experience: string
+  location: string
+  bio: string
+  status: "temp" | "active"
+  createdAt: Date
   tempId?: string
-  paymentIntentId?: string
-  activatedAt?: string
+  stripePaymentIntentId?: string
 }
 
 export interface Trainer {
@@ -187,22 +204,24 @@ export interface Trainer {
   bio: string
   hourlyRate: string
   availability: string
-  status: "temp" | "active" | "inactive"
+  status: "temp" | "active"
   tempId?: string
-  createdAt: string
-  activatedAt?: string
+  createdAt: Date
+  activatedAt?: Date
   content?: TrainerContent
 }
 
 export interface CreateTrainerRequest {
   name: string
   email: string
-  phone: string
-  location: string
-  specializations: string[]
+  phone?: string
+  specialization: string
   experience: string
-  certifications: string[]
+  location: string
   bio: string
-  hourlyRate: string
-  availability: string
+}
+
+export interface ActivateTrainerRequest {
+  tempId: string
+  paymentIntentId: string
 }
