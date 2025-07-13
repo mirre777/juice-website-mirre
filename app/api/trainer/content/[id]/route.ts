@@ -1,63 +1,62 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { TrainerService } from "@/lib/firebase-trainer"
+import { getTrainer, updateTrainerContent } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
-import type { TrainerContent } from "@/types/trainer"
-
-const trainerService = new TrainerService()
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const trainerId = params.id
-    logger.info("Fetching trainer content", { trainerId })
+    const { id } = params
 
-    const trainer = await trainerService.getTrainer(trainerId)
+    if (!id) {
+      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
+    }
+
+    const trainer = await getTrainer(id)
 
     if (!trainer) {
-      logger.warn("Trainer not found", { trainerId })
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    // Return content if it exists, otherwise generate default content
-    const content = trainer.content || (await trainerService.generateDefaultContent(trainer))
-
-    logger.info("Trainer content fetched successfully", { trainerId })
-    return NextResponse.json(content)
+    // Return trainer data with content
+    return NextResponse.json({
+      success: true,
+      trainer,
+      content: trainer.content || {},
+    })
   } catch (error) {
-    logger.error("Error fetching trainer content", { error, trainerId: params.id })
+    logger.error("Error fetching trainer content:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const trainerId = params.id
-    const contentData: TrainerContent = await request.json()
+    const { id } = params
+    const body = await request.json()
+    const { content } = body
 
-    logger.info("Updating trainer content", { trainerId })
-
-    // Validate required fields
-    if (!contentData.heroTitle && !contentData.aboutContent) {
-      return NextResponse.json({ error: "At least hero title or about content is required" }, { status: 400 })
+    if (!id) {
+      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    // Update content with version control
-    const updatedContent = {
-      ...contentData,
-      updatedAt: new Date().toISOString(),
-      version: (contentData.version || 0) + 1,
+    if (!content) {
+      return NextResponse.json({ error: "Content is required" }, { status: 400 })
     }
 
-    const success = await trainerService.updateTrainerContent(trainerId, updatedContent)
+    // Update trainer content
+    const updatedTrainer = await updateTrainerContent(id, content)
 
-    if (!success) {
-      logger.error("Failed to update trainer content", { trainerId })
-      return NextResponse.json({ error: "Failed to update content" }, { status: 500 })
+    if (!updatedTrainer) {
+      return NextResponse.json({ error: "Trainer not found or update failed" }, { status: 404 })
     }
 
-    logger.info("Trainer content updated successfully", { trainerId, version: updatedContent.version })
-    return NextResponse.json({ success: true, content: updatedContent })
+    logger.info(`Trainer content updated: ${id}`)
+
+    return NextResponse.json({
+      success: true,
+      trainer: updatedTrainer,
+    })
   } catch (error) {
-    logger.error("Error updating trainer content", { error, trainerId: params.id })
+    logger.error("Error updating trainer content:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

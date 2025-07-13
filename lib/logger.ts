@@ -1,29 +1,55 @@
-interface LogContext {
-  [key: string]: any
+interface LogLevel {
+  INFO: "info"
+  WARN: "warn"
+  ERROR: "error"
+  DEBUG: "debug"
+}
+
+const LOG_LEVELS: LogLevel = {
+  INFO: "info",
+  WARN: "warn",
+  ERROR: "error",
+  DEBUG: "debug",
 }
 
 class Logger {
-  private formatMessage(level: string, message: string, context?: LogContext): string {
+  private isDevelopment = process.env.NODE_ENV === "development"
+
+  private formatMessage(level: string, message: string, data?: any): string {
     const timestamp = new Date().toISOString()
-    const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : ""
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${contextStr}`
+    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`
+
+    if (data) {
+      return `${baseMessage} ${JSON.stringify(data, null, 2)}`
+    }
+
+    return baseMessage
   }
 
-  info(message: string, context?: LogContext): void {
-    console.log(this.formatMessage("info", message, context))
+  info(message: string, data?: any): void {
+    const formattedMessage = this.formatMessage(LOG_LEVELS.INFO, message, data)
+    console.log(formattedMessage)
   }
 
-  warn(message: string, context?: LogContext): void {
-    console.warn(this.formatMessage("warn", message, context))
+  warn(message: string, data?: any): void {
+    const formattedMessage = this.formatMessage(LOG_LEVELS.WARN, message, data)
+    console.warn(formattedMessage)
   }
 
-  error(message: string, context?: LogContext): void {
-    console.error(this.formatMessage("error", message, context))
+  error(message: string, error?: any): void {
+    const formattedMessage = this.formatMessage(LOG_LEVELS.ERROR, message, error)
+    console.error(formattedMessage)
+
+    // In production, you might want to send errors to a logging service
+    if (!this.isDevelopment) {
+      // Send to logging service (e.g., Sentry, LogRocket, etc.)
+    }
   }
 
-  debug(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV === "development") {
-      console.debug(this.formatMessage("debug", message, context))
+  debug(message: string, data?: any): void {
+    if (this.isDevelopment) {
+      const formattedMessage = this.formatMessage(LOG_LEVELS.DEBUG, message, data)
+      console.debug(formattedMessage)
     }
   }
 }

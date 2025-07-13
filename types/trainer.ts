@@ -1,14 +1,11 @@
 import type { Timestamp } from "firebase/firestore"
 
 export interface TrainerFormData {
-  firstName: string
-  lastName: string
+  name: string
   email: string
-  phone?: string
-  location: string
   specialization: string
   experience: string
-  certifications: string[]
+  location: string
   bio: string
 }
 
@@ -67,7 +64,7 @@ export interface TrainerWebsiteSettings {
 
 // NEW: Customization metadata
 export interface TrainerCustomization {
-  lastUpdated: Date
+  lastUpdated: Timestamp
   version: number
   isDraft: boolean
 }
@@ -138,40 +135,44 @@ export interface TrainerContent {
   aboutTitle?: string
   aboutContent?: string
   services?: Service[]
-  contactTitle?: string
-  contactContent?: string
+  contactEmail?: string
+  contactPhone?: string
+  contactLocation?: string
   seoTitle?: string
   seoDescription?: string
-  version: number
-  createdAt: string
-  updatedAt: string
+  version?: number
+  lastModified?: Timestamp
 }
 
 export interface Trainer {
   id: string
-  tempId?: string
-  firstName: string
-  lastName: string
+  name: string
   email: string
-  phone?: string
-  location: string
   specialization: string
   experience: string
-  certifications: string[]
+  location: string
   bio: string
-  status: "temp" | "active"
-  paymentStatus?: "pending" | "completed" | "failed"
-  stripePaymentIntentId?: string
+  status: "active" | "pending" | "inactive"
+  tempId?: string
+  paymentIntentId?: string
   content?: TrainerContent
-  createdAt: string
-  updatedAt: string
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 // Declare Service type if not imported
-interface Service {
+export interface Service {
   id: string
   title: string
   description: string
-  price: number
+  price: string
   duration: string
+}
+
+export interface TempTrainer {
+  id: string
+  formData: TrainerFormData
+  paymentIntentId?: string
+  createdAt: Timestamp
+  expiresAt: Timestamp
 }
