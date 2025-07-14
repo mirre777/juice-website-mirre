@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app"
-import { getFirestore } from "firebase/firestore"
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore"
 
-// Firebase configuration using environment variables
+// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -9,6 +9,7 @@ const firebaseConfig = {
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 }
 
 // Check if we have real Firebase configuration
@@ -18,42 +19,35 @@ export const hasRealFirebaseConfig =
   process.env.FIREBASE_API_KEY &&
   process.env.FIREBASE_API_KEY !== "mock-api-key"
 
-// Initialize Firebase app (singleton pattern)
+// Initialize Firebase
 let app
-try {
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig)
-    console.log("Firebase app initialized successfully")
-  } else {
-    app = getApp()
-    console.log("Using existing Firebase app")
-  }
-} catch (error) {
-  console.error("Firebase app initialization error:", error)
-  throw new Error(`Firebase initialization failed: ${error}`)
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig)
+} else {
+  app = getApp()
 }
 
 // Initialize Firestore
-let db
-try {
-  db = getFirestore(app)
-  console.log("Firestore initialized successfully")
-} catch (error) {
-  console.error("Firestore initialization error:", error)
-  throw new Error(`Firestore initialization failed: ${error}`)
+export const db = getFirestore(app)
+
+// Connect to emulator in development if specified
+if (process.env.NODE_ENV === "development" && process.env.FIRESTORE_EMULATOR_HOST) {
+  try {
+    connectFirestoreEmulator(db, "localhost", 8080)
+  } catch (error) {
+    // Emulator already connected
+  }
 }
 
-// Export the initialized instances
-export { app, db }
+export { app }
 
-// Debug function to check Firebase configuration
 export function getFirebaseDebugInfo() {
   return {
+    hasRealConfig: hasRealFirebaseConfig,
+    projectId: process.env.FIREBASE_PROJECT_ID || "not-set",
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "not-set",
     hasApp: !!app,
     hasDb: !!db,
-    hasRealConfig: hasRealFirebaseConfig,
-    projectId: firebaseConfig.projectId || "Not set",
-    authDomain: firebaseConfig.authDomain || "Not set",
     envVars: {
       FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: !!process.env.FIREBASE_AUTH_DOMAIN,
