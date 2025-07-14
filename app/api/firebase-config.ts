@@ -9,26 +9,34 @@ const firebaseConfig = {
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 }
 
 // Initialize Firebase app (singleton pattern)
 let app
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig)
-} else {
-  app = getApp()
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
+} catch (error) {
+  console.error("Firebase initialization error:", error)
+  throw error
 }
 
 // Initialize Firestore
-export const db = getFirestore(app)
+let db
+try {
+  db = getFirestore(app)
+} catch (error) {
+  console.error("Firestore initialization error:", error)
+  throw error
+}
 
-// Debug function to check Firebase configuration
+// Debug function to get Firebase configuration info
 export function getFirebaseDebugInfo() {
   return {
     hasApp: !!app,
     hasDb: !!db,
-    projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId || "not-set",
+    authDomain: firebaseConfig.authDomain || "not-set",
     envVars: {
       FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: !!process.env.FIREBASE_AUTH_DOMAIN,
@@ -39,3 +47,5 @@ export function getFirebaseDebugInfo() {
     },
   }
 }
+
+export { app, db }

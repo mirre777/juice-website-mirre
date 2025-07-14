@@ -1,84 +1,97 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
-export default function FirestoreDebugPage() {
-  const [readResults, setReadResults] = useState<any>(null)
-  const [writeResults, setWriteResults] = useState<any>(null)
-  const [loading, setLoading] = useState<{ read: boolean; write: boolean }>({
-    read: false,
-    write: false,
-  })
+export default function DebugFirestorePage() {
+  const [readResult, setReadResult] = useState<any>(null)
+  const [writeResult, setWriteResult] = useState<any>(null)
+  const [isReadLoading, setIsReadLoading] = useState(false)
+  const [isWriteLoading, setIsWriteLoading] = useState(false)
 
   const testRead = async () => {
-    setLoading((prev) => ({ ...prev, read: true }))
+    setIsReadLoading(true)
     try {
-      const response = await fetch("/api/debug-firestore")
-      const data = await response.json()
-      setReadResults(data)
+      const response = await fetch("/api/debug-firestore?action=read")
+      const result = await response.json()
+      setReadResult(result)
     } catch (error) {
-      setReadResults({ error: error instanceof Error ? error.message : String(error) })
+      setReadResult({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      })
     } finally {
-      setLoading((prev) => ({ ...prev, read: false }))
+      setIsReadLoading(false)
     }
   }
 
   const testWrite = async () => {
-    setLoading((prev) => ({ ...prev, write: true }))
+    setIsWriteLoading(true)
     try {
-      const response = await fetch("/api/debug-firestore", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      const data = await response.json()
-      setWriteResults(data)
+      const response = await fetch("/api/debug-firestore?action=write")
+      const result = await response.json()
+      setWriteResult(result)
     } catch (error) {
-      setWriteResults({ error: error instanceof Error ? error.message : String(error) })
+      setWriteResult({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      })
     } finally {
-      setLoading((prev) => ({ ...prev, write: false }))
+      setIsWriteLoading(false)
     }
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">Firestore Debug</h1>
+    <main className="min-h-screen bg-black text-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <Link href="/" className="inline-flex items-center text-zinc-400 hover:text-white">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Link>
+        </div>
 
-      <div className="flex gap-4 mb-6">
-        <Button onClick={testRead} disabled={loading.read} variant="outline">
-          {loading.read ? "Testing..." : "Test Read"}
-        </Button>
-        <Button onClick={testWrite} disabled={loading.write} variant="outline">
-          {loading.write ? "Testing..." : "Test Write"}
-        </Button>
+        <h1 className="text-4xl font-bold mb-8">Firestore Debug</h1>
+
+        <div className="space-y-6">
+          <div className="flex gap-4">
+            <button
+              onClick={testRead}
+              disabled={isReadLoading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isReadLoading ? "Testing..." : "Test Read"}
+            </button>
+
+            <button
+              onClick={testWrite}
+              disabled={isWriteLoading}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+            >
+              {isWriteLoading ? "Testing..." : "Test Write"}
+            </button>
+          </div>
+
+          <div className="bg-zinc-800 rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-4">Read Test Results</h2>
+            <div className="bg-black/50 p-4 rounded-lg">
+              <pre className="whitespace-pre-wrap text-sm">
+                {readResult ? JSON.stringify(readResult, null, 2) : "No test run yet"}
+              </pre>
+            </div>
+          </div>
+
+          <div className="bg-zinc-800 rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-4">Write Test Results</h2>
+            <div className="bg-black/50 p-4 rounded-lg">
+              <pre className="whitespace-pre-wrap text-sm">
+                {writeResult ? JSON.stringify(writeResult, null, 2) : "No test run yet"}
+              </pre>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Read Test Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-              {readResults ? JSON.stringify(readResults, null, 2) : "No results yet"}
-            </pre>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Write Test Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-              {writeResults ? JSON.stringify(writeResults, null, 2) : "No results yet"}
-            </pre>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    </main>
   )
 }
