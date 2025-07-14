@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app"
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore"
 import { logger } from "@/lib/logger"
+import { getFirebaseDebugInfo } from "@/app/api/firebase-config"
 
 // Server-side Firebase configuration
 const firebaseConfig = {
@@ -70,22 +71,22 @@ function initializeFirebaseApp(isClient = false) {
 // Initialize Firestore
 function initializeFirestore() {
   try {
-    const app = initializeFirebaseApp(false) // Use server config
-    const db = getFirestore(app)
+    const appInstance = initializeFirebaseApp(false) // Use server config
+    const dbInstance = getFirestore(appInstance)
 
     // Connect to emulator in development if needed
     if (process.env.NODE_ENV === "development" && process.env.FIRESTORE_EMULATOR_HOST) {
       logger.info("Connecting to Firestore emulator", {
         host: process.env.FIRESTORE_EMULATOR_HOST,
       })
-      connectFirestoreEmulator(db, "localhost", 8080)
+      connectFirestoreEmulator(dbInstance, "localhost", 8080)
     }
 
     logger.info("Firestore initialized successfully", {
       projectId: firebaseConfig.projectId,
     })
 
-    return db
+    return dbInstance
   } catch (error) {
     logger.error("Failed to initialize Firestore", {
       error: error instanceof Error ? error.message : String(error),
@@ -95,8 +96,29 @@ function initializeFirestore() {
   }
 }
 
-// Export the initialized Firestore instance
-export const db = initializeFirestore()
+// Helper function to check if Firestore is available
+export function isFirestoreAvailable() {
+  try {
+    const { hasDb, projectId } = getFirebaseDebugInfo()
+    return hasDb && !!projectId
+  } catch (error) {
+    console.error("Firestore availability check failed:", error)
+    return false
+  }
+}
+
+// Export configuration for debugging
+export function getFirebaseConfig() {
+  const debugInfo = getFirebaseDebugInfo()
+  return {
+    projectId: debugInfo.projectId,
+    authDomain: debugInfo.authDomain,
+    hasApiKey: debugInfo.envVars.FIREBASE_API_KEY,
+    hasAppId: debugInfo.envVars.FIREBASE_APP_ID,
+    hasApp: debugInfo.hasApp,
+    hasDb: debugInfo.hasDb,
+  }
+}
 
 // Export initialization functions
 export function initializeFirebase() {
@@ -105,26 +127,4 @@ export function initializeFirebase() {
 
 export function initializeClientFirebase() {
   return initializeFirebaseApp(true)
-}
-
-// Helper function to check if Firestore is available
-export function isFirestoreAvailable() {
-  try {
-    return !!db && !!firebaseConfig.projectId
-  } catch (error) {
-    logger.error("Firestore availability check failed", {
-      error: error instanceof Error ? error.message : String(error),
-    })
-    return false
-  }
-}
-
-// Export configuration for debugging
-export function getFirebaseConfig() {
-  return {
-    projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
-    hasApiKey: !!firebaseConfig.apiKey,
-    hasAppId: !!firebaseConfig.appId,
-  }
 }
