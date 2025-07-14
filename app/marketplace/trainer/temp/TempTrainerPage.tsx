@@ -67,8 +67,39 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         throw new Error("Trainer profile not found")
       }
 
-      const data = await response.json()
-      setTrainerData(data)
+      const result = await response.json()
+
+      // The API returns data under result.trainer, not directly
+      if (result.success && result.trainer) {
+        // Map the API response to match our component interface
+        const mappedData: TempTrainerData = {
+          id: result.trainer.id,
+          name: result.trainer.fullName, // API uses fullName, component expects name
+          email: result.trainer.email,
+          specialties: result.trainer.specialties || [],
+          bio: result.trainer.bio || "",
+          experience: result.trainer.experience || "",
+          certifications: result.trainer.certifications || [],
+          location: result.trainer.location || "",
+          pricing: {
+            sessionRate: 80, // Default value since API doesn't have this structure
+            packageDeals: [],
+          },
+          availability: [], // Default empty array
+          contactInfo: {
+            phone: result.trainer.phone,
+            website: "",
+            social: {},
+          },
+          profileImage: "",
+          createdAt: new Date().toISOString(), // Default to current date
+          status: result.trainer.isActive ? "active" : "pending",
+          activationToken: result.trainer.sessionToken,
+        }
+        setTrainerData(mappedData)
+      } else {
+        throw new Error("Invalid response format")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load trainer profile")
     } finally {
@@ -145,7 +176,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
   const isExpired = trainerData.status === "expired"
   const isActive = trainerData.status === "active"
-  const canActivate = token && trainerData.activationToken === token && !isActive && !isExpired
+  const canActivate = token && trainerData?.activationToken === token && !isActive && !isExpired
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
