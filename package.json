@@ -6,16 +6,13 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
-    "type-check": "tsc --noEmit"
+    "start": "next start"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
     "@emotion/is-prop-valid": "latest",
-    "@fal-ai/serverless": "^0.14.3",
     "@hookform/resolvers": "^3.9.0",
-    "@neondatabase/serverless": "^0.10.1",
-    "@next/mdx": "^15.1.0",
+    "@next/env": "^15.1.0",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -46,13 +43,11 @@
     "@radix-ui/react-tooltip": "latest",
     "@stripe/react-stripe-js": "latest",
     "@stripe/stripe-js": "latest",
-    "@supabase/supabase-js": "^2.46.1",
     "@sveltejs/kit": "latest",
     "@types/mdx": "^2.0.13",
-    "@upstash/redis": "^1.34.3",
     "@vercel/blob": "latest",
     "@vercel/speed-insights": "latest",
-    "ai": "^4.0.17",
+    "ai": "^4.0.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
@@ -64,6 +59,7 @@
     "gray-matter": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
+    "nanoid": "^5.0.9",
     "next": "15.2.4",
     "next-mdx-remote": "latest",
     "next-themes": "latest",
@@ -96,8 +92,5 @@
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }
