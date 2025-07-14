@@ -127,6 +127,40 @@ class Logger {
       timestamp: new Date().toISOString(),
     })
   }
+
+  // Firebase-specific logging methods
+  firebaseError(operation: string, error: any, context?: LogData) {
+    this.error(`Firebase ${operation} failed`, {
+      event: "firebase_error",
+      operation,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      ...context,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  configurationError(service: string, missing: string[], context?: LogData) {
+    this.error(`${service} configuration error`, {
+      event: "configuration_error",
+      service,
+      missing,
+      ...context,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  apiError(endpoint: string, statusCode: number, error: any, requestId?: string) {
+    this.error(`API endpoint error: ${endpoint}`, {
+      event: "api_error",
+      endpoint,
+      statusCode,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      requestId,
+      timestamp: new Date().toISOString(),
+    })
+  }
 }
 
 export const logger = new Logger()

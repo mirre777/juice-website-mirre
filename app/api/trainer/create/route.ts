@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
+import { db, isFirestoreAvailable, getFirebaseConfig } from "@/firebase"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { z } from "zod"
 import { logger } from "@/lib/logger"
@@ -41,6 +41,30 @@ export async function POST(request: NextRequest) {
   })
 
   try {
+    // Check Firebase/Firestore availability first
+    if (!isFirestoreAvailable()) {
+      logger.error("Firestore is not available", {
+        requestId,
+        firebaseConfig: getFirebaseConfig(),
+        dbInstance: !!db,
+        timestamp: new Date().toISOString(),
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database service is currently unavailable. Please try again later.",
+          code: "FIRESTORE_UNAVAILABLE",
+        },
+        { status: 503 },
+      )
+    }
+
+    logger.debug("Firestore availability confirmed", {
+      requestId,
+      firebaseConfig: getFirebaseConfig(),
+    })
+
     const body = await request.json()
 
     logger.debug("Trainer form data received", {
@@ -59,6 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (!validationResult.success) {
       logger.warn("Trainer form validation failed", {
+        requestId,
         email: body.email,
         errors: validationResult.error.errors,
         timestamp: new Date().toISOString(),
@@ -69,6 +94,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Validation failed",
           details: validationResult.error.errors,
+          code: "VALIDATION_ERROR",
         },
         { status: 400 },
       )
@@ -91,29 +117,64 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info("Creating temporary trainer document", {
+      requestId,
       email: formData.email,
       expiresAt: expiresAt.toISOString(),
       sessionToken: tempTrainerData.sessionToken.substring(0, 8) + "...", // Log partial token for security
     })
 
-    // Add to Firebase
-    const docRef = await addDoc(collection(db, "trainers"), tempTrainerData)
+    // Add to Firebase with enhanced error handling
+    let docRef
+    try {
+      docRef = await addDoc(collection(db, "trainers"), tempTrainerData)
+      logger.debug("Firebase document created successfully", {
+        requestId,
+        docId: docRef.id,
+        collection: "trainers",
+      })
+    } catch (firebaseError) {
+      logger.error("Firebase document creation failed", {
+        requestId,
+        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
+        stack: firebaseError instanceof Error ? firebaseError.stack : undefined,
+        firebaseConfig: getFirebaseConfig(),
+        tempTrainerData: {
+          ...tempTrainerData,
+          sessionToken: "[REDACTED]", // Don't log sensitive data
+        },
+        timestamp: new Date().toISOString(),
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create trainer profile. Please try again.",
+          code: "FIREBASE_ERROR",
+        },
+        { status: 500 },
+      )
+    }
+
     const tempId = docRef.id
 
     logger.info("Temporary trainer document created successfully", {
+      requestId,
       tempId,
       email: formData.email,
       specialty: formData.specialty,
       expiresAt: expiresAt.toISOString(),
+      processingTime: Date.now() - startTime,
     })
 
     // Generate redirect URL
     const redirectUrl = `/marketplace/trainer/temp/${tempId}?token=${tempTrainerData.sessionToken}`
 
     logger.info("Trainer creation completed, sending redirect", {
+      requestId,
       tempId,
       email: formData.email,
       redirectUrl: redirectUrl.split("?")[0], // Don't log the token
+      totalProcessingTime: Date.now() - startTime,
     })
 
     return NextResponse.json({
@@ -126,8 +187,12 @@ export async function POST(request: NextRequest) {
     const processingTime = Date.now() - startTime
 
     logger.error("Trainer creation API error", {
+      requestId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
+      processingTime,
+      firebaseConfig: getFirebaseConfig(),
+      firestoreAvailable: isFirestoreAvailable(),
       timestamp: new Date().toISOString(),
     })
 
@@ -135,6 +200,8 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: "Internal server error. Please try again.",
+        code: "INTERNAL_ERROR",
+        requestId, // Include requestId for debugging
       },
       { status: 500 },
     )
