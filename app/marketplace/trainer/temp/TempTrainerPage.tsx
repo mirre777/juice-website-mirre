@@ -100,9 +100,17 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
       logger.info("Fetching temp trainer data", {
         tempId,
         hasToken: !!token,
+        tokenLength: token?.length,
       })
 
       const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
+
+      logger.info("API response received", {
+        tempId,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      })
 
       // Check if response is ok
       if (!response.ok) {
@@ -111,9 +119,16 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
           tempId,
           status: response.status,
           statusText: response.statusText,
-          errorText: errorText.substring(0, 200),
+          errorText: errorText.substring(0, 500),
         })
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+
+        // Try to parse as JSON for better error message
+        try {
+          const errorJson = JSON.parse(errorText)
+          throw new Error(errorJson.error || errorJson.details || `HTTP ${response.status}: ${response.statusText}`)
+        } catch {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
       }
 
       // Check content type
@@ -123,12 +138,19 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
         logger.error("Non-JSON response received", {
           tempId,
           contentType,
-          responseText: responseText.substring(0, 200),
+          responseText: responseText.substring(0, 500),
         })
         throw new Error("Server returned non-JSON response")
       }
 
       const result = await response.json()
+
+      logger.info("API response parsed", {
+        tempId,
+        success: result.success,
+        hasTrainer: !!result.trainer,
+        isActivated: result.isActivated,
+      })
 
       if (result.success) {
         if (result.isActivated) {
@@ -153,13 +175,14 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
         logger.error("Failed to fetch trainer data", {
           tempId,
           error: result.error,
+          details: result.details,
           expired: result.expired,
         })
 
         if (result.expired) {
           setError("Your session has expired. Please create a new trainer profile.")
         } else {
-          setError(result.error || "Failed to load trainer data")
+          setError(result.error || result.details || "Failed to load trainer data")
         }
       }
     } catch (err) {
@@ -310,6 +333,13 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
                 className="w-full"
               >
                 Create New Profile
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.open("/api/debug-firebase-temp", "_blank")}
+                className="w-full text-xs"
+              >
+                Debug Firebase Connection
               </Button>
             </div>
           </CardContent>
