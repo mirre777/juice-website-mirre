@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -33,13 +33,23 @@ interface TempTrainerPageProps {
 
 export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(true)
 
+  // Get token from props or search params
+  const accessToken = token || searchParams.get("token")
+
   useEffect(() => {
-    fetchTrainerData()
-  }, [tempId])
+    if (tempId && accessToken) {
+      fetchTrainerData()
+    } else {
+      console.error("Missing tempId or token", { tempId, hasToken: !!accessToken })
+      setGenerating(false)
+      setLoading(false)
+    }
+  }, [tempId, accessToken])
 
   const fetchTrainerData = async () => {
     try {
@@ -60,22 +70,29 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
   const loadTrainerData = async () => {
     try {
-      const response = await fetch(`/api/trainer/temp/${tempId}${token ? `?token=${encodeURIComponent(token)}` : ""}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch trainer data")
+      if (!accessToken) {
+        throw new Error("No access token provided")
       }
+
+      const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(accessToken)}`)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
       const data = await response.json()
 
       if (data.success && data.trainer) {
         setTrainer(data.trainer)
       } else {
-        throw new Error("Invalid response format")
+        throw new Error(data.error || "Invalid response format")
       }
     } catch (error) {
       console.error("Error fetching trainer data:", error)
       toast({
         title: "Error",
-        description: "Failed to load trainer profile",
+        description: error instanceof Error ? error.message : "Failed to load trainer profile",
         variant: "destructive",
       })
     } finally {
@@ -155,7 +172,9 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Trainer Not Found</h1>
-          <p className="text-gray-600 mb-4">The trainer profile you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-4">
+            The trainer profile you're looking for doesn't exist or the preview has expired.
+          </p>
           <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
         </div>
       </div>
@@ -344,7 +363,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
                         </p>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-600">lalalalalala</p>
+                      <p className="text-sm text-gray-600">Certified Personal Trainer</p>
                     )}
                   </div>
                 </Card>
