@@ -1,345 +1,140 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import {
-  Clock,
-  CheckCircle,
-  Star,
-  MapPin,
-  Mail,
-  Phone,
-  Award,
-  Zap,
-  Loader2,
-  AlertCircle,
-  CreditCard,
-  Sparkles,
-} from "lucide-react"
-import { loadStripe } from "@stripe/stripe-js"
-import { logger } from "@/lib/logger"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, CheckCircle, XCircle, ExternalLink } from "lucide-react"
+import { toast } from "react-hot-toast"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-
-interface TrainerData {
+interface TempTrainerData {
   id: string
-  fullName: string
+  name: string
   email: string
-  phone?: string
-  location: string
-  specialty: string
-  experience: string
+  specialties: string[]
   bio: string
-  certifications?: string
-  services: string[]
-  expiresAt: string
-  timeRemaining: number
+  experience: string
+  certifications: string[]
+  location: string
+  pricing: {
+    sessionRate: number
+    packageDeals: string[]
+  }
+  availability: string[]
+  contactInfo: {
+    phone?: string
+    website?: string
+    social?: {
+      instagram?: string
+      facebook?: string
+      linkedin?: string
+    }
+  }
+  profileImage?: string
+  createdAt: string
+  status: "pending" | "active" | "expired"
+  activationToken?: string
 }
 
 interface TempTrainerPageProps {
   tempId: string
-  token: string
+  token?: string
 }
 
-export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
+  const [trainerData, setTrainerData] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [timeRemaining, setTimeRemaining] = useState(0)
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
-  const [generationComplete, setGenerationComplete] = useState(false)
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [activating, setActivating] = useState(false)
 
   useEffect(() => {
-    fetchTrainerData()
+    fetchTempTrainer()
   }, [tempId, token])
 
   useEffect(() => {
-    if (trainer) {
-      // Start generation animation
-      const generationTimer = setTimeout(() => {
-        setGenerationComplete(true)
-        logger.info("Website generation animation completed", {
-          tempId,
-          email: trainer.email,
-        })
-      }, 8000) // 8 second generation animation
+    fetchTempTrainer()
+  }, [])
 
-      return () => clearTimeout(generationTimer)
-    }
-  }, [trainer, tempId])
-
-  useEffect(() => {
-    if (trainer && timeRemaining > 0) {
-      const interval = setInterval(() => {
-        const now = new Date().getTime()
-        const expiresAt = new Date(trainer.expiresAt).getTime()
-        const remaining = expiresAt - now
-
-        if (remaining <= 0) {
-          setTimeRemaining(0)
-          logger.warn("Session expired during viewing", {
-            tempId,
-            email: trainer.email,
-          })
-        } else {
-          setTimeRemaining(remaining)
-        }
-      }, 1000)
-
-      return () => clearInterval(interval)
-    }
-  }, [trainer, timeRemaining, tempId])
-
-  const fetchTrainerData = async () => {
+  const fetchTempTrainer = async () => {
     try {
-      logger.info("Fetching temp trainer data", {
-        tempId,
-        hasToken: !!token,
-        tokenLength: token?.length,
-      })
+      setLoading(true)
+      const response = await fetch(`/api/trainer/temp/${tempId}${token ? `?token=${encodeURIComponent(token)}` : ""}`)
 
-      const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
-
-      logger.info("API response received", {
-        tempId,
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-      })
-
-      // Check if response is ok
       if (!response.ok) {
-        const errorText = await response.text()
-        logger.error("API response not ok", {
-          tempId,
-          status: response.status,
-          statusText: response.statusText,
-          errorText: errorText.substring(0, 500),
-        })
-
-        // Try to parse as JSON for better error message
-        try {
-          const errorJson = JSON.parse(errorText)
-          throw new Error(errorJson.error || errorJson.details || `HTTP ${response.status}: ${response.statusText}`)
-        } catch {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
+        throw new Error("Trainer profile not found")
       }
 
-      // Check content type
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        const responseText = await response.text()
-        logger.error("Non-JSON response received", {
-          tempId,
-          contentType,
-          responseText: responseText.substring(0, 500),
-        })
-        throw new Error("Server returned non-JSON response")
-      }
-
-      const result = await response.json()
-
-      logger.info("API response parsed", {
-        tempId,
-        success: result.success,
-        hasTrainer: !!result.trainer,
-        isActivated: result.isActivated,
-      })
-
-      if (result.success) {
-        if (result.isActivated) {
-          logger.info("Trainer already activated, redirecting", {
-            tempId,
-            finalId: result.finalId,
-          })
-          router.push(result.redirectUrl)
-          return
-        }
-
-        setTrainer(result.trainer)
-        setTimeRemaining(result.trainer.timeRemaining)
-
-        logger.info("Temp trainer data loaded successfully", {
-          tempId,
-          email: result.trainer.email,
-          specialty: result.trainer.specialty,
-          timeRemaining: Math.round(result.trainer.timeRemaining / (1000 * 60 * 60)) + " hours",
-        })
-      } else {
-        logger.error("Failed to fetch trainer data", {
-          tempId,
-          error: result.error,
-          details: result.details,
-          expired: result.expired,
-        })
-
-        if (result.expired) {
-          setError("Your session has expired. Please create a new trainer profile.")
-        } else {
-          setError(result.error || result.details || "Failed to load trainer data")
-        }
-      }
+      const data = await response.json()
+      setTrainerData(data)
     } catch (err) {
-      logger.error("Network error fetching trainer data", {
-        tempId,
-        error: err instanceof Error ? err.message : String(err),
-      })
-      setError(`Network error: ${err instanceof Error ? err.message : "Please refresh the page."}`)
+      setError(err instanceof Error ? err.message : "Failed to load trainer profile")
     } finally {
       setLoading(false)
     }
   }
 
-  const handlePayment = async () => {
-    if (!trainer) return
-
-    setIsProcessingPayment(true)
+  const handleActivateProfile = async () => {
+    if (!token || !trainerData) {
+      toast.error("Invalid activation token")
+      return
+    }
 
     try {
-      logger.info("Initiating payment process", {
-        tempId,
-        email: trainer.email,
-        amount: 2900,
-        currency: "EUR",
-      })
-
-      // Create payment intent
-      const response = await fetch("/api/create-payment-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: 2900, // €29.00 in cents
-          currency: "eur",
-          metadata: {
-            type: "trainer_activation",
-            tempId,
-            email: trainer.email,
-            specialty: trainer.specialty,
-          },
-        }),
-      })
-
-      const { clientSecret, paymentIntentId } = await response.json()
-
-      if (!clientSecret) {
-        throw new Error("Failed to create payment intent")
-      }
-
-      logger.info("Payment intent created", {
-        tempId,
-        paymentIntentId,
-        email: trainer.email,
-      })
-
-      // Initialize Stripe
-      const stripe = await stripePromise
-      if (!stripe) {
-        throw new Error("Stripe failed to initialize")
-      }
-
-      // For demo purposes, simulate successful payment
-      // In production, you would use stripe.confirmCardPayment with actual card details
-      logger.info("Payment succeeded (simulated), activating trainer", {
-        tempId,
-        email: trainer.email,
-      })
-
-      // Activate trainer profile
-      const activationResponse = await fetch("/api/trainer/activate", {
+      setActivating(true)
+      const response = await fetch("/api/trainer/activate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           tempId,
-          paymentIntentId: "simulated_payment_intent",
+          token,
         }),
       })
 
-      const activationResult = await activationResponse.json()
-
-      if (activationResult.success) {
-        logger.info("Trainer activation successful", {
-          tempId,
-          finalId: activationResult.finalId,
-          email: trainer.email,
-        })
-
-        // Redirect to final trainer page
-        router.push(activationResult.redirectUrl)
-      } else {
-        throw new Error(activationResult.error || "Activation failed")
+      if (!response.ok) {
+        throw new Error("Failed to activate profile")
       }
+
+      const result = await response.json()
+      toast.success("Profile activated successfully!")
+
+      // Redirect to the live trainer profile
+      window.location.href = `/marketplace/trainer/${result.trainerId}`
     } catch (err) {
-      logger.error("Payment process error", {
-        tempId,
-        error: err instanceof Error ? err.message : String(err),
-        email: trainer?.email,
-      })
-      setError(err instanceof Error ? err.message : "Payment failed")
+      toast.error(err instanceof Error ? err.message : "Activation failed")
     } finally {
-      setIsProcessingPayment(false)
-    }
-  }
-
-  const formatTimeRemaining = (ms: number) => {
-    const hours = Math.floor(ms / (1000 * 60 * 60))
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000)
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`
-    } else {
-      return `${seconds}s`
+      setActivating(false)
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#D2FF28]" />
-          <p className="text-gray-600">Loading your trainer profile...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading trainer profile...</p>
         </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !trainerData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-6 text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Error</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <div className="space-y-2">
-              <Button onClick={() => fetchTrainerData()} className="w-full">
-                Try Again
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push("/marketplace/personal-trainer-website")}
-                className="w-full"
-              >
-                Create New Profile
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.open("/api/debug-firebase-temp", "_blank")}
-                className="w-full text-xs"
-              >
-                Debug Firebase Connection
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Profile Not Found</h2>
+              <p className="text-muted-foreground mb-4">
+                {error || "The trainer profile you're looking for doesn't exist or has expired."}
+              </p>
+              <Button asChild>
+                <a href="/marketplace">Browse Trainers</a>
               </Button>
             </div>
           </CardContent>
@@ -348,269 +143,187 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
     )
   }
 
-  if (!trainer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Trainer data not found</p>
-      </div>
-    )
-  }
-
-  if (timeRemaining <= 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-6 text-center">
-            <Clock className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Session Expired</h2>
-            <p className="text-gray-600 mb-4">
-              Your 24-hour preview period has expired. Please create a new trainer profile.
-            </p>
-            <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const isExpired = trainerData.status === "expired"
+  const isActive = trainerData.status === "active"
+  const canActivate = token && trainerData.activationToken === token && !isActive && !isExpired
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#D2FF28] rounded-full">
-                <Sparkles className="w-6 h-6 text-black" />
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Header Alert */}
+        <Alert className="mb-6">
+          <AlertDescription>
+            {isActive ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                This profile is now live and active on the marketplace.
               </div>
-              <div>
-                <h1 className="text-xl font-semibold">Website Preview</h1>
-                <p className="text-sm text-gray-600">24-hour trial period</p>
+            ) : isExpired ? (
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-600" />
+                This preview link has expired. Please create a new trainer profile.
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 text-blue-600" />
+                This is a preview of your trainer profile. Use the activation button below to make it live.
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+
+        {/* Main Profile Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-start gap-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={trainerData.profileImage || "/placeholder.svg"} alt={trainerData.name} />
+                <AvatarFallback className="text-lg">
+                  {trainerData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <CardTitle className="text-2xl">{trainerData.name}</CardTitle>
+                  <Badge variant={isActive ? "default" : "secondary"}>{trainerData.status}</Badge>
+                </div>
+                <p className="text-muted-foreground mb-2">{trainerData.location}</p>
+                <div className="flex flex-wrap gap-2">
+                  {trainerData.specialties.map((specialty, index) => (
+                    <Badge key={index} variant="outline">
+                      {specialty}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Bio */}
+              <div>
+                <h3 className="font-semibold mb-2">About</h3>
+                <p className="text-muted-foreground">{trainerData.bio}</p>
+              </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>Time remaining: {formatTimeRemaining(timeRemaining)}</span>
+              <Separator />
+
+              {/* Experience & Certifications */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-2">Experience</h3>
+                  <p className="text-muted-foreground">{trainerData.experience}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Certifications</h3>
+                  <ul className="space-y-1">
+                    {trainerData.certifications.map((cert, index) => (
+                      <li key={index} className="text-muted-foreground">
+                        • {cert}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
-              {generationComplete && (
-                <Button
-                  onClick={handlePayment}
-                  disabled={isProcessingPayment}
-                  className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-6"
-                >
-                  {isProcessingPayment ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Activate for €29
-                    </>
-                  )}
-                </Button>
+              <Separator />
+
+              {/* Pricing */}
+              <div>
+                <h3 className="font-semibold mb-2">Pricing</h3>
+                <p className="text-lg font-medium mb-2">${trainerData.pricing.sessionRate}/session</p>
+                {trainerData.pricing.packageDeals.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Package Deals:</p>
+                    <ul className="space-y-1">
+                      {trainerData.pricing.packageDeals.map((deal, index) => (
+                        <li key={index} className="text-sm text-muted-foreground">
+                          • {deal}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Availability */}
+              <div>
+                <h3 className="font-semibold mb-2">Availability</h3>
+                <div className="flex flex-wrap gap-2">
+                  {trainerData.availability.map((time, index) => (
+                    <Badge key={index} variant="outline">
+                      {time}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              {(trainerData.contactInfo.phone || trainerData.contactInfo.website || trainerData.contactInfo.social) && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-2">Contact Information</h3>
+                    <div className="space-y-2">
+                      {trainerData.contactInfo.phone && (
+                        <p className="text-muted-foreground">Phone: {trainerData.contactInfo.phone}</p>
+                      )}
+                      {trainerData.contactInfo.website && (
+                        <p className="text-muted-foreground">
+                          Website:
+                          <a
+                            href={trainerData.contactInfo.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-1 text-blue-600 hover:underline inline-flex items-center gap-1"
+                          >
+                            {trainerData.contactInfo.website}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
 
-      {/* Generation Animation */}
-      {!generationComplete && (
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Zap className="w-8 h-8 text-[#D2FF28] animate-pulse" />
-                <h2 className="text-2xl font-bold">Generating Your Website...</h2>
-              </div>
-              <p className="text-gray-600 mb-6">Our AI is creating your professional trainer website</p>
-
-              <div className="max-w-md mx-auto">
-                <div className="bg-gray-200 rounded-full h-2 mb-4">
-                  <div className="bg-[#D2FF28] h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
-                </div>
-                <p className="text-sm text-gray-500">This will take just a few seconds...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Website Preview */}
-      {generationComplete && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Hero Section */}
-          <Card className="mb-8 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#D2FF28] to-[#B8E625] p-8 text-black">
-              <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Body, Transform Your Life</h1>
-                <p className="text-xl mb-6 opacity-90">
-                  {trainer.specialty} • {trainer.experience} Experience • {trainer.location}
+        {/* Activation Button */}
+        {canActivate && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Ready to Go Live?</h3>
+                <p className="text-muted-foreground mb-4">
+                  Activate your profile to make it visible to clients on the marketplace.
                 </p>
-                <Button size="lg" className="bg-black text-white hover:bg-gray-800">
-                  Book Your Free Consultation
+                <Button onClick={handleActivateProfile} disabled={activating} size="lg" className="w-full sm:w-auto">
+                  {activating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Activating Profile...
+                    </>
+                  ) : (
+                    "Activate Profile"
+                  )}
                 </Button>
               </div>
-            </div>
+            </CardContent>
           </Card>
+        )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* About Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-[#D2FF28]" />
-                    About {trainer.fullName}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed mb-4">{trainer.bio}</p>
-
-                  <div className="grid grid-cols-2 gap-4 mt-6">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-[#D2FF28]" />
-                      <span className="text-sm font-medium">{trainer.experience} Experience</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium">Certified Professional</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Services Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Training Services</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {trainer.services.map((service, index) => (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                        <h3 className="font-semibold mb-2">{service}</h3>
-                        <p className="text-sm text-gray-600">
-                          Personalized {service.toLowerCase()} sessions tailored to your goals
-                        </p>
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="text-sm font-medium text-[#D2FF28]">From €60/session</span>
-                          <Badge variant="outline">60 min</Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Testimonials */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>What My Clients Say</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <p className="text-gray-700 mb-2">
-                        "Working with {trainer.fullName.split(" ")[0]} has been life-changing. Their expertise in{" "}
-                        {trainer.specialty.toLowerCase()} helped me achieve results I never thought possible."
-                      </p>
-                      <p className="text-sm font-medium">- Sarah M.</p>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <p className="text-gray-700 mb-2">
-                        "Professional, knowledgeable, and motivating. {trainer.fullName.split(" ")[0]} creates
-                        personalized programs that actually work."
-                      </p>
-                      <p className="text-sm font-medium">- Mike R.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Contact Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contact Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">{trainer.email}</span>
-                  </div>
-
-                  {trainer.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">{trainer.phone}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm">{trainer.location}</span>
-                  </div>
-
-                  <Separator />
-
-                  <Button className="w-full bg-[#D2FF28] hover:bg-[#B8E625] text-black">Schedule Consultation</Button>
-                </CardContent>
-              </Card>
-
-              {/* Specialties */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Specialties</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Badge className="bg-[#D2FF28] text-black">{trainer.specialty}</Badge>
-                    {trainer.certifications && (
-                      <div className="mt-4">
-                        <h4 className="font-medium mb-2">Certifications</h4>
-                        <p className="text-sm text-gray-600">{trainer.certifications}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* CTA */}
-              <Card className="bg-gradient-to-br from-[#D2FF28] to-[#B8E625] text-black">
-                <CardContent className="p-6 text-center">
-                  <h3 className="font-bold text-lg mb-2">Ready to Start?</h3>
-                  <p className="text-sm mb-4 opacity-90">
-                    Book your free consultation today and take the first step towards your fitness goals.
-                  </p>
-                  <Button className="bg-black text-white hover:bg-gray-800">Get Started Now</Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-muted-foreground">
+          <p>Created on {new Date(trainerData.createdAt).toLocaleDateString()}</p>
         </div>
-      )}
+      </div>
     </div>
   )
 }

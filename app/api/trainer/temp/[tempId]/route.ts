@@ -1,204 +1,93 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
+import { db } from "../../../../../firebase"
 import { doc, getDoc } from "firebase/firestore"
 import { logger } from "@/lib/logger"
 
-export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ tempId: string }> }) {
   try {
-    const { tempId } = params
+    const { tempId } = await params
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
 
-    logger.info("Temp trainer API called", {
-      tempId,
-      hasToken: !!token,
-      tokenLength: token?.length,
-      userAgent: request.headers.get("user-agent"),
-      timestamp: new Date().toISOString(),
-    })
+    logger.info("Temp trainer API called", { tempId, hasToken: !!token })
 
+    // Validate required parameters
     if (!tempId) {
-      logger.warn("No tempId provided", {
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer ID is required",
-        },
-        { status: 400 },
-      )
+      logger.error("Missing tempId parameter")
+      return NextResponse.json({ success: false, error: "Trainer ID is required" }, { status: 400 })
     }
 
     if (!token) {
-      logger.warn("Temp trainer access denied - no token", {
-        tempId,
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Access token required",
-        },
-        { status: 401 },
-      )
+      logger.error("Missing token parameter", { tempId })
+      return NextResponse.json({ success: false, error: "Access token is required" }, { status: 401 })
     }
 
-    // Check if Firebase is initialized
+    // Check Firebase connection
     if (!db) {
-      logger.error("Firebase not initialized", {
-        tempId,
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Database connection error",
-        },
-        { status: 500 },
-      )
+      logger.error("Firebase not initialized")
+      return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 })
     }
 
-    logger.info("Attempting to fetch trainer document", {
-      tempId,
-      timestamp: new Date().toISOString(),
-    })
-
-    // Get trainer document
+    // Fetch trainer document
+    logger.info("Fetching trainer document", { tempId })
     const trainerRef = doc(db, "trainers", tempId)
     const trainerSnap = await getDoc(trainerRef)
 
-    logger.info("Firestore query completed", {
-      tempId,
-      exists: trainerSnap.exists(),
-      timestamp: new Date().toISOString(),
-    })
-
     if (!trainerSnap.exists()) {
-      logger.warn("Temp trainer not found", {
-        tempId,
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer profile not found",
-        },
-        { status: 404 },
-      )
+      logger.error("Trainer document not found", { tempId })
+      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
     const trainerData = trainerSnap.data()
-
-    logger.info("Trainer data retrieved", {
+    logger.info("Trainer document retrieved", {
       tempId,
       hasSessionToken: !!trainerData.sessionToken,
-      hasExpiresAt: !!trainerData.expiresAt,
-      email: trainerData.email,
-      timestamp: new Date().toISOString(),
+      isActive: trainerData.isActive,
+      isPaid: trainerData.isPaid,
     })
 
     // Validate session token
-    if (trainerData.sessionToken !== token) {
-      logger.warn("Invalid session token", {
-        tempId,
-        providedToken: token?.substring(0, 8) + "...",
-        storedToken: trainerData.sessionToken?.substring(0, 8) + "...",
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid session token",
-        },
-        { status: 401 },
-      )
+    if (!trainerData.sessionToken || trainerData.sessionToken !== token) {
+      logger.error("Invalid session token", { tempId, providedToken: token })
+      return NextResponse.json({ success: false, error: "Invalid access token" }, { status: 401 })
     }
 
     // Check if session has expired
     const now = new Date()
     const expiresAt = trainerData.expiresAt?.toDate()
 
-    if (!expiresAt) {
-      logger.error("No expiration date found", {
-        tempId,
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid session data",
-        },
-        { status: 500 },
-      )
+    if (!expiresAt || now > expiresAt) {
+      logger.error("Session expired", { tempId, expiresAt, now })
+      return NextResponse.json({ success: false, error: "Preview session has expired" }, { status: 410 })
     }
 
-    if (now > expiresAt) {
-      logger.warn("Session expired", {
-        tempId,
-        expiresAt: expiresAt.toISOString(),
-        currentTime: now.toISOString(),
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Session has expired",
-          expired: true,
-        },
-        { status: 410 },
-      )
-    }
-
-    // Check if already activated
-    if (trainerData.isActive && trainerData.isPaid) {
-      logger.info("Trainer already activated, redirecting", {
-        tempId,
-        finalId: trainerData.finalId,
-        timestamp: new Date().toISOString(),
-      })
-      return NextResponse.json({
-        success: true,
-        isActivated: true,
-        finalId: trainerData.finalId,
-        redirectUrl: `/marketplace/trainer/${trainerData.finalId}`,
-      })
-    }
-
-    logger.info("Valid temp trainer session", {
-      tempId,
-      email: trainerData.email,
-      specialty: trainerData.specialty,
-      expiresAt: expiresAt.toISOString(),
-      timeRemaining: Math.round((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)) + " hours",
-    })
-
-    // Return trainer data (excluding sensitive fields)
-    const { sessionToken, ...publicData } = trainerData
-
+    // Return trainer data
     const responseData = {
       success: true,
       trainer: {
-        ...publicData,
-        id: tempId,
-        expiresAt: expiresAt.toISOString(),
-        timeRemaining: expiresAt.getTime() - now.getTime(),
+        id: trainerSnap.id,
+        fullName: trainerData.fullName,
+        email: trainerData.email,
+        phone: trainerData.phone,
+        location: trainerData.location,
+        services: trainerData.services || [],
+        experience: trainerData.experience,
+        certifications: trainerData.certifications || [],
+        bio: trainerData.bio,
+        specialties: trainerData.specialties || [],
+        sessionToken: trainerData.sessionToken,
+        expiresAt: trainerData.expiresAt,
+        isActive: trainerData.isActive,
+        isPaid: trainerData.isPaid,
       },
     }
 
-    logger.info("Returning trainer data", {
-      tempId,
-      hasTrainerData: !!responseData.trainer,
-      timestamp: new Date().toISOString(),
-    })
-
+    logger.info("Temp trainer data returned successfully", { tempId })
     return NextResponse.json(responseData)
   } catch (error) {
     logger.error("Temp trainer API error", {
-      tempId: params?.tempId || "unknown",
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString(),
     })
 
     return NextResponse.json(
