@@ -1,102 +1,55 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "../../../../../firebase"
-import { doc, getDoc } from "firebase/firestore"
+import { TrainerService } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
+import type { TempTrainerData } from "@/types/trainer"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ tempId: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   try {
-    const { tempId } = await params
-    const { searchParams } = new URL(request.url)
-    const token = searchParams.get("token")
+    const { tempId } = params
 
-    logger.info("Temp trainer API called", { tempId, hasToken: !!token })
-
-    // Validate required parameters
     if (!tempId) {
-      logger.error("Missing tempId parameter")
-      return NextResponse.json({ success: false, error: "Trainer ID is required" }, { status: 400 })
+      return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
     }
 
-    if (!token) {
-      logger.error("Missing token parameter", { tempId })
-      return NextResponse.json({ success: false, error: "Access token is required" }, { status: 401 })
+    logger.info("Fetching temp trainer data", { tempId })
+
+    const trainer = await TrainerService.getTempTrainer(tempId)
+
+    if (!trainer) {
+      logger.warn("Temp trainer not found", { tempId })
+      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    // Check Firebase connection
-    if (!db) {
-      logger.error("Firebase not initialized")
-      return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 })
+    // Convert to TempTrainerData format
+    const tempTrainerData: TempTrainerData = {
+      tempId: trainer.id,
+      name: trainer.fullName,
+      email: trainer.email,
+      phone: trainer.phone,
+      location: trainer.location,
+      specialization: trainer.specialty,
+      experience: trainer.experience,
+      bio: trainer.bio,
+      certifications: trainer.certifications,
+      createdAt: trainer.createdAt.toISOString(),
+      expiresAt: new Date(trainer.createdAt.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from creation
     }
 
-    // Fetch trainer document
-    logger.info("Fetching trainer document", { tempId })
-    const trainerRef = doc(db, "trainers", tempId)
-    const trainerSnap = await getDoc(trainerRef)
-
-    if (!trainerSnap.exists()) {
-      logger.error("Trainer document not found", { tempId })
-      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
-    }
-
-    const trainerData = trainerSnap.data()
-    logger.info("Trainer document retrieved", {
+    logger.info("Successfully fetched temp trainer data", {
       tempId,
-      hasSessionToken: !!trainerData.sessionToken,
-      isActive: trainerData.isActive,
-      isPaid: trainerData.isPaid,
+      name: tempTrainerData.name,
     })
 
-    // Validate session token
-    if (!trainerData.sessionToken || trainerData.sessionToken !== token) {
-      logger.error("Invalid session token", { tempId, providedToken: token })
-      return NextResponse.json({ success: false, error: "Invalid access token" }, { status: 401 })
-    }
-
-    // Check if session has expired
-    const now = new Date()
-    const expiresAt = trainerData.expiresAt?.toDate()
-
-    if (!expiresAt || now > expiresAt) {
-      logger.error("Session expired", { tempId, expiresAt, now })
-      return NextResponse.json({ success: false, error: "Preview session has expired" }, { status: 410 })
-    }
-
-    // Return trainer data
-    const responseData = {
+    return NextResponse.json({
       success: true,
-      trainer: {
-        id: trainerSnap.id,
-        fullName: trainerData.fullName,
-        email: trainerData.email,
-        phone: trainerData.phone,
-        location: trainerData.location,
-        services: trainerData.services || [],
-        experience: trainerData.experience,
-        certifications: trainerData.certifications || [],
-        bio: trainerData.bio,
-        specialties: trainerData.specialties || [],
-        sessionToken: trainerData.sessionToken,
-        expiresAt: trainerData.expiresAt,
-        isActive: trainerData.isActive,
-        isPaid: trainerData.isPaid,
-      },
-    }
-
-    logger.info("Temp trainer data returned successfully", { tempId })
-    return NextResponse.json(responseData)
+      trainer: tempTrainerData,
+    })
   } catch (error) {
-    logger.error("Temp trainer API error", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+    logger.error("Error fetching temp trainer data", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      tempId: params.tempId,
     })
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
