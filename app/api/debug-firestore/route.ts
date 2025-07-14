@@ -1,84 +1,68 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/app/api/firebase-config"
-import { collection, addDoc, getDocs, query, limit, serverTimestamp, Timestamp } from "firebase/firestore"
+import { db, getFirebaseDebugInfo } from "@/app/api/firebase-config"
+import { collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const action = searchParams.get("action")
-
   try {
-    if (action === "read") {
-      // Test reading from Firestore
-      const trainersRef = collection(db, "trainers")
-      const q = query(trainersRef, limit(5))
-      const querySnapshot = await getDocs(q)
+    const debugInfo = getFirebaseDebugInfo()
 
-      const docs = querySnapshot.docs.map((doc) => {
-        const data = doc.data()
-        // Convert Firestore Timestamps to ISO strings for JSON serialization
-        const serializedData = Object.keys(data).reduce((acc, key) => {
-          const value = data[key]
-          if (value instanceof Timestamp) {
-            acc[key] = value.toDate().toISOString()
-          } else {
-            acc[key] = value
-          }
-          return acc
-        }, {} as any)
+    // Test reading from Firestore
+    const testCollection = collection(db, "debug-test")
+    const snapshot = await getDocs(testCollection)
 
-        return {
-          id: doc.id,
-          data: serializedData,
-        }
-      })
+    const docs = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      data: doc.data(),
+    }))
 
-      return NextResponse.json({
+    return NextResponse.json({
+      success: true,
+      debugInfo,
+      readTest: {
         success: true,
-        message: `Successfully read ${docs.length} documents from trainers collection`,
-        docs,
-      })
-    } else if (action === "write") {
-      // Test writing to Firestore
-      const testData = {
-        testField: "debug-test-value",
-        createdAt: serverTimestamp(),
-        timestamp: new Date(),
-        number: 42,
-        boolean: true,
-        array: ["item1", "item2"],
-        object: { nested: "value" },
-      }
-
-      const docRef = await addDoc(collection(db, "debug_tests"), testData)
-
-      return NextResponse.json({
-        success: true,
-        message: "Successfully wrote test document to Firestore",
-        docId: docRef.id,
-        testData: {
-          ...testData,
-          createdAt: "[serverTimestamp]", // Can't serialize serverTimestamp
-          timestamp: testData.timestamp.toISOString(),
-        },
-      })
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid action. Use ?action=read or ?action=write",
-        },
-        { status: 400 },
-      )
-    }
-  } catch (error) {
-    console.error("Debug Firestore error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        documentsFound: docs.length,
+        documents: docs,
       },
-      { status: 500 },
-    )
+    })
+  } catch (error) {
+    console.error("Debug read test failed:", error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      debugInfo: getFirebaseDebugInfo(),
+    })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const debugInfo = getFirebaseDebugInfo()
+
+    // Test writing to Firestore
+    const testCollection = collection(db, "debug-test")
+    const testData = {
+      message: "Debug test document",
+      timestamp: serverTimestamp(),
+      createdAt: new Date().toISOString(),
+    }
+
+    const docRef = await addDoc(testCollection, testData)
+
+    return NextResponse.json({
+      success: true,
+      debugInfo,
+      writeTest: {
+        success: true,
+        documentId: docRef.id,
+        data: testData,
+      },
+    })
+  } catch (error) {
+    console.error("Debug write test failed:", error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      debugInfo: getFirebaseDebugInfo(),
+    })
   }
 }
