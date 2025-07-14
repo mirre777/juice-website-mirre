@@ -1,79 +1,77 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "../../../firebase"
-import { collection, getDocs, doc, getDoc } from "firebase/firestore"
+import { collection, getDocs, limit, query } from "firebase/firestore"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🔍 Starting Firebase debug test...")
+    logger.info("Debug Firebase endpoint called")
 
-    // Test 1: Check if Firebase is initialized
+    // Check if Firebase is initialized
     if (!db) {
+      logger.error("Firebase not initialized")
       return NextResponse.json(
         {
           success: false,
-          error: "Firebase not initialized",
-          timestamp: new Date().toISOString(),
+          error: "Firebase database not initialized",
+          details: "The Firebase configuration may be missing or incorrect",
         },
         { status: 500 },
       )
     }
 
-    console.log("✅ Firebase initialized successfully")
-
-    // Test 2: Try to access trainers collection
+    // Test Firebase connection by querying trainers collection
+    logger.info("Testing Firebase connection")
     const trainersRef = collection(db, "trainers")
-    console.log("📁 Accessing trainers collection...")
+    const q = query(trainersRef, limit(1))
+    const querySnapshot = await getDocs(q)
 
-    // Test 3: Get all trainers
-    const snapshot = await getDocs(trainersRef)
-    console.log(`📊 Found ${snapshot.size} trainer documents`)
-
-    const trainers = []
-    snapshot.forEach((doc) => {
-      trainers.push({
-        id: doc.id,
-        data: doc.data(),
-      })
+    logger.info("Firebase query completed", {
+      docsCount: querySnapshot.size,
+      empty: querySnapshot.empty,
     })
 
-    // Test 4: Test specific trainer access if ID provided
-    const { searchParams } = new URL(request.url)
-    const testId = searchParams.get("testId")
-
-    let specificTrainer = null
-    if (testId) {
-      console.log(`🎯 Testing specific trainer: ${testId}`)
-      const trainerDoc = await getDoc(doc(db, "trainers", testId))
-      if (trainerDoc.exists()) {
-        specificTrainer = {
-          id: trainerDoc.id,
-          data: trainerDoc.data(),
-        }
-        console.log("✅ Specific trainer found")
-      } else {
-        console.log("❌ Specific trainer not found")
-      }
+    // Check environment variables
+    const envVars = {
+      NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      NEXT_PUBLIC_FIREBASE_APP_ID: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     }
+
+    logger.info("Environment variables check", envVars)
 
     return NextResponse.json({
       success: true,
       message: "Firebase connection successful",
       data: {
-        totalTrainers: snapshot.size,
-        trainers: trainers.slice(0, 3), // Only return first 3 for brevity
-        specificTrainer,
-        testId,
+        trainersCollectionExists: true,
+        trainersCount: querySnapshot.size,
+        environmentVariables: envVars,
+        timestamp: new Date().toISOString(),
       },
-      timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("❌ Firebase debug error:", error)
+    logger.error("Debug Firebase endpoint error", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString(),
+        error: "Firebase connection failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+        environmentVariables: {
+          NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+          NEXT_PUBLIC_FIREBASE_APP_ID: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        },
       },
       { status: 500 },
     )
