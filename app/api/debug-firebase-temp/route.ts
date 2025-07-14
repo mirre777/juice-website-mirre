@@ -1,77 +1,79 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "../../../firebase"
-import { collection, getDocs, limit, query } from "firebase/firestore"
-import { logger } from "@/lib/logger"
+import { collection, getDocs, doc, getDoc } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
   try {
-    logger.info("Debug Firebase endpoint called")
+    console.log("🔍 Starting Firebase debug test...")
 
-    // Check if Firebase is initialized
+    // Test 1: Check if Firebase is initialized
     if (!db) {
-      logger.error("Firebase not initialized")
       return NextResponse.json(
         {
           success: false,
-          error: "Firebase database not initialized",
-          details: "The Firebase configuration may be missing or incorrect",
+          error: "Firebase not initialized",
+          timestamp: new Date().toISOString(),
         },
         { status: 500 },
       )
     }
 
-    // Test Firebase connection by querying trainers collection
-    logger.info("Testing Firebase connection")
-    const trainersRef = collection(db, "trainers")
-    const q = query(trainersRef, limit(1))
-    const querySnapshot = await getDocs(q)
+    console.log("✅ Firebase initialized successfully")
 
-    logger.info("Firebase query completed", {
-      docsCount: querySnapshot.size,
-      empty: querySnapshot.empty,
+    // Test 2: Try to access trainers collection
+    const trainersRef = collection(db, "trainers")
+    console.log("📁 Accessing trainers collection...")
+
+    // Test 3: Get all trainers
+    const snapshot = await getDocs(trainersRef)
+    console.log(`📊 Found ${snapshot.size} trainer documents`)
+
+    const trainers = []
+    snapshot.forEach((doc) => {
+      trainers.push({
+        id: doc.id,
+        data: doc.data(),
+      })
     })
 
-    // Check environment variables
-    const envVars = {
-      NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      NEXT_PUBLIC_FIREBASE_PROJECT_ID: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      NEXT_PUBLIC_FIREBASE_APP_ID: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    }
+    // Test 4: Test specific trainer access if ID provided
+    const { searchParams } = new URL(request.url)
+    const testId = searchParams.get("testId")
 
-    logger.info("Environment variables check", envVars)
+    let specificTrainer = null
+    if (testId) {
+      console.log(`🎯 Testing specific trainer: ${testId}`)
+      const trainerDoc = await getDoc(doc(db, "trainers", testId))
+      if (trainerDoc.exists()) {
+        specificTrainer = {
+          id: trainerDoc.id,
+          data: trainerDoc.data(),
+        }
+        console.log("✅ Specific trainer found")
+      } else {
+        console.log("❌ Specific trainer not found")
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: "Firebase connection successful",
       data: {
-        trainersCollectionExists: true,
-        trainersCount: querySnapshot.size,
-        environmentVariables: envVars,
-        timestamp: new Date().toISOString(),
+        totalTrainers: snapshot.size,
+        trainers: trainers.slice(0, 3), // Only return first 3 for brevity
+        specificTrainer,
+        testId,
       },
+      timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    logger.error("Debug Firebase endpoint error", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-
+    console.error("❌ Firebase debug error:", error)
     return NextResponse.json(
       {
         success: false,
-        error: "Firebase connection failed",
-        details: error instanceof Error ? error.message : "Unknown error",
-        environmentVariables: {
-          NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-          NEXT_PUBLIC_FIREBASE_APP_ID: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-        },
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
       },
       { status: 500 },
     )

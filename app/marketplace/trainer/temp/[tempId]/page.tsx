@@ -11,3 +11,13 @@ export default async function TempTrainerDynamicPage({ params, searchParams }: P
 
   return <TempTrainerPage tempId={tempId} token={token} />
 }
+
+export async function generateMetadata({ params }: { params: Promise<{ tempId: string }> }) {
+  const { tempId } = await params
+
+  return {
+    title: "Trainer Website Preview - Juice",
+    description: "Preview your personal trainer website before activation",
+    robots: "noindex, nofollow",
+  }
+}
