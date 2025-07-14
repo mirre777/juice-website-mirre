@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db, getFirebaseDebugInfo } from "@/app/api/firebase-config"
-import { collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore"
+import { collection, addDoc, getDocs, serverTimestamp, Timestamp } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,16 +14,25 @@ export async function GET(request: NextRequest) {
       readTest = {
         success: true,
         count: snapshot.size,
-        docs: snapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-          exists: doc.exists(),
-        })),
+        docs: snapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            data: {
+              ...data,
+              // Convert Firestore Timestamps to strings for JSON serialization
+              createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+              expiresAt: data.expiresAt instanceof Timestamp ? data.expiresAt.toDate().toISOString() : data.expiresAt,
+            },
+            exists: doc.exists(),
+          }
+        }),
       }
     } catch (readError) {
       readTest = {
         success: false,
         error: readError instanceof Error ? readError.message : String(readError),
+        code: (readError as any)?.code || "unknown",
       }
     }
 
@@ -33,6 +42,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    console.error("Debug GET error:", error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : String(error),
@@ -45,15 +55,33 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Test writing to trainers collection
+    console.log("Debug POST: Starting write test...")
+
+    // Test writing to trainers collection with proper data serialization
     const testData = {
       testField: "test value",
       createdAt: serverTimestamp(),
       timestamp: new Date().toISOString(),
       source: "debug-endpoint",
+      testNumber: 42,
+      testBoolean: true,
+      testArray: ["item1", "item2", "item3"],
+      testObject: {
+        nested: "value",
+        number: 123,
+      },
     }
 
-    const docRef = await addDoc(collection(db, "trainers"), testData)
+    console.log("Debug POST: Test data prepared:", {
+      ...testData,
+      createdAt: "[ServerTimestamp]",
+    })
+
+    const trainersCollection = collection(db, "trainers")
+    console.log("Debug POST: Collection reference created")
+
+    const docRef = await addDoc(trainersCollection, testData)
+    console.log("Debug POST: Document created successfully:", docRef.id)
 
     return NextResponse.json({
       success: true,
@@ -64,6 +92,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
+    console.error("Debug POST error:", error)
     return NextResponse.json(
       {
         success: false,

@@ -1,6 +1,7 @@
-import { initializeApp, getApps } from "firebase/app"
+import { initializeApp, getApps, getApp } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 
+// Firebase configuration using environment variables
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -10,23 +11,24 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 }
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+// Initialize Firebase app (singleton pattern)
+let app
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig)
+} else {
+  app = getApp()
+}
 
 // Initialize Firestore
 export const db = getFirestore(app)
 
-// Export app for other uses
-export { app }
-
-// Debug function to check configuration
+// Debug function to check Firebase configuration
 export function getFirebaseDebugInfo() {
   return {
     hasApp: !!app,
     hasDb: !!db,
     projectId: firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
-    configKeys: Object.keys(firebaseConfig),
     envVars: {
       FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: !!process.env.FIREBASE_AUTH_DOMAIN,

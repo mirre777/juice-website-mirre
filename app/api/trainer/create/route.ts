@@ -70,14 +70,16 @@ export async function POST(request: NextRequest) {
 
     const formData = validationResult.data
 
-    // Create temporary trainer document
+    // Create expiration date (24 hours from now)
     const expiresAt = new Date()
-    expiresAt.setHours(expiresAt.getHours() + 24) // 24 hour expiration
+    expiresAt.setHours(expiresAt.getHours() + 24)
 
     const sessionToken = generateSessionToken()
 
-    // Prepare the data to be saved
+    // Prepare the data with proper serialization
+    // Note: We use serverTimestamp() for createdAt but a regular Date for expiresAt
     const tempTrainerData = {
+      // Basic trainer info
       fullName: formData.fullName,
       email: formData.email,
       phone: formData.phone || "",
@@ -86,13 +88,19 @@ export async function POST(request: NextRequest) {
       experience: formData.experience,
       bio: formData.bio,
       certifications: formData.certifications || "",
-      services: formData.services,
+      services: formData.services, // This is already an array from validation
+
+      // Status and metadata
       status: "temp",
-      createdAt: serverTimestamp(),
-      expiresAt: expiresAt,
+      createdAt: serverTimestamp(), // Use serverTimestamp for creation time
+      expiresAt: expiresAt, // Use regular Date object for expiration
       sessionToken: sessionToken,
       isActive: false,
       isPaid: false,
+
+      // Additional metadata
+      requestId: requestId,
+      userAgent: request.headers.get("user-agent") || "unknown",
     }
 
     console.log(
@@ -101,10 +109,11 @@ export async function POST(request: NextRequest) {
         email: formData.email,
         expiresAt: expiresAt.toISOString(),
         dataKeys: Object.keys(tempTrainerData),
+        servicesCount: formData.services.length,
       })}`,
     )
 
-    // Add to Firebase
+    // Add to Firebase with enhanced error handling
     let docRef
     try {
       const trainersCollection = collection(db, "trainers")
@@ -140,6 +149,7 @@ export async function POST(request: NextRequest) {
           error: "Failed to create trainer profile. Please try again.",
           details: firebaseError.message,
           code: firebaseError.code,
+          requestId,
         },
         { status: 500 },
       )
@@ -162,6 +172,7 @@ export async function POST(request: NextRequest) {
       tempId,
       redirectUrl,
       expiresAt: expiresAt.toISOString(),
+      requestId,
     })
   } catch (error: any) {
     console.error(
