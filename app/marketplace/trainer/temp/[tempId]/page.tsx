@@ -1,23 +1,21 @@
 import { TempTrainerPage } from "../TempTrainerPage"
 
-interface PageProps {
-  params: Promise<{ tempId: string }>
-  searchParams: Promise<{ token?: string }>
+interface TempTrainerPageProps {
+  params: {
+    tempId: string
+  }
+  searchParams: {
+    token?: string
+  }
 }
 
-export default async function TempTrainerDynamicPage({ params, searchParams }: PageProps) {
-  const { tempId } = await params
-  const { token } = await searchParams
-
-  return <TempTrainerPage tempId={tempId} token={token} />
+export default function TempTrainerRoute({ params, searchParams }: TempTrainerPageProps) {
+  return <TempTrainerPage tempId={params.tempId} token={searchParams.token} />
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ tempId: string }> }) {
-  const { tempId } = await params
-
+export async function generateMetadata({ params }: { params: { tempId: string } }) {
   return {
-    title: "Trainer Website Preview - Juice",
-    description: "Preview your personal trainer website before activation",
-    robots: "noindex, nofollow",
+    title: `Trainer Profile Preview - ${params.tempId}`,
+    description: "Preview your trainer profile before activation",
   }
 }

@@ -1,27 +1,28 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, Star, MapPin, Phone, Mail, CheckCircle } from "lucide-react"
-import { logger } from "@/lib/logger"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
+import { MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-interface TrainerData {
+interface TempTrainerData {
   id: string
-  fullName: string
+  name: string
   email: string
-  phone: string
+  specialties: string[]
+  bio: string
   location: string
-  services: string[]
+  hourlyRate: number
   experience: string
   certifications: string[]
-  bio: string
-  specialties: string[]
-  sessionToken: string
-  expiresAt: any
-  isActive: boolean
-  isPaid: boolean
+  availability: string[]
+  profileImage?: string
+  createdAt: string
+  status: "pending" | "active"
 }
 
 interface TempTrainerPageProps {
@@ -30,103 +31,71 @@ interface TempTrainerPageProps {
 }
 
 export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [timeRemaining, setTimeRemaining] = useState<string>("")
+  const [activating, setActivating] = useState(false)
 
   useEffect(() => {
-    fetchTrainerData()
+    const fetchTrainer = async () => {
+      try {
+        const response = await fetch(`/api/trainer/temp/${tempId}${token ? `?token=${token}` : ""}`)
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch trainer data")
+        }
+
+        const data = await response.json()
+        setTrainer(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (tempId) {
+      fetchTrainer()
+    }
   }, [tempId, token])
 
-  useEffect(() => {
-    if (trainer?.expiresAt) {
-      const timer = setInterval(() => {
-        const now = new Date().getTime()
-        const expiry = new Date(trainer.expiresAt.seconds * 1000).getTime()
-        const difference = expiry - now
+  const handleActivate = async () => {
+    if (!trainer || !token) return
 
-        if (difference > 0) {
-          const hours = Math.floor(difference / (1000 * 60 * 60))
-          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
-          const seconds = Math.floor((difference % (1000 * 60)) / 1000)
-          setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`)
-        } else {
-          setTimeRemaining("Expired")
-          clearInterval(timer)
-        }
-      }, 1000)
-
-      return () => clearInterval(timer)
-    }
-  }, [trainer])
-
-  const fetchTrainerData = async () => {
+    setActivating(true)
     try {
-      setLoading(true)
-      setError(null)
-
-      logger.info("Fetching trainer data", { tempId, hasToken: !!token })
-
-      const url = `/api/trainer/temp/${tempId}${token ? `?token=${encodeURIComponent(token)}` : ""}`
-      const response = await fetch(url)
+      const response = await fetch("/api/trainer/activate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tempId,
+          token,
+        }),
+      })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        logger.error("API response not ok", {
-          tempId,
-          status: response.status,
-          statusText: response.statusText,
-          errorText,
-        })
-        throw new Error(`HTTP ${response.status}: ${errorText}`)
+        throw new Error("Failed to activate trainer profile")
       }
 
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text()
-        logger.error("Response is not JSON", { tempId, contentType, responseText: text.substring(0, 200) })
-        throw new Error("Server returned non-JSON response")
-      }
+      const result = await response.json()
 
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to fetch trainer data")
-      }
-
-      setTrainer(data.trainer)
-      logger.info("Trainer data fetched successfully", { tempId, trainerName: data.trainer.fullName })
-    } catch (error) {
-      logger.error("Network error fetching trainer data", {
-        tempId,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      setError(error instanceof Error ? error.message : "Failed to load trainer data")
+      // Redirect to the activated profile
+      window.location.href = `/marketplace/trainer/${result.trainerId}`
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Activation failed")
     } finally {
-      setLoading(false)
+      setActivating(false)
     }
-  }
-
-  const handleActivate = () => {
-    // TODO: Implement Stripe payment flow
-    alert("Payment integration coming soon!")
-  }
-
-  const handleRetry = () => {
-    fetchTrainerData()
-  }
-
-  const handleCreateNew = () => {
-    window.location.href = "/marketplace/personal-trainer-website"
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading trainer profile...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading trainer profile...</span>
         </div>
       </div>
     )
@@ -134,186 +103,172 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className="text-red-500 mb-4">
-              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Error</h2>
-            <p className="text-gray-600 mb-4">Network error: {error}</p>
-            <div className="space-y-2">
-              <Button onClick={handleRetry} className="w-full">
-                Try Again
-              </Button>
-              <Button onClick={handleCreateNew} variant="outline" className="w-full bg-transparent">
-                Create New Profile
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </div>
     )
   }
 
   if (!trainer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">Trainer Not Found</h2>
-            <p className="text-gray-600 mb-4">The trainer profile could not be found or has expired.</p>
-            <Button onClick={handleCreateNew} className="w-full">
-              Create New Profile
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>Trainer profile not found</AlertDescription>
+        </Alert>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-lime-400 rounded-full flex items-center justify-center">
-              <Star className="w-4 h-4 text-black" />
-            </div>
-            <div>
-              <h1 className="font-semibold">Website Preview</h1>
-              <p className="text-sm text-gray-600">24-hour trial period</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Clock className="w-4 h-4" />
-              <span>Time remaining: {timeRemaining}</span>
-            </div>
-            <Button onClick={handleActivate} className="bg-lime-400 hover:bg-lime-500 text-black">
-              Activate for €29
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Preview Notice */}
+        <Alert className="mb-6 border-blue-200 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            This is a preview of your trainer profile.{" "}
+            {token
+              ? 'Click "Activate Profile" to make it live.'
+              : "You need a valid activation token to activate this profile."}
+          </AlertDescription>
+        </Alert>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <div className="bg-lime-400 rounded-lg p-8 text-center mb-8">
-          <h1 className="text-4xl font-bold text-black mb-4">Transform Your Body, Transform Your Life</h1>
-          <div className="flex items-center justify-center space-x-2 text-black mb-6">
-            <span>{trainer.services?.[0] || "Personal Trainer"}</span>
-            <span>•</span>
-            <span>{trainer.experience || "Professional Experience"}</span>
-            <span>•</span>
-            <span>{trainer.location}</span>
-          </div>
-          <Button className="bg-black text-white hover:bg-gray-800">Book Your Free Consultation</Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Star className="w-5 h-5 text-lime-400" />
-                  <h2 className="text-xl font-semibold">About {trainer.fullName}</h2>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {trainer.bio ||
-                    `Welcome to my fitness journey! I'm ${trainer.fullName}, a dedicated ${trainer.services?.[0] || "personal trainer"} based in ${trainer.location}. With ${trainer.experience || "professional experience"}, I'm here to help you achieve your fitness goals through personalized training programs and expert guidance.`}
-                </p>
-                <div className="flex items-center space-x-4">
-                  <Badge variant="outline" className="flex items-center space-x-1">
-                    <span>📊</span>
-                    <span>{trainer.experience || "Professional Experience"}</span>
-                  </Badge>
-                  <Badge variant="outline" className="flex items-center space-x-1">
-                    <CheckCircle className="w-3 h-3" />
-                    <span>Certified Professional</span>
+        {/* Main Profile Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-start space-x-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={trainer.profileImage || "/placeholder.svg"} alt={trainer.name} />
+                <AvatarFallback className="text-lg">
+                  {trainer.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-2xl">{trainer.name}</CardTitle>
+                  <Badge variant="outline" className="text-orange-600 border-orange-200">
+                    Preview Mode
                   </Badge>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Services Section */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">My Training Services</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(
-                    trainer.services || [
-                      "Personal Training",
-                      "Group Sessions",
-                      "Nutrition Coaching",
-                      "Fitness Assessment",
-                    ]
-                  ).map((service, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <h3 className="font-medium mb-2">{service}</h3>
-                      <p className="text-sm text-gray-600">
-                        Professional {service.toLowerCase()} tailored to your needs
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Information */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">Contact Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm">{trainer.email}</span>
+                <div className="flex items-center space-x-4 mt-2 text-gray-600">
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{trainer.location}</span>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm">{trainer.phone}</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm">{trainer.location}</span>
+                  <div className="flex items-center space-x-1">
+                    <DollarSign className="h-4 w-4" />
+                    <span>${trainer.hourlyRate}/hour</span>
                   </div>
                 </div>
-                <Button className="w-full mt-4 bg-lime-400 hover:bg-lime-500 text-black">Schedule Consultation</Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Bio */}
+              <div>
+                <h3 className="font-semibold mb-2">About</h3>
+                <p className="text-gray-700">{trainer.bio}</p>
+              </div>
 
-            {/* Specialties */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">Specialties</h3>
+              <Separator />
+
+              {/* Specialties */}
+              <div>
+                <h3 className="font-semibold mb-2">Specialties</h3>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    trainer.specialties ||
-                    trainer.services || ["Strength Training", "Weight Loss", "Muscle Building"]
-                  ).map((specialty, index) => (
-                    <Badge key={index} className="bg-lime-100 text-lime-800 hover:bg-lime-200">
+                  {trainer.specialties.map((specialty, index) => (
+                    <Badge key={index} variant="secondary">
                       {specialty}
                     </Badge>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </div>
+
+              <Separator />
+
+              {/* Experience & Certifications */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-2">Experience</h3>
+                  <p className="text-gray-700">{trainer.experience}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Certifications</h3>
+                  <ul className="space-y-1">
+                    {trainer.certifications.map((cert, index) => (
+                      <li key={index} className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-gray-700">{cert}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Availability */}
+              <div>
+                <h3 className="font-semibold mb-2">Availability</h3>
+                <div className="flex flex-wrap gap-2">
+                  {trainer.availability.map((time, index) => (
+                    <Badge key={index} variant="outline" className="flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{time}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Activation Section */}
+        {token && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Activate Your Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Ready to go live? Activating your profile will make it visible to potential clients and allow you to
+                start receiving bookings.
+              </p>
+              <Button onClick={handleActivate} disabled={activating} className="w-full sm:w-auto">
+                {activating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Activating...
+                  </>
+                ) : (
+                  "Activate Profile"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No Token Message */}
+        {!token && (
+          <Card>
+            <CardContent className="pt-6">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  To activate this profile, you need to use the activation link sent to your email.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
