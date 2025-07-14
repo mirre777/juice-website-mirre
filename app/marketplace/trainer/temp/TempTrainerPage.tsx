@@ -190,6 +190,13 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
   const displayName = trainer.fullName || trainer.name || "Trainer"
 
+  // Ensure certifications is always an array
+  const certifications = Array.isArray(trainer.certifications)
+    ? trainer.certifications
+    : typeof trainer.certifications === "string"
+      ? [trainer.certifications]
+      : ["Certified Personal Trainer"]
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -356,15 +363,11 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
                   <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
                   <div className="space-y-1">
-                    {trainer.certifications && trainer.certifications.length > 0 ? (
-                      trainer.certifications.map((cert, index) => (
-                        <p key={index} className="text-sm text-gray-600">
-                          {cert}
-                        </p>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-600">Certified Personal Trainer</p>
-                    )}
+                    {certifications.map((cert, index) => (
+                      <p key={index} className="text-sm text-gray-600">
+                        {cert}
+                      </p>
+                    ))}
                   </div>
                 </Card>
 

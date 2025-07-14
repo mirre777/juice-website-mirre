@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 })
     }
 
-    // Fetch trainer document from the "trainers" collection (not "tempTrainers")
+    // Fetch trainer document from the "trainers" collection
     logger.info("Fetching trainer document", { tempId })
     const trainerRef = doc(db, "trainers", tempId)
     const trainerSnap = await getDoc(trainerRef)
@@ -61,6 +61,15 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json({ success: false, error: "Preview session has expired" }, { status: 410 })
     }
 
+    // Ensure certifications is always an array
+    let certifications = trainerData.certifications || ["Certified Personal Trainer"]
+    if (typeof certifications === "string") {
+      certifications = [certifications]
+    }
+    if (!Array.isArray(certifications)) {
+      certifications = ["Certified Personal Trainer"]
+    }
+
     // Return trainer data in the expected format
     const responseData = {
       id: trainerSnap.id,
@@ -74,7 +83,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       bio:
         trainerData.bio ||
         `Passionate fitness professional dedicated to helping clients achieve their goals through ${trainerData.specialty || "personal training"}.`,
-      certifications: trainerData.certifications || ["Certified Personal Trainer"],
+      certifications: certifications,
       createdAt: createdAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
       isActive: trainerData.status === "active",
