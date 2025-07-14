@@ -5,55 +5,62 @@ import { logger } from "@/lib/logger"
 
 export async function GET() {
   try {
-    logger.info("Testing Firebase connection for temp trainers")
+    logger.info("Debug Firebase connection test started")
 
     // Test basic Firebase connection
     if (!db) {
-      throw new Error("Firebase database not initialized")
+      return NextResponse.json({
+        success: false,
+        error: "Firebase not initialized",
+        timestamp: new Date().toISOString(),
+      })
     }
 
-    // Try to fetch some trainer documents
+    // Test Firestore query
     const trainersRef = collection(db, "trainers")
-    const q = query(trainersRef, limit(5))
-    const snapshot = await getDocs(q)
+    const q = query(trainersRef, limit(1))
+    const querySnapshot = await getDocs(q)
 
-    const trainers = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      data: doc.data(),
-    }))
-
-    logger.info("Firebase connection test successful", {
-      trainerCount: trainers.length,
-      sampleTrainerIds: trainers.map((t) => t.id),
-    })
-
-    return NextResponse.json({
+    const testResults = {
       success: true,
-      message: "Firebase connection working",
-      trainerCount: trainers.length,
-      sampleTrainers: trainers.map((trainer) => ({
-        id: trainer.id,
-        email: trainer.data.email,
-        fullName: trainer.data.fullName,
-        hasSessionToken: !!trainer.data.sessionToken,
-        hasExpiresAt: !!trainer.data.expiresAt,
-        isActive: trainer.data.isActive,
-        isPaid: trainer.data.isPaid,
-      })),
-    })
+      firebase: {
+        initialized: !!db,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      },
+      firestore: {
+        connected: true,
+        trainersCollection: {
+          exists: true,
+          documentCount: querySnapshot.size,
+          sampleDocument: querySnapshot.empty ? null : querySnapshot.docs[0].id,
+        },
+      },
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV,
+        timestamp: new Date().toISOString(),
+      },
+    }
+
+    logger.info("Firebase debug test completed successfully", testResults)
+    return NextResponse.json(testResults)
   } catch (error) {
-    logger.error("Firebase connection test failed", {
+    const errorInfo = {
+      success: false,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-    })
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Firebase connection failed",
-        details: error instanceof Error ? error.message : "Unknown error",
+      firebase: {
+        initialized: !!db,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
       },
-      { status: 500 },
-    )
+      timestamp: new Date().toISOString(),
+    }
+
+    logger.error("Firebase debug test failed", errorInfo)
+    return NextResponse.json(errorInfo, { status: 500 })
   }
 }
