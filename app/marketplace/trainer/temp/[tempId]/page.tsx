@@ -1,6 +1,6 @@
 import { TempTrainerPage } from "../TempTrainerPage"
 
-interface TempTrainerPageProps {
+interface PageProps {
   params: {
     tempId: string
   }
@@ -9,13 +9,14 @@ interface TempTrainerPageProps {
   }
 }
 
-export default function TempTrainerRoute({ params, searchParams }: TempTrainerPageProps) {
+export default function TempTrainerPageRoute({ params, searchParams }: PageProps) {
   return <TempTrainerPage tempId={params.tempId} token={searchParams.token} />
 }
 
-export async function generateMetadata({ params }: { params: { tempId: string } }) {
+export async function generateMetadata({ params }: PageProps) {
   return {
-    title: `Trainer Profile Preview - ${params.tempId}`,
+    title: `Trainer Preview - ${params.tempId}`,
     description: "Preview your trainer profile before activation",
+    robots: "noindex, nofollow",
   }
 }

@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, CheckCircle, XCircle, ExternalLink } from "lucide-react"
+import { toast } from "react-hot-toast"
 
 interface TempTrainerData {
   id: string
@@ -15,14 +16,27 @@ interface TempTrainerData {
   email: string
   specialties: string[]
   bio: string
-  location: string
-  hourlyRate: number
   experience: string
   certifications: string[]
+  location: string
+  pricing: {
+    sessionRate: number
+    packageDeals: string[]
+  }
   availability: string[]
+  contactInfo: {
+    phone?: string
+    website?: string
+    social?: {
+      instagram?: string
+      facebook?: string
+      linkedin?: string
+    }
+  }
   profileImage?: string
   createdAt: string
-  status: "pending" | "active"
+  status: "pending" | "active" | "expired"
+  activationToken?: string
 }
 
 interface TempTrainerPageProps {
@@ -31,39 +45,41 @@ interface TempTrainerPageProps {
 }
 
 export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
+  const [trainerData, setTrainerData] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activating, setActivating] = useState(false)
 
   useEffect(() => {
-    const fetchTrainer = async () => {
-      try {
-        const response = await fetch(`/api/trainer/temp/${tempId}${token ? `?token=${token}` : ""}`)
+    fetchTempTrainer()
+  }, [tempId])
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch trainer data")
-        }
-
-        const data = await response.json()
-        setTrainer(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (tempId) {
-      fetchTrainer()
-    }
-  }, [tempId, token])
-
-  const handleActivate = async () => {
-    if (!trainer || !token) return
-
-    setActivating(true)
+  const fetchTempTrainer = async () => {
     try {
+      setLoading(true)
+      const response = await fetch(`/api/trainer/temp/${tempId}`)
+
+      if (!response.ok) {
+        throw new Error("Trainer profile not found")
+      }
+
+      const data = await response.json()
+      setTrainerData(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load trainer profile")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleActivateProfile = async () => {
+    if (!token || !trainerData) {
+      toast.error("Invalid activation token")
+      return
+    }
+
+    try {
+      setActivating(true)
       const response = await fetch("/api/trainer/activate", {
         method: "POST",
         headers: {
@@ -76,15 +92,16 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to activate trainer profile")
+        throw new Error("Failed to activate profile")
       }
 
       const result = await response.json()
+      toast.success("Profile activated successfully!")
 
-      // Redirect to the activated profile
+      // Redirect to the live trainer profile
       window.location.href = `/marketplace/trainer/${result.trainerId}`
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Activation failed")
+      toast.error(err instanceof Error ? err.message : "Activation failed")
     } finally {
       setActivating(false)
     }
@@ -93,79 +110,89 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading trainer profile...</span>
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading trainer profile...</p>
         </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !trainerData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Profile Not Found</h2>
+              <p className="text-muted-foreground mb-4">
+                {error || "The trainer profile you're looking for doesn't exist or has expired."}
+              </p>
+              <Button asChild>
+                <a href="/marketplace">Browse Trainers</a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  if (!trainer) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Trainer profile not found</AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
+  const isExpired = trainerData.status === "expired"
+  const isActive = trainerData.status === "active"
+  const canActivate = token && trainerData.activationToken === token && !isActive && !isExpired
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Preview Notice */}
-        <Alert className="mb-6 border-blue-200 bg-blue-50">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            This is a preview of your trainer profile.{" "}
-            {token
-              ? 'Click "Activate Profile" to make it live.'
-              : "You need a valid activation token to activate this profile."}
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Header Alert */}
+        <Alert className="mb-6">
+          <AlertDescription>
+            {isActive ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                This profile is now live and active on the marketplace.
+              </div>
+            ) : isExpired ? (
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-600" />
+                This preview link has expired. Please create a new trainer profile.
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 text-blue-600" />
+                This is a preview of your trainer profile. Use the activation button below to make it live.
+              </div>
+            )}
           </AlertDescription>
         </Alert>
 
         {/* Main Profile Card */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-start space-x-4">
+            <div className="flex items-start gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={trainer.profileImage || "/placeholder.svg"} alt={trainer.name} />
+                <AvatarImage src={trainerData.profileImage || "/placeholder.svg"} alt={trainerData.name} />
                 <AvatarFallback className="text-lg">
-                  {trainer.name
+                  {trainerData.name
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl">{trainer.name}</CardTitle>
-                  <Badge variant="outline" className="text-orange-600 border-orange-200">
-                    Preview Mode
-                  </Badge>
+                <div className="flex items-center gap-2 mb-2">
+                  <CardTitle className="text-2xl">{trainerData.name}</CardTitle>
+                  <Badge variant={isActive ? "default" : "secondary"}>{trainerData.status}</Badge>
                 </div>
-                <div className="flex items-center space-x-4 mt-2 text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{trainer.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <DollarSign className="h-4 w-4" />
-                    <span>${trainer.hourlyRate}/hour</span>
-                  </div>
+                <p className="text-muted-foreground mb-2">{trainerData.location}</p>
+                <div className="flex flex-wrap gap-2">
+                  {trainerData.specialties.map((specialty, index) => (
+                    <Badge key={index} variant="outline">
+                      {specialty}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </div>
@@ -175,21 +202,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
               {/* Bio */}
               <div>
                 <h3 className="font-semibold mb-2">About</h3>
-                <p className="text-gray-700">{trainer.bio}</p>
-              </div>
-
-              <Separator />
-
-              {/* Specialties */}
-              <div>
-                <h3 className="font-semibold mb-2">Specialties</h3>
-                <div className="flex flex-wrap gap-2">
-                  {trainer.specialties.map((specialty, index) => (
-                    <Badge key={index} variant="secondary">
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
+                <p className="text-muted-foreground">{trainerData.bio}</p>
               </div>
 
               <Separator />
@@ -198,15 +211,14 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-semibold mb-2">Experience</h3>
-                  <p className="text-gray-700">{trainer.experience}</p>
+                  <p className="text-muted-foreground">{trainerData.experience}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Certifications</h3>
                   <ul className="space-y-1">
-                    {trainer.certifications.map((cert, index) => (
-                      <li key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-gray-700">{cert}</span>
+                    {trainerData.certifications.map((cert, index) => (
+                      <li key={index} className="text-muted-foreground">
+                        • {cert}
                       </li>
                     ))}
                   </ul>
@@ -215,60 +227,98 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
               <Separator />
 
+              {/* Pricing */}
+              <div>
+                <h3 className="font-semibold mb-2">Pricing</h3>
+                <p className="text-lg font-medium mb-2">${trainerData.pricing.sessionRate}/session</p>
+                {trainerData.pricing.packageDeals.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Package Deals:</p>
+                    <ul className="space-y-1">
+                      {trainerData.pricing.packageDeals.map((deal, index) => (
+                        <li key={index} className="text-sm text-muted-foreground">
+                          • {deal}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
               {/* Availability */}
               <div>
                 <h3 className="font-semibold mb-2">Availability</h3>
                 <div className="flex flex-wrap gap-2">
-                  {trainer.availability.map((time, index) => (
-                    <Badge key={index} variant="outline" className="flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{time}</span>
+                  {trainerData.availability.map((time, index) => (
+                    <Badge key={index} variant="outline">
+                      {time}
                     </Badge>
                   ))}
                 </div>
               </div>
+
+              {/* Contact Info */}
+              {(trainerData.contactInfo.phone || trainerData.contactInfo.website || trainerData.contactInfo.social) && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-2">Contact Information</h3>
+                    <div className="space-y-2">
+                      {trainerData.contactInfo.phone && (
+                        <p className="text-muted-foreground">Phone: {trainerData.contactInfo.phone}</p>
+                      )}
+                      {trainerData.contactInfo.website && (
+                        <p className="text-muted-foreground">
+                          Website:
+                          <a
+                            href={trainerData.contactInfo.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-1 text-blue-600 hover:underline inline-flex items-center gap-1"
+                          >
+                            {trainerData.contactInfo.website}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Activation Section */}
-        {token && (
+        {/* Activation Button */}
+        {canActivate && (
           <Card>
-            <CardHeader>
-              <CardTitle>Activate Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Ready to go live? Activating your profile will make it visible to potential clients and allow you to
-                start receiving bookings.
-              </p>
-              <Button onClick={handleActivate} disabled={activating} className="w-full sm:w-auto">
-                {activating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Activating...
-                  </>
-                ) : (
-                  "Activate Profile"
-                )}
-              </Button>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Ready to Go Live?</h3>
+                <p className="text-muted-foreground mb-4">
+                  Activate your profile to make it visible to clients on the marketplace.
+                </p>
+                <Button onClick={handleActivateProfile} disabled={activating} size="lg" className="w-full sm:w-auto">
+                  {activating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Activating Profile...
+                    </>
+                  ) : (
+                    "Activate Profile"
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
 
-        {/* No Token Message */}
-        {!token && (
-          <Card>
-            <CardContent className="pt-6">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  To activate this profile, you need to use the activation link sent to your email.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-muted-foreground">
+          <p>Created on {new Date(trainerData.createdAt).toLocaleDateString()}</p>
+        </div>
       </div>
     </div>
   )
