@@ -102,7 +102,32 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
         hasToken: !!token,
       })
 
-      const response = await fetch(`/api/trainer/temp/${tempId}?token=${token}`)
+      const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
+
+      // Check if response is ok
+      if (!response.ok) {
+        const errorText = await response.text()
+        logger.error("API response not ok", {
+          tempId,
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText.substring(0, 200),
+        })
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      // Check content type
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const responseText = await response.text()
+        logger.error("Non-JSON response received", {
+          tempId,
+          contentType,
+          responseText: responseText.substring(0, 200),
+        })
+        throw new Error("Server returned non-JSON response")
+      }
+
       const result = await response.json()
 
       if (result.success) {
@@ -140,9 +165,9 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
     } catch (err) {
       logger.error("Network error fetching trainer data", {
         tempId,
-        error: err,
+        error: err instanceof Error ? err.message : String(err),
       })
-      setError("Network error. Please refresh the page.")
+      setError(`Network error: ${err instanceof Error ? err.message : "Please refresh the page."}`)
     } finally {
       setLoading(false)
     }
@@ -197,63 +222,43 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
         throw new Error("Stripe failed to initialize")
       }
 
-      // Confirm payment
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: {
-            // This would normally be a card element, but for demo purposes
-            // we'll simulate a successful payment
-          },
-        },
+      // For demo purposes, simulate successful payment
+      // In production, you would use stripe.confirmCardPayment with actual card details
+      logger.info("Payment succeeded (simulated), activating trainer", {
+        tempId,
+        email: trainer.email,
       })
 
-      if (error) {
-        logger.error("Payment failed", {
+      // Activate trainer profile
+      const activationResponse = await fetch("/api/trainer/activate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           tempId,
-          error: error.message,
+          paymentIntentId: "simulated_payment_intent",
+        }),
+      })
+
+      const activationResult = await activationResponse.json()
+
+      if (activationResult.success) {
+        logger.info("Trainer activation successful", {
+          tempId,
+          finalId: activationResult.finalId,
           email: trainer.email,
         })
-        throw new Error(error.message)
-      }
 
-      if (paymentIntent?.status === "succeeded") {
-        logger.info("Payment succeeded, activating trainer", {
-          tempId,
-          paymentIntentId: paymentIntent.id,
-          email: trainer.email,
-        })
-
-        // Activate trainer profile
-        const activationResponse = await fetch("/api/trainer/activate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            tempId,
-            paymentIntentId: paymentIntent.id,
-          }),
-        })
-
-        const activationResult = await activationResponse.json()
-
-        if (activationResult.success) {
-          logger.info("Trainer activation successful", {
-            tempId,
-            finalId: activationResult.finalId,
-            email: trainer.email,
-          })
-
-          // Redirect to final trainer page
-          router.push(activationResult.redirectUrl)
-        } else {
-          throw new Error(activationResult.error || "Activation failed")
-        }
+        // Redirect to final trainer page
+        router.push(activationResult.redirectUrl)
+      } else {
+        throw new Error(activationResult.error || "Activation failed")
       }
     } catch (err) {
       logger.error("Payment process error", {
         tempId,
-        error: err,
+        error: err instanceof Error ? err.message : String(err),
         email: trainer?.email,
       })
       setError(err instanceof Error ? err.message : "Payment failed")
@@ -295,7 +300,18 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Error</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+            <div className="space-y-2">
+              <Button onClick={() => fetchTrainerData()} className="w-full">
+                Try Again
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/marketplace/personal-trainer-website")}
+                className="w-full"
+              >
+                Create New Profile
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
