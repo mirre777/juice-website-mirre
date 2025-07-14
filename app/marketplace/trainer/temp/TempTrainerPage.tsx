@@ -8,13 +8,30 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
 import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Timer } from "lucide-react"
-import type { TempTrainerData } from "@/types/trainer"
+
+interface TempTrainerData {
+  id: string
+  name: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialization: string
+  experience: string
+  bio: string
+  certifications: string[]
+  createdAt: string
+  expiresAt: string
+  isActive: boolean
+  sessionToken?: string
+}
 
 interface TempTrainerPageProps {
   tempId: string
+  token?: string
 }
 
-export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
+export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   const router = useRouter()
   const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -43,12 +60,17 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
 
   const loadTrainerData = async () => {
     try {
-      const response = await fetch(`/api/trainer/temp/${tempId}`)
+      const response = await fetch(`/api/trainer/temp/${tempId}${token ? `?token=${encodeURIComponent(token)}` : ""}`)
       if (!response.ok) {
         throw new Error("Failed to fetch trainer data")
       }
       const data = await response.json()
-      setTrainer(data.trainer)
+
+      if (data.success && data.trainer) {
+        setTrainer(data.trainer)
+      } else {
+        throw new Error("Invalid response format")
+      }
     } catch (error) {
       console.error("Error fetching trainer data:", error)
       toast({
@@ -147,6 +169,8 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
   const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60))
   const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
 
+  const displayName = trainer.fullName || trainer.name || "Trainer"
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -200,7 +224,7 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
                 <div className="mb-8">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-6 h-6 bg-[#D2FF28] rounded-full"></div>
-                    <h2 className="text-2xl font-bold">About {trainer.name}</h2>
+                    <h2 className="text-2xl font-bold">About {displayName}</h2>
                   </div>
                   <p className="text-gray-700 leading-relaxed mb-4">{trainer.bio}</p>
 
@@ -258,7 +282,7 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
                         ))}
                       </div>
                       <p className="text-gray-700 mb-3">
-                        "Working with {trainer.name} has been life-changing. Their expertise in {trainer.specialization}{" "}
+                        "Working with {displayName} has been life-changing. Their expertise in {trainer.specialization}{" "}
                         helped me achieve results I never thought possible."
                       </p>
                       <p className="text-sm text-gray-500">- Sarah M.</p>
@@ -271,7 +295,7 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
                         ))}
                       </div>
                       <p className="text-gray-700 mb-3">
-                        "Professional, knowledgeable, and motivating. {trainer.name} creates personalized programs that
+                        "Professional, knowledgeable, and motivating. {displayName} creates personalized programs that
                         actually work."
                       </p>
                       <p className="text-sm text-gray-500">- Mike R.</p>
@@ -313,11 +337,15 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
 
                   <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
                   <div className="space-y-1">
-                    {trainer.certifications.map((cert, index) => (
-                      <p key={index} className="text-sm text-gray-600">
-                        {cert}
-                      </p>
-                    ))}
+                    {trainer.certifications && trainer.certifications.length > 0 ? (
+                      trainer.certifications.map((cert, index) => (
+                        <p key={index} className="text-sm text-gray-600">
+                          {cert}
+                        </p>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-600">lalalalalala</p>
+                    )}
                   </div>
                 </Card>
 
