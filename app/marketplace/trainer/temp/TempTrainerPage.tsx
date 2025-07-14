@@ -74,12 +74,12 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         // Map the API response to match our component interface
         const mappedData: TempTrainerData = {
           id: result.trainer.id,
-          name: result.trainer.fullName, // API uses fullName, component expects name
-          email: result.trainer.email,
-          specialties: result.trainer.specialties || [],
+          name: result.trainer.fullName || "Unknown Trainer", // API uses fullName, component expects name
+          email: result.trainer.email || "",
+          specialties: Array.isArray(result.trainer.specialties) ? result.trainer.specialties : [],
           bio: result.trainer.bio || "",
           experience: result.trainer.experience || "",
-          certifications: result.trainer.certifications || [],
+          certifications: Array.isArray(result.trainer.certifications) ? result.trainer.certifications : [],
           location: result.trainer.location || "",
           pricing: {
             sessionRate: 80, // Default value since API doesn't have this structure
@@ -87,7 +87,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           },
           availability: [], // Default empty array
           contactInfo: {
-            phone: result.trainer.phone,
+            phone: result.trainer.phone || "",
             website: "",
             social: {},
           },
@@ -223,7 +223,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
                 </div>
                 <p className="text-muted-foreground mb-2">{trainerData.location}</p>
                 <div className="flex flex-wrap gap-2">
-                  {trainerData.specialties.map((specialty, index) => (
+                  {(trainerData.specialties || []).map((specialty, index) => (
                     <Badge key={index} variant="outline">
                       {specialty}
                     </Badge>
@@ -251,7 +251,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
                 <div>
                   <h3 className="font-semibold mb-2">Certifications</h3>
                   <ul className="space-y-1">
-                    {trainerData.certifications.map((cert, index) => (
+                    {(trainerData.certifications || []).map((cert, index) => (
                       <li key={index} className="text-muted-foreground">
                         • {cert}
                       </li>
@@ -286,7 +286,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
               <div>
                 <h3 className="font-semibold mb-2">Availability</h3>
                 <div className="flex flex-wrap gap-2">
-                  {trainerData.availability.map((time, index) => (
+                  {(trainerData.availability || []).map((time, index) => (
                     <Badge key={index} variant="outline">
                       {time}
                     </Badge>
