@@ -252,6 +252,7 @@ function CheckoutForm({
   const [email, setEmail] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [elementsReady, setElementsReady] = useState(false)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -264,6 +265,19 @@ function CheckoutForm({
 
     setIsProcessing(true)
     setPaymentError(null)
+
+    if (!elements) {
+      console.error("Elements not available")
+      setPaymentError("Payment form not ready. Please wait a moment and try again.")
+      return
+    }
+
+    const paymentElement = elements.getElement("payment")
+    if (!paymentElement) {
+      console.error("PaymentElement not found")
+      setPaymentError("Payment form not loaded properly. Please refresh and try again.")
+      return
+    }
 
     try {
       if (!email) {
@@ -341,6 +355,10 @@ function CheckoutForm({
       )}
 
       <PaymentElement
+        onReady={() => {
+          console.log("PaymentElement is ready")
+          setElementsReady(true)
+        }}
         options={{
           layout: "tabs",
         }}
@@ -361,7 +379,11 @@ function CheckoutForm({
         />
       </div>
 
-      <Button type="submit" disabled={!stripe || isProcessing} className="w-full bg-juice text-black hover:bg-juice/90">
+      <Button
+        type="submit"
+        disabled={!stripe || !elements || isProcessing || !elementsReady}
+        className="w-full bg-juice text-black hover:bg-juice/90"
+      >
         {isProcessing ? (
           <>
             <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />

@@ -9,150 +9,116 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Initialize Firebase Admin
 if (!getApps().length) {
-  const serviceAccount = {
-    type: "service_account",
-    project_id: process.env.FIREBASE_PROJECT_ID,
-    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-    private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    client_email: process.env.FIREBASE_CLIENT_EMAIL,
-    client_id: process.env.FIREBASE_CLIENT_ID,
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    token_uri: "https://oauth2.googleapis.com/token",
-    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-    client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${process.env.FIREBASE_CLIENT_EMAIL}`,
-  }
-
   initializeApp({
-    credential: cert(serviceAccount as any),
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
   })
 }
 
 const db = getFirestore()
 
-async function generateTrainerContent(trainerData: any) {
-  const { name, fullName, specialization, location, experience, bio } = trainerData
-
-  const content = {
-    hero: {
-      title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${specialization} • ${experience} • ${location}`,
-      description: `Professional fitness coaching tailored to your goals. Start your transformation journey today with personalized training programs.`,
-    },
-    about: {
-      title: `About ${fullName || name}`,
-      content:
-        bio ||
-        `${fullName || name} is a dedicated ${specialization} with ${experience} of experience helping clients achieve their fitness goals. Based in ${location}, they provide personalized training programs designed to deliver real results.`,
-    },
-    services: [
-      {
-        title: "Personal Training",
-        description: "One-on-one coaching sessions tailored to your specific goals and fitness level.",
-        price: "From €60/session",
-      },
-      {
-        title: "Group Classes",
-        description: "Small group training sessions for motivation and community support.",
-        price: "From €25/session",
-      },
-      {
-        title: "Online Coaching",
-        description: "Remote coaching with personalized workout plans and nutrition guidance.",
-        price: "From €150/month",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Amazing results in just 3 months! Professional, knowledgeable, and truly cares about your progress.",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Best investment I've made for my health. The personalized approach really makes a difference.",
-        rating: 5,
-      },
-      {
-        name: "Lisa K.",
-        text: "Incredible transformation both physically and mentally. Highly recommend!",
-        rating: 5,
-      },
-    ],
-    contact: {
-      phone: "+43 123 456 789",
-      email: `${(fullName || name).toLowerCase().replace(/\s+/g, ".")}@example.com`,
-      location: location,
-      availability: "Monday - Saturday: 6:00 AM - 8:00 PM",
-    },
-  }
-
-  return content
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { tempId, paymentIntentId } = body
-
-    console.log("Trainer activation request started:", { tempId, paymentIntentId })
+    const { tempId, paymentIntentId } = await request.json()
 
     if (!tempId || !paymentIntentId) {
       return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
     }
 
-    // Verify payment with Stripe
+    console.log("Activating trainer:", { tempId, paymentIntentId })
+
+    // Verify payment intent
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     if (paymentIntent.status !== "succeeded") {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 })
     }
 
-    console.log("Payment verified successfully")
-
-    // Get the temp trainer data
-    const tempTrainerRef = db.collection("trainers").doc(tempId)
-    const tempTrainerDoc = await tempTrainerRef.get()
-
-    if (!tempTrainerDoc.exists) {
-      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
+    // Get temp trainer data
+    const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
+    if (!tempDoc.exists) {
+      return NextResponse.json({ error: "Temp trainer not found" }, { status: 404 })
     }
 
-    const tempTrainerData = tempTrainerDoc.data()!
-    console.log("Found temp trainer:", tempTrainerData.name)
+    const tempData = tempDoc.data()!
+
+    // Generate final trainer ID
+    const finalId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     // Generate AI content
-    const generatedContent = await generateTrainerContent(tempTrainerData)
+    const aiContent = await generateTrainerContent(tempData)
 
-    // Create the final trainer document
-    const finalTrainerRef = db.collection("trainers").doc()
-    const finalTrainerId = finalTrainerRef.id
-
+    // Create final trainer document
     const finalTrainerData = {
-      ...tempTrainerData,
-      id: finalTrainerId,
-      status: "active",
+      ...tempData,
+      id: finalId,
+      content: aiContent,
       isActive: true,
-      isPaid: true,
-      paymentIntentId: paymentIntentId,
-      content: generatedContent,
       activatedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      paymentIntentId,
+      status: "active",
     }
 
-    // Save the final trainer
-    await finalTrainerRef.set(finalTrainerData)
+    await db.collection("trainers").doc(finalId).set(finalTrainerData)
+    console.log("Trainer activated successfully:", finalId)
 
-    // Delete the temp trainer
-    await tempTrainerRef.delete()
+    // Clean up temp data
+    await db.collection("tempTrainers").doc(tempId).delete()
 
-    console.log("Trainer activation completed:", finalTrainerId)
+    return NextResponse.json({ success: true, finalId })
+  } catch (error) {
+    console.error("Activation error:", error)
+    return NextResponse.json({ error: "Activation failed" }, { status: 500 })
+  }
+}
 
-    return NextResponse.json({
-      success: true,
-      message: "Trainer activated successfully",
-      finalId: finalTrainerId,
-    })
-  } catch (error: any) {
-    console.error("Trainer activation error:", error)
-    return NextResponse.json({ error: error.message || "Activation failed" }, { status: 500 })
+async function generateTrainerContent(trainerData: any) {
+  return {
+    hero: {
+      title: `Transform Your Fitness with ${trainerData.name}`,
+      subtitle: `Professional ${trainerData.specialization} in ${trainerData.location}`,
+      description: `With ${trainerData.experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
+    },
+    about: {
+      title: "About Me",
+      content: `I'm ${trainerData.name}, a certified ${trainerData.specialization} based in ${trainerData.location}. With ${trainerData.experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results.`,
+    },
+    services: [
+      {
+        title: "Personal Training",
+        description: "One-on-one sessions tailored to your specific goals",
+        price: "€80/session",
+      },
+      {
+        title: "Group Training",
+        description: "Small group sessions for motivation",
+        price: "€35/session",
+      },
+      {
+        title: "Online Coaching",
+        description: "Remote coaching with custom plans",
+        price: "€150/month",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Working with this trainer has completely transformed my approach to fitness!",
+        rating: 5,
+      },
+      {
+        name: "Mike R.",
+        text: "Professional, knowledgeable, and motivating. Incredible results!",
+        rating: 5,
+      },
+    ],
+    contact: {
+      email: trainerData.email,
+      phone: trainerData.phone || "+31 6 1234 5678",
+      location: trainerData.location,
+      availability: "Monday - Saturday, 6:00 AM - 8:00 PM",
+    },
   }
 }
