@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MapPin, Mail, Phone, Star, Clock, Award, Dumbbell, Users, CheckCircle } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { MapPin, Phone, Mail, Star, Clock, Award, Dumbbell, CheckCircle } from "lucide-react"
 
 interface TrainerContent {
   hero: {
@@ -35,55 +37,54 @@ interface TrainerContent {
   }
 }
 
-interface Trainer {
+interface TrainerData {
   id: string
   name: string
-  fullName?: string
+  fullName: string
   email: string
-  phone?: string
+  phone: string
   location: string
   specialization: string
   experience: string
-  bio?: string
-  certifications?: string[]
+  bio: string
+  certifications: string[]
   content: TrainerContent
   isActive: boolean
   activatedAt: string
 }
 
-interface TrainerProfilePageProps {
-  trainerId: string
-}
+export default function TrainerProfilePage() {
+  const params = useParams()
+  const trainerId = params.id as string
 
-export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
-  const [trainer, setTrainer] = useState<Trainer | null>(null)
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchTrainerContent()
+    if (trainerId) {
+      fetchTrainerData()
+    }
   }, [trainerId])
 
-  const fetchTrainerContent = async () => {
+  const fetchTrainerData = async () => {
     try {
-      console.log("Fetching content for trainer:", trainerId)
+      console.log("Fetching trainer data for:", trainerId)
 
       const response = await fetch(`/api/trainer/content/${trainerId}`)
 
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Trainer not found")
-        }
-        throw new Error("Failed to load trainer profile")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to fetch trainer data")
       }
 
       const data = await response.json()
 
       if (data.success && data.trainer) {
         setTrainer(data.trainer)
-        console.log("Trainer content loaded:", data.trainer.name)
+        console.log("Trainer data loaded:", data.trainer.name)
       } else {
-        throw new Error("Invalid trainer data")
+        throw new Error("Invalid trainer data received")
       }
     } catch (error) {
       console.error("Error fetching trainer:", error)
@@ -118,6 +119,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
+  const { content } = trainer
   const displayName = trainer.fullName || trainer.name
 
   return (
@@ -127,34 +129,15 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         <div className="max-w-6xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
-              <div className="flex items-center gap-4 mb-6">
-                <Avatar className="w-20 h-20">
-                  <AvatarFallback className="bg-[#D2FF28] text-black text-2xl font-bold">
-                    {displayName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h1 className="text-4xl font-bold mb-2">{displayName}</h1>
-                  <p className="text-xl text-gray-300 flex items-center gap-2">
-                    <Award className="h-5 w-5" />
-                    {trainer.specialization}
-                  </p>
-                  <p className="text-gray-400 flex items-center gap-2 mt-1">
-                    <MapPin className="h-4 w-4" />
-                    {trainer.location}
-                  </p>
-                </div>
-              </div>
-
-              <h2 className="text-3xl font-bold mb-4">{trainer.content.hero.title}</h2>
-              <p className="text-xl text-gray-300 mb-6">{trainer.content.hero.description}</p>
-
+              <h1 className="text-4xl lg:text-5xl font-bold mb-4">{content.hero.title}</h1>
+              <p className="text-xl text-gray-300 mb-6">{content.hero.subtitle}</p>
+              <p className="text-lg text-gray-400 mb-8">{content.hero.description}</p>
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">Book Session</Button>
+                <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
+                  Book a Session
+                </Button>
                 <Button
+                  size="lg"
                   variant="outline"
                   className="border-white text-white hover:bg-white hover:text-black bg-transparent"
                 >
@@ -162,15 +145,20 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </Button>
               </div>
             </div>
-
-            <div className="lg:text-right">
-              <div className="inline-block bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="h-5 w-5 text-[#D2FF28]" />
-                  <span className="font-semibold">Experience</span>
+            <div className="flex justify-center">
+              <div className="relative">
+                <Avatar className="w-64 h-64 border-4 border-[#D2FF28]">
+                  <AvatarImage src="/placeholder-user.jpg" alt={displayName} />
+                  <AvatarFallback className="text-4xl bg-[#D2FF28] text-black">
+                    {displayName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-4 -right-4 bg-[#D2FF28] text-black px-4 py-2 rounded-full font-semibold">
+                  {trainer.experience}
                 </div>
-                <p className="text-2xl font-bold text-[#D2FF28]">{trainer.experience}</p>
-                <p className="text-gray-300 mt-2">of professional training</p>
               </div>
             </div>
           </div>
@@ -180,25 +168,24 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - About & Services */}
+          {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  {trainer.content.about.title}
+                  <Award className="h-5 w-5 text-[#D2FF28]" />
+                  {content.about.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{trainer.content.about.content}</p>
-
+                <p className="text-gray-700 leading-relaxed mb-6">{content.about.content}</p>
                 {trainer.certifications && trainer.certifications.length > 0 && (
-                  <div className="mt-6">
+                  <div>
                     <h4 className="font-semibold mb-3">Certifications</h4>
                     <div className="flex flex-wrap gap-2">
                       {trainer.certifications.map((cert, index) => (
-                        <Badge key={index} variant="secondary" className="bg-[#D2FF28]/20 text-black">
+                        <Badge key={index} variant="secondary" className="bg-[#D2FF28]/10 text-black">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           {cert}
                         </Badge>
@@ -213,20 +200,19 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Dumbbell className="h-5 w-5" />
+                  <Dumbbell className="h-5 w-5 text-[#D2FF28]" />
                   Training Services
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6">
-                  {trainer.content.services.map((service, index) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {content.services.map((service, index) => (
                     <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-start justify-between mb-2">
                         <h4 className="font-semibold text-lg">{service.title}</h4>
-                        <span className="text-xl font-bold text-[#D2FF28]">{service.price}</span>
+                        <span className="text-[#D2FF28] font-bold">{service.price}</span>
                       </div>
                       <p className="text-gray-600">{service.description}</p>
-                      <Button className="mt-3 bg-black text-white hover:bg-gray-800">Learn More</Button>
                     </div>
                   ))}
                 </div>
@@ -237,13 +223,13 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
+                  <Star className="h-5 w-5 text-[#D2FF28]" />
                   Client Testimonials
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6">
-                  {trainer.content.testimonials.map((testimonial, index) => (
+                <div className="space-y-6">
+                  {content.testimonials.map((testimonial, index) => (
                     <div key={index} className="border-l-4 border-[#D2FF28] pl-4">
                       <div className="flex items-center gap-1 mb-2">
                         {[...Array(testimonial.rating)].map((_, i) => (
@@ -264,46 +250,62 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
             {/* Contact Card */}
             <Card className="sticky top-6">
               <CardHeader>
-                <CardTitle>Get In Touch</CardTitle>
+                <CardTitle className="text-center">Get In Touch</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <a href={`mailto:${trainer.content.contact.email}`} className="text-blue-600 hover:underline">
-                      {trainer.content.contact.email}
-                    </a>
+                <div className="text-center mb-6">
+                  <Avatar className="w-20 h-20 mx-auto mb-3">
+                    <AvatarImage src="/placeholder-user.jpg" alt={displayName} />
+                    <AvatarFallback className="bg-[#D2FF28] text-black text-lg">
+                      {displayName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-bold text-lg">{displayName}</h3>
+                  <p className="text-gray-600">{trainer.specialization}</p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">{content.contact.location}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">{content.contact.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">{content.contact.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">{content.contact.availability}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium">Phone</p>
-                    <a href={`tel:${trainer.content.contact.phone}`} className="text-blue-600 hover:underline">
-                      {trainer.content.contact.phone}
-                    </a>
-                  </div>
+                <Separator />
+
+                <div className="space-y-3">
+                  <Button className="w-full bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call Now
+                  </Button>
+                  <Button variant="outline" className="w-full bg-transparent">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Message
+                  </Button>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium">Location</p>
-                    <p className="text-gray-600">{trainer.content.contact.location}</p>
-                  </div>
+                <div className="text-center pt-4">
+                  <p className="text-xs text-gray-500">
+                    Profile activated on {new Date(trainer.activatedAt).toLocaleDateString()}
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium">Availability</p>
-                    <p className="text-gray-600">{trainer.content.contact.availability}</p>
-                  </div>
-                </div>
-
-                <Button className="w-full bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90 mt-6">Book Consultation</Button>
               </CardContent>
             </Card>
           </div>
