@@ -5,28 +5,59 @@ import { db } from "@/app/api/firebase-config"
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    console.log("Fetching trainer content for ID:", id)
+    console.log("=== API TRAINER CONTENT DEBUG ===")
+    console.log("1. Received trainer ID:", id)
+    console.log("2. Firebase config check:", {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+      hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+    })
 
     if (!id) {
-      console.error("No trainer ID provided")
+      console.error("3. ERROR: No trainer ID provided")
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
+    console.log("4. Attempting to fetch from Firebase...")
+    console.log("5. Collection: trainers, Document ID:", id)
+
     // Get trainer document from Firebase
     const trainerRef = doc(db, "trainers", id)
+    console.log("6. Created document reference")
+
     const trainerSnap = await getDoc(trainerRef)
+    console.log("7. Firebase query completed")
+    console.log("8. Document exists:", trainerSnap.exists())
 
     if (!trainerSnap.exists()) {
-      console.error("Trainer document not found:", id)
+      console.error("9. ERROR: Trainer document not found in Firebase")
+      console.log("10. Attempted path: trainers/" + id)
+
+      // Let's also try to list some documents to see what's in the collection
+      try {
+        const { collection, getDocs, limit, query } = await import("firebase/firestore")
+        const trainersRef = collection(db, "trainers")
+        const snapshot = await getDocs(query(trainersRef, limit(5)))
+        console.log("11. Sample documents in trainers collection:")
+        snapshot.forEach((doc) => {
+          console.log("    - Document ID:", doc.id)
+        })
+      } catch (listError) {
+        console.log("11. Could not list sample documents:", listError)
+      }
+
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
     const trainerData = trainerSnap.data()
-    console.log("Trainer data found:", {
-      id,
+    console.log("12. Trainer data retrieved:", {
+      id: trainerData.id || id,
+      hasData: !!trainerData,
+      keys: Object.keys(trainerData),
       isActive: trainerData.isActive,
       status: trainerData.status,
-      hasContent: !!trainerData.content,
+      fullName: trainerData.fullName,
+      email: trainerData.email,
     })
 
     // Check if trainer is active (either isActive: true OR status: "active")

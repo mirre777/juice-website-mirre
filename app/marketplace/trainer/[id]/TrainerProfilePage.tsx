@@ -65,53 +65,82 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   useEffect(() => {
     const fetchTrainerContent = async () => {
       try {
-        console.log("Fetching trainer content for:", trainerId)
+        console.log("=== TRAINER PROFILE PAGE DEBUG ===")
+        console.log("1. Starting fetch for trainer ID:", trainerId)
+        console.log("2. Current URL:", window.location.href)
+        console.log("3. Making API call to:", `/api/trainer/content/${trainerId}`)
+
         const response = await fetch(`/api/trainer/content/${trainerId}`)
+        console.log("4. API Response status:", response.status)
+        console.log("5. API Response ok:", response.ok)
 
         if (!response.ok) {
           const errorData = await response.json()
+          console.log("6. Error response data:", errorData)
           throw new Error(errorData.error || "Failed to fetch trainer content")
         }
 
         const data = await response.json()
-        console.log("Trainer content received:", data)
+        console.log("7. Success response data:", data)
 
         if (data.success && data.trainer) {
+          console.log("8. Setting trainer data:", {
+            id: data.trainer.id,
+            name: data.trainer.name,
+            isActive: data.trainer.isActive,
+            hasContent: !!data.trainer.content,
+          })
           setTrainerData(data.trainer)
         } else {
+          console.log("9. Invalid trainer data structure:", data)
           throw new Error("Invalid trainer data received")
         }
       } catch (error) {
-        console.error("Error fetching trainer content:", error)
+        console.error("10. Error in fetchTrainerContent:", error)
+        console.error("11. Error details:", {
+          message: error instanceof Error ? error.message : "Unknown error",
+          stack: error instanceof Error ? error.stack : undefined,
+        })
         setError(error instanceof Error ? error.message : "Failed to load trainer content")
       } finally {
+        console.log("12. Setting loading to false")
         setLoading(false)
       }
     }
 
     if (trainerId) {
+      console.log("=== TRAINER PROFILE PAGE INIT ===")
+      console.log("Trainer ID provided:", trainerId)
       fetchTrainerContent()
+    } else {
+      console.error("No trainer ID provided!")
+      setError("No trainer ID provided")
+      setLoading(false)
     }
   }, [trainerId])
 
   if (loading) {
+    console.log("Rendering loading state for trainer:", trainerId)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice mx-auto mb-4"></div>
           <p className={`text-lg ${isCoach ? "text-black" : "text-white"}`}>Loading trainer profile...</p>
+          <p className={`text-sm mt-2 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>ID: {trainerId}</p>
         </div>
       </div>
     )
   }
 
   if (error || !trainerData) {
+    console.log("Rendering error state:", { error, hasTrainerData: !!trainerData })
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold text-red-600 mb-4">Profile Not Available</h2>
             <p className="text-gray-600 mb-4">{error || "Trainer profile not found or not activated"}</p>
+            <p className="text-sm text-gray-500 mb-4">Trainer ID: {trainerId}</p>
             <Button onClick={() => window.location.reload()} className="bg-juice text-black hover:bg-juice/90">
               Try Again
             </Button>
