@@ -1,7 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
-import { doc, getDoc } from "firebase/firestore"
-import { logger } from "@/lib/logger"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
+
+// Initialize Firebase Admin if not already initialized
+if (!getApps().length) {
+  try {
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      }),
+    })
+  } catch (error) {
+    console.error("Firebase Admin initialization error:", error)
+  }
+}
+
+const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   try {
@@ -9,106 +25,124 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
 
-    logger.info("Temp trainer API called", { tempId, hasToken: !!token })
+    console.log("Fetching temp trainer:", { tempId, token })
 
-    // Validate required parameters
     if (!tempId) {
-      logger.error("Missing tempId parameter")
-      return NextResponse.json({ success: false, error: "Trainer ID is required" }, { status: 400 })
+      return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
     }
 
     if (!token) {
-      logger.error("Missing token parameter", { tempId })
-      return NextResponse.json({ success: false, error: "Access token is required" }, { status: 401 })
+      return NextResponse.json({ error: "Token is required" }, { status: 400 })
     }
 
-    // Check Firebase connection
-    if (!db) {
-      logger.error("Firebase not initialized")
-      return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 })
+    // Get the temp trainer document
+    const tempTrainerRef = db.collection("tempTrainers").doc(tempId)
+    const tempTrainerDoc = await tempTrainerRef.get()
+
+    if (!tempTrainerDoc.exists) {
+      console.log("Temp trainer not found:", tempId)
+      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    // Fetch trainer document from the "trainers" collection
-    logger.info("Fetching trainer document", { tempId })
-    const trainerRef = doc(db, "trainers", tempId)
-    const trainerSnap = await getDoc(trainerRef)
+    const tempTrainerData = tempTrainerDoc.data()
 
-    if (!trainerSnap.exists()) {
-      logger.error("Trainer document not found", { tempId })
-      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+    // Verify the token
+    if (tempTrainerData?.token !== token) {
+      console.log("Invalid token for temp trainer:", {
+        tempId,
+        providedToken: token,
+        expectedToken: tempTrainerData?.token,
+      })
+      return NextResponse.json({ error: "Invalid token" }, { status: 403 })
     }
 
-    const trainerData = trainerSnap.data()
-    logger.info("Trainer document retrieved", {
-      tempId,
-      hasSessionToken: !!trainerData.sessionToken,
-      status: trainerData.status,
-    })
-
-    // Validate session token
-    if (!trainerData.sessionToken || trainerData.sessionToken !== token) {
-      logger.error("Invalid session token", { tempId, providedToken: token })
-      return NextResponse.json({ success: false, error: "Invalid access token" }, { status: 401 })
-    }
-
-    // Check if session has expired (24 hours from creation)
+    // Check if the temp trainer has expired (24 hours)
+    const createdAt = tempTrainerData?.createdAt?.toDate()
     const now = new Date()
-    const createdAt = trainerData.createdAt?.toDate() || new Date()
-    const expiresAt = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000) // 24 hours
+    const hoursDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
 
-    if (now > expiresAt) {
-      logger.error("Session expired", { tempId, expiresAt, now })
-      return NextResponse.json({ success: false, error: "Preview session has expired" }, { status: 410 })
+    if (hoursDiff > 24) {
+      console.log("Temp trainer expired:", { tempId, hoursDiff })
+      return NextResponse.json({ error: "Trainer preview has expired" }, { status: 410 })
     }
 
-    // Ensure certifications is always an array
-    let certifications = trainerData.certifications || ["Certified Personal Trainer"]
-    if (typeof certifications === "string") {
-      certifications = [certifications]
-    }
-    if (!Array.isArray(certifications)) {
-      certifications = ["Certified Personal Trainer"]
-    }
-
-    // Return trainer data in the expected format
+    // Return the trainer data
     const responseData = {
-      id: trainerSnap.id,
-      name: trainerData.fullName || trainerData.name || "Unknown Trainer",
-      fullName: trainerData.fullName || trainerData.name || "Unknown Trainer",
-      email: trainerData.email || "",
-      phone: trainerData.phone || "",
-      location: trainerData.location || "",
-      specialization: trainerData.specialty || trainerData.specialization || "Personal Training",
-      experience: trainerData.experience || "Less than 1 year Experience",
-      bio:
-        trainerData.bio ||
-        `Passionate fitness professional dedicated to helping clients achieve their goals through ${trainerData.specialty || "personal training"}.`,
-      certifications: certifications,
-      createdAt: createdAt.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      isActive: trainerData.status === "active",
-      sessionToken: trainerData.sessionToken,
+      id: tempId,
+      name: tempTrainerData?.name || "Unknown Trainer",
+      email: tempTrainerData?.email || "",
+      specialization: tempTrainerData?.specialization || "Personal Trainer",
+      bio: tempTrainerData?.bio || "",
+      experience: tempTrainerData?.experience || "",
+      certifications: tempTrainerData?.certifications || [],
+      services: tempTrainerData?.services || [],
+      pricing: tempTrainerData?.pricing || {},
+      availability: tempTrainerData?.availability || {},
+      location: tempTrainerData?.location || "",
+      phone: tempTrainerData?.phone || "",
+      website: tempTrainerData?.website || "",
+      socialMedia: tempTrainerData?.socialMedia || {},
+      images: tempTrainerData?.images || [],
+      testimonials: tempTrainerData?.testimonials || [],
+      content: tempTrainerData?.content || null,
+      isActive: false, // Temp trainers are never active
+      isPaid: tempTrainerData?.isPaid || false,
+      createdAt: createdAt?.toISOString(),
+      expiresAt: new Date(createdAt.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+      token: tempTrainerData?.token,
     }
 
-    logger.info("Temp trainer data returned successfully", { tempId })
-    return NextResponse.json({
-      success: true,
-      trainer: responseData,
-    })
+    console.log("Temp trainer data retrieved successfully:", { tempId, name: responseData.name })
+
+    return NextResponse.json(responseData)
   } catch (error) {
-    logger.error("Temp trainer API error", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      tempId: params.tempId,
+    console.error("Error fetching temp trainer:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { tempId: string } }) {
+  try {
+    const { tempId } = params
+    const body = await request.json()
+    const { token, ...updateData } = body
+
+    console.log("Updating temp trainer:", { tempId, token })
+
+    if (!tempId) {
+      return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
+    }
+
+    if (!token) {
+      return NextResponse.json({ error: "Token is required" }, { status: 400 })
+    }
+
+    // Get the temp trainer document
+    const tempTrainerRef = db.collection("tempTrainers").doc(tempId)
+    const tempTrainerDoc = await tempTrainerRef.get()
+
+    if (!tempTrainerDoc.exists) {
+      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
+    }
+
+    const tempTrainerData = tempTrainerDoc.data()
+
+    // Verify the token
+    if (tempTrainerData?.token !== token) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 403 })
+    }
+
+    // Update the temp trainer
+    await tempTrainerRef.update({
+      ...updateData,
+      updatedAt: new Date(),
     })
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.log("Temp trainer updated successfully:", tempId)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error updating temp trainer:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
