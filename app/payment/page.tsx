@@ -26,6 +26,7 @@ function PaymentPageContent() {
   const [loading, setLoading] = useState(true)
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [activating, setActivating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const tempId = searchParams.get("tempId")
   const token = searchParams.get("token")
@@ -34,26 +35,29 @@ function PaymentPageContent() {
     if (tempId && token) {
       fetchTrainerData()
     } else {
-      toast({
-        title: "Error",
-        description: "Missing payment information. Please try again.",
-        variant: "destructive",
-      })
-      router.push("/marketplace")
+      setError("Missing payment information. Please try again.")
+      setLoading(false)
     }
-  }, [tempId, token, router])
+  }, [tempId, token])
 
   const fetchTrainerData = async () => {
     try {
-      if (!tempId || !token) return
+      if (!tempId || !token) {
+        throw new Error("Missing required parameters")
+      }
+
+      console.log("Fetching trainer data for:", { tempId, hasToken: !!token })
 
       const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
 
       if (!response.ok) {
-        throw new Error("Failed to fetch trainer data")
+        const errorText = await response.text()
+        console.error("API Error:", errorText)
+        throw new Error(`Failed to fetch trainer data: ${response.status}`)
       }
 
       const data = await response.json()
+      console.log("Trainer data received:", data)
 
       if (data.success && data.trainer) {
         setTrainer(data.trainer)
@@ -62,12 +66,13 @@ function PaymentPageContent() {
       }
     } catch (error) {
       console.error("Error fetching trainer data:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to load trainer information"
+      setError(errorMessage)
       toast({
         title: "Error",
-        description: "Failed to load trainer information",
+        description: errorMessage,
         variant: "destructive",
       })
-      router.push("/marketplace")
     } finally {
       setLoading(false)
     }
@@ -85,6 +90,8 @@ function PaymentPageContent() {
       if (!paymentIntentId) {
         throw new Error("Payment intent ID not found")
       }
+
+      console.log("Activating trainer with:", { tempId, paymentIntentId })
 
       // Call activation API
       const response = await fetch("/api/trainer/activate", {
@@ -104,6 +111,7 @@ function PaymentPageContent() {
       }
 
       const data = await response.json()
+      console.log("Activation response:", data)
 
       if (data.success && data.finalId) {
         toast({
@@ -112,6 +120,7 @@ function PaymentPageContent() {
         })
 
         // Redirect to the live trainer page
+        console.log("Redirecting to:", `/marketplace/trainer/${data.finalId}`)
         router.push(`/marketplace/trainer/${data.finalId}`)
       } else {
         throw new Error(data.error || "Activation failed")
@@ -128,6 +137,7 @@ function PaymentPageContent() {
   }
 
   const handlePaymentError = (error: string) => {
+    console.error("Payment error:", error)
     toast({
       title: "Payment Error",
       description: error,
@@ -148,13 +158,20 @@ function PaymentPageContent() {
     )
   }
 
-  if (!trainer) {
+  if (error || !trainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Error</h1>
-          <p className="text-gray-600 mb-4">Unable to load trainer information</p>
-          <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
+          <p className="text-gray-600 mb-4">{error || "Unable to load trainer information"}</p>
+          <div className="space-y-2">
+            <Button onClick={() => router.push("/marketplace")} className="w-full">
+              Back to Marketplace
+            </Button>
+            <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     )

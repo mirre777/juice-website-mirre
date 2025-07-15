@@ -8,31 +8,89 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
 import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Edit } from "lucide-react"
-import type { TrainerProfile } from "@/types/trainer"
+
+interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    content: string
+  }
+  services: Array<{
+    id: string
+    title: string
+    description: string
+    price: number
+    duration: string
+    featured: boolean
+  }>
+  contact: {
+    title: string
+    description: string
+    email: string
+    phone: string
+    location: string
+  }
+  seo: {
+    title: string
+    description: string
+  }
+}
+
+interface TrainerData {
+  id: string
+  name: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialization: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications: string[]
+  isActive: boolean
+  isPaid: boolean
+  content?: TrainerContent
+  createdAt: string
+  activatedAt?: string
+}
 
 interface TrainerProfilePageProps {
   trainerId: string
 }
 
-export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
+export function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
   const router = useRouter()
-  const [trainer, setTrainer] = useState<TrainerProfile | null>(null)
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchTrainer()
+    if (trainerId) {
+      fetchTrainerData()
+    }
   }, [trainerId])
 
-  const fetchTrainer = async () => {
+  const fetchTrainerData = async () => {
     try {
       const response = await fetch(`/api/trainer/content/${trainerId}`)
+
       if (!response.ok) {
-        throw new Error("Failed to fetch trainer")
+        throw new Error("Failed to fetch trainer data")
       }
+
       const data = await response.json()
-      setTrainer(data.trainer)
+
+      if (data.success && data.trainer) {
+        setTrainer(data.trainer)
+      } else {
+        throw new Error(data.error || "Invalid trainer data")
+      }
     } catch (error) {
-      console.error("Error fetching trainer:", error)
+      console.error("Error fetching trainer data:", error)
       toast({
         title: "Error",
         description: "Failed to load trainer profile",
@@ -43,6 +101,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     }
   }
 
+  const handleEditContent = () => {
+    router.push(`/marketplace/trainer/${trainerId}/edit`)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -50,7 +112,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
           <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
           </div>
-          <p className="text-gray-600">Loading your trainer profile...</p>
+          <p className="text-gray-600">Loading trainer profile...</p>
         </div>
       </div>
     )
@@ -69,41 +131,55 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const displayName = trainer.fullName || trainer.name || "Trainer"
+  const specialty = trainer.specialization || trainer.specialty || "Personal Training"
 
-  // Use generated content or fallback to basic data
-  const content = trainer.content
-
-  // Hero section - use generated content or create from basic data
-  const heroTitle = content?.hero?.title || "Transform Your Body, Transform Your Life"
-  const heroSubtitle = `${trainer.specialization || trainer.specialty} • ${trainer.experience} • ${trainer.location}`
-
-  // About section
-  const aboutContent =
-    content?.about?.content ||
-    trainer.bio ||
-    `I'm ${displayName}, a certified personal trainer with ${trainer.experience} of experience in ${trainer.specialization || trainer.specialty}. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`
-
-  // Services - use generated services or create default
-  const services =
-    content?.services && content.services.length > 0
-      ? content.services
-      : [
-          {
-            id: "1",
-            title: "Personal Training Session",
-            description: "One-on-one personalized training session",
-            price: 60,
-            duration: "60 minutes",
-            featured: true,
-          },
-        ]
-
-  // Contact section
-  const contactTitle = content?.contact?.title || "Ready to Start?"
-  const contactDescription =
-    content?.contact?.description ||
-    "Book your free consultation today and take the first step towards your fitness goals."
-  const contactPhone = content?.contact?.phone || trainer.phone
+  // Use generated content if available, otherwise fallback to basic info
+  const content = trainer.content || {
+    hero: {
+      title: `Transform Your Fitness with ${displayName}`,
+      subtitle: `Professional ${specialty} Training • ${trainer.experience}`,
+      description: `Welcome! I'm ${displayName}, a certified personal trainer specializing in ${specialty}. With ${trainer.experience} of experience in ${trainer.location}, I'm here to help you achieve your fitness goals through personalized training programs that deliver real results.`,
+    },
+    about: {
+      title: "About Me",
+      content:
+        trainer.bio ||
+        `I'm ${displayName}, a passionate fitness professional with ${trainer.experience} of experience in ${specialty}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.`,
+    },
+    services: [
+      {
+        id: "1",
+        title: "Personal Training Session",
+        description: `One-on-one personalized ${specialty.toLowerCase()} training session focused on your specific goals`,
+        price: 60,
+        duration: "60 minutes",
+        featured: true,
+      },
+      {
+        id: "2",
+        title: "Fitness Assessment",
+        description: "Comprehensive fitness evaluation and goal-setting session",
+        price: 40,
+        duration: "45 minutes",
+        featured: false,
+      },
+      {
+        id: "3",
+        title: "Custom Workout Plan",
+        description: `Personalized ${specialty.toLowerCase()} program designed for your goals and schedule`,
+        price: 80,
+        duration: "Digital delivery",
+        featured: false,
+      },
+    ],
+    contact: {
+      title: "Let's Start Your Fitness Journey",
+      description: `Ready to transform your fitness with professional ${specialty.toLowerCase()} training? Get in touch to schedule your first session or ask any questions.`,
+      email: trainer.email,
+      phone: trainer.phone || "",
+      location: trainer.location,
+    },
+  }
 
   // Ensure certifications is always an array
   const certifications = Array.isArray(trainer.certifications)
@@ -114,46 +190,30 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Only show for active trainers */}
-      {trainer.status === "active" && (
-        <div className="bg-white border-b">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">⚡</span>
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold">Live Trainer Profile</h1>
-                  <p className="text-sm text-gray-600">Professional fitness training</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={() => router.push(`/marketplace/trainer/${trainerId}/edit`)}
-                  size="sm"
-                  className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Content
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Generated Website */}
+      {/* Generated Website - Exact same UI as preview */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Card className="overflow-hidden shadow-lg border-0 bg-white">
-          {/* Hero Section */}
+          {/* Hero Section - Exact same as preview */}
           <div className="relative bg-[#D2FF28] text-black p-12">
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroTitle}</h1>
-              <p className="text-xl mb-6">{heroSubtitle}</p>
-              <Button size="lg" className="bg-black text-white hover:bg-gray-800">
-                Book Your Free Consultation
-              </Button>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">{content.hero.title}</h1>
+              <p className="text-xl mb-6">{content.hero.subtitle}</p>
+              <div className="flex gap-4 justify-center">
+                <Button size="lg" className="bg-black text-white hover:bg-gray-800">
+                  Book Your Free Consultation
+                </Button>
+                {trainer.isActive && (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={handleEditContent}
+                    className="border-black text-black hover:bg-black hover:text-white bg-transparent"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Content
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -166,7 +226,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                     <div className="w-6 h-6 bg-[#D2FF28] rounded-full"></div>
                     <h2 className="text-2xl font-bold">About {displayName}</h2>
                   </div>
-                  <p className="text-gray-700 leading-relaxed mb-4">{aboutContent}</p>
+                  <p className="text-gray-700 leading-relaxed mb-4">{content.about.content}</p>
 
                   <div className="flex flex-wrap gap-4 mb-6">
                     <div className="flex items-center gap-2">
@@ -186,14 +246,14 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
                 <Separator className="my-8" />
 
-                {/* Services Section */}
+                {/* Services Section - Exact same as preview */}
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold mb-6">My Training Services</h2>
                   <div className="grid gap-4">
-                    {services.map((service) => (
-                      <Card key={service.id} className={`p-6 ${service.featured ? "ring-2 ring-[#D2FF28]" : ""}`}>
+                    {content.services.map((service) => (
+                      <Card key={service.id} className={`p-6 ${service.featured ? "border-2 border-[#D2FF28]" : ""}`}>
                         {service.featured && (
-                          <Badge className="mb-2 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">Featured</Badge>
+                          <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A] mb-2">Featured</Badge>
                         )}
                         <h3 className="font-bold text-lg mb-2">{service.title}</h3>
                         <p className="text-gray-600 mb-4">{service.description}</p>
@@ -214,7 +274,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
                 <Separator className="my-8" />
 
-                {/* Testimonials */}
+                {/* Testimonials - Exact same as preview */}
                 <div>
                   <h2 className="text-2xl font-bold mb-6">What My Clients Say</h2>
                   <div className="space-y-6">
@@ -225,9 +285,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                         ))}
                       </div>
                       <p className="text-gray-700 mb-3">
-                        "Working with {displayName} has been life-changing. Their expertise in{" "}
-                        {trainer.specialization || trainer.specialty} helped me achieve results I never thought
-                        possible."
+                        "Working with {displayName} has been life-changing. Their expertise in {specialty} helped me
+                        achieve results I never thought possible."
                       </p>
                       <p className="text-sm text-gray-500">- Sarah M.</p>
                     </Card>
@@ -248,24 +307,24 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
               </div>
 
-              {/* Right Column - Contact & Info */}
+              {/* Right Column - Contact & Info - Exact same as preview */}
               <div>
                 <Card className="p-6 mb-6">
                   <h3 className="text-xl font-bold mb-4">Contact Information</h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Mail className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">{trainer.email}</span>
+                      <span className="text-sm">{content.contact.email}</span>
                     </div>
-                    {contactPhone && (
+                    {content.contact.phone && (
                       <div className="flex items-center gap-3">
                         <Phone className="h-5 w-5 text-gray-400" />
-                        <span className="text-sm">{contactPhone}</span>
+                        <span className="text-sm">{content.contact.phone}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-3">
                       <MapPin className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">{trainer.location}</span>
+                      <span className="text-sm">{content.contact.location}</span>
                     </div>
                   </div>
                   <Button className="w-full mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
@@ -276,9 +335,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 <Card className="p-6 mb-6">
                   <h3 className="text-xl font-bold mb-4">Specialties</h3>
                   <div className="space-y-2">
-                    <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
-                      {trainer.specialization || trainer.specialty}
-                    </Badge>
+                    <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">{specialty}</Badge>
                   </div>
 
                   <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
@@ -292,8 +349,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </Card>
 
                 <Card className="p-6 bg-[#D2FF28]">
-                  <h3 className="text-xl font-bold mb-2 text-black">{contactTitle}</h3>
-                  <p className="text-sm text-black mb-4">{contactDescription}</p>
+                  <h3 className="text-xl font-bold mb-2 text-black">Ready to Start?</h3>
+                  <p className="text-sm text-black mb-4">
+                    Book your free consultation today and take the first step towards your fitness goals.
+                  </p>
                   <Button className="w-full bg-black text-white hover:bg-gray-800">Get Started Now</Button>
                 </Card>
               </div>
