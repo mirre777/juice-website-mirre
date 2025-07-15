@@ -1,13 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { doc, getDoc } from "firebase/firestore"
-import { db } from "@/app/api/firebase-config"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
+
+// Initialize Firebase Admin
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
+
+const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
     console.log("=== API TRAINER CONTENT DEBUG ===")
     console.log("1. Received trainer ID:", id)
-    console.log("2. Firebase config check:", {
+    console.log("2. Firebase Admin config check:", {
       projectId: process.env.FIREBASE_PROJECT_ID,
       hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
       hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
@@ -18,39 +31,35 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    console.log("4. Attempting to fetch from Firebase...")
+    console.log("4. Attempting to fetch from Firebase Admin...")
     console.log("5. Collection: trainers, Document ID:", id)
 
-    // Get trainer document from Firebase
-    const trainerRef = doc(db, "trainers", id)
-    console.log("6. Created document reference")
+    // Get trainer document from Firebase using Admin SDK
+    const trainerDoc = await db.collection("trainers").doc(id).get()
+    console.log("6. Firebase Admin query completed")
+    console.log("7. Document exists:", trainerDoc.exists)
 
-    const trainerSnap = await getDoc(trainerRef)
-    console.log("7. Firebase query completed")
-    console.log("8. Document exists:", trainerSnap.exists())
-
-    if (!trainerSnap.exists()) {
-      console.error("9. ERROR: Trainer document not found in Firebase")
-      console.log("10. Attempted path: trainers/" + id)
+    if (!trainerDoc.exists) {
+      console.error("8. ERROR: Trainer document not found in Firebase")
+      console.log("9. Attempted path: trainers/" + id)
 
       // Let's also try to list some documents to see what's in the collection
       try {
-        const { collection, getDocs, limit, query } = await import("firebase/firestore")
-        const trainersRef = collection(db, "trainers")
-        const snapshot = await getDocs(query(trainersRef, limit(5)))
-        console.log("11. Sample documents in trainers collection:")
+        const trainersRef = db.collection("trainers")
+        const snapshot = await trainersRef.limit(5).get()
+        console.log("10. Sample documents in trainers collection:")
         snapshot.forEach((doc) => {
           console.log("    - Document ID:", doc.id)
         })
       } catch (listError) {
-        console.log("11. Could not list sample documents:", listError)
+        console.log("10. Could not list sample documents:", listError)
       }
 
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainerData = trainerSnap.data()
-    console.log("12. Trainer data retrieved:", {
+    const trainerData = trainerDoc.data()!
+    console.log("11. Trainer data retrieved:", {
       id: trainerData.id || id,
       hasData: !!trainerData,
       keys: Object.keys(trainerData),
@@ -64,13 +73,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const isActive = trainerData.isActive === true || trainerData.status === "active"
 
     if (!isActive) {
-      console.error("Trainer is not active:", { isActive: trainerData.isActive, status: trainerData.status })
+      console.error("12. Trainer is not active:", { isActive: trainerData.isActive, status: trainerData.status })
       return NextResponse.json({ error: "Trainer profile is not active" }, { status: 403 })
     }
 
     // If trainer has existing content, return it
     if (trainerData.content) {
-      console.log("Returning existing trainer content")
+      console.log("13. Returning existing trainer content")
       return NextResponse.json({
         success: true,
         trainer: {
@@ -82,13 +91,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Generate default content from trainer's form data
-    console.log("Generating default content from trainer data")
+    console.log("14. Generating default content from trainer data")
     const defaultContent = {
       hero: {
         title: `Transform Your Fitness with ${trainerData.fullName || "Professional Training"}`,
         subtitle: `${trainerData.experience || "Experienced"} Personal Trainer specializing in ${trainerData.specialty || trainerData.specialization || "Fitness Training"}`,
-        cta: "Book Your Session",
-        backgroundImage: "/images/lemon-trainer.png",
+        description: `Hi, I'm ${trainerData.fullName || "your trainer"}! With ${trainerData.experience || "years of experience"} in the fitness industry, I specialize in ${trainerData.specialty || trainerData.specialization || "helping clients achieve their fitness goals"}. Located in ${trainerData.location || "your area"}, I'm passionate about helping people transform their lives through fitness.`,
       },
       about: {
         title: "About Me",
@@ -97,37 +105,61 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 Located in ${trainerData.location || "your area"}, I'm passionate about helping people transform their lives through fitness. Whether you're just starting your fitness journey or looking to take your training to the next level, I'm here to guide and support you every step of the way.
 
 My approach is personalized, results-driven, and focused on creating sustainable habits that last a lifetime.`,
-        image: "/images/lemon-trainer-serious.png",
       },
-      services: {
-        title: "My Services",
-        items: trainerData.services || ["Personal Training", "Fitness Coaching", "Workout Planning"],
-      },
+      services: [
+        {
+          title: "Personal Training Session",
+          description: "One-on-one personalized training session focused on your specific goals",
+          price: "€60/session",
+        },
+        {
+          title: "Fitness Assessment",
+          description: "Comprehensive fitness evaluation and goal-setting session",
+          price: "€40/session",
+        },
+        {
+          title: "Custom Workout Plan",
+          description: "Personalized workout program designed for your goals and schedule",
+          price: "€80/plan",
+        },
+      ],
+      testimonials: [
+        {
+          name: "Sarah M.",
+          text: "Amazing results in just 3 months! Highly recommend.",
+          rating: 5,
+        },
+        {
+          name: "Mike R.",
+          text: "Professional, knowledgeable, and motivating trainer.",
+          rating: 5,
+        },
+        {
+          name: "Lisa K.",
+          text: "Helped me achieve my fitness goals beyond expectations.",
+          rating: 5,
+        },
+      ],
       contact: {
-        title: "Get In Touch",
-        phone: trainerData.phone || "",
         email: trainerData.email || "",
+        phone: trainerData.phone || "",
         location: trainerData.location || "",
-        cta: "Contact Me Today",
-      },
-      seo: {
-        title: `${trainerData.fullName || "Personal Trainer"} - ${trainerData.location || "Fitness Training"}`,
-        description: `Professional personal trainer specializing in ${trainerData.specialty || trainerData.specialization || "fitness training"}. Located in ${trainerData.location || "your area"}. Book your session today!`,
-        keywords: `personal trainer, fitness coach, ${trainerData.location || ""}, ${trainerData.specialty || trainerData.specialization || "fitness training"}`,
+        availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
       },
     }
 
-    console.log("Generated default content successfully")
+    console.log("15. Generated default content successfully")
 
     return NextResponse.json({
       success: true,
       trainer: {
         id,
+        name: trainerData.fullName || trainerData.name || "Personal Trainer",
         fullName: trainerData.fullName || "Personal Trainer",
         email: trainerData.email || "",
         phone: trainerData.phone || "",
         location: trainerData.location || "",
-        specialty: trainerData.specialty || trainerData.specialization || "Fitness Training",
+        specialization: trainerData.specialty || trainerData.specialization || "Fitness Training",
         experience: trainerData.experience || "Experienced",
         services: trainerData.services || ["Personal Training"],
         isActive: true,
@@ -137,6 +169,12 @@ My approach is personalized, results-driven, and focused on creating sustainable
     })
   } catch (error) {
     console.error("Error fetching trainer content:", error)
-    return NextResponse.json({ error: "Failed to fetch trainer content" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to fetch trainer content",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
