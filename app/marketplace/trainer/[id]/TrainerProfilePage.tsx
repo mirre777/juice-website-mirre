@@ -66,36 +66,47 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
-  // Use edited content if available, otherwise fall back to original data
+  // Replace the fallback content section with this:
   const content = trainer.content
-  const heroTitle = content?.hero?.title || `Professional Training with ${trainer.name}`
-  const heroSubtitle = content?.hero?.subtitle || `${trainer.specialization} • ${trainer.experience} Experience`
+
+  // Hero section - use generated content or create from basic data
+  const heroTitle = content?.hero?.title || `Professional Training with ${trainer.name || trainer.fullName}`
+  const heroSubtitle =
+    content?.hero?.subtitle || `${trainer.specialization || trainer.specialty} • ${trainer.experience}`
   const heroDescription =
     content?.hero?.description ||
-    `Get personalized fitness training with ${trainer.name} in ${trainer.location}. Specializing in ${trainer.specialization} with ${trainer.experience} of experience.`
+    `Get personalized fitness training with ${trainer.name || trainer.fullName} in ${trainer.location}. Specializing in ${trainer.specialization || trainer.specialty} with ${trainer.experience} of experience.`
 
+  // About section
   const aboutTitle = content?.about?.title || "About Me"
   const aboutContent =
     content?.about?.content ||
-    `I'm ${trainer.name}, a certified personal trainer with ${trainer.experience} of experience in ${trainer.specialization}. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`
+    trainer.bio ||
+    `I'm ${trainer.name || trainer.fullName}, a certified personal trainer with ${trainer.experience} of experience in ${trainer.specialization || trainer.specialty}. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`
 
-  const services = content?.services || [
-    {
-      id: "1",
-      title: "Personal Training Session",
-      description: "One-on-one personalized training session",
-      price: 60,
-      duration: "60 minutes",
-      featured: true,
-    },
-  ]
+  // Services - use generated services or create default
+  const services =
+    content?.services && content.services.length > 0
+      ? content.services
+      : [
+          {
+            id: "1",
+            title: "Personal Training Session",
+            description: "One-on-one personalized training session",
+            price: 60,
+            duration: "60 minutes",
+            featured: true,
+          },
+        ]
 
+  // Contact section
   const contactTitle = content?.contact?.title || "Get Started Today"
   const contactDescription =
     content?.contact?.description || "Ready to begin your fitness journey? Contact me to schedule your first session."
   const contactPhone = content?.contact?.phone || trainer.phone
 
-  const seoTitle = content?.seo?.title || `${trainer.name} - Personal Trainer`
+  // SEO
+  const seoTitle = content?.seo?.title || `${trainer.name || trainer.fullName} - Personal Trainer`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

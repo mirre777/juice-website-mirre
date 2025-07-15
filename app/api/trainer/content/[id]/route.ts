@@ -28,14 +28,28 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Only active trainers can edit content" }, { status: 403 })
     }
 
+    // **NEW: Ensure content exists, generate if missing**
+    let content = trainer.content
+    if (!content) {
+      logger.info("No content found, generating default content", { trainerId: id })
+      content = generateDefaultContentFromTrainer(trainer)
+
+      // Save the generated content
+      await TrainerService.updateTrainerContent(id, content)
+    }
+
     logger.info("Successfully fetched trainer content for editing", {
       trainerId: id,
-      hasContent: !!trainer.content,
+      hasContent: !!content,
+      contentSections: content ? Object.keys(content) : [],
     })
 
     return NextResponse.json({
-      trainer,
-      content: trainer.content,
+      trainer: {
+        ...trainer,
+        content, // Ensure content is included
+      },
+      content,
     })
   } catch (error) {
     logger.error("Error fetching trainer content for editing", {
@@ -44,6 +58,47 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     })
 
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+// Helper function to generate content from trainer data
+function generateDefaultContentFromTrainer(trainer: any) {
+  const name = trainer.name || trainer.fullName
+  const specialty = trainer.specialization || trainer.specialty
+
+  return {
+    hero: {
+      title: `Transform Your Fitness with ${name}`,
+      subtitle: `Professional ${specialty} Training • ${trainer.experience}`,
+      description: `Welcome! I'm ${name}, a certified personal trainer specializing in ${specialty}. With ${trainer.experience} of experience, I'm here to help you achieve your fitness goals.`,
+    },
+    about: {
+      title: "About Me",
+      content:
+        trainer.bio ||
+        `I'm ${name}, a passionate fitness professional with ${trainer.experience} of experience in ${specialty}.`,
+    },
+    services: [
+      {
+        id: "1",
+        title: "Personal Training Session",
+        description: "One-on-one personalized training session",
+        price: 60,
+        duration: "60 minutes",
+        featured: true,
+      },
+    ],
+    contact: {
+      title: "Let's Start Your Fitness Journey",
+      description: "Ready to transform your fitness? Get in touch to schedule your first session.",
+      email: trainer.email,
+      phone: trainer.phone || "",
+      location: trainer.location,
+    },
+    seo: {
+      title: `${name} - Personal Trainer in ${trainer.location}`,
+      description: `Professional ${specialty} training with ${name}. Transform your fitness with personalized programs.`,
+    },
   }
 }
 
