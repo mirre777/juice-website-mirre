@@ -155,35 +155,39 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
 
     // Prepare response data
     const responseData = {
-      id: tempId,
-      name: tempTrainerData?.name || "Unknown Trainer",
-      email: tempTrainerData?.email || "",
-      specialization: tempTrainerData?.specialization || "Personal Trainer",
-      bio: tempTrainerData?.bio || "",
-      experience: tempTrainerData?.experience || "",
-      certifications: tempTrainerData?.certifications || [],
-      services: tempTrainerData?.services || [],
-      pricing: tempTrainerData?.pricing || {},
-      availability: tempTrainerData?.availability || {},
-      location: tempTrainerData?.location || "",
-      phone: tempTrainerData?.phone || "",
-      website: tempTrainerData?.website || "",
-      socialMedia: tempTrainerData?.socialMedia || {},
-      images: tempTrainerData?.images || [],
-      testimonials: tempTrainerData?.testimonials || [],
-      content: tempTrainerData?.content || null,
-      isActive: false, // Temp trainers are never active
-      isPaid: tempTrainerData?.isPaid || false,
-      createdAt: createdAt.toISOString(),
-      expiresAt: new Date(createdAt.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-      token: tempTrainerData?.token,
+      success: true,
+      trainer: {
+        id: tempId,
+        name: tempTrainerData?.name || "Unknown Trainer",
+        fullName: tempTrainerData?.fullName || tempTrainerData?.name || "Unknown Trainer",
+        email: tempTrainerData?.email || "",
+        specialization: tempTrainerData?.specialization || "Personal Trainer",
+        bio: tempTrainerData?.bio || "",
+        experience: tempTrainerData?.experience || "",
+        certifications: tempTrainerData?.certifications || [],
+        services: tempTrainerData?.services || [],
+        pricing: tempTrainerData?.pricing || {},
+        availability: tempTrainerData?.availability || {},
+        location: tempTrainerData?.location || "",
+        phone: tempTrainerData?.phone || "",
+        website: tempTrainerData?.website || "",
+        socialMedia: tempTrainerData?.socialMedia || {},
+        images: tempTrainerData?.images || [],
+        testimonials: tempTrainerData?.testimonials || [],
+        content: tempTrainerData?.content || null,
+        isActive: false, // Temp trainers are never active
+        isPaid: tempTrainerData?.isPaid || false,
+        createdAt: createdAt.toISOString(),
+        expiresAt: new Date(createdAt.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+        token: tempTrainerData?.token,
+      },
     }
 
     const duration = Date.now() - startTime
 
     console.log("Temp trainer data retrieved successfully", {
       tempId,
-      name: responseData.name,
+      name: responseData.trainer.name,
       duration,
       responseDataKeys: Object.keys(responseData),
     })
