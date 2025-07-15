@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Star, MapPin, Phone, Mail, Clock, Award, Zap, User } from "lucide-react"
+import { Star, MapPin, Phone, Mail, Clock, CheckCircle, Euro } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 
 interface TrainerContent {
@@ -132,11 +132,13 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   if (loading) {
     console.log("Rendering loading state for trainer:", trainerId)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice mx-auto mb-4"></div>
-          <p className={`text-lg ${isCoach ? "text-black" : "text-white"}`}>Loading trainer profile...</p>
-          <p className={`text-sm mt-2 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>ID: {trainerId}</p>
+          <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+          </div>
+          <p className="text-lg text-gray-900">Loading trainer profile...</p>
+          <p className="text-sm mt-2 text-gray-600">ID: {trainerId}</p>
         </div>
       </div>
     )
@@ -145,13 +147,13 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   if (error || !trainerData) {
     console.log("Rendering error state:", { error, hasTrainerData: !!trainerData })
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold text-red-600 mb-4">Profile Not Available</h2>
             <p className="text-gray-600 mb-4 text-sm">{error || "Trainer profile not found or not activated"}</p>
             <p className="text-sm text-gray-500 mb-4">Trainer ID: {trainerId}</p>
-            <Button onClick={() => window.location.reload()} className="bg-juice text-black hover:bg-juice/90">
+            <Button onClick={() => window.location.reload()} className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
               Try Again
             </Button>
           </CardContent>
@@ -164,7 +166,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   if (!content) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold text-orange-600 mb-4">Profile Not Ready</h2>
@@ -175,165 +177,154 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
+  const displayName = trainerData.fullName || trainerData.name || "Trainer"
+
+  // Ensure certifications is always an array
+  const certifications = Array.isArray(trainerData.certifications)
+    ? trainerData.certifications
+    : typeof trainerData.certifications === "string"
+      ? [trainerData.certifications]
+      : ["Certified Personal Trainer"]
+
   return (
-    <div className={`min-h-screen ${isCoach ? "bg-white" : "bg-black"}`}>
-      {/* Hero Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            {content.hero.title}
-          </h1>
-          <p className={`text-xl mb-6 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{content.hero.subtitle}</p>
-          <p className={`text-lg max-w-2xl mx-auto mb-8 ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
-            {content.hero.description}
-          </p>
-          <Button size="lg" className="bg-juice text-black hover:bg-juice/90 px-8 py-3 text-lg">
-            Book a Session
-          </Button>
-        </div>
-      </section>
+    <div className="min-h-screen bg-gray-50">
+      {/* Generated Website Preview */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <Card className="overflow-hidden shadow-lg border-0 bg-white">
+          {/* Hero Section */}
+          <div className="relative bg-[#D2FF28] text-black p-12">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">{content.hero.title}</h1>
+              <p className="text-xl mb-6">{content.hero.subtitle}</p>
+              <Button size="lg" className="bg-black text-white hover:bg-gray-800">
+                Book Your Free Consultation
+              </Button>
+            </div>
+          </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
-            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
-                  <User className="w-5 h-5" />
-                  {content.about.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-lg leading-relaxed ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
-                  {content.about.content}
-                </p>
-              </CardContent>
-            </Card>
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column - About */}
+              <div className="lg:col-span-2">
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 bg-[#D2FF28] rounded-full"></div>
+                    <h2 className="text-2xl font-bold">{content.about.title}</h2>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed mb-4">{content.about.content}</p>
 
-            {/* Services Section */}
-            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
-                  <Zap className="w-5 h-5" />
-                  Services
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6">
-                  {content.services.map((service, index) => (
-                    <div key={index} className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className={`font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                          {service.title}
-                        </h4>
-                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{service.description}</p>
+                  <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-3 w-3 text-black" />
                       </div>
-                      <Badge variant="secondary" className="ml-4 bg-juice text-black">
-                        {service.price}
-                      </Badge>
+                      <span className="text-sm">{trainerData.experience}</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      </div>
+                      <span className="text-sm">Certified Professional</span>
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Testimonials Section */}
-            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
-                  <Star className="w-5 h-5" />
-                  Client Testimonials
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6">
-                  {content.testimonials.map((testimonial, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex">
+                <Separator className="my-8" />
+
+                {/* Services Section */}
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-6">My Training Services</h2>
+                  <div className="grid gap-4">
+                    {content.services.map((service, index) => (
+                      <Card key={index} className="p-6">
+                        <h3 className="font-bold text-lg mb-2">{service.title}</h3>
+                        <p className="text-gray-600 mb-4">{service.description}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-lg font-bold text-[#D2FF28]">
+                            <Euro className="h-4 w-4" />
+                            {service.price.replace("€", "")}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Clock className="h-4 w-4" />
+                            60 min
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator className="my-8" />
+
+                {/* Testimonials */}
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">What My Clients Say</h2>
+                  <div className="space-y-6">
+                    {content.testimonials.map((testimonial, index) => (
+                      <Card key={index} className="p-6">
+                        <div className="flex items-center gap-1 mb-3">
                           {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           ))}
                         </div>
-                        <span className={`font-medium ${isCoach ? "text-black" : "text-white"}`}>
-                          {testimonial.name}
-                        </span>
-                      </div>
-                      <p className={`${isCoach ? "text-gray-700" : "text-gray-300"} italic`}>"{testimonial.text}"</p>
-                      {index < content.testimonials.length - 1 && <Separator className="mt-4" />}
+                        <p className="text-gray-700 mb-3">"{testimonial.text}"</p>
+                        <p className="text-sm text-gray-500">- {testimonial.name}</p>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Contact & Info */}
+              <div>
+                <Card className="p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-4">Contact Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{content.contact.email}</span>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{content.contact.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{content.contact.location}</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
+                    Schedule Consultation
+                  </Button>
+                </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Info */}
-            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
-                  <Phone className="w-5 h-5" />
-                  Contact Info
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-juice" />
-                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{content.contact.email}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-juice" />
-                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{content.contact.phone}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-juice" />
-                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{content.contact.location}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-4 h-4 text-juice" />
-                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>
-                    {content.contact.availability}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+                <Card className="p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-4">Specialties</h3>
+                  <div className="space-y-2">
+                    <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">{trainerData.specialization}</Badge>
+                  </div>
 
-            {/* Quick Stats */}
-            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
-                  <Award className="w-5 h-5" />
-                  Experience
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-juice">{trainerData.experience}</div>
-                  <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Experience</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-juice">{trainerData.specialization}</div>
-                  <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Specialization</div>
-                </div>
-              </CardContent>
-            </Card>
+                  <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
+                  <div className="space-y-1">
+                    {certifications.map((cert, index) => (
+                      <p key={index} className="text-sm text-gray-600">
+                        {cert}
+                      </p>
+                    ))}
+                  </div>
+                </Card>
 
-            {/* CTA */}
-            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-              <CardContent className="p-6 text-center">
-                <h3 className={`font-bold mb-2 ${isCoach ? "text-black" : "text-white"}`}>Ready to Start?</h3>
-                <p className={`text-sm mb-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                  Book your first session today
-                </p>
-                <Button className="w-full bg-juice text-black hover:bg-juice/90">Contact Now</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                <Card className="p-6 bg-[#D2FF28]">
+                  <h3 className="text-xl font-bold mb-2 text-black">Ready to Start?</h3>
+                  <p className="text-sm text-black mb-4">
+                    Book your free consultation today and take the first step towards your fitness goals.
+                  </p>
+                  <Button className="w-full bg-black text-white hover:bg-gray-800">Contact Now</Button>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

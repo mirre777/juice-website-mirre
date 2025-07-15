@@ -1,44 +1,40 @@
-import { initializeApp, getApps } from "firebase/app"
-import { getFirestore } from "firebase/firestore"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
 
 // Check if we have real Firebase configuration
 export const hasRealFirebaseConfig = !!(
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
-  process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET &&
-  process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID &&
-  process.env.NEXT_PUBLIC_FIREBASE_APP_ID &&
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "your-api-key" &&
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "your-project-id"
+  process.env.FIREBASE_PROJECT_ID &&
+  process.env.FIREBASE_CLIENT_EMAIL &&
+  process.env.FIREBASE_PRIVATE_KEY
 )
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "demo-key",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "demo-project",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX",
+// Initialize Firebase Admin
+let app
+let db
+
+try {
+  if (hasRealFirebaseConfig && getApps().length === 0) {
+    app = initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      }),
+    })
+    db = getFirestore(app)
+  }
+} catch (error) {
+  console.error("Firebase Admin initialization error:", error)
 }
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
+export { app, db }
 
-// Initialize Firestore
-export const db = getFirestore(app)
-export { app }
-
-// Debug function to get Firebase configuration info
 export function getFirebaseDebugInfo() {
   return {
-    hasRealConfig: hasRealFirebaseConfig,
-    projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
-    configKeys: Object.keys(firebaseConfig),
-    appName: app.name,
-    appOptions: app.options,
+    hasRealFirebaseConfig,
+    projectId: process.env.FIREBASE_PROJECT_ID || "Not set",
+    hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+    hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+    appsLength: getApps().length,
   }
 }
