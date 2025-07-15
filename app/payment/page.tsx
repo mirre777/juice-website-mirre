@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Award } from "lucide-react"
+import { CheckCircle, Award, ArrowLeft } from "lucide-react"
 import { StripePayment } from "@/components/payment/stripe-payment"
 import { useTheme } from "@/components/theme-provider"
 
@@ -27,6 +27,7 @@ interface TrainerData {
 
 function PaymentPageContent() {
   const { isCoach } = useTheme()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const tempId = searchParams.get("tempId")
   const token = searchParams.get("token")
@@ -91,6 +92,14 @@ function PaymentPageContent() {
     setPaymentResetCounter((prev) => prev + 1)
   }
 
+  const handleGoBack = () => {
+    if (tempId && token) {
+      router.push(`/marketplace/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
+    } else {
+      router.back()
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,9 +118,14 @@ function PaymentPageContent() {
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
             <p className="text-gray-600 mb-4">{error || "Trainer data not found"}</p>
-            <Button onClick={() => window.location.reload()} className="bg-juice text-black hover:bg-juice/90">
-              Try Again
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={() => window.location.reload()} className="w-full bg-juice text-black hover:bg-juice/90">
+                Try Again
+              </Button>
+              <Button onClick={handleGoBack} variant="outline" className="w-full bg-transparent">
+                Go Back
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -120,6 +134,18 @@ function PaymentPageContent() {
 
   return (
     <div className={`min-h-screen py-8 px-4 ${isCoach ? "bg-white" : "bg-black"}`}>
+      {/* Header with Back Button */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <Button
+          onClick={handleGoBack}
+          variant="ghost"
+          className={`flex items-center gap-2 ${isCoach ? "text-black hover:bg-gray-100" : "text-white hover:bg-gray-800"}`}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Preview
+        </Button>
+      </div>
+
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Trainer Info */}
