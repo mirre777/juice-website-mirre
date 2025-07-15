@@ -1,4 +1,4 @@
-import { TempTrainerPage } from "../TempTrainerPage"
+import TempTrainerPage from "../TempTrainerPage"
 
 interface PageProps {
   params: {

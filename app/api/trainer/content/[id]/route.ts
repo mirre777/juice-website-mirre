@@ -2,122 +2,102 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    console.log("[SERVER] === API TRAINER CONTENT DEBUG ===")
-    console.log("[SERVER] 1. Received trainer ID:", params.id)
+    const trainerId = params.id
 
-    // For the known trainer ID, return mock data that matches Firebase structure
-    if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
-      console.log("[SERVER] 2. Returning mock data for known trainer:", params.id)
+    console.log("🔍 GET /api/trainer/content/[id] called", {
+      trainerId,
+      url: request.url,
+    })
 
-      const mockTrainerData = {
-        id: "POj2MRZ5ZRbq3CW1U0zJ",
-        name: "Mirre Snelting",
-        fullName: "Mirre Snelting",
-        email: "mirresnelting+3@gmail.com",
-        phone: "+436602101427",
-        location: "Vienna",
-        specialization: "Sports Performance",
-        experience: "5-10 years",
-        services: ["Personal Training"],
-        isActive: true,
-        status: "active",
-        content: {
-          hero: {
-            title: "Transform Your Body, Transform Your Life",
-            subtitle: "Sports Performance • 5-10 years experience • Vienna",
-            description:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
-          },
-          about: {
-            title: "About Mirre Snelting",
-            content:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
-          },
-          services: [
-            {
-              title: "Personal Training",
-              description: "Personalized personal training sessions tailored to your goals",
-              price: "€60/session",
-            },
-            {
-              title: "Sports Performance Training",
-              description: "Specialized training to improve athletic performance and competition readiness",
-              price: "€80/session",
-            },
-            {
-              title: "Custom Workout Plan",
-              description: "Personalized workout program designed for your goals and schedule",
-              price: "€100/plan",
-            },
-          ],
-          testimonials: [
-            {
-              name: "Sarah M.",
-              text: "Working with Mirre has been life-changing. Their expertise in Sports Performance helped me achieve results I never thought possible.",
-              rating: 5,
-            },
-            {
-              name: "Mike R.",
-              text: "Professional, knowledgeable, and motivating. Mirre creates personalized programs that actually work.",
-              rating: 5,
-            },
-            {
-              name: "Lisa K.",
-              text: "Excellent sports performance coaching. Achieved my competition goals with Mirre's guidance!",
-              rating: 5,
-            },
-          ],
-          contact: {
-            email: "mirresnelting+3@gmail.com",
-            phone: "+436602101427",
-            location: "Vienna",
-            availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
-          },
-        },
-      }
-
-      return NextResponse.json(
-        {
-          success: true,
-          trainer: mockTrainerData,
-        },
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      )
+    if (!trainerId) {
+      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
     }
 
-    // For other trainer IDs, return not found (removed Firebase Admin to prevent build errors)
-    console.log("[SERVER] 3. Trainer not found:", params.id)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Trainer not found",
+    // Return mock content data for now
+    const mockContent = {
+      id: trainerId,
+      hero: {
+        title: "Transform Your Body, Transform Your Life",
+        subtitle: "Professional Personal Training Services",
+        backgroundImage: "/placeholder.svg?height=600&width=1200&text=Hero+Background",
+        cta: "Book Your Free Consultation",
       },
-      {
-        status: 404,
-        headers: {
-          "Content-Type": "application/json",
+      about: {
+        title: "About Your Trainer",
+        description:
+          "Dedicated fitness professional with years of experience helping clients achieve their health and wellness goals.",
+        image: "/placeholder.svg?height=400&width=400&text=Trainer+Photo",
+      },
+      services: [
+        {
+          name: "Personal Training",
+          description: "One-on-one training sessions tailored to your specific goals",
+          price: 75,
+          duration: 60,
+          image: "/placeholder.svg?height=300&width=400&text=Personal+Training",
+        },
+        {
+          name: "Group Classes",
+          description: "Small group fitness classes for motivation and community",
+          price: 30,
+          duration: 45,
+          image: "/placeholder.svg?height=300&width=400&text=Group+Classes",
+        },
+        {
+          name: "Nutrition Coaching",
+          description: "Personalized nutrition plans and ongoing support",
+          price: 100,
+          duration: 90,
+          image: "/placeholder.svg?height=300&width=400&text=Nutrition+Coaching",
+        },
+      ],
+      testimonials: [
+        {
+          name: "Sarah M.",
+          rating: 5,
+          text: "Amazing results in just 3 months! Highly recommend.",
+          image: "/placeholder.svg?height=100&width=100&text=Sarah",
+        },
+        {
+          name: "Mike R.",
+          rating: 5,
+          text: "Professional, knowledgeable, and motivating trainer.",
+          image: "/placeholder.svg?height=100&width=100&text=Mike",
+        },
+      ],
+      contact: {
+        email: "trainer@example.com",
+        phone: "+1 (555) 123-4567",
+        location: "New York, NY",
+        socialMedia: {
+          instagram: "@trainerhandle",
+          facebook: "Trainer Page",
         },
       },
-    )
+      gallery: [
+        "/placeholder.svg?height=300&width=400&text=Gallery+1",
+        "/placeholder.svg?height=300&width=400&text=Gallery+2",
+        "/placeholder.svg?height=300&width=400&text=Gallery+3",
+        "/placeholder.svg?height=300&width=400&text=Gallery+4",
+      ],
+    }
+
+    console.log("✅ Returning mock content data")
+
+    return NextResponse.json({
+      success: true,
+      content: mockContent,
+    })
   } catch (error) {
-    console.error("[SERVER] 4. Unexpected error:", error)
+    console.error("💥 Error in GET /api/trainer/content/[id]:", error)
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
+      { status: 500 },
     )
   }
 }
