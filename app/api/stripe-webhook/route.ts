@@ -20,63 +20,6 @@ if (!getApps().length) {
 
 const db = getFirestore()
 
-async function generateTrainerContent(trainerData: any) {
-  // Generate AI content for the trainer
-  const content = {
-    hero: {
-      title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${trainerData.specialization} • ${trainerData.experience} • ${trainerData.location}`,
-      cta: "Book Your Free Consultation",
-    },
-    about: {
-      title: `About ${trainerData.fullName || trainerData.name}`,
-      content: `With ${trainerData.experience} of experience as a ${trainerData.specialization}, I'm dedicated to helping you achieve your fitness goals. My personalized approach combines proven training methods with nutritional guidance to deliver real, lasting results.`,
-      certifications: trainerData.certifications || ["Certified Personal Trainer", "Nutrition Specialist"],
-    },
-    services: trainerData.services || [
-      {
-        name: "Personal Training",
-        description: "One-on-one training sessions tailored to your goals",
-        price: "€80/session",
-      },
-      {
-        name: "Group Classes",
-        description: "Small group training for motivation and community",
-        price: "€25/session",
-      },
-      {
-        name: "Nutrition Coaching",
-        description: "Personalized meal plans and nutritional guidance",
-        price: "€60/session",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Amazing results in just 3 months! Highly recommend.",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Professional, knowledgeable, and motivating trainer.",
-        rating: 5,
-      },
-      {
-        name: "Lisa K.",
-        text: "Best investment I've made for my health and fitness.",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData.email,
-      phone: trainerData.phone || "Contact for details",
-      location: trainerData.location,
-    },
-  }
-
-  return content
-}
-
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get("stripe-signature")
@@ -97,58 +40,107 @@ export async function POST(request: NextRequest) {
 
   console.log("Webhook event received:", event.type)
 
-  try {
-    if (event.type === "payment_intent.succeeded") {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent
-      const tempId = paymentIntent.metadata.tempId
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
+    const { tempId } = paymentIntent.metadata
 
-      console.log("Payment succeeded for tempId:", tempId)
+    if (tempId) {
+      console.log("Activating trainer:", tempId)
 
-      if (tempId) {
-        // Activate the trainer
-        console.log("Activating trainer with tempId:", tempId)
-
+      try {
         // Get temp trainer data
-        const tempTrainerRef = db.collection("trainers").doc(tempId)
-        const tempTrainerDoc = await tempTrainerRef.get()
+        const tempDoc = await db.collection("trainers").doc(tempId).get()
 
-        if (!tempTrainerDoc.exists) {
+        if (!tempDoc.exists) {
           console.error("Temp trainer not found:", tempId)
           return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
         }
 
-        const tempTrainerData = tempTrainerDoc.data()
+        const tempData = tempDoc.data()!
 
-        // Generate AI content
-        const generatedContent = await generateTrainerContent(tempTrainerData)
+        // Generate AI content for the trainer
+        const aiContent = await generateTrainerContent(tempData)
 
-        // Create final trainer document
-        const finalTrainerData = {
-          ...tempTrainerData,
+        // Create new active trainer document
+        const newTrainerRef = db.collection("trainers").doc()
+        const finalId = newTrainerRef.id
+
+        await newTrainerRef.set({
+          ...tempData,
+          id: finalId,
           status: "active",
           isActive: true,
           isPaid: true,
           paymentIntentId: paymentIntent.id,
           activatedAt: new Date().toISOString(),
-          content: generatedContent,
-        }
-
-        // Create new active trainer document
-        const activeTrainerRef = db.collection("trainers").doc()
-        await activeTrainerRef.set(finalTrainerData)
-
-        console.log("Trainer activated successfully:", activeTrainerRef.id)
+          content: aiContent,
+          // Remove temp-specific fields
+          sessionToken: null,
+          expiresAt: null,
+        })
 
         // Delete temp trainer
-        await tempTrainerRef.delete()
+        await tempDoc.ref.delete()
 
-        console.log("Temp trainer deleted:", tempId)
+        console.log("Trainer activated successfully:", finalId)
+      } catch (error) {
+        console.error("Error activating trainer:", error)
       }
     }
+  }
 
-    return NextResponse.json({ received: true })
-  } catch (error: any) {
-    console.error("Webhook processing error:", error)
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
+  return NextResponse.json({ received: true })
+}
+
+async function generateTrainerContent(trainerData: any) {
+  const { name, fullName, specialization, experience, location, bio } = trainerData
+
+  return {
+    hero: {
+      title: `Transform Your Body, Transform Your Life`,
+      subtitle: `${specialization} • ${experience} • ${location}`,
+      cta: "Book Your Free Consultation",
+    },
+    about: {
+      title: `About ${fullName || name}`,
+      content:
+        bio ||
+        `Professional ${specialization.toLowerCase()} with ${experience} of experience helping clients achieve their fitness goals in ${location}.`,
+      image: "/placeholder.svg?height=400&width=400",
+    },
+    services: [
+      {
+        title: "Personal Training",
+        description: "One-on-one training sessions tailored to your specific goals and fitness level.",
+        price: "€80/session",
+      },
+      {
+        title: "Group Classes",
+        description: "Small group training sessions for motivation and community support.",
+        price: "€25/session",
+      },
+      {
+        title: "Online Coaching",
+        description: "Remote coaching with personalized workout plans and nutrition guidance.",
+        price: "€150/month",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Amazing results in just 3 months! Highly recommend.",
+        rating: 5,
+      },
+      {
+        name: "John D.",
+        text: "Professional, knowledgeable, and motivating trainer.",
+        rating: 5,
+      },
+    ],
+    contact: {
+      email: trainerData.email,
+      phone: trainerData.phone || "+43 123 456 789",
+      location: location,
+    },
   }
 }

@@ -17,35 +17,45 @@ const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const trainerId = params.id
+    const { id } = params
 
-    if (!trainerId) {
+    if (!id) {
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
+    console.log("Fetching trainer content for:", id)
+
     // Try to get active trainer first
-    const trainerRef = db.collection("trainers").doc(trainerId)
-    const trainerDoc = await trainerRef.get()
+    const trainerDoc = await db.collection("trainers").doc(id).get()
 
     if (!trainerDoc.exists) {
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainerData = trainerDoc.data()
+    const trainerData = trainerDoc.data()!
 
-    // Check if trainer is active
-    if (trainerData?.status !== "active" || !trainerData?.isActive) {
-      return NextResponse.json({ error: "Trainer profile not active" }, { status: 403 })
+    // Check if trainer is active and has content
+    if (trainerData.status === "active" && trainerData.content) {
+      return NextResponse.json({
+        success: true,
+        trainer: trainerData,
+        content: trainerData.content,
+      })
     }
 
-    // Return trainer content
+    // If temp trainer or no content, return basic data
     return NextResponse.json({
       success: true,
       trainer: trainerData,
-      content: trainerData.content || null,
+      content: null,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching trainer content:", error)
-    return NextResponse.json({ error: "Failed to fetch trainer content" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to fetch trainer content",
+      },
+      { status: 500 },
+    )
   }
 }
