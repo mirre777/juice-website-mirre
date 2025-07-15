@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, MapPin, Mail, Phone, CheckCircle } from "lucide-react"
+import { Star, MapPin, Phone, Mail, Clock, CheckCircle } from "lucide-react"
 
 interface TrainerContent {
   hero: {
@@ -16,7 +15,6 @@ interface TrainerContent {
   about: {
     title: string
     content: string
-    certifications: string[]
   }
   services: Array<{
     title: string
@@ -29,60 +27,69 @@ interface TrainerContent {
     rating: number
   }>
   contact: {
-    email: string
     phone: string
+    email: string
     location: string
+    availability: string
   }
 }
 
 interface TrainerData {
   id: string
   name: string
-  fullName?: string
+  fullName: string
   email: string
+  phone: string
   location: string
   specialization: string
   experience: string
-  status: string
+  bio: string
+  certifications: string[]
+  services: string[]
+  content: TrainerContent
   isActive: boolean
-  content?: TrainerContent
+  isPaid: boolean
+  status: string
 }
 
-export default function TrainerProfilePage() {
-  const params = useParams()
-  const trainerId = params.id as string
+interface TrainerProfilePageProps {
+  trainerId: string
+}
 
+export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
   const [trainer, setTrainer] = useState<TrainerData | null>(null)
-  const [content, setContent] = useState<TrainerContent | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchTrainerContent = async () => {
+    const fetchTrainer = async () => {
       try {
-        console.log("Fetching trainer content for:", trainerId)
-
+        console.log("Fetching trainer data for ID:", trainerId)
         const response = await fetch(`/api/trainer/content/${trainerId}`)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to fetch trainer data")
+        }
+
         const data = await response.json()
+        console.log("Trainer data received:", data)
 
-        console.log("API response:", data)
-
-        if (data.success && data.trainer && data.content) {
+        if (data.success && data.trainer) {
           setTrainer(data.trainer)
-          setContent(data.content)
         } else {
-          setError(data.error || "Trainer profile not found or not activated")
+          throw new Error("Invalid trainer data")
         }
       } catch (error: any) {
         console.error("Error fetching trainer:", error)
-        setError("Failed to load trainer profile")
+        setError(error.message)
       } finally {
         setLoading(false)
       }
     }
 
     if (trainerId) {
-      fetchTrainerContent()
+      fetchTrainer()
     }
   }, [trainerId])
 
@@ -99,30 +106,30 @@ export default function TrainerProfilePage() {
     )
   }
 
-  if (error || !trainer || !content) {
+  if (error || !trainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="w-8 h-8 text-gray-400">📄</div>
+            <div className="text-2xl">📄</div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Content Blocked</h1>
           <p className="text-gray-600 mb-4">
-            {error || "This trainer profile is not activated or content is not available."}
+            {error || "This trainer profile is not available or has not been activated yet."}
           </p>
-          <p className="text-sm text-gray-500">Contact the site owner to fix this issue.</p>
+          <Button onClick={() => (window.location.href = "/marketplace")}>Back to Marketplace</Button>
         </div>
       </div>
     )
   }
 
-  const displayName = trainer.fullName || trainer.name
+  const { content } = trainer
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-[#D2FF28] py-16">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+      <section className="bg-[#D2FF28] py-16">
+        <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-black mb-4">{content.hero.title}</h1>
           <p className="text-xl text-black mb-6">{content.hero.subtitle}</p>
           <p className="text-lg text-black/80 mb-8 max-w-2xl mx-auto">{content.hero.description}</p>
@@ -130,112 +137,105 @@ export default function TrainerProfilePage() {
             Book Your Free Consultation
           </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* About Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
-                <span className="text-black font-bold">👤</span>
+      {/* About Section */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">{content.about.title}</h2>
+              <p className="text-lg text-gray-600 mb-6">{content.about.content}</p>
+              <div className="flex flex-wrap gap-2 mb-6">
+                <Badge variant="secondary">{trainer.specialization}</Badge>
+                <Badge variant="secondary">{trainer.experience}</Badge>
+                <Badge variant="secondary">{trainer.location}</Badge>
               </div>
-              {content.about.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 mb-6">{content.about.content}</p>
-            <div className="space-y-2">
-              <h4 className="font-semibold text-gray-900">Certifications:</h4>
-              <div className="flex flex-wrap gap-2">
-                {content.about.certifications.map((cert, index) => (
-                  <Badge key={index} variant="secondary" className="bg-[#D2FF28] text-black">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    {cert}
-                  </Badge>
+              <div className="space-y-2">
+                {trainer.certifications.map((cert, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-gray-600">{cert}</span>
+                  </div>
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Services Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Services</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {content.services.map((service, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-lg mb-2">{service.title}</h3>
-                  <p className="text-gray-600 mb-4">{service.description}</p>
-                  <div className="text-2xl font-bold text-[#D2FF28]">{service.price}</div>
-                </div>
-              ))}
+            <div className="bg-gray-200 rounded-lg aspect-square flex items-center justify-center">
+              <div className="text-6xl">👨‍💼</div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </section>
 
-        {/* Testimonials Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Client Testimonials</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {content.testimonials.map((testimonial, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="flex items-center mb-2">
+      {/* Services Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Services & Programs</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {content.services.map((service, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle className="text-xl">{service.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">{service.description}</p>
+                  <p className="text-lg font-semibold text-[#D2FF28]">{service.price}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Client Success Stories</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {content.testimonials.map((testimonial, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-3">"{testimonial.text}"</p>
-                  <p className="font-semibold text-gray-900">- {testimonial.name}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                  <p className="text-gray-600 mb-4">"{testimonial.text}"</p>
+                  <p className="font-semibold">- {testimonial.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        {/* Contact Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-[#D2FF28]" />
-                <div>
-                  <p className="font-semibold">Email</p>
-                  <p className="text-gray-600">{content.contact.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-[#D2FF28]" />
-                <div>
-                  <p className="font-semibold">Phone</p>
-                  <p className="text-gray-600">{content.contact.phone}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-[#D2FF28]" />
-                <div>
-                  <p className="font-semibold">Location</p>
-                  <p className="text-gray-600">{content.contact.location}</p>
-                </div>
-              </div>
+      {/* Contact Section */}
+      <section className="py-16 bg-[#D2FF28]">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-black mb-8">Ready to Start Your Transformation?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="flex items-center justify-center gap-2">
+              <MapPin className="h-5 w-5 text-black" />
+              <span className="text-black">{content.contact.location}</span>
             </div>
-            <div className="mt-6 text-center">
-              <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
-                Get Started Today
-              </Button>
+            <div className="flex items-center justify-center gap-2">
+              <Phone className="h-5 w-5 text-black" />
+              <span className="text-black">{content.contact.phone}</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center justify-center gap-2">
+              <Mail className="h-5 w-5 text-black" />
+              <span className="text-black">{content.contact.email}</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <Clock className="h-5 w-5 text-black" />
+              <span className="text-black text-sm">{content.contact.availability}</span>
+            </div>
+          </div>
+          <Button size="lg" className="bg-black text-[#D2FF28] hover:bg-gray-800">
+            Book Your Free Consultation
+          </Button>
+        </div>
+      </section>
     </div>
   )
 }
