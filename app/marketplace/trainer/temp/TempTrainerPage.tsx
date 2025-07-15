@@ -1,302 +1,138 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { toast } from "@/components/ui/use-toast"
-import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Timer, AlertCircle } from "lucide-react"
-
-interface TempTrainerData {
-  id: string
-  name: string
-  fullName: string
-  email: string
-  phone?: string
-  location: string
-  specialization: string
-  experience: string
-  bio: string
-  certifications: string[]
-  services: string[]
-  pricing: Record<string, any>
-  availability: Record<string, any>
-  website: string
-  socialMedia: Record<string, string>
-  images: string[]
-  testimonials: any[]
-  content: any
-  isActive: boolean
-  isPaid: boolean
-  createdAt: string
-  expiresAt: string
-  token: string
-}
-
-interface ApiResponse {
-  success: boolean
-  trainer: TempTrainerData
-  error?: string
-  details?: string
-}
+import { Clock, MapPin, Award, Star, Phone, Mail, Calendar, CheckCircle, AlertCircle, Zap } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
 
 interface TempTrainerPageProps {
   tempId: string
   token?: string
 }
 
-export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+interface TrainerData {
+  id: string
+  name: string
+  fullName?: string
+  email: string
+  phone?: string
+  location: string
+  specialization: string
+  experience: string
+  bio?: string
+  certifications?: string[]
+  status: string
+  createdAt: string
+  expiresAt: string
+  hasSessionToken: boolean
+  content?: {
+    hero?: {
+      title?: string
+      subtitle?: string
+      description?: string
+    }
+    about?: {
+      title?: string
+      content?: string
+    }
+    services?: Array<{
+      name: string
+      description: string
+      price?: string
+    }>
+    testimonials?: Array<{
+      name: string
+      text: string
+      rating: number
+    }>
+    contact?: {
+      title?: string
+      description?: string
+    }
+  }
+}
 
-  // Get token from props or search params
-  const accessToken = token || searchParams.get("token")
+export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
+  const { isCoach } = useTheme()
+  const router = useRouter()
+  const [trainerData, setTrainerData] = useState<TrainerData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState<string>("")
 
   useEffect(() => {
-    console.log("🎯 TempTrainerPage useEffect triggered", {
-      tempId,
-      hasToken: !!accessToken,
-      tokenLength: accessToken?.length,
-    })
-
-    if (tempId && accessToken) {
-      fetchTrainerData()
-    } else {
-      console.error("❌ Missing required parameters", {
-        tempId,
-        hasToken: !!accessToken,
-        searchParamsToken: searchParams.get("token"),
-        propsToken: token,
-      })
-      setError("Missing trainer ID or access token")
-      setGenerating(false)
-      setLoading(false)
-    }
-  }, [tempId, accessToken])
-
-  const fetchTrainerData = async () => {
-    try {
-      console.log("🚀 Starting trainer data fetch process")
-
-      // Simulate AI generation process
-      setGenerating(true)
-      setError(null)
-
-      // Show generating message for 3 seconds
-      setTimeout(() => {
-        console.log("⏰ Generation timeout completed, loading trainer data")
-        setGenerating(false)
-        loadTrainerData()
-      }, 3000)
-    } catch (error) {
-      console.error("💥 Error in fetchTrainerData:", error)
-      setError(error instanceof Error ? error.message : "Unknown error")
-      setGenerating(false)
-      setLoading(false)
-    }
-  }
-
-  const loadTrainerData = async () => {
-    try {
-      if (!accessToken) {
-        throw new Error("No access token provided")
-      }
-
-      console.log("📡 Loading trainer data from API", {
-        tempId,
-        hasToken: !!accessToken,
-        tokenPreview: accessToken.substring(0, 10) + "...",
-      })
-
-      const url = `/api/trainer/temp/${tempId}?token=${encodeURIComponent(accessToken)}`
-      console.log("🌐 Fetching from URL:", url)
-
-      const fetchStartTime = Date.now()
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      })
-
-      const fetchDuration = Date.now() - fetchStartTime
-
-      console.log("📥 API Response received", {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        duration: `${fetchDuration}ms`,
-        contentType: response.headers.get("content-type"),
-        url: response.url,
-      })
-
-      let responseText: string
-      let data: ApiResponse
-
+    const fetchTrainerData = async () => {
       try {
-        responseText = await response.text()
-        console.log("📄 Response text received", {
-          length: responseText.length,
-          preview: responseText.substring(0, 200) + (responseText.length > 200 ? "..." : ""),
-          isJson: responseText.trim().startsWith("{") || responseText.trim().startsWith("["),
-        })
+        console.log("Fetching trainer data for:", tempId, "with token:", token?.substring(0, 10) + "...")
+        const url = token
+          ? `/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`
+          : `/api/trainer/temp/${tempId}`
 
-        // Check if response is JSON
-        if (!responseText.trim().startsWith("{") && !responseText.trim().startsWith("[")) {
-          console.error("❌ Response is not JSON", {
-            responseText: responseText.substring(0, 500),
-            responseStatus: response.status,
-            contentType: response.headers.get("content-type"),
-          })
-          throw new Error(`Server returned non-JSON response: ${responseText}. Server response: ${responseText}`)
+        const response = await fetch(url)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to fetch trainer data")
         }
 
-        data = JSON.parse(responseText)
-        console.log("📊 Response parsed successfully", {
-          hasData: !!data,
-          dataKeys: data ? Object.keys(data) : [],
-          hasSuccess: !!data.success,
-          hasTrainer: !!data.trainer,
-          hasError: !!data.error,
-        })
-      } catch (parseError) {
-        console.error("❌ Failed to parse response", {
-          parseError: parseError instanceof Error ? parseError.message : String(parseError),
-          responseText: responseText?.substring(0, 500),
-          responseStatus: response.status,
-          contentType: response.headers.get("content-type"),
-        })
-        throw new Error(
-          `Failed to parse API response: ${parseError instanceof Error ? parseError.message : "Unknown parse error"}. Server response: ${responseText?.substring(0, 100)}...`,
-        )
+        const data = await response.json()
+        console.log("Trainer data received:", data)
+
+        if (data.success && data.trainer) {
+          setTrainerData(data.trainer)
+        } else {
+          throw new Error("Invalid trainer data received")
+        }
+      } catch (error) {
+        console.error("Error fetching trainer data:", error)
+        setError(error instanceof Error ? error.message : "Failed to load trainer data")
+      } finally {
+        setLoading(false)
       }
-
-      if (!response.ok) {
-        console.error("❌ API Error Response", {
-          status: response.status,
-          statusText: response.statusText,
-          error: data.error,
-          details: data.details,
-          responseData: data,
-        })
-        throw new Error(data.error || data.details || `HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      if (data.success && data.trainer) {
-        console.log("✅ Trainer data received successfully", {
-          trainerName: data.trainer.name,
-          trainerEmail: data.trainer.email,
-          trainerKeys: Object.keys(data.trainer),
-          certificationsCount: data.trainer.certifications?.length || 0,
-          servicesCount: data.trainer.services?.length || 0,
-        })
-        setTrainer(data.trainer)
-      } else {
-        console.error("❌ Invalid response format", {
-          hasSuccess: !!data.success,
-          hasTrainer: !!data.trainer,
-          dataKeys: Object.keys(data),
-          data,
-        })
-        throw new Error(data.error || "Invalid response format from server")
-      }
-    } catch (error) {
-      console.error("💥 Error loading trainer data:", {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        tempId,
-        hasToken: !!accessToken,
-      })
-
-      const errorMessage = error instanceof Error ? error.message : "Failed to load trainer profile"
-      setError(errorMessage)
-
-      toast({
-        title: "Error Loading Profile",
-        description: errorMessage,
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
     }
-  }
+
+    fetchTrainerData()
+  }, [tempId, token])
+
+  // Calculate time remaining
+  useEffect(() => {
+    if (!trainerData?.expiresAt) return
+
+    const updateTimeRemaining = () => {
+      const now = new Date()
+      const expiresAt = new Date(trainerData.expiresAt)
+      const diff = expiresAt.getTime() - now.getTime()
+
+      if (diff <= 0) {
+        setTimeRemaining("Expired")
+        return
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      setTimeRemaining(`${hours}h ${minutes}m`)
+    }
+
+    updateTimeRemaining()
+    const interval = setInterval(updateTimeRemaining, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [trainerData?.expiresAt])
 
   const handleActivate = () => {
-    console.log("🎯 Activate button clicked", { tempId, hasToken: !!accessToken })
-
-    if (!accessToken) {
-      console.error("❌ No access token for activation")
-      toast({
-        title: "Error",
-        description: "Missing access token for activation",
-        variant: "destructive",
-      })
+    if (!token) {
+      console.error("No token available for payment")
       return
     }
 
-    // Navigate to payment page with tempId and token
-    const paymentUrl = `/payment?tempId=${tempId}&token=${encodeURIComponent(accessToken)}`
-    console.log("🔄 Navigating to payment:", paymentUrl)
+    const paymentUrl = `/payment?tempId=${tempId}&token=${encodeURIComponent(token)}`
+    console.log("Navigating to payment:", paymentUrl)
     router.push(paymentUrl)
   }
 
-  // Show generating screen
-  if (generating) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">⚡</span>
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold">Website Preview</h1>
-                  <p className="text-sm text-gray-600">24-hour trial period</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Timer className="h-4 w-4" />
-                  <span>Time remaining: 23h 59m</span>
-                </div>
-                <Button className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">Activate for €29</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Generating Content */}
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center max-w-md mx-auto px-4">
-            <div className="w-16 h-16 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-6">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Generating Your Website...</h2>
-            <p className="text-gray-600 mb-6">Our AI is creating your professional trainer website</p>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-              <div className="bg-[#D2FF28] h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
-            </div>
-
-            <p className="text-sm text-gray-500">This will take just a few seconds...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show loading screen
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -304,246 +140,271 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
           </div>
-          <p className="text-gray-600">Loading your trainer profile...</p>
+          <p className="text-gray-600">Loading trainer profile...</p>
         </div>
       </div>
     )
   }
 
-  // Show error screen
-  if (error || !trainer) {
+  if (error || !trainerData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="h-8 w-8 text-red-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Profile</h1>
-          <p className="text-gray-600 mb-6 text-sm">
-            {error || "The trainer profile you're looking for doesn't exist or the preview has expired."}
-          </p>
-          <div className="space-y-3">
-            <Button onClick={() => window.location.reload()} className="w-full">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Unable to Load Profile</h2>
+            <p className="text-gray-600 mb-4">{error || "Trainer profile not found"}</p>
+            <Button onClick={() => window.location.reload()} className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
               Try Again
             </Button>
-            <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
-              Back to Marketplace
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Calculate time remaining (24 hours from creation)
-  const expiresAt = new Date(trainer.expiresAt)
-  const now = new Date()
-  const timeRemaining = Math.max(0, expiresAt.getTime() - now.getTime())
-  const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60))
-  const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
-
-  const displayName = trainer.fullName || trainer.name || "Trainer"
-
-  // Ensure certifications is always an array
-  const certifications = Array.isArray(trainer.certifications)
-    ? trainer.certifications
-    : typeof trainer.certifications === "string"
-      ? [trainer.certifications]
-      : ["Certified Personal Trainer"]
-
-  // Ensure services is always an array
-  const services = Array.isArray(trainer.services) ? trainer.services : ["Personal Training", "Fitness Consultation"]
+  const displayName = trainerData.fullName || trainerData.name
+  const heroTitle = trainerData.content?.hero?.title || `Transform Your Fitness with ${displayName}`
+  const heroSubtitle = trainerData.content?.hero?.subtitle || `Professional ${trainerData.specialization} Training`
+  const heroDescription =
+    trainerData.content?.hero?.description ||
+    `Get personalized training programs and expert guidance from ${displayName}, a certified ${trainerData.specialization.toLowerCase()} trainer with ${trainerData.experience} of experience in ${trainerData.location}.`
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+      {/* Header with Trial Info */}
+      <div className="bg-white border-b sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
-                <span className="text-black font-bold text-sm">⚡</span>
+                <CheckCircle className="w-5 h-5 text-black" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold">Website Preview</h1>
+                <h1 className="font-semibold text-gray-900">Website Preview</h1>
                 <p className="text-sm text-gray-600">24-hour trial period</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Timer className="h-4 w-4" />
-                <span>
-                  Time remaining: {hoursRemaining}h {minutesRemaining}m
-                </span>
+                <Clock className="w-4 h-4" />
+                <span>Time remaining: {timeRemaining}</span>
               </div>
-              <Button onClick={handleActivate} className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
-                Activate for €29
+              <Button
+                onClick={handleActivate}
+                className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90 font-semibold"
+                disabled={!token}
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Activate for €69
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Generated Website Preview */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <Card className="overflow-hidden shadow-lg border-0 bg-white">
-          {/* Hero Section */}
-          <div className="relative bg-[#D2FF28] text-black p-12">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Body, Transform Your Life</h1>
-              <p className="text-xl mb-6">
-                {trainer.specialization} • {trainer.experience} • {trainer.location}
-              </p>
-              <Button size="lg" className="bg-black text-white hover:bg-gray-800">
-                Book Your Free Consultation
-              </Button>
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <Badge className="bg-[#D2FF28] text-black mb-4">{trainerData.specialization}</Badge>
+              <h1 className="text-4xl lg:text-5xl font-bold mb-4">{heroTitle}</h1>
+              <p className="text-xl text-gray-300 mb-6">{heroSubtitle}</p>
+              <p className="text-gray-400 mb-8 leading-relaxed">{heroDescription}</p>
+              <div className="flex flex-wrap gap-4">
+                <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
+                  Start Training
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-white hover:bg-white hover:text-black bg-transparent"
+                >
+                  View Programs
+                </Button>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="aspect-square bg-gradient-to-br from-[#D2FF28] to-yellow-400 rounded-2xl flex items-center justify-center">
+                <div className="text-6xl">💪</div>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column - About */}
-              <div className="lg:col-span-2">
-                <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 bg-[#D2FF28] rounded-full"></div>
-                    <h2 className="text-2xl font-bold">About {displayName}</h2>
-                  </div>
-                  <p className="text-gray-700 leading-relaxed mb-4">{trainer.bio}</p>
-
-                  <div className="flex flex-wrap gap-4 mb-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-[#D2FF28] rounded-full flex items-center justify-center">
-                        <CheckCircle className="h-3 w-3 text-black" />
-                      </div>
-                      <span className="text-sm">{trainer.experience}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                      </div>
-                      <span className="text-sm">Certified Professional</span>
-                    </div>
-                  </div>
+      {/* About Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                {trainerData.content?.about?.title || `About ${displayName}`}
+              </h2>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                {trainerData.content?.about?.content ||
+                  `With ${trainerData.experience} of experience in ${trainerData.specialization.toLowerCase()}, I'm passionate about helping clients achieve their fitness goals through personalized training programs and expert guidance.`}
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-[#D2FF28]" />
+                  <span className="text-sm text-gray-600">Certified Trainer</span>
                 </div>
-
-                <Separator className="my-8" />
-
-                {/* Services Section */}
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold mb-6">My Training Services</h2>
-                  <div className="grid gap-4">
-                    {services.map((service, index) => (
-                      <Card key={index} className="p-6">
-                        <h3 className="font-bold text-lg mb-2">{service}</h3>
-                        <p className="text-gray-600 mb-4">
-                          Personalized {service.toLowerCase()} sessions tailored to your goals
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-lg font-bold text-[#D2FF28]">
-                            <Euro className="h-4 w-4" />
-                            {trainer.pricing?.session || 60}/session
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Clock className="h-4 w-4" />
-                            60 min
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-[#D2FF28]" />
+                  <span className="text-sm text-gray-600">{trainerData.location}</span>
                 </div>
-
-                <Separator className="my-8" />
-
-                {/* Testimonials */}
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">What My Clients Say</h2>
-                  <div className="space-y-6">
-                    <Card className="p-6">
-                      <div className="flex items-center gap-1 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <p className="text-gray-700 mb-3">
-                        "Working with {displayName} has been life-changing. Their expertise in {trainer.specialization}{" "}
-                        helped me achieve results I never thought possible."
-                      </p>
-                      <p className="text-sm text-gray-500">- Sarah M.</p>
-                    </Card>
-
-                    <Card className="p-6">
-                      <div className="flex items-center gap-1 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <p className="text-gray-700 mb-3">
-                        "Professional, knowledgeable, and motivating. {displayName} creates personalized programs that
-                        actually work."
-                      </p>
-                      <p className="text-sm text-gray-500">- Mike R.</p>
-                    </Card>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-[#D2FF28]" />
+                  <span className="text-sm text-gray-600">{trainerData.experience}</span>
                 </div>
-              </div>
-
-              {/* Right Column - Contact & Info */}
-              <div>
-                <Card className="p-6 mb-6">
-                  <h3 className="text-xl font-bold mb-4">Contact Information</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">{trainer.email}</span>
-                    </div>
-                    {trainer.phone && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-5 w-5 text-gray-400" />
-                        <span className="text-sm">{trainer.phone}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">{trainer.location}</span>
-                    </div>
-                  </div>
-                  <Button className="w-full mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
-                    Schedule Consultation
-                  </Button>
-                </Card>
-
-                <Card className="p-6 mb-6">
-                  <h3 className="text-xl font-bold mb-4">Specialties</h3>
-                  <div className="space-y-2">
-                    <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">{trainer.specialization}</Badge>
-                  </div>
-
-                  <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
-                  <div className="space-y-1">
-                    {certifications.map((cert, index) => (
-                      <p key={index} className="text-sm text-gray-600">
-                        {cert}
-                      </p>
-                    ))}
-                  </div>
-                </Card>
-
-                <Card className="p-6 bg-[#D2FF28]">
-                  <h3 className="text-xl font-bold mb-2 text-black">Ready to Start?</h3>
-                  <p className="text-sm text-black mb-4">
-                    Book your free consultation today and take the first step towards your fitness goals.
-                  </p>
-                  <Button onClick={handleActivate} className="w-full bg-black text-white hover:bg-gray-800">
-                    Activate for €29
-                  </Button>
-                </Card>
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-[#D2FF28]" />
+                  <span className="text-sm text-gray-600">5.0 Rating</span>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="relative">
+              <div className="aspect-[4/3] bg-gray-200 rounded-2xl flex items-center justify-center">
+                <div className="text-4xl">🏋️‍♂️</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Training Services</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Comprehensive fitness programs tailored to your goals and fitness level
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {(
+              trainerData.content?.services || [
+                {
+                  name: "Personal Training",
+                  description: "One-on-one training sessions customized to your specific goals and fitness level.",
+                  price: "€80/session",
+                },
+                {
+                  name: "Group Classes",
+                  description: "Small group training sessions that combine motivation with personalized attention.",
+                  price: "€25/session",
+                },
+                {
+                  name: "Online Coaching",
+                  description: "Remote training programs with video calls and personalized workout plans.",
+                  price: "€150/month",
+                },
+              ]
+            ).map((service, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-xl">{service.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">{service.description}</p>
+                  {service.price && <div className="text-lg font-semibold text-[#D2FF28]">{service.price}</div>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Client Success Stories</h2>
+            <p className="text-gray-600">See what my clients have to say about their transformation journey</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {(
+              trainerData.content?.testimonials || [
+                {
+                  name: "Sarah M.",
+                  text: "Amazing results in just 3 months! The personalized approach really made the difference.",
+                  rating: 5,
+                },
+                {
+                  name: "Mike R.",
+                  text: "Professional, knowledgeable, and motivating. Highly recommend!",
+                  rating: 5,
+                },
+                {
+                  name: "Lisa K.",
+                  text: "Finally found a trainer who understands my goals and helps me achieve them.",
+                  rating: 5,
+                },
+              ]
+            ).map((testimonial, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 mb-4 italic">"{testimonial.text}"</p>
+                  <p className="font-semibold text-gray-900">- {testimonial.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-16 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">
+              {trainerData.content?.contact?.title || "Ready to Start Your Fitness Journey?"}
+            </h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">
+              {trainerData.content?.contact?.description ||
+                "Get in touch today to schedule your consultation and take the first step towards your fitness goals."}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-[#D2FF28]" />
+                  <span className="text-gray-300">{trainerData.email}</span>
+                </div>
+                {trainerData.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-[#D2FF28]" />
+                    <span className="text-gray-300">{trainerData.phone}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-[#D2FF28]" />
+                  <span className="text-gray-300">{trainerData.location}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Schedule Consultation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">Book Free Consultation</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
