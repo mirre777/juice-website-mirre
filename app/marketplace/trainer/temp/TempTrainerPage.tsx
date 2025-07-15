@@ -1,318 +1,387 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { PaymentModal } from "@/components/payment/payment-modal"
-import {
-  Clock,
-  CheckCircle,
-  Star,
-  MapPin,
-  Calendar,
-  Award,
-  Zap,
-  Database,
-  Palette,
-  TrendingUp,
-  X,
-  CreditCard,
-} from "lucide-react"
-import Navbar from "@/components/navbar"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "@/components/ui/use-toast"
+import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Timer } from "lucide-react"
 
-export default function TempTrainerPage() {
-  const [showGenerationModal, setShowGenerationModal] = useState(true)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [isGenerated, setIsGenerated] = useState(false)
-  const [paymentCompleted, setPaymentCompleted] = useState(false)
+interface TempTrainerData {
+  id: string
+  name: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialization: string
+  experience: string
+  bio: string
+  certifications: string[]
+  createdAt: string
+  expiresAt: string
+  isActive: boolean
+  sessionToken?: string
+}
 
-  const generationSteps = [
-    {
-      message: "Creating base page structure",
-      icon: <Zap className="w-6 h-6" />,
-      description: "Setting up your professional trainer layout",
-    },
-    {
-      message: "Importing data from Google",
-      icon: <Database className="w-6 h-6" />,
-      description: "Pulling your information from the form",
-    },
-    {
-      message: "Personalizing design",
-      icon: <Palette className="w-6 h-6" />,
-      description: "Customizing colors and style for your brand",
-    },
-    {
-      message: "Boost trainer visibility",
-      icon: <TrendingUp className="w-6 h-6" />,
-      description: "Optimizing for client discovery",
-    },
-  ]
+interface TempTrainerPageProps {
+  tempId: string
+  token?: string
+}
+
+export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(true)
+
+  // Get token from props or search params
+  const accessToken = token || searchParams.get("token")
 
   useEffect(() => {
-    if (showGenerationModal) {
-      const interval = setInterval(() => {
-        setCurrentStep((prev) => {
-          if (prev >= generationSteps.length - 1) {
-            clearInterval(interval)
-            setTimeout(() => {
-              setShowGenerationModal(false)
-              setIsGenerated(true)
-            }, 1000)
-            return prev
-          }
-          return prev + 1
-        })
-      }, 1200) // 1.2 seconds per step = ~5 seconds total
-
-      return () => clearInterval(interval)
+    if (tempId && accessToken) {
+      fetchTrainerData()
+    } else {
+      console.error("Missing tempId or token", { tempId, hasToken: !!accessToken })
+      setGenerating(false)
+      setLoading(false)
     }
-  }, [showGenerationModal])
+  }, [tempId, accessToken])
 
-  const handlePaymentComplete = async () => {
+  const fetchTrainerData = async () => {
     try {
-      setPaymentCompleted(true)
-      setShowPaymentModal(false)
+      // Simulate AI generation process
+      setGenerating(true)
 
-      // Here you would create the actual trainer profile with unique ID
-      // For now, we'll simulate the process
-
-      // Generate a unique trainer ID (in real implementation, this would come from your database)
-      const trainerId = Math.floor(Math.random() * 9000) + 1000 // Random 4-digit ID
-
-      // In a real implementation, you would:
-      // 1. Save trainer data to database with the generated ID
-      // 2. Create the actual trainer profile page
-      // 3. Send email with the unique URL
-
-      // Simulate API call to create trainer profile
-      console.log("Creating trainer profile with ID:", trainerId)
-
-      // Show success message with the new URL
-      alert(
-        `Payment successful! Your trainer profile is now live at: /marketplace/trainer/${trainerId}\n\nYou'll receive a confirmation email with your unique URL shortly.`,
-      )
-
-      // Redirect to the new trainer profile (in real implementation)
-      // window.location.href = `/marketplace/trainer/${trainerId}`
+      // Show generating message for 3 seconds
+      setTimeout(() => {
+        setGenerating(false)
+        loadTrainerData()
+      }, 3000)
     } catch (error) {
-      console.error("Error processing payment completion:", error)
-      alert("Payment was successful, but there was an error setting up your profile. Please contact support.")
+      console.error("Error:", error)
+      setGenerating(false)
+      setLoading(false)
     }
   }
 
-  // Sample trainer data (this would come from the form submission)
-  const trainerData = {
-    name: "Your Name",
-    specialty: "Personal Training",
-    location: "Your City",
-    experience: "5+ Years",
-    bio: "Passionate fitness professional dedicated to helping clients achieve their goals through personalized training programs.",
-    certifications: ["NASM-CPT", "Nutrition Specialist"],
-    specialties: ["Weight Loss", "Strength Training", "Functional Fitness"],
-    stats: {
-      clients: "50+",
-      experience: "5 Years",
-      rating: "4.9",
-    },
+  const loadTrainerData = async () => {
+    try {
+      if (!accessToken) {
+        throw new Error("No access token provided")
+      }
+
+      const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(accessToken)}`)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.trainer) {
+        setTrainer(data.trainer)
+      } else {
+        throw new Error(data.error || "Invalid response format")
+      }
+    } catch (error) {
+      console.error("Error fetching trainer data:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to load trainer profile",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const handleActivate = () => {
+    router.push(`/payment?tempId=${tempId}`)
+  }
+
+  // Show generating screen
+  if (generating) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                  <span className="text-black font-bold text-sm">⚡</span>
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold">Website Preview</h1>
+                  <p className="text-sm text-gray-600">24-hour trial period</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Timer className="h-4 w-4" />
+                  <span>Time remaining: 23h 59m 49s</span>
+                </div>
+                <Button className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">Activate for €29</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Generating Content */}
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center max-w-md mx-auto px-4">
+            <div className="w-16 h-16 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Generating Your Website...</h2>
+            <p className="text-gray-600 mb-6">Our AI is creating your professional trainer website</p>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+              <div className="bg-[#D2FF28] h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
+            </div>
+
+            <p className="text-sm text-gray-500">This will take just a few seconds...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+          </div>
+          <p className="text-gray-600">Loading your trainer profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!trainer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Trainer Not Found</h1>
+          <p className="text-gray-600 mb-4">
+            The trainer profile you're looking for doesn't exist or the preview has expired.
+          </p>
+          <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Calculate time remaining (24 hours from creation)
+  const expiresAt = new Date(trainer.expiresAt)
+  const now = new Date()
+  const timeRemaining = Math.max(0, expiresAt.getTime() - now.getTime())
+  const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60))
+  const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
+
+  const displayName = trainer.fullName || trainer.name || "Trainer"
+
+  // Ensure certifications is always an array
+  const certifications = Array.isArray(trainer.certifications)
+    ? trainer.certifications
+    : typeof trainer.certifications === "string"
+      ? [trainer.certifications]
+      : ["Certified Personal Trainer"]
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      {/* Generation Modal */}
-      <Dialog open={showGenerationModal} onOpenChange={setShowGenerationModal}>
-        <DialogContent className="sm:max-w-md">
-          <button
-            onClick={() => setShowGenerationModal(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
-
-          <div className="text-center py-8">
-            <div className="mb-8">
-              <div className="w-20 h-20 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                <div className="absolute inset-0 bg-[#D2FF28] rounded-full animate-ping opacity-75"></div>
-                <div className="relative text-black">{generationSteps[currentStep]?.icon}</div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                <span className="text-black font-bold text-sm">⚡</span>
               </div>
-              <h3 className="text-2xl font-bold text-black mb-2">AI is Creating Your Website</h3>
-              <p className="text-[#D2FF28] font-medium text-lg mb-2">{generationSteps[currentStep]?.message}</p>
-              <p className="text-gray-600 text-sm">{generationSteps[currentStep]?.description}</p>
-            </div>
-
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-8">
-              <div
-                className="bg-[#D2FF28] h-3 rounded-full transition-all duration-300"
-                style={{ width: `${((currentStep + 1) / generationSteps.length) * 100}%` }}
-              ></div>
-            </div>
-
-            <div className="space-y-3">
-              {generationSteps.map((step, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
-                    index <= currentStep ? "bg-[#D2FF28]/10" : ""
-                  }`}
-                >
-                  {index < currentStep ? (
-                    <CheckCircle className="w-5 h-5 text-[#D2FF28]" />
-                  ) : index === currentStep ? (
-                    <Clock className="w-5 h-5 animate-spin text-[#D2FF28]" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
-                  )}
-                  <span className={`text-sm font-medium ${index <= currentStep ? "text-black" : "text-gray-400"}`}>
-                    {step.message}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Floating Pay Button - only shows when generation is complete and payment not completed */}
-      {isGenerated && !showPaymentModal && !paymentCompleted && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button
-            onClick={() => setShowPaymentModal(true)}
-            className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90 shadow-lg text-lg px-8 py-6 rounded-full"
-            size="lg"
-          >
-            <CreditCard className="w-5 h-5 mr-2" />
-            Pay €29
-          </Button>
-        </div>
-      )}
-
-      {/* Payment Modal with Stripe Integration */}
-      {showPaymentModal && (
-        <PaymentModal
-          triggerText="Pay €29"
-          amount="29.00"
-          description="Professional Trainer Website - AI Generated Profile"
-          planName="Trainer Website"
-          onPaymentComplete={handlePaymentComplete}
-          children={<div />}
-        />
-      )}
-
-      {/* Success Message after Payment */}
-      {paymentCompleted && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="text-center py-8">
-              <div className="w-16 h-16 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-2xl font-bold text-black mb-2">Payment Successful!</h3>
-              <p className="text-gray-600 mb-4">Your trainer profile is now live and ready to attract clients.</p>
-              <p className="text-sm text-gray-500 mb-6">
-                You'll receive a confirmation email with your unique profile URL shortly.
-              </p>
-              <Button
-                onClick={() => window.location.reload()}
-                className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90"
-              >
-                View Your Profile
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Preview of the Generated Trainer Page */}
-      <div className={`${isGenerated ? "" : "pointer-events-none opacity-50"}`}>
-        {/* Hero Section */}
-        <section className="relative bg-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <Badge className="mb-4 bg-[#D2FF28] text-black">
-                  <Star className="w-4 h-4 mr-2" />
-                  Verified Trainer
-                </Badge>
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{trainerData.name}</h1>
-                <p className="text-xl text-[#D2FF28] font-semibold mb-4">{trainerData.specialty}</p>
-                <div className="flex items-center space-x-6 mb-6 text-gray-600">
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    {trainerData.location}
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    {trainerData.experience}
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-8 leading-relaxed">{trainerData.bio}</p>
-                <div className="flex gap-4">
-                  <Button className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">Book Session</Button>
-                  <Button variant="outline">View Programs</Button>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-                  <img src="/images/lemon-trainer.png" alt={trainerData.name} className="w-full h-full object-cover" />
-                </div>
-
-                {/* Floating Stats */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-[#D2FF28]">{trainerData.stats.rating}</div>
-                    <div className="text-sm text-gray-600">Rating</div>
-                  </div>
-                </div>
-
-                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-[#D2FF28]">{trainerData.stats.clients}</div>
-                    <div className="text-sm text-gray-600">Clients</div>
-                  </div>
-                </div>
+                <h1 className="text-lg font-semibold">Website Preview</h1>
+                <p className="text-sm text-gray-600">24-hour trial period</p>
               </div>
             </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Timer className="h-4 w-4" />
+                <span>
+                  Time remaining: {hoursRemaining}h {minutesRemaining}m
+                </span>
+              </div>
+              <Button onClick={handleActivate} className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
+                Activate for €29
+              </Button>
+            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Specialties Section */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-12">Specialties</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {trainerData.specialties.map((specialty, index) => (
-                <Card key={index} className="text-center p-6">
-                  <CardContent className="pt-6">
-                    <Award className="w-12 h-12 text-[#D2FF28] mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">{specialty}</h3>
-                    <p className="text-gray-600">Expert-level training and guidance</p>
-                  </CardContent>
+      {/* Generated Website Preview */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <Card className="overflow-hidden shadow-lg border-0 bg-white">
+          {/* Hero Section */}
+          <div className="relative bg-[#D2FF28] text-black p-12">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Body, Transform Your Life</h1>
+              <p className="text-xl mb-6">
+                {trainer.specialization} • {trainer.experience} • {trainer.location}
+              </p>
+              <Button size="lg" className="bg-black text-white hover:bg-gray-800">
+                Book Your Free Consultation
+              </Button>
+            </div>
+          </div>
+
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column - About */}
+              <div className="lg:col-span-2">
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 bg-[#D2FF28] rounded-full"></div>
+                    <h2 className="text-2xl font-bold">About {displayName}</h2>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed mb-4">{trainer.bio}</p>
+
+                  <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-3 w-3 text-black" />
+                      </div>
+                      <span className="text-sm">{trainer.experience}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      </div>
+                      <span className="text-sm">Certified Professional</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-8" />
+
+                {/* Services Section */}
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-6">My Training Services</h2>
+                  <div className="grid gap-4">
+                    <Card className="p-6">
+                      <h3 className="font-bold text-lg mb-2">Flexibility & Mobility</h3>
+                      <p className="text-gray-600 mb-4">
+                        Personalized flexibility & mobility sessions tailored to your goals
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-lg font-bold text-[#D2FF28]">
+                          <Euro className="h-4 w-4" />
+                          60/session
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                          <Clock className="h-4 w-4" />
+                          60 min
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+
+                <Separator className="my-8" />
+
+                {/* Testimonials */}
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">What My Clients Say</h2>
+                  <div className="space-y-6">
+                    <Card className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        "Working with {displayName} has been life-changing. Their expertise in {trainer.specialization}{" "}
+                        helped me achieve results I never thought possible."
+                      </p>
+                      <p className="text-sm text-gray-500">- Sarah M.</p>
+                    </Card>
+
+                    <Card className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        "Professional, knowledgeable, and motivating. {displayName} creates personalized programs that
+                        actually work."
+                      </p>
+                      <p className="text-sm text-gray-500">- Mike R.</p>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Contact & Info */}
+              <div>
+                <Card className="p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-4">Contact Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{trainer.email}</span>
+                    </div>
+                    {trainer.phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-5 w-5 text-gray-400" />
+                        <span className="text-sm">{trainer.phone}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{trainer.location}</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
+                    Schedule Consultation
+                  </Button>
                 </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* Certifications */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-12">Certifications</h2>
-            <div className="flex justify-center gap-4 flex-wrap">
-              {trainerData.certifications.map((cert, index) => (
-                <Badge key={index} variant="outline" className="text-lg py-2 px-4">
-                  {cert}
-                </Badge>
-              ))}
+                <Card className="p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-4">Specialties</h3>
+                  <div className="space-y-2">
+                    <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">{trainer.specialization}</Badge>
+                  </div>
+
+                  <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
+                  <div className="space-y-1">
+                    {certifications.map((cert, index) => (
+                      <p key={index} className="text-sm text-gray-600">
+                        {cert}
+                      </p>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-[#D2FF28]">
+                  <h3 className="text-xl font-bold mb-2 text-black">Ready to Start?</h3>
+                  <p className="text-sm text-black mb-4">
+                    Book your free consultation today and take the first step towards your fitness goals.
+                  </p>
+                  <Button className="w-full bg-black text-white hover:bg-gray-800">Get Started Now</Button>
+                </Card>
+              </div>
             </div>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
