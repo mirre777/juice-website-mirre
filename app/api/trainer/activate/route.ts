@@ -1,18 +1,86 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
-import { doc, getDoc, updateDoc } from "firebase/firestore"
-import { logger } from "@/lib/logger"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
 import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2024-06-20",
 })
 
-export async function POST(req: NextRequest) {
-  try {
-    const { tempId, paymentIntentId } = await req.json()
+// Initialize Firebase Admin
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
 
-    logger.info("Trainer activation request", { tempId, paymentIntentId })
+const db = getFirestore()
+
+async function generateTrainerContent(trainerData: any) {
+  const content = {
+    hero: {
+      title: `Transform Your Body, Transform Your Life`,
+      subtitle: `${trainerData.specialization} • ${trainerData.experience} • ${trainerData.location}`,
+      cta: "Book Your Free Consultation",
+    },
+    about: {
+      title: `About ${trainerData.fullName || trainerData.name}`,
+      content: `With ${trainerData.experience} of experience as a ${trainerData.specialization}, I'm dedicated to helping you achieve your fitness goals. My personalized approach combines proven training methods with nutritional guidance to deliver real, lasting results.`,
+      certifications: trainerData.certifications || ["Certified Personal Trainer", "Nutrition Specialist"],
+    },
+    services: trainerData.services || [
+      {
+        name: "Personal Training",
+        description: "One-on-one training sessions tailored to your goals",
+        price: "€80/session",
+      },
+      {
+        name: "Group Classes",
+        description: "Small group training for motivation and community",
+        price: "€25/session",
+      },
+      {
+        name: "Nutrition Coaching",
+        description: "Personalized meal plans and nutritional guidance",
+        price: "€60/session",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Amazing results in just 3 months! Highly recommend.",
+        rating: 5,
+      },
+      {
+        name: "Mike R.",
+        text: "Professional, knowledgeable, and motivating trainer.",
+        rating: 5,
+      },
+      {
+        name: "Lisa K.",
+        text: "Best investment I've made for my health and fitness.",
+        rating: 5,
+      },
+    ],
+    contact: {
+      email: trainerData.email,
+      phone: trainerData.phone || "Contact for details",
+      location: trainerData.location,
+    },
+  }
+
+  return content
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { tempId, paymentIntentId } = await request.json()
+
+    console.log("Trainer activation request started:", { tempId, paymentIntentId })
 
     if (!tempId || !paymentIntentId) {
       return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
@@ -25,109 +93,46 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 })
     }
 
-    // Get the temp trainer data
-    const tempTrainerRef = doc(db, "trainers", tempId)
-    const tempTrainerSnap = await getDoc(tempTrainerRef)
+    // Get temp trainer data
+    const tempTrainerRef = db.collection("trainers").doc(tempId)
+    const tempTrainerDoc = await tempTrainerRef.get()
 
-    if (!tempTrainerSnap.exists()) {
+    if (!tempTrainerDoc.exists) {
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const tempTrainerData = tempTrainerSnap.data()
-
-    // Check if already activated
-    if (tempTrainerData.status === "active") {
-      return NextResponse.json({
-        success: true,
-        finalId: tempId,
-        message: "Trainer already activated",
-      })
-    }
+    const tempTrainerData = tempTrainerDoc.data()
 
     // Generate AI content
     const generatedContent = await generateTrainerContent(tempTrainerData)
 
-    // Update trainer to active status
-    const updatedData = {
+    // Create final trainer document
+    const finalTrainerData = {
       ...tempTrainerData,
-      content: generatedContent,
       status: "active",
       isActive: true,
       isPaid: true,
       paymentIntentId: paymentIntentId,
       activatedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      content: generatedContent,
     }
 
-    await updateDoc(tempTrainerRef, updatedData)
+    // Create new active trainer document
+    const activeTrainerRef = db.collection("trainers").doc()
+    await activeTrainerRef.set(finalTrainerData)
 
-    logger.info("Trainer activated successfully", { tempId, paymentIntentId })
+    console.log("Trainer activated successfully:", activeTrainerRef.id)
+
+    // Delete temp trainer
+    await tempTrainerRef.delete()
 
     return NextResponse.json({
       success: true,
-      finalId: tempId,
+      finalId: activeTrainerRef.id,
       message: "Trainer activated successfully",
     })
-  } catch (error) {
-    logger.error("Trainer activation failed", {
-      error: error instanceof Error ? error.message : String(error),
-    })
-
-    return NextResponse.json({ error: "Activation failed" }, { status: 500 })
-  }
-}
-
-async function generateTrainerContent(trainerData: any) {
-  return {
-    hero: {
-      title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${trainerData.specialization} • ${trainerData.experience} • ${trainerData.location}`,
-      description: `Professional fitness training tailored to your goals. Get the results you've been looking for with personalized coaching and proven methods.`,
-    },
-    about: {
-      title: `About ${trainerData.fullName || trainerData.name}`,
-      content: `With ${trainerData.experience} of experience in ${trainerData.specialization}, I'm dedicated to helping you achieve your fitness goals. My approach combines proven training methods with personalized attention to ensure you get the results you deserve.`,
-      certifications: trainerData.certifications || ["Certified Personal Trainer", "Nutrition Specialist"],
-    },
-    services: [
-      {
-        name: "Personal Training",
-        description: "One-on-one training sessions tailored to your specific goals and fitness level.",
-        price: "From €60/session",
-      },
-      {
-        name: "Group Classes",
-        description: "Small group training sessions for motivation and community support.",
-        price: "From €25/session",
-      },
-      {
-        name: "Online Coaching",
-        description: "Remote coaching with custom workout plans and nutrition guidance.",
-        price: "From €150/month",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Amazing results in just 3 months! Professional, knowledgeable, and motivating.",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Best trainer I've worked with. Really understands how to push you to achieve your goals.",
-        rating: 5,
-      },
-      {
-        name: "Lisa K.",
-        text: "Transformed my approach to fitness. Highly recommend!",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData.email,
-      phone: trainerData.phone || "",
-      location: trainerData.location,
-      availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
-    },
+  } catch (error: any) {
+    console.error("Trainer activation error:", error)
+    return NextResponse.json({ error: error.message || "Activation failed" }, { status: 500 })
   }
 }
