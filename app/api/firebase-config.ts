@@ -1,7 +1,6 @@
-// This file handles Firebase configuration for both client and server environments
-// It uses regular Firebase SDK for client-side and Firebase Admin for server-side
+// Client-side Firebase configuration only
+// Firebase Admin SDK removed to prevent build errors
 
-// For client-side Firebase (works in browser)
 import { initializeApp, getApps, getApp } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 
@@ -35,46 +34,6 @@ if (getApps().length === 0) {
 export const db = getFirestore(app)
 
 export { app }
-
-// For server-side Firebase Admin (only works in API routes)
-export async function getAdminDb() {
-  if (typeof window !== "undefined") {
-    throw new Error("Firebase Admin can only be used on the server side")
-  }
-
-  try {
-    const { initializeApp: initializeAdminApp, getApps: getAdminApps, cert } = await import("firebase-admin/app")
-    const { getFirestore: getAdminFirestore } = await import("firebase-admin/firestore")
-
-    const hasAdminConfig = !!(
-      process.env.FIREBASE_PROJECT_ID &&
-      process.env.FIREBASE_CLIENT_EMAIL &&
-      process.env.FIREBASE_PRIVATE_KEY
-    )
-
-    if (!hasAdminConfig) {
-      return null
-    }
-
-    let adminApp
-    if (getAdminApps().length === 0) {
-      adminApp = initializeAdminApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }),
-      })
-    } else {
-      adminApp = getAdminApps()[0]
-    }
-
-    return getAdminFirestore(adminApp)
-  } catch (error) {
-    console.error("Firebase Admin initialization error:", error)
-    return null
-  }
-}
 
 export function getFirebaseDebugInfo() {
   return {
