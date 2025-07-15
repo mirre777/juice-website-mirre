@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Mail, Phone, Clock, Euro, Edit, ExternalLink, Award, Target } from "lucide-react"
+import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Edit } from "lucide-react"
 import type { TrainerProfile } from "@/types/trainer"
 
 interface TrainerProfilePageProps {
@@ -45,10 +45,12 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading trainer profile...</p>
+          <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+          </div>
+          <p className="text-gray-600">Loading your trainer profile...</p>
         </div>
       </div>
     )
@@ -56,7 +58,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   if (!trainer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Trainer Not Found</h1>
           <p className="text-gray-600 mb-4">The trainer profile you're looking for doesn't exist.</p>
@@ -66,23 +68,20 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
-  // Replace the fallback content section with this:
+  const displayName = trainer.fullName || trainer.name || "Trainer"
+
+  // Use generated content or fallback to basic data
   const content = trainer.content
 
   // Hero section - use generated content or create from basic data
-  const heroTitle = content?.hero?.title || `Professional Training with ${trainer.name || trainer.fullName}`
-  const heroSubtitle =
-    content?.hero?.subtitle || `${trainer.specialization || trainer.specialty} • ${trainer.experience}`
-  const heroDescription =
-    content?.hero?.description ||
-    `Get personalized fitness training with ${trainer.name || trainer.fullName} in ${trainer.location}. Specializing in ${trainer.specialization || trainer.specialty} with ${trainer.experience} of experience.`
+  const heroTitle = content?.hero?.title || "Transform Your Body, Transform Your Life"
+  const heroSubtitle = `${trainer.specialization || trainer.specialty} • ${trainer.experience} • ${trainer.location}`
 
   // About section
-  const aboutTitle = content?.about?.title || "About Me"
   const aboutContent =
     content?.about?.content ||
     trainer.bio ||
-    `I'm ${trainer.name || trainer.fullName}, a certified personal trainer with ${trainer.experience} of experience in ${trainer.specialization || trainer.specialty}. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`
+    `I'm ${displayName}, a certified personal trainer with ${trainer.experience} of experience in ${trainer.specialization || trainer.specialty}. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`
 
   // Services - use generated services or create default
   const services =
@@ -100,159 +99,207 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         ]
 
   // Contact section
-  const contactTitle = content?.contact?.title || "Get Started Today"
+  const contactTitle = content?.contact?.title || "Ready to Start?"
   const contactDescription =
-    content?.contact?.description || "Ready to begin your fitness journey? Contact me to schedule your first session."
+    content?.contact?.description ||
+    "Book your free consultation today and take the first step towards your fitness goals."
   const contactPhone = content?.contact?.phone || trainer.phone
 
-  // SEO
-  const seoTitle = content?.seo?.title || `${trainer.name || trainer.fullName} - Personal Trainer`
+  // Ensure certifications is always an array
+  const certifications = Array.isArray(trainer.certifications)
+    ? trainer.certifications
+    : typeof trainer.certifications === "string"
+      ? [trainer.certifications]
+      : ["Certified Personal Trainer"]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Floating Profile Card */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <Card className="overflow-hidden shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            {/* Header with Edit Button */}
-            {trainer.status === "active" && (
-              <div className="absolute top-4 right-4 z-10">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header - Only show for active trainers */}
+      {trainer.status === "active" && (
+        <div className="bg-white border-b">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                  <span className="text-black font-bold text-sm">⚡</span>
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold">Live Trainer Profile</h1>
+                  <p className="text-sm text-gray-600">Professional fitness training</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
                 <Button
                   onClick={() => router.push(`/marketplace/trainer/${trainerId}/edit`)}
                   size="sm"
-                  className="bg-white/90 text-gray-700 hover:bg-white border shadow-sm"
+                  className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Content
                 </Button>
               </div>
-            )}
-
-            {/* Hero Section */}
-            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8">
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold">
-                    {trainer.name.charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">{heroTitle}</h1>
-                    <p className="text-xl text-blue-100 mb-3">{heroSubtitle}</p>
-                    <p className="text-blue-50 leading-relaxed max-w-2xl">{heroDescription}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-black/10"></div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <CardContent className="p-8">
-              {/* Trainer Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-blue-600" />
+      {/* Generated Website */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <Card className="overflow-hidden shadow-lg border-0 bg-white">
+          {/* Hero Section */}
+          <div className="relative bg-[#D2FF28] text-black p-12">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroTitle}</h1>
+              <p className="text-xl mb-6">{heroSubtitle}</p>
+              <Button size="lg" className="bg-black text-white hover:bg-gray-800">
+                Book Your Free Consultation
+              </Button>
+            </div>
+          </div>
+
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column - About */}
+              <div className="lg:col-span-2">
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 bg-[#D2FF28] rounded-full"></div>
+                    <h2 className="text-2xl font-bold">About {displayName}</h2>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{trainer.location}</p>
-                    <p className="text-sm text-gray-600">Location</p>
+                  <p className="text-gray-700 leading-relaxed mb-4">{aboutContent}</p>
+
+                  <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-3 w-3 text-black" />
+                      </div>
+                      <span className="text-sm">{trainer.experience}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      </div>
+                      <span className="text-sm">Certified Professional</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Award className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{trainer.specialization}</p>
-                    <p className="text-sm text-gray-600">Specialization</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Target className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{trainer.experience}</p>
-                    <p className="text-sm text-gray-600">Experience</p>
-                  </div>
-                </div>
-              </div>
 
-              <Separator className="my-8" />
+                <Separator className="my-8" />
 
-              {/* About Section */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{aboutTitle}</h2>
-                <div className="prose prose-gray max-w-none">
-                  {aboutContent.split("\n").map((paragraph, index) => (
-                    <p key={index} className="text-gray-700 leading-relaxed mb-4">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Services Section */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Services</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {services.map((service) => (
-                    <Card key={service.id} className={`relative ${service.featured ? "ring-2 ring-blue-500" : ""}`}>
-                      <CardContent className="p-6">
-                        {service.featured && <Badge className="absolute -top-2 left-4 bg-blue-500">Featured</Badge>}
-                        <h3 className="font-bold text-lg text-gray-900 mb-2">{service.title}</h3>
-                        <p className="text-gray-600 mb-4 text-sm leading-relaxed">{service.description}</p>
+                {/* Services Section */}
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-6">My Training Services</h2>
+                  <div className="grid gap-4">
+                    {services.map((service) => (
+                      <Card key={service.id} className={`p-6 ${service.featured ? "ring-2 ring-[#D2FF28]" : ""}`}>
+                        {service.featured && (
+                          <Badge className="mb-2 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">Featured</Badge>
+                        )}
+                        <h3 className="font-bold text-lg mb-2">{service.title}</h3>
+                        <p className="text-gray-600 mb-4">{service.description}</p>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-2xl font-bold text-blue-600">
-                            <Euro className="h-5 w-5" />
-                            {service.price}
+                          <div className="flex items-center gap-1 text-lg font-bold text-[#D2FF28]">
+                            <Euro className="h-4 w-4" />
+                            {service.price}/session
                           </div>
                           <div className="flex items-center gap-1 text-sm text-gray-500">
                             <Clock className="h-4 w-4" />
                             {service.duration}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Contact Section */}
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{contactTitle}</h2>
-                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">{contactDescription}</p>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                    <span>{trainer.email}</span>
+                      </Card>
+                    ))}
                   </div>
-                  {contactPhone && (
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Phone className="h-5 w-5 text-green-600" />
-                      <span>{contactPhone}</span>
-                    </div>
-                  )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                    <Mail className="h-5 w-5 mr-2" />
-                    Contact {trainer.name}
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    <ExternalLink className="h-5 w-5 mr-2" />
-                    View Full Profile
-                  </Button>
+                <Separator className="my-8" />
+
+                {/* Testimonials */}
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">What My Clients Say</h2>
+                  <div className="space-y-6">
+                    <Card className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        "Working with {displayName} has been life-changing. Their expertise in{" "}
+                        {trainer.specialization || trainer.specialty} helped me achieve results I never thought
+                        possible."
+                      </p>
+                      <p className="text-sm text-gray-500">- Sarah M.</p>
+                    </Card>
+
+                    <Card className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        "Professional, knowledgeable, and motivating. {displayName} creates personalized programs that
+                        actually work."
+                      </p>
+                      <p className="text-sm text-gray-500">- Mike R.</p>
+                    </Card>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+
+              {/* Right Column - Contact & Info */}
+              <div>
+                <Card className="p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-4">Contact Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{trainer.email}</span>
+                    </div>
+                    {contactPhone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-5 w-5 text-gray-400" />
+                        <span className="text-sm">{contactPhone}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">{trainer.location}</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
+                    Schedule Consultation
+                  </Button>
+                </Card>
+
+                <Card className="p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-4">Specialties</h3>
+                  <div className="space-y-2">
+                    <Badge className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">
+                      {trainer.specialization || trainer.specialty}
+                    </Badge>
+                  </div>
+
+                  <h4 className="font-semibold mt-4 mb-2">Certifications</h4>
+                  <div className="space-y-1">
+                    {certifications.map((cert, index) => (
+                      <p key={index} className="text-sm text-gray-600">
+                        {cert}
+                      </p>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-[#D2FF28]">
+                  <h3 className="text-xl font-bold mb-2 text-black">{contactTitle}</h3>
+                  <p className="text-sm text-black mb-4">{contactDescription}</p>
+                  <Button className="w-full bg-black text-white hover:bg-gray-800">Get Started Now</Button>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

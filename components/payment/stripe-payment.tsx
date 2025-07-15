@@ -69,10 +69,6 @@ export function StripePayment({
           const apiUrl = getApiUrl()
           console.log(`Attempting to create payment intent using API: ${apiUrl}/create-payment-intent`)
 
-          // Get tempId from URL for metadata
-          const urlParams = new URLSearchParams(window.location.search)
-          const tempId = urlParams.get("tempId")
-
           // Use relative URL to avoid CORS issues
           const response = await fetch(`${apiUrl}/create-payment-intent`, {
             method: "POST",
@@ -83,10 +79,10 @@ export function StripePayment({
               amount,
               description,
               metadata: {
-                paymentReference: `trainer_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
-                tempId: tempId || "",
-                productType: "trainer_website",
+                paymentReference: `payment_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
+                plan: description.includes("Premium") ? "premium" : description.includes("Elite") ? "elite" : "basic",
                 planType: description,
+                // We can't add email here because we don't have it yet at payment intent creation time
               },
             }),
           })
@@ -146,14 +142,16 @@ export function StripePayment({
     return (
       <div className="py-8 text-center">
         <div
-          className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#D2FF28] border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+          className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-juice border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
           role="status"
         >
           <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
             Loading payment options...
           </span>
         </div>
-        <p className="mt-4 text-lg font-medium text-gray-700">Loading payment options...</p>
+        <p className={`mt-4 text-lg font-medium ${isCoach ? "text-black" : "text-white"}`}>
+          Loading payment options...
+        </p>
       </div>
     )
   }
@@ -161,8 +159,8 @@ export function StripePayment({
   if (error) {
     return (
       <div className="py-8 text-center">
-        <p className="text-lg font-medium text-red-500">{error}</p>
-        <p className="mt-2 text-gray-600">Please try again later or contact support.</p>
+        <p className={`text-lg font-medium text-red-500`}>{error}</p>
+        <p className={`mt-2 ${isCoach ? "text-black" : "text-white"}`}>Please try again later or contact support.</p>
         <Button
           onClick={() => {
             paymentIntentCreated.current = false
@@ -172,9 +170,6 @@ export function StripePayment({
             const createPaymentIntent = async () => {
               try {
                 const apiUrl = getApiUrl()
-                const urlParams = new URLSearchParams(window.location.search)
-                const tempId = urlParams.get("tempId")
-
                 const response = await fetch(`${apiUrl}/create-payment-intent`, {
                   method: "POST",
                   headers: {
@@ -184,9 +179,7 @@ export function StripePayment({
                     amount,
                     description,
                     metadata: {
-                      paymentReference: `trainer_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
-                      tempId: tempId || "",
-                      productType: "trainer_website",
+                      paymentReference: `payment_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
                     },
                   }),
                 })
@@ -210,7 +203,7 @@ export function StripePayment({
             }
             createPaymentIntent()
           }}
-          className="mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]"
+          className="mt-4 bg-juice text-black hover:bg-juice/90"
         >
           Try Again
         </Button>
@@ -221,13 +214,15 @@ export function StripePayment({
   if (!clientSecret) {
     return (
       <div className="py-8 text-center">
-        <p className="text-lg font-medium text-gray-700">Unable to initialize payment. Please try again later.</p>
+        <p className={`text-lg font-medium ${isCoach ? "text-black" : "text-white"}`}>
+          Unable to initialize payment. Please try again later.
+        </p>
         <Button
           onClick={() => {
             paymentIntentCreated.current = false
             window.location.reload()
           }}
-          className="mt-4 bg-[#D2FF28] text-black hover:bg-[#C5F01A]"
+          className="mt-4 bg-juice text-black hover:bg-juice/90"
         >
           Try Again
         </Button>
@@ -244,13 +239,9 @@ export function StripePayment({
         appearance: {
           theme: "stripe",
           variables: {
-            colorPrimary: "#D2FF28",
-            colorBackground: "#ffffff",
-            colorText: "#000000",
-            colorDanger: "#df1b41",
-            fontFamily: "system-ui, sans-serif",
-            spacingUnit: "4px",
-            borderRadius: "8px",
+            colorPrimary: "#ffcc00",
+            colorBackground: isCoach ? "#ffffff" : "#000000",
+            colorText: isCoach ? "#000000" : "#ffffff",
           },
         },
       }}
@@ -276,6 +267,7 @@ function CheckoutForm({
 }: StripePaymentProps & { paymentIntentId?: string | null }) {
   const stripe = useStripe()
   const elements = useElements()
+  const { isCoach } = useTheme()
   const [email, setEmail] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
@@ -301,7 +293,7 @@ function CheckoutForm({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment/success?payment_intent=${paymentIntentId || ""}`,
+          return_url: `https://app.juice.fitness/payment-success?payment_intent=${paymentIntentId || ""}`,
           receipt_email: email,
         },
         redirect: "if_required",
@@ -335,8 +327,8 @@ function CheckoutForm({
           // Continue with payment flow even if this fails
         }
 
-        // Call the completion handler
         onPaymentComplete()
+        window.location.href = `https://app.juice.fitness/payment-success?payment_intent=${result.paymentIntent.id}`
       } else {
         console.log("Payment requires additional action or is processing")
       }
@@ -354,7 +346,7 @@ function CheckoutForm({
   if (!stripe || !elements) {
     return (
       <div className="py-4 text-center">
-        <p className="text-sm text-gray-600">Loading payment form...</p>
+        <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Loading payment form...</p>
       </div>
     )
   }
@@ -374,7 +366,7 @@ function CheckoutForm({
       />
 
       <div className="space-y-2">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="email" className={`block text-sm font-medium ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
           Email for receipt
         </label>
         <input
@@ -382,17 +374,13 @@ function CheckoutForm({
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#D2FF28] focus:border-[#D2FF28] bg-white text-black"
+          className={`block w-full px-3 py-2 border ${isCoach ? "border-gray-300" : "border-gray-700"} rounded-md shadow-sm focus:outline-none focus:ring-juice focus:border-juice ${isCoach ? "bg-white text-black" : "bg-black text-white"}`}
           placeholder="your.email@example.com"
           required
         />
       </div>
 
-      <Button
-        type="submit"
-        disabled={!stripe || isProcessing}
-        className="w-full bg-[#D2FF28] text-black hover:bg-[#C5F01A] font-semibold"
-      >
+      <Button type="submit" disabled={!stripe || isProcessing} className="w-full bg-juice text-black hover:bg-juice/90">
         {isProcessing ? (
           <>
             <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
@@ -408,14 +396,16 @@ function CheckoutForm({
 
 // Direct payment link component
 export function StripePaymentLink() {
+  const { isCoach } = useTheme()
+
   return (
     <div className="text-center py-4">
-      <p className="mb-4 text-gray-600">Prefer to pay directly through Stripe?</p>
+      <p className={`mb-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Prefer to pay directly through Stripe?</p>
       <Button
         onClick={() => {
           window.open(
             "https://buy.stripe.com/6oE6qj189dmC9q0aEE?success_url=" +
-              encodeURIComponent(`${window.location.origin}/payment/success`) +
+              encodeURIComponent(`https://app.juice.fitness/payment-success`) +
               "&cancel_url=" +
               encodeURIComponent(`${window.location.origin}/payment?canceled=true`),
             "_blank",
