@@ -1,105 +1,51 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// Define interfaces for better type safety
-interface TempTrainerData {
-  name?: string
-  fullName?: string
-  email?: string
-  specialization?: string
-  bio?: string
-  experience?: string
-  certifications?: string[]
-  services?: string[]
-  pricing?: any
-  availability?: any
-  location?: string
-  phone?: string
-  website?: string
-  socialMedia?: any
-  images?: string[]
-  testimonials?: any[]
-  content?: any
-  isPaid?: boolean
-  token?: string
-  createdAt?: any
-}
+// Import Firebase modules at the top level to avoid dynamic import issues
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
 
-interface TrainerResponse {
-  success: boolean
-  trainer: {
-    id: string
-    name: string
-    fullName: string
-    email: string
-    specialization: string
-    bio: string
-    experience: string
-    certifications: string[]
-    services: string[]
-    pricing: any
-    availability: any
-    location: string
-    phone: string
-    website: string
-    socialMedia: any
-    images: string[]
-    testimonials: any[]
-    content: any
-    isActive: boolean
-    isPaid: boolean
-    createdAt: string
-    expiresAt: string
-    token: string
-  }
-}
-
-// Initialize Firebase Admin with proper error handling
+// Initialize Firebase Admin once at module level
 let db: any = null
-let isFirebaseInitialized = false
+let firebaseInitialized = false
 
-async function initializeFirebase() {
-  if (isFirebaseInitialized && db) {
+async function initializeFirebaseIfNeeded() {
+  if (firebaseInitialized && db) {
     return db
   }
 
   try {
-    console.log("🔥 Initializing Firebase Admin")
-
-    // Check environment variables first
-    const requiredEnvVars = {
-      FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
-      FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
-      FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
-    }
-
-    console.log("🔧 Checking environment variables", {
-      hasProjectId: !!requiredEnvVars.FIREBASE_PROJECT_ID,
-      hasClientEmail: !!requiredEnvVars.FIREBASE_CLIENT_EMAIL,
-      hasPrivateKey: !!requiredEnvVars.FIREBASE_PRIVATE_KEY,
-      projectId: requiredEnvVars.FIREBASE_PROJECT_ID,
+    console.log("🔥 Initializing Firebase Admin", {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+      hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+      privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length,
+      existingApps: getApps().length,
     })
 
-    for (const [key, value] of Object.entries(requiredEnvVars)) {
-      if (!value) {
-        throw new Error(`Missing required environment variable: ${key}`)
-      }
+    // Validate environment variables
+    if (!process.env.FIREBASE_PROJECT_ID) {
+      throw new Error("FIREBASE_PROJECT_ID environment variable is missing")
+    }
+    if (!process.env.FIREBASE_CLIENT_EMAIL) {
+      throw new Error("FIREBASE_CLIENT_EMAIL environment variable is missing")
+    }
+    if (!process.env.FIREBASE_PRIVATE_KEY) {
+      throw new Error("FIREBASE_PRIVATE_KEY environment variable is missing")
     }
 
-    // Use require instead of dynamic import to avoid module loading issues
-    const { initializeApp, getApps, cert } = require("firebase-admin/app")
-    const { getFirestore } = require("firebase-admin/firestore")
-
-    console.log("📦 Firebase modules loaded successfully")
-
-    // Initialize Firebase Admin if not already initialized
+    // Only initialize if no apps exist
     if (!getApps().length) {
       const firebaseConfig = {
-        projectId: requiredEnvVars.FIREBASE_PROJECT_ID,
-        clientEmail: requiredEnvVars.FIREBASE_CLIENT_EMAIL,
-        privateKey: requiredEnvVars.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }
 
-      console.log("🚀 Initializing Firebase app")
+      console.log("🔧 Firebase config prepared", {
+        projectId: firebaseConfig.projectId,
+        clientEmailDomain: firebaseConfig.clientEmail?.split("@")[1],
+        privateKeyStart: firebaseConfig.privateKey?.substring(0, 50) + "...",
+      })
 
       initializeApp({
         credential: cert(firebaseConfig),
@@ -110,14 +56,14 @@ async function initializeFirebase() {
       console.log("♻️ Firebase Admin already initialized")
     }
 
+    // Get Firestore instance
     db = getFirestore()
-    isFirebaseInitialized = true
+    firebaseInitialized = true
 
     console.log("📊 Firestore instance created successfully")
-
     return db
   } catch (error) {
-    console.error("❌ Firebase initialization failed", {
+    console.error("❌ Firebase initialization error", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       errorName: error instanceof Error ? error.name : undefined,
@@ -132,6 +78,25 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
 
   try {
     console.log("🚀 Starting temp trainer API request")
+
+    // Initialize Firebase
+    let database: any
+    try {
+      database = await initializeFirebaseIfNeeded()
+    } catch (firebaseError) {
+      console.error("❌ Firebase initialization failed", {
+        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
+        stack: firebaseError instanceof Error ? firebaseError.stack : undefined,
+      })
+      return NextResponse.json(
+        {
+          error: "Firebase initialization failed",
+          details: firebaseError instanceof Error ? firebaseError.message : "Unknown Firebase error",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
+    }
 
     tempId = params.tempId
     const { searchParams } = new URL(request.url)
@@ -159,26 +124,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json({ error: "Token is required" }, { status: 400 })
     }
 
-    // Initialize Firebase
-    let firestore: any
-    try {
-      firestore = await initializeFirebase()
-    } catch (firebaseError) {
-      console.error("❌ Firebase initialization failed", {
-        tempId,
-        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
-      })
-      return NextResponse.json(
-        {
-          error: "Database connection failed",
-          details: firebaseError instanceof Error ? firebaseError.message : "Firebase initialization error",
-          tempId,
-          timestamp: new Date().toISOString(),
-        },
-        { status: 500 },
-      )
-    }
-
     console.log("🔍 Attempting to fetch temp trainer document", {
       tempId,
       collection: "tempTrainers",
@@ -190,7 +135,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     let tempTrainerDoc: any
 
     try {
-      tempTrainerRef = firestore.collection("tempTrainers").doc(tempId)
+      tempTrainerRef = database.collection("tempTrainers").doc(tempId)
       console.log("📄 Document reference created", {
         tempId,
         refPath: tempTrainerRef.path,
@@ -229,10 +174,10 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    let tempTrainerData: TempTrainerData
+    let tempTrainerData: any
 
     try {
-      tempTrainerData = tempTrainerDoc.data() as TempTrainerData
+      tempTrainerData = tempTrainerDoc.data()
       console.log("📊 Temp trainer document data retrieved", {
         tempId,
         hasData: !!tempTrainerData,
@@ -329,7 +274,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     }
 
     // Prepare response data with safe defaults
-    const responseData: TrainerResponse = {
+    const responseData = {
       success: true,
       trainer: {
         id: tempId,
@@ -408,6 +353,24 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
   try {
     console.log("🚀 Starting temp trainer PUT request")
 
+    // Initialize Firebase
+    let database: any
+    try {
+      database = await initializeFirebaseIfNeeded()
+    } catch (firebaseError) {
+      console.error("❌ PUT: Firebase initialization failed", {
+        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
+      })
+      return NextResponse.json(
+        {
+          error: "Firebase initialization failed",
+          details: firebaseError instanceof Error ? firebaseError.message : "Unknown Firebase error",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
+    }
+
     tempId = params.tempId
     const body = await request.json()
     const { token, ...updateData } = body
@@ -428,28 +391,8 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json({ error: "Token is required" }, { status: 400 })
     }
 
-    // Initialize Firebase
-    let firestore: any
-    try {
-      firestore = await initializeFirebase()
-    } catch (firebaseError) {
-      console.error("❌ PUT: Firebase initialization failed", {
-        tempId,
-        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
-      })
-      return NextResponse.json(
-        {
-          error: "Database connection failed",
-          details: firebaseError instanceof Error ? firebaseError.message : "Firebase initialization error",
-          tempId,
-          timestamp: new Date().toISOString(),
-        },
-        { status: 500 },
-      )
-    }
-
     // Get the temp trainer document
-    const tempTrainerRef = firestore.collection("tempTrainers").doc(tempId)
+    const tempTrainerRef = database.collection("tempTrainers").doc(tempId)
     const tempTrainerDoc = await tempTrainerRef.get()
 
     console.log("📥 PUT: Document retrieved", {
