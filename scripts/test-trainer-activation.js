@@ -1,81 +1,99 @@
-// Diagnostic script to test trainer activation flow
-const testTrainerActivation = async () => {
-  console.log("🧪 Testing Trainer Activation Flow")
-  console.log("=".repeat(50))
+// Test script for trainer activation flow
+console.log("🧪 Testing Trainer Activation Flow")
 
-  // Test data
-  const testTempId = "IhTGfW9c5CNDTzhjUhgS" // From your Firebase
-  const testPaymentIntentId = "pi_3R16vsGgz8IrkBaO0l1ZRe9e" // From your logs
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"
+const testTempId = "IhTGfW9c5CNDTzhjUhgS"
+const testEmail = "test@example.com"
+
+async function testActivationFlow() {
+  console.log("=".repeat(50))
+  console.log("📋 Test 1: Checking temp trainer...")
 
   try {
     // Test 1: Check if temp trainer exists
-    console.log("📋 Test 1: Checking temp trainer...")
-    const tempUrl = `${baseUrl}/api/trainer/temp/${testTempId}?token=VKdSMbxepnQi6TS6GrMz3oskhmuA01Sx`
-    console.log("Fetching:", tempUrl)
+    const tempResponse = await fetch(`/api/trainer/temp/${testTempId}?token=VKdSMbxepnQi6TS6GrMz3oskhmuA01Sx`)
+    console.log("Temp trainer API response:", tempResponse.status)
 
-    const tempResponse = await fetch(tempUrl)
-    const tempData = await tempResponse.json()
+    if (tempResponse.ok) {
+      const tempData = await tempResponse.json()
+      console.log("✅ Temp trainer found:", {
+        id: tempData.trainer?.id,
+        status: tempData.trainer?.status,
+        isActive: tempData.trainer?.isActive,
+      })
+    } else {
+      console.log("❌ Temp trainer not found or error:", tempResponse.status)
+      return
+    }
 
-    console.log("Temp trainer status:", {
-      exists: tempResponse.ok,
-      status: tempData.trainer?.status,
-      isActive: tempData.trainer?.isActive,
-      isPaid: tempData.trainer?.isPaid,
-    })
+    console.log("\n💳 Test 2: Creating payment intent...")
 
-    // Test 2: Try manual activation
-    console.log("\n🔄 Test 2: Testing activation API...")
-    const activationUrl = `${baseUrl}/api/trainer/activate`
-    const activationResponse = await fetch(activationUrl, {
+    // Test 2: Create payment intent
+    const paymentResponse = await fetch("/api/create-payment-intent", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         tempId: testTempId,
-        paymentIntentId: testPaymentIntentId,
+        email: testEmail,
       }),
     })
 
-    const activationData = await activationResponse.json()
-    console.log("Activation result:", {
-      success: activationData.success,
-      finalId: activationData.finalId,
-      error: activationData.error,
-    })
-
-    // Test 3: Check if trainer was activated
-    if (activationData.success && activationData.finalId) {
-      console.log("\n✅ Test 3: Checking activated trainer...")
-      const finalUrl = `${baseUrl}/api/trainer/content/${activationData.finalId}`
-      const finalResponse = await fetch(finalUrl)
-      const finalData = await finalResponse.json()
-
-      console.log("Final trainer status:", {
-        exists: finalResponse.ok,
-        status: finalData.trainer?.status,
-        isActive: finalData.trainer?.isActive,
-        isPaid: finalData.trainer?.isPaid,
-        hasContent: !!finalData.trainer?.content,
-      })
+    if (paymentResponse.ok) {
+      const paymentData = await paymentResponse.json()
+      console.log("✅ Payment intent created:", paymentData.paymentIntentId)
+    } else {
+      const errorData = await paymentResponse.json()
+      console.log("❌ Payment intent failed:", errorData.error)
+      return
     }
 
-    // Test 4: Check webhook processing
-    console.log("\n🔗 Test 4: Webhook simulation...")
-    console.log("Payment Intent ID:", testPaymentIntentId)
-    console.log("Expected metadata should include:", {
-      tempId: testTempId,
-      amount: 2900, // €29.00 in cents
+    console.log("\n🔄 Test 3: Testing activation API...")
+
+    // Test 3: Test activation API directly
+    const activationResponse = await fetch("/api/trainer/activate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tempId: testTempId,
+        paymentIntentId: "test_payment_intent",
+      }),
     })
+
+    if (activationResponse.ok) {
+      const activationData = await activationResponse.json()
+      console.log("✅ Activation successful:", activationData.message)
+    } else {
+      const errorData = await activationResponse.json()
+      console.log("❌ Activation failed:", errorData.error)
+    }
+
+    console.log("\n🌐 Test 4: Checking activated trainer...")
+
+    // Test 4: Check if trainer is now active
+    const activeResponse = await fetch(`/api/trainer/content/${testTempId}`)
+
+    if (activeResponse.ok) {
+      const activeData = await activeResponse.json()
+      console.log("✅ Active trainer found:", {
+        id: activeData.trainer?.id,
+        status: activeData.trainer?.status,
+        isActive: activeData.trainer?.isActive,
+        hasContent: !!activeData.trainer?.content,
+      })
+    } else {
+      const errorData = await activeResponse.json()
+      console.log("❌ Active trainer check failed:", errorData.error)
+    }
   } catch (error) {
-    console.error("❌ Test failed:", error.message)
-    console.error("Stack:", error.stack)
+    console.log("❌ Test failed:", error.message)
   }
 
-  console.log("\n" + "=".repeat(50))
-  console.log("🏁 Test completed")
+  console.log("=".repeat(50))
+  console.log("✅ Test completed")
 }
 
 // Run the test
-testTrainerActivation()
+testActivationFlow()

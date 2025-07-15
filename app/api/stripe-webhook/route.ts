@@ -1,202 +1,134 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { headers } from "next/headers"
 import { db } from "@/firebase"
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore"
-import { logger } from "@/lib/logger"
+import { doc, updateDoc, getDoc } from "firebase/firestore"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2023-10-16",
 })
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
-  const sig = req.headers.get("stripe-signature")!
+  const headersList = headers()
+  const sig = headersList.get("stripe-signature")!
 
   let event: Stripe.Event
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret)
   } catch (err) {
-    logger.error("Webhook signature verification failed", { error: err })
+    console.error("Webhook signature verification failed:", err)
     return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 })
   }
 
-  logger.info("Stripe webhook received", { type: event.type, id: event.id })
+  console.log("Webhook event received:", event.type)
 
-  try {
-    switch (event.type) {
-      case "payment_intent.succeeded":
-        await handlePaymentSuccess(event.data.object as Stripe.PaymentIntent)
-        break
-      case "payment_intent.payment_failed":
-        await handlePaymentFailed(event.data.object as Stripe.PaymentIntent)
-        break
-      default:
-        logger.info("Unhandled webhook event type", { type: event.type })
-    }
+  // Handle the event
+  switch (event.type) {
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object as Stripe.PaymentIntent
+      console.log("Payment succeeded:", paymentIntent.id)
 
-    return NextResponse.json({ received: true })
-  } catch (error) {
-    logger.error("Webhook processing error", {
-      error: error instanceof Error ? error.message : String(error),
-      eventType: event.type,
-      eventId: event.id,
-    })
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
-  }
-}
+      // Check if this is a trainer activation payment
+      if (paymentIntent.metadata?.type === "trainer_activation" && paymentIntent.metadata?.tempId) {
+        console.log("Processing trainer activation for tempId:", paymentIntent.metadata.tempId)
+        await activateTrainer(paymentIntent.metadata.tempId, paymentIntent.id)
+      }
+      break
 
-async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
-  logger.info("Processing successful payment", {
-    paymentIntentId: paymentIntent.id,
-    amount: paymentIntent.amount,
-    metadata: paymentIntent.metadata,
-  })
+    case "payment_intent.payment_failed":
+      const failedPayment = event.data.object as Stripe.PaymentIntent
+      console.log("Payment failed:", failedPayment.id)
+      break
 
-  // Check if this is a trainer activation payment
-  const tempId = paymentIntent.metadata?.tempId
-  if (tempId) {
-    logger.info("Trainer activation payment detected", { tempId, paymentIntentId: paymentIntent.id })
-    await activateTrainer(tempId, paymentIntent.id)
+    default:
+      console.log(`Unhandled event type ${event.type}`)
   }
 
-  // Update payment intent status in database if needed
-  try {
-    const paymentRef = doc(db, "payments", paymentIntent.id)
-    await updateDoc(paymentRef, {
-      status: "succeeded",
-      updatedAt: new Date(),
-    })
-  } catch (error) {
-    logger.warn("Failed to update payment status", { paymentIntentId: paymentIntent.id, error })
-  }
-}
-
-async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
-  logger.info("Processing failed payment", {
-    paymentIntentId: paymentIntent.id,
-    lastPaymentError: paymentIntent.last_payment_error,
-  })
-
-  // Update payment intent status in database
-  try {
-    const paymentRef = doc(db, "payments", paymentIntent.id)
-    await updateDoc(paymentRef, {
-      status: "failed",
-      error: paymentIntent.last_payment_error?.message || "Payment failed",
-      updatedAt: new Date(),
-    })
-  } catch (error) {
-    logger.warn("Failed to update payment status", { paymentIntentId: paymentIntent.id, error })
-  }
+  return NextResponse.json({ received: true })
 }
 
 async function activateTrainer(tempId: string, paymentIntentId: string) {
   try {
-    logger.info("Starting trainer activation", { tempId, paymentIntentId })
+    console.log("Activating trainer:", { tempId, paymentIntentId })
 
-    // Get the temporary trainer data
+    // Get the temp trainer document
     const tempTrainerRef = doc(db, "trainers", tempId)
-    const tempTrainerSnap = await getDoc(tempTrainerRef)
+    const tempTrainerDoc = await getDoc(tempTrainerRef)
 
-    if (!tempTrainerSnap.exists()) {
-      throw new Error(`Temporary trainer not found: ${tempId}`)
+    if (!tempTrainerDoc.exists()) {
+      console.error("Temp trainer not found:", tempId)
+      return
     }
 
-    const tempTrainerData = tempTrainerSnap.data()
-    logger.info("Retrieved temp trainer data", { tempId, status: tempTrainerData.status })
+    const tempTrainerData = tempTrainerDoc.data()
+    console.log("Found temp trainer:", tempTrainerData)
 
     // Generate AI content for the trainer
-    const content = await generateTrainerContent(tempTrainerData)
+    const generatedContent = await generateTrainerContent(tempTrainerData)
 
-    // Create the final trainer document
-    const finalTrainerData = {
-      ...tempTrainerData,
+    // Update the trainer document with activation
+    await updateDoc(tempTrainerRef, {
       status: "active",
       isActive: true,
       isPaid: true,
-      paymentIntentId,
-      content,
-      activatedAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    // Save to the trainers collection with the same ID
-    await setDoc(tempTrainerRef, finalTrainerData)
-
-    logger.info("Trainer activated successfully", {
-      tempId,
-      paymentIntentId,
-      finalId: tempId,
+      paymentIntentId: paymentIntentId,
+      activatedAt: new Date().toISOString(),
+      content: generatedContent,
     })
 
-    return { success: true, finalId: tempId }
+    console.log("Trainer activated successfully:", tempId)
   } catch (error) {
-    logger.error("Trainer activation failed", {
-      tempId,
-      paymentIntentId,
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
+    console.error("Error activating trainer:", error)
   }
 }
 
 async function generateTrainerContent(trainerData: any) {
-  const { fullName, specialty, experience, bio, location } = trainerData
-
-  // Generate comprehensive content for the trainer
+  // Generate AI content based on trainer data
   const content = {
     hero: {
       title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${specialty} • ${experience} • ${location}`,
+      subtitle: `${trainerData.specialty || "Fitness Specialist"} • ${trainerData.experience || "Professional"} • ${trainerData.location || "Available"}`,
       cta: "Book Your Free Consultation",
     },
     about: {
-      title: `About ${fullName}`,
-      content:
-        bio || `Passionate fitness professional dedicated to helping clients achieve their goals through ${specialty}.`,
+      title: `About ${trainerData.fullName || "Your Trainer"}`,
+      content: `${trainerData.bio || "Dedicated fitness professional committed to helping you achieve your goals through personalized training and nutrition guidance."}`,
     },
-    services: [
+    services: trainerData.services || [
       {
-        title: "Personal Training",
-        description: "One-on-one training sessions tailored to your specific goals and fitness level.",
-        price: "From €60/session",
+        name: "Personal Training",
+        description: "One-on-one training sessions tailored to your goals",
       },
       {
-        title: "Group Classes",
-        description: "Small group training sessions for a more social and cost-effective approach.",
-        price: "From €25/session",
+        name: "Nutrition Coaching",
+        description: "Personalized meal plans and nutrition guidance",
       },
       {
-        title: "Online Coaching",
-        description: "Remote coaching with personalized workout plans and nutrition guidance.",
-        price: "From €40/session",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Amazing results in just 3 months! Highly recommend.",
-        rating: 5,
-      },
-      {
-        name: "John D.",
-        text: "Professional, knowledgeable, and motivating trainer.",
-        rating: 5,
+        name: "Group Classes",
+        description: "Fun and motivating group fitness sessions",
       },
     ],
     contact: {
       email: trainerData.email,
       phone: trainerData.phone,
-      location: location,
+      location: trainerData.location,
     },
-    seo: {
-      title: `${fullName} - ${specialty} in ${location}`,
-      description: `Professional ${specialty} in ${location}. ${experience} of experience helping clients achieve their fitness goals.`,
-      keywords: [specialty.toLowerCase(), "personal trainer", location.toLowerCase(), "fitness", "coaching"],
-    },
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Amazing results! Highly recommend this trainer.",
+        rating: 5,
+      },
+      {
+        name: "John D.",
+        text: "Professional, knowledgeable, and motivating.",
+        rating: 5,
+      },
+    ],
   }
 
   return content
