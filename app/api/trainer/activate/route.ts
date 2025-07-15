@@ -1,331 +1,130 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
-import Stripe from "stripe"
 import { db } from "@/firebase"
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+import { logger } from "@/lib/logger"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-})
-
-export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-  const requestId = Math.random().toString(36).substring(7)
-  const userAgent = request.headers.get("user-agent") || "unknown"
-  const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
-
-  logger.info("Trainer activation request started", {
-    requestId,
-    userAgent,
-    ipAddress,
-  })
-
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json()
-    const { tempId, paymentIntentId } = body
+    const { tempId, paymentIntentId } = await req.json()
 
-    logger.info("Trainer activation initiated", {
-      tempId,
-      paymentIntentId,
-      timestamp: new Date().toISOString(),
-    })
+    logger.info("Trainer activation API called", { tempId, paymentIntentId })
 
     if (!tempId || !paymentIntentId) {
-      logger.warn("Missing required fields for activation", {
-        tempId: !!tempId,
-        paymentIntentId: !!paymentIntentId,
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Missing required fields",
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Missing required parameters" }, { status: 400 })
     }
 
-    // Verify payment with Stripe
-    logger.info("Verifying payment with Stripe", {
-      paymentIntentId,
-      tempId,
-    })
+    // Get the temporary trainer data
+    const tempTrainerRef = doc(db, "trainers", tempId)
+    const tempTrainerSnap = await getDoc(tempTrainerRef)
 
-    let paymentIntent
-    try {
-      paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-    } catch (stripeError) {
-      logger.error("Stripe payment verification failed", {
-        tempId,
-        paymentIntentId,
-        error: stripeError instanceof Error ? stripeError.message : String(stripeError),
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Payment verification failed",
-        },
-        { status: 400 },
-      )
+    if (!tempTrainerSnap.exists()) {
+      logger.error("Temporary trainer not found", { tempId })
+      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
-    if (paymentIntent.status !== "succeeded") {
-      logger.warn("Payment not successful", {
-        tempId,
-        paymentIntentId,
-        status: paymentIntent.status,
-      })
+    const tempTrainerData = tempTrainerSnap.data()
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Payment not completed",
-        },
-        { status: 400 },
-      )
-    }
+    // Generate AI content for the trainer
+    const content = await generateTrainerContent(tempTrainerData)
 
-    if (paymentIntent.amount !== 2900) {
-      // €29.00 in cents
-      logger.error("Payment amount mismatch", {
-        tempId,
-        paymentIntentId,
-        expectedAmount: 2900,
-        actualAmount: paymentIntent.amount,
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Payment amount incorrect",
-        },
-        { status: 400 },
-      )
-    }
-
-    logger.info("Payment verified successfully", {
-      tempId,
-      paymentIntentId,
-      amount: paymentIntent.amount,
-      currency: paymentIntent.currency,
-    })
-
-    // Get temp trainer document
-    let tempTrainerRef, tempTrainerSnap, tempTrainerData
-    try {
-      tempTrainerRef = doc(db, "trainers", tempId)
-      tempTrainerSnap = await getDoc(tempTrainerRef)
-
-      if (!tempTrainerSnap.exists()) {
-        logger.error("Temp trainer not found during activation", {
-          tempId,
-          paymentIntentId,
-        })
-
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Trainer profile not found",
-          },
-          { status: 404 },
-        )
-      }
-
-      tempTrainerData = tempTrainerSnap.data()
-    } catch (firebaseError) {
-      logger.error("Firebase error fetching temp trainer", {
-        tempId,
-        paymentIntentId,
-        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Database error",
-        },
-        { status: 500 },
-      )
-    }
-
-    // Check if already activated
-    if (tempTrainerData.isActive && tempTrainerData.isPaid) {
-      logger.info("Trainer already activated", {
-        tempId,
-        finalId: tempTrainerData.finalId,
-      })
-
-      return NextResponse.json({
-        success: true,
-        finalId: tempTrainerData.finalId,
-        redirectUrl: `/marketplace/trainer/${tempTrainerData.finalId}`,
-      })
-    }
-
-    // Generate AI content for permanent profile
-    const generatedContent = generateTrainerContent(tempTrainerData)
-
-    // Create final trainer profile with generated content
+    // Create the final trainer document
     const finalTrainerData = {
-      // Basic trainer info
-      fullName: tempTrainerData.fullName,
-      name: tempTrainerData.fullName, // Ensure both fields exist
-      email: tempTrainerData.email,
-      phone: tempTrainerData.phone,
-      location: tempTrainerData.location,
-      specialty: tempTrainerData.specialty,
-      specialization: tempTrainerData.specialty, // Ensure both fields exist
-      experience: tempTrainerData.experience,
-      bio: tempTrainerData.bio,
-      certifications: tempTrainerData.certifications || [],
-
-      // Status and payment info
+      ...tempTrainerData,
       status: "active",
       isActive: true,
       isPaid: true,
       paymentIntentId,
-
-      // Add generated content
-      content: generatedContent,
-
-      // Timestamps
-      createdAt: tempTrainerData.createdAt,
-      activatedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      content,
+      activatedAt: new Date(),
+      updatedAt: new Date(),
     }
 
-    logger.info("Creating final trainer profile with generated content", {
+    // Save to the trainers collection with the same ID
+    await setDoc(tempTrainerRef, finalTrainerData)
+
+    logger.info("Trainer activated successfully", {
       tempId,
-      email: tempTrainerData.email,
-      specialty: tempTrainerData.specialty,
-      hasContent: !!generatedContent,
-      contentSections: Object.keys(generatedContent),
-    })
-
-    // Add final trainer document
-    let finalTrainerRef, finalId
-    try {
-      finalTrainerRef = await addDoc(collection(db, "trainers"), finalTrainerData)
-      finalId = finalTrainerRef.id
-
-      // Update temp document with final ID
-      await updateDoc(tempTrainerRef, {
-        finalId,
-        isActive: true,
-        isPaid: true,
-        paymentIntentId,
-        activatedAt: serverTimestamp(),
-      })
-    } catch (firebaseError) {
-      logger.error("Firebase error creating final trainer", {
-        tempId,
-        paymentIntentId,
-        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Failed to create trainer profile",
-        },
-        { status: 500 },
-      )
-    }
-
-    logger.info("Trainer activation completed successfully", {
-      tempId,
-      finalId,
-      email: tempTrainerData.email,
       paymentIntentId,
-      contentGenerated: true,
+      finalId: tempId,
     })
 
     return NextResponse.json({
       success: true,
-      finalId,
-      redirectUrl: `/marketplace/trainer/${finalId}`,
+      finalId: tempId,
+      message: "Trainer activated successfully",
     })
   } catch (error) {
-    const processingTime = Date.now() - startTime
-
-    logger.error("Trainer activation error", {
-      requestId,
+    logger.error("Trainer activation failed", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString(),
-      processingTime,
     })
 
     return NextResponse.json(
       {
         success: false,
-        error: "Activation failed. Please try again.",
-        details: error instanceof Error ? error.message : String(error),
+        error: "Activation failed",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     )
   }
 }
 
-// Content generation function
-function generateTrainerContent(trainerData: any) {
-  const name = trainerData.fullName || trainerData.name
-  const specialty = trainerData.specialty || trainerData.specialization
-  const location = trainerData.location
-  const experience = trainerData.experience
-  const bio = trainerData.bio
+async function generateTrainerContent(trainerData: any) {
+  const { fullName, specialty, experience, bio, location } = trainerData
 
-  return {
+  // Generate comprehensive content for the trainer
+  const content = {
     hero: {
-      title: `Transform Your Fitness with ${name}`,
-      subtitle: `Professional ${specialty} Training • ${experience} Experience`,
-      description: `Welcome! I'm ${name}, a certified personal trainer specializing in ${specialty}. With ${experience} of experience in ${location}, I'm here to help you achieve your fitness goals through personalized training programs that deliver real results.`,
+      title: `Transform Your Body, Transform Your Life`,
+      subtitle: `${specialty} • ${experience} • ${location}`,
+      cta: "Book Your Free Consultation",
     },
     about: {
-      title: "About Me",
+      title: `About ${fullName}`,
       content:
-        bio ||
-        `I'm ${name}, a passionate fitness professional with ${experience} of experience in ${specialty}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+        bio || `Passionate fitness professional dedicated to helping clients achieve their goals through ${specialty}.`,
     },
     services: [
       {
-        id: "1",
-        title: "Personal Training Session",
-        description: `One-on-one personalized ${specialty.toLowerCase()} training session focused on your specific goals`,
-        price: 60,
-        duration: "60 minutes",
-        featured: true,
+        title: "Personal Training",
+        description: "One-on-one training sessions tailored to your specific goals and fitness level.",
+        price: "From €60/session",
       },
       {
-        id: "2",
-        title: "Fitness Assessment",
-        description: "Comprehensive fitness evaluation and goal-setting session",
-        price: 40,
-        duration: "45 minutes",
-        featured: false,
+        title: "Group Classes",
+        description: "Small group training sessions for a more social and cost-effective approach.",
+        price: "From €25/session",
       },
       {
-        id: "3",
-        title: "Custom Workout Plan",
-        description: `Personalized ${specialty.toLowerCase()} program designed for your goals and schedule`,
-        price: 80,
-        duration: "Digital delivery",
-        featured: false,
+        title: "Online Coaching",
+        description: "Remote coaching with personalized workout plans and nutrition guidance.",
+        price: "From €40/session",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Amazing results in just 3 months! Highly recommend.",
+        rating: 5,
+      },
+      {
+        name: "John D.",
+        text: "Professional, knowledgeable, and motivating trainer.",
+        rating: 5,
       },
     ],
     contact: {
-      title: "Let's Start Your Fitness Journey",
-      description: `Ready to transform your fitness with professional ${specialty.toLowerCase()} training? Get in touch to schedule your first session or ask any questions.`,
       email: trainerData.email,
-      phone: trainerData.phone || "",
+      phone: trainerData.phone,
       location: location,
     },
     seo: {
-      title: `${name} - Personal Trainer in ${location}`,
-      description: `Professional ${specialty} training with ${name}. Transform your fitness with personalized programs in ${location}. ${experience} of experience.`,
+      title: `${fullName} - ${specialty} in ${location}`,
+      description: `Professional ${specialty} in ${location}. ${experience} of experience helping clients achieve their fitness goals.`,
+      keywords: [specialty.toLowerCase(), "personal trainer", location.toLowerCase(), "fitness", "coaching"],
     },
-    version: 1,
-    lastModified: new Date().toISOString(),
   }
+
+  return content
 }

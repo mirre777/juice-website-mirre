@@ -1,136 +1,94 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
 import { db } from "@/firebase"
 import { doc, getDoc } from "firebase/firestore"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const trainerId = params.id
-  const startTime = Date.now()
-
-  logger.info("Trainer content API called", {
-    trainerId,
-    timestamp: new Date().toISOString(),
-  })
-
   try {
-    if (!trainerId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer ID is required",
-        },
-        { status: 400 },
-      )
+    const { id } = params
+    logger.info("Trainer content API called", { id })
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Trainer ID is required" }, { status: 400 })
     }
 
-    // Get trainer document from Firebase
-    const trainerRef = doc(db, "trainers", trainerId)
+    // Check Firebase connection
+    if (!db) {
+      logger.error("Firebase not initialized")
+      return NextResponse.json({ success: false, error: "Database connection failed" }, { status: 500 })
+    }
+
+    // Fetch trainer document from the "trainers" collection
+    const trainerRef = doc(db, "trainers", id)
     const trainerSnap = await getDoc(trainerRef)
 
     if (!trainerSnap.exists()) {
-      logger.warn("Trainer not found", { trainerId })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer not found",
-        },
-        { status: 404 },
-      )
+      logger.error("Trainer document not found", { id })
+      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
     const trainerData = trainerSnap.data()
-
-    // Check if trainer is active
-    if (trainerData.status === "temp") {
-      logger.info("Temporary trainer accessed", {
-        trainerId,
-        status: trainerData.status,
-        isActive: trainerData.isActive,
-        isPaid: trainerData.isPaid,
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "This is a temporary preview. Please complete payment to activate your profile.",
-          isTemp: true,
-          trainer: {
-            id: trainerId,
-            fullName: trainerData.fullName,
-            name: trainerData.fullName,
-            email: trainerData.email,
-            phone: trainerData.phone,
-            location: trainerData.location,
-            specialty: trainerData.specialty,
-            specialization: trainerData.specialty,
-            experience: trainerData.experience,
-            bio: trainerData.bio,
-            certifications: trainerData.certifications || [],
-            status: trainerData.status,
-            isActive: trainerData.isActive || false,
-            isPaid: trainerData.isPaid || false,
-          },
-        },
-        { status: 200 },
-      )
-    }
-
-    if (!trainerData.isActive || !trainerData.isPaid) {
-      logger.warn("Inactive trainer accessed", {
-        trainerId,
-        isActive: trainerData.isActive,
-        isPaid: trainerData.isPaid,
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer profile is not active",
-        },
-        { status: 403 },
-      )
-    }
-
-    // Return active trainer with content
-    const trainer = {
-      id: trainerId,
-      fullName: trainerData.fullName,
-      name: trainerData.fullName,
-      email: trainerData.email,
-      phone: trainerData.phone,
-      location: trainerData.location,
-      specialty: trainerData.specialty,
-      specialization: trainerData.specialty,
-      experience: trainerData.experience,
-      bio: trainerData.bio,
-      certifications: trainerData.certifications || [],
+    logger.info("Trainer document retrieved", {
+      id,
       status: trainerData.status,
       isActive: trainerData.isActive,
       isPaid: trainerData.isPaid,
-      content: trainerData.content || null,
+    })
+
+    // Only return active trainers for this endpoint
+    if (trainerData.status !== "active" || !trainerData.isActive) {
+      logger.error("Trainer not active", { id, status: trainerData.status, isActive: trainerData.isActive })
+      return NextResponse.json({ success: false, error: "Trainer not available" }, { status: 404 })
     }
 
-    logger.info("Trainer content retrieved successfully", {
-      trainerId,
-      hasContent: !!trainerData.content,
-      processingTime: Date.now() - startTime,
-    })
+    // Ensure certifications is always an array
+    let certifications = trainerData.certifications || ["Certified Personal Trainer"]
+    if (typeof certifications === "string") {
+      certifications = [certifications]
+    }
+    if (!Array.isArray(certifications)) {
+      certifications = ["Certified Personal Trainer"]
+    }
 
+    // Return trainer data in the expected format
+    const responseData = {
+      id: trainerSnap.id,
+      name: trainerData.fullName || trainerData.name || "Unknown Trainer",
+      fullName: trainerData.fullName || trainerData.name || "Unknown Trainer",
+      email: trainerData.email || "",
+      phone: trainerData.phone || "",
+      location: trainerData.location || "",
+      specialization: trainerData.specialty || trainerData.specialization || "Personal Training",
+      experience: trainerData.experience || "Less than 1 year Experience",
+      bio:
+        trainerData.bio ||
+        `Passionate fitness professional dedicated to helping clients achieve their goals through ${trainerData.specialty || "personal training"}.`,
+      certifications: certifications,
+      content: trainerData.content || null,
+      createdAt: trainerData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      activatedAt: trainerData.activatedAt?.toDate?.()?.toISOString() || null,
+      isActive: trainerData.isActive,
+      isPaid: trainerData.isPaid,
+      status: trainerData.status,
+    }
+
+    logger.info("Active trainer data returned successfully", { id })
     return NextResponse.json({
       success: true,
-      trainer,
+      trainer: responseData,
     })
   } catch (error) {
-    logger.error("Error fetching trainer content", {
-      trainerId,
+    logger.error("Trainer content API error", {
       error: error instanceof Error ? error.message : String(error),
-      processingTime: Date.now() - startTime,
+      stack: error instanceof Error ? error.stack : undefined,
+      id: params.id,
     })
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch trainer information",
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     )

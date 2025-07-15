@@ -6,11 +6,15 @@ const testTrainerActivation = async () => {
   // Test data
   const testTempId = "IhTGfW9c5CNDTzhjUhgS" // From your Firebase
   const testPaymentIntentId = "pi_3R16vsGgz8IrkBaO0l1ZRe9e" // From your logs
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"
 
   try {
     // Test 1: Check if temp trainer exists
     console.log("📋 Test 1: Checking temp trainer...")
-    const tempResponse = await fetch(`/api/trainer/temp/${testTempId}?token=VKdSMbxepnQi6TS6GrMz3oskhmuA01Sx`)
+    const tempUrl = `${baseUrl}/api/trainer/temp/${testTempId}?token=VKdSMbxepnQi6TS6GrMz3oskhmuA01Sx`
+    console.log("Fetching:", tempUrl)
+
+    const tempResponse = await fetch(tempUrl)
     const tempData = await tempResponse.json()
 
     console.log("Temp trainer status:", {
@@ -22,7 +26,8 @@ const testTrainerActivation = async () => {
 
     // Test 2: Try manual activation
     console.log("\n🔄 Test 2: Testing activation API...")
-    const activationResponse = await fetch("/api/trainer/activate", {
+    const activationUrl = `${baseUrl}/api/trainer/activate`
+    const activationResponse = await fetch(activationUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -43,7 +48,8 @@ const testTrainerActivation = async () => {
     // Test 3: Check if trainer was activated
     if (activationData.success && activationData.finalId) {
       console.log("\n✅ Test 3: Checking activated trainer...")
-      const finalResponse = await fetch(`/api/trainer/content/${activationData.finalId}`)
+      const finalUrl = `${baseUrl}/api/trainer/content/${activationData.finalId}`
+      const finalResponse = await fetch(finalUrl)
       const finalData = await finalResponse.json()
 
       console.log("Final trainer status:", {
@@ -64,6 +70,7 @@ const testTrainerActivation = async () => {
     })
   } catch (error) {
     console.error("❌ Test failed:", error.message)
+    console.error("Stack:", error.stack)
   }
 
   console.log("\n" + "=".repeat(50))
