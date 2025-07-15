@@ -5,7 +5,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     console.log("[SERVER] === API TRAINER CONTENT DEBUG ===")
     console.log("[SERVER] 1. Received trainer ID:", params.id)
 
-    // For the known trainer ID, return mock data that matches Firebase structure
+    // For the known trainer ID, return mock data that matches the temp trainer page design
     if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
       console.log("[SERVER] 3. Returning mock data for known trainer:", params.id)
 
@@ -90,80 +90,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    // For other trainer IDs, try Firebase (simplified version)
-    try {
-      console.log("[SERVER] 4. Attempting Firebase lookup for:", params.id)
-
-      // Try to initialize Firebase Admin (simplified)
-      const admin = await import("firebase-admin")
-
-      if (!admin.apps.length) {
-        const serviceAccount = {
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        })
-      }
-
-      const db = admin.firestore()
-      const doc = await db.collection("trainers").doc(params.id).get()
-
-      if (doc.exists) {
-        const trainerData = doc.data()
-        console.log("[SERVER] 5. Found trainer in Firebase:", trainerData?.name)
-
-        // Generate content if it doesn't exist
-        if (!trainerData?.content) {
-          trainerData.content = {
-            hero: {
-              title: `Transform Your Body, Transform Your Life`,
-              subtitle: `${trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
-              description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
-            },
-            about: {
-              title: `About ${trainerData.fullName || trainerData.name}`,
-              content:
-                trainerData.bio ||
-                `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
-            },
-            services: [
-              {
-                title: "Personal Training",
-                description: "Personalized training sessions tailored to your goals",
-                price: "€60/session",
-              },
-            ],
-            testimonials: [
-              {
-                name: "Client A.",
-                text: `Working with ${trainerData.fullName || trainerData.name} has been amazing!`,
-                rating: 5,
-              },
-            ],
-            contact: {
-              email: trainerData.email,
-              phone: trainerData.phone || "Contact for details",
-              location: trainerData.location,
-              availability: "Monday - Friday: 6AM - 8PM",
-            },
-          }
-        }
-
-        return NextResponse.json({
-          success: true,
-          trainer: { id: params.id, ...trainerData },
-        })
-      }
-    } catch (firebaseError) {
-      console.log("[SERVER] 6. Firebase error:", firebaseError)
-    }
-
-    // If trainer not found, return error
-    console.log("[SERVER] 7. Trainer not found:", params.id)
+    // For other trainer IDs, return not found
+    console.log("[SERVER] 4. Trainer not found:", params.id)
     return NextResponse.json(
       {
         success: false,
@@ -177,7 +105,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       },
     )
   } catch (error) {
-    console.error("[SERVER] 8. Unexpected error:", error)
+    console.error("[SERVER] 5. Unexpected error:", error)
     return NextResponse.json(
       {
         success: false,
