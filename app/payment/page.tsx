@@ -45,9 +45,15 @@ function PaymentPageContent() {
         return
       }
 
+      if (!token) {
+        setError("No access token provided")
+        setLoading(false)
+        return
+      }
+
       try {
-        console.log("Fetching trainer data for:", tempId)
-        const response = await fetch(`/api/trainer/temp/${tempId}`)
+        console.log("Fetching trainer data for:", tempId, "with token:", token?.substring(0, 10) + "...")
+        const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
 
         if (!response.ok) {
           const errorData = await response.json()
@@ -71,7 +77,7 @@ function PaymentPageContent() {
     }
 
     fetchTrainerData()
-  }, [tempId])
+  }, [tempId, token])
 
   const handlePaymentComplete = () => {
     console.log("Payment completed successfully")
