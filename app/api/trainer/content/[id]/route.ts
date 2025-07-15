@@ -1,109 +1,119 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { getAdminDb } from "@/app/api/firebase-config"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    console.log("[SERVER] === API TRAINER CONTENT DEBUG ===")
-    console.log("[SERVER] 1. Received trainer ID:", params.id)
+    const { id } = params
 
-    if (!params.id) {
-      return NextResponse.json(
-        { success: false, error: "Trainer ID is required" },
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      )
+    if (!id) {
+      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    // For the known trainer ID, return mock data that matches the temp trainer page design
-    if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
-      console.log("[SERVER] 2. Returning mock data for known trainer:", params.id)
+    console.log(`[API] Fetching trainer content for ID: ${id}`)
 
-      const mockTrainerData = {
-        id: "POj2MRZ5ZRbq3CW1U0zJ",
-        name: "Mirre Snelting",
-        fullName: "Mirre Snelting",
-        email: "mirresnelting+3@gmail.com",
-        phone: "+436602101427",
-        location: "Vienna",
-        specialization: "Sports Performance",
-        experience: "5-10 years",
-        services: ["Personal Training", "Sports Performance"],
-        isActive: true,
-        status: "active",
-        content: {
-          hero: {
-            title: "Transform Your Body, Transform Your Life",
-            subtitle: "Sports Performance • 5-10 years experience • Vienna",
-            description:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
-          },
-          about: {
-            title: "About Mirre Snelting",
-            content:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
-          },
-          services: [
-            {
-              title: "Personal Training",
-              description: "Personalized personal training sessions tailored to your goals",
-              price: "€60/session",
-            },
-            {
-              title: "Sports Performance Training",
-              description: "Specialized training to improve athletic performance and competition readiness",
-              price: "€80/session",
-            },
-            {
-              title: "Custom Workout Plan",
-              description: "Personalized workout program designed for your goals and schedule",
-              price: "€100/plan",
-            },
-          ],
-          testimonials: [
-            {
-              name: "Sarah M.",
-              text: "Working with Mirre has been life-changing. Their expertise in Sports Performance helped me achieve results I never thought possible.",
-              rating: 5,
-            },
-            {
-              name: "Mike R.",
-              text: "Professional, knowledgeable, and motivating. Mirre creates personalized programs that actually work.",
-              rating: 5,
-            },
-            {
-              name: "Lisa K.",
-              text: "Excellent sports performance coaching. Achieved my competition goals with Mirre's guidance!",
-              rating: 5,
-            },
-          ],
-          contact: {
-            email: "mirresnelting+3@gmail.com",
-            phone: "+436602101427",
-            location: "Vienna",
-            availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
+    // Try to get admin database
+    const adminDb = await getAdminDb()
+
+    if (!adminDb) {
+      console.log("[API] No Firebase Admin config, returning mock data")
+      // Return mock data when Firebase Admin is not available
+      return NextResponse.json({
+        id,
+        name: "Alex Johnson",
+        specialties: ["Weight Training", "HIIT", "Nutrition Coaching"],
+        location: "San Francisco, CA",
+        experience: "5+ years",
+        bio: "Passionate fitness trainer dedicated to helping clients achieve their health and wellness goals through personalized training programs and nutritional guidance.",
+        certifications: [
+          "NASM Certified Personal Trainer",
+          "Precision Nutrition Level 1",
+          "HIIT Specialist Certification",
+        ],
+        pricing: {
+          sessionRate: "$75/hour",
+          packageDeals: ["4 sessions: $280 (Save $20)", "8 sessions: $520 (Save $80)", "12 sessions: $720 (Save $180)"],
+        },
+        availability: ["Mon-Fri: 6AM-8AM", "Mon-Fri: 6PM-8PM", "Sat: 8AM-12PM", "Sun: 10AM-2PM"],
+        contact: {
+          phone: "(555) 123-4567",
+          email: "alex@trainwithme.com",
+          website: "https://alexjohnsontraining.com",
+          social: {
+            instagram: "https://instagram.com/alexjohnsonfit",
+            facebook: "https://facebook.com/alexjohnsontraining",
           },
         },
-      }
-
-      return NextResponse.json(
-        { success: true, trainer: mockTrainerData },
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      )
+        rating: 4.9,
+        reviewCount: 127,
+        profileImage: "/placeholder-user.jpg",
+        isActive: true,
+        status: "active",
+      })
     }
 
-    // For other trainer IDs, return not found
-    console.log("[SERVER] 3. Trainer not found:", params.id)
-    return NextResponse.json(
-      { success: false, error: "Trainer not found" },
-      { status: 404, headers: { "Content-Type": "application/json" } },
-    )
+    // Try to fetch from Firebase
+    try {
+      const trainerDoc = await adminDb.collection("trainers").doc(id).get()
+
+      if (!trainerDoc.exists) {
+        console.log(`[API] Trainer ${id} not found in database`)
+        return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
+      }
+
+      const trainerData = trainerDoc.data()
+      console.log(`[API] Found trainer data:`, {
+        id,
+        hasContent: !!trainerData?.content,
+        isActive: trainerData?.isActive,
+        status: trainerData?.status,
+      })
+
+      // Check if trainer is active
+      const isActive = trainerData?.isActive === true || trainerData?.status === "active"
+
+      if (!isActive) {
+        console.log(`[API] Trainer ${id} is not active`)
+        return NextResponse.json({ error: "Trainer profile is not active" }, { status: 403 })
+      }
+
+      // Get content or generate default
+      let content = trainerData?.content
+
+      if (!content) {
+        console.log(`[API] No content found for trainer ${id}, generating default`)
+        content = {
+          name: trainerData?.name || "Professional Trainer",
+          specialties: trainerData?.specialties || ["Personal Training", "Fitness Coaching"],
+          location: trainerData?.location || "Location TBD",
+          experience: trainerData?.experience || "Experienced Professional",
+          bio: trainerData?.bio || "Dedicated fitness professional committed to helping you achieve your goals.",
+          certifications: trainerData?.certifications || ["Certified Personal Trainer"],
+          pricing: trainerData?.pricing || {
+            sessionRate: "$60/hour",
+            packageDeals: ["Contact for package deals"],
+          },
+          availability: trainerData?.availability || ["Contact for availability"],
+          contact: trainerData?.contact || {
+            email: "contact@trainer.com",
+          },
+          rating: 5.0,
+          reviewCount: 0,
+          profileImage: "/placeholder-user.jpg",
+        }
+      }
+
+      return NextResponse.json({
+        id,
+        ...content,
+        isActive: true,
+        status: "active",
+      })
+    } catch (dbError) {
+      console.error(`[API] Database error for trainer ${id}:`, dbError)
+      return NextResponse.json({ error: "Database error" }, { status: 500 })
+    }
   } catch (error) {
-    console.error("[SERVER] 4. Unexpected error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    )
+    console.error("[API] Unexpected error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

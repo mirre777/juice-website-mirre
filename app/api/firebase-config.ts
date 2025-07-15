@@ -1,7 +1,10 @@
-import { initializeApp, getApps, getApp } from "firebase/app"
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore"
+// This file handles Firebase configuration for both client and server environments
+// It uses regular Firebase SDK for client-side and Firebase Admin for server-side
 
-// Firebase configuration
+// For client-side Firebase (works in browser)
+import { initializeApp, getApps, getApp } from "firebase/app"
+import { getFirestore } from "firebase/firestore"
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -13,13 +16,14 @@ const firebaseConfig = {
 }
 
 // Check if we have real Firebase configuration
-export const hasRealFirebaseConfig =
+export const hasRealFirebaseConfig = !!(
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "mock-project-id" &&
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock-api-key"
+)
 
-// Initialize Firebase
+// Initialize Firebase client
 let app
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig)
@@ -30,16 +34,47 @@ if (getApps().length === 0) {
 // Initialize Firestore
 export const db = getFirestore(app)
 
-// Connect to emulator in development if specified
-if (process.env.NODE_ENV === "development" && process.env.FIRESTORE_EMULATOR_HOST) {
+export { app }
+
+// For server-side Firebase Admin (only works in API routes)
+export async function getAdminDb() {
+  if (typeof window !== "undefined") {
+    throw new Error("Firebase Admin can only be used on the server side")
+  }
+
   try {
-    connectFirestoreEmulator(db, "localhost", 8080)
+    const { initializeApp: initializeAdminApp, getApps: getAdminApps, cert } = await import("firebase-admin/app")
+    const { getFirestore: getAdminFirestore } = await import("firebase-admin/firestore")
+
+    const hasAdminConfig = !!(
+      process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_CLIENT_EMAIL &&
+      process.env.FIREBASE_PRIVATE_KEY
+    )
+
+    if (!hasAdminConfig) {
+      return null
+    }
+
+    let adminApp
+    if (getAdminApps().length === 0) {
+      adminApp = initializeAdminApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        }),
+      })
+    } else {
+      adminApp = getAdminApps()[0]
+    }
+
+    return getAdminFirestore(adminApp)
   } catch (error) {
-    // Emulator already connected
+    console.error("Firebase Admin initialization error:", error)
+    return null
   }
 }
-
-export { app }
 
 export function getFirebaseDebugInfo() {
   return {
