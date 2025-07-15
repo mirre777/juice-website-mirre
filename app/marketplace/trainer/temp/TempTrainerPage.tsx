@@ -37,10 +37,9 @@ interface TempTrainerData {
 
 interface ApiResponse {
   success: boolean
-  trainer?: TempTrainerData
+  trainer: TempTrainerData
   error?: string
   details?: string
-  timestamp?: string
 }
 
 interface TempTrainerPageProps {
@@ -119,32 +118,13 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
       console.log("🌐 Fetching from URL:", url)
 
       const fetchStartTime = Date.now()
-
-      // Add timeout and better error handling
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
-
-      let response: Response
-      try {
-        response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "User-Agent": navigator.userAgent,
-          },
-          signal: controller.signal,
-        })
-        clearTimeout(timeoutId)
-      } catch (fetchError) {
-        clearTimeout(timeoutId)
-        console.error("❌ Fetch request failed", {
-          error: fetchError instanceof Error ? fetchError.message : String(fetchError),
-          url,
-          tempId,
-        })
-        throw new Error(`Network request failed: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`)
-      }
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      })
 
       const fetchDuration = Date.now() - fetchStartTime
 
@@ -154,7 +134,6 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         ok: response.ok,
         duration: `${fetchDuration}ms`,
         contentType: response.headers.get("content-type"),
-        contentLength: response.headers.get("content-length"),
         url: response.url,
       })
 
@@ -165,33 +144,18 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         responseText = await response.text()
         console.log("📄 Response text received", {
           length: responseText.length,
-          preview: responseText.substring(0, 300) + (responseText.length > 300 ? "..." : ""),
+          preview: responseText.substring(0, 200) + (responseText.length > 200 ? "..." : ""),
           isJson: responseText.trim().startsWith("{") || responseText.trim().startsWith("["),
-          contentType: response.headers.get("content-type"),
         })
 
-        // Check if response is JSON based on content type and content
-        const contentType = response.headers.get("content-type") || ""
-        const isJsonContentType = contentType.includes("application/json")
-        const looksLikeJson = responseText.trim().startsWith("{") || responseText.trim().startsWith("[")
-
-        if (!isJsonContentType && !looksLikeJson) {
+        // Check if response is JSON
+        if (!responseText.trim().startsWith("{") && !responseText.trim().startsWith("[")) {
           console.error("❌ Response is not JSON", {
             responseText: responseText.substring(0, 500),
             responseStatus: response.status,
-            contentType,
-            isJsonContentType,
-            looksLikeJson,
+            contentType: response.headers.get("content-type"),
           })
-
-          // Handle common error responses
-          if (responseText.toLowerCase().includes("internal server error")) {
-            throw new Error("Server encountered an internal error. Please try again later.")
-          } else if (responseText.toLowerCase().includes("not found")) {
-            throw new Error("Trainer profile not found or has expired.")
-          } else {
-            throw new Error(`Server returned unexpected response: ${responseText.substring(0, 100)}...`)
-          }
+          throw new Error(`Server returned non-JSON response: ${responseText}. Server response: ${responseText}`)
         }
 
         data = JSON.parse(responseText)
@@ -201,7 +165,6 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           hasSuccess: !!data.success,
           hasTrainer: !!data.trainer,
           hasError: !!data.error,
-          success: data.success,
         })
       } catch (parseError) {
         console.error("❌ Failed to parse response", {
@@ -211,7 +174,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           contentType: response.headers.get("content-type"),
         })
         throw new Error(
-          `Failed to parse server response: ${parseError instanceof Error ? parseError.message : "Unknown parse error"}. Response: ${responseText?.substring(0, 100)}...`,
+          `Failed to parse API response: ${parseError instanceof Error ? parseError.message : "Unknown parse error"}. Server response: ${responseText?.substring(0, 100)}...`,
         )
       }
 
@@ -221,12 +184,9 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           statusText: response.statusText,
           error: data.error,
           details: data.details,
-          timestamp: data.timestamp,
           responseData: data,
         })
-
-        const errorMessage = data.error || data.details || `HTTP ${response.status}: ${response.statusText}`
-        throw new Error(errorMessage)
+        throw new Error(data.error || data.details || `HTTP ${response.status}: ${response.statusText}`)
       }
 
       if (data.success && data.trainer) {
@@ -500,17 +460,31 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
                 <div>
                   <h2 className="text-2xl font-bold mb-6">What My Clients Say</h2>
                   <div className="space-y-6">
-                    {trainer.testimonials.map((testimonial, index) => (
-                      <Card key={index} className="p-6">
-                        <div className="flex items-center gap-1 mb-3">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          ))}
-                        </div>
-                        <p className="text-gray-700 mb-3">"{testimonial.text}"</p>
-                        <p className="text-sm text-gray-500">- {testimonial.author}</p>
-                      </Card>
-                    ))}
+                    <Card className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        "Working with {displayName} has been life-changing. Their expertise in {trainer.specialization}{" "}
+                        helped me achieve results I never thought possible."
+                      </p>
+                      <p className="text-sm text-gray-500">- Sarah M.</p>
+                    </Card>
+
+                    <Card className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        "Professional, knowledgeable, and motivating. {displayName} creates personalized programs that
+                        actually work."
+                      </p>
+                      <p className="text-sm text-gray-500">- Mike R.</p>
+                    </Card>
                   </div>
                 </div>
               </div>
