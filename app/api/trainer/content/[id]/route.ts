@@ -1,142 +1,111 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-
-// Initialize Firebase Admin
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  })
-}
-
-const db = getFirestore()
+import { doc, getDoc } from "firebase/firestore"
+import { db } from "@/app/api/firebase-config"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
+    console.log("Fetching trainer content for ID:", id)
 
     if (!id) {
+      console.error("No trainer ID provided")
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    console.log("Fetching trainer content for:", id)
+    // Get trainer document from Firebase
+    const trainerRef = doc(db, "trainers", id)
+    const trainerSnap = await getDoc(trainerRef)
 
-    // Get trainer document
-    const trainerDoc = await db.collection("trainers").doc(id).get()
-
-    if (!trainerDoc.exists) {
-      console.log("Trainer not found:", id)
+    if (!trainerSnap.exists()) {
+      console.error("Trainer document not found:", id)
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainerData = trainerDoc.data()!
+    const trainerData = trainerSnap.data()
     console.log("Trainer data found:", {
-      id: trainerData.id,
-      status: trainerData.status,
+      id,
       isActive: trainerData.isActive,
-      isPaid: trainerData.isPaid,
-      fullName: trainerData.fullName,
+      status: trainerData.status,
+      hasContent: !!trainerData.content,
     })
 
     // Check if trainer is active (either isActive: true OR status: "active")
-    const isTrainerActive = trainerData.isActive === true || trainerData.status === "active"
+    const isActive = trainerData.isActive === true || trainerData.status === "active"
 
-    if (!isTrainerActive) {
-      console.log("Trainer profile not active:", { isActive: trainerData.isActive, status: trainerData.status })
-      return NextResponse.json({ error: "Trainer profile not active" }, { status: 403 })
+    if (!isActive) {
+      console.error("Trainer is not active:", { isActive: trainerData.isActive, status: trainerData.status })
+      return NextResponse.json({ error: "Trainer profile is not active" }, { status: 403 })
     }
 
-    // Generate default content if none exists
-    const content = trainerData.content || generateDefaultContent(trainerData)
+    // If trainer has existing content, return it
+    if (trainerData.content) {
+      console.log("Returning existing trainer content")
+      return NextResponse.json({
+        success: true,
+        trainer: {
+          id,
+          ...trainerData,
+          content: trainerData.content,
+        },
+      })
+    }
 
-    console.log("Trainer content found:", trainerData.fullName || trainerData.name)
+    // Generate default content from trainer's form data
+    console.log("Generating default content from trainer data")
+    const defaultContent = {
+      hero: {
+        title: `Transform Your Fitness with ${trainerData.fullName || "Professional Training"}`,
+        subtitle: `${trainerData.experience || "Experienced"} Personal Trainer specializing in ${trainerData.specialty || trainerData.specialization || "Fitness Training"}`,
+        cta: "Book Your Session",
+        backgroundImage: "/images/lemon-trainer.png",
+      },
+      about: {
+        title: "About Me",
+        content: `Hi, I'm ${trainerData.fullName || "your trainer"}! With ${trainerData.experience || "years of experience"} in the fitness industry, I specialize in ${trainerData.specialty || trainerData.specialization || "helping clients achieve their fitness goals"}. 
+
+Located in ${trainerData.location || "your area"}, I'm passionate about helping people transform their lives through fitness. Whether you're just starting your fitness journey or looking to take your training to the next level, I'm here to guide and support you every step of the way.
+
+My approach is personalized, results-driven, and focused on creating sustainable habits that last a lifetime.`,
+        image: "/images/lemon-trainer-serious.png",
+      },
+      services: {
+        title: "My Services",
+        items: trainerData.services || ["Personal Training", "Fitness Coaching", "Workout Planning"],
+      },
+      contact: {
+        title: "Get In Touch",
+        phone: trainerData.phone || "",
+        email: trainerData.email || "",
+        location: trainerData.location || "",
+        cta: "Contact Me Today",
+      },
+      seo: {
+        title: `${trainerData.fullName || "Personal Trainer"} - ${trainerData.location || "Fitness Training"}`,
+        description: `Professional personal trainer specializing in ${trainerData.specialty || trainerData.specialization || "fitness training"}. Located in ${trainerData.location || "your area"}. Book your session today!`,
+        keywords: `personal trainer, fitness coach, ${trainerData.location || ""}, ${trainerData.specialty || trainerData.specialization || "fitness training"}`,
+      },
+    }
+
+    console.log("Generated default content successfully")
 
     return NextResponse.json({
       success: true,
       trainer: {
-        id: trainerData.id || id,
-        name: trainerData.name || trainerData.fullName,
-        fullName: trainerData.fullName,
-        email: trainerData.email,
-        phone: trainerData.phone,
-        location: trainerData.location,
-        specialization: trainerData.specialty || trainerData.specialization,
-        experience: trainerData.experience,
-        bio: trainerData.bio,
-        certifications: trainerData.certifications || [],
-        content: content,
-        isActive: isTrainerActive,
-        activatedAt: trainerData.activatedAt,
+        id,
+        fullName: trainerData.fullName || "Personal Trainer",
+        email: trainerData.email || "",
+        phone: trainerData.phone || "",
+        location: trainerData.location || "",
+        specialty: trainerData.specialty || trainerData.specialization || "Fitness Training",
+        experience: trainerData.experience || "Experienced",
+        services: trainerData.services || ["Personal Training"],
+        isActive: true,
+        status: trainerData.status || "active",
+        content: defaultContent,
       },
     })
   } catch (error) {
     console.error("Error fetching trainer content:", error)
     return NextResponse.json({ error: "Failed to fetch trainer content" }, { status: 500 })
-  }
-}
-
-// Generate default content structure
-function generateDefaultContent(trainerData: any) {
-  const name = trainerData.fullName || trainerData.name || "Personal Trainer"
-  const specialization = trainerData.specialty || trainerData.specialization || "Fitness Training"
-  const experience = trainerData.experience || "Professional"
-  const location = trainerData.location || "Local Area"
-  const email = trainerData.email || ""
-  const phone = trainerData.phone || ""
-
-  return {
-    hero: {
-      title: `Transform Your Fitness with ${name}`,
-      subtitle: `Professional ${specialization} training tailored to your goals`,
-      description: `Welcome! I'm ${name}, a certified personal trainer specializing in ${specialization}. With ${experience} of experience, I'm here to help you achieve your fitness goals through personalized training programs.`,
-    },
-    about: {
-      title: "About Me",
-      content: `I'm ${name}, a passionate fitness professional with ${experience} of experience in ${specialization}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
-    },
-    services: [
-      {
-        title: "Personal Training Session",
-        description: "One-on-one personalized training session focused on your specific goals",
-        price: "€60/session",
-      },
-      {
-        title: "Fitness Assessment",
-        description: "Comprehensive fitness evaluation and goal-setting session",
-        price: "€40/session",
-      },
-      {
-        title: "Custom Workout Plan",
-        description: "Personalized workout program designed for your goals and schedule",
-        price: "€80/plan",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Amazing results in just 3 months! Highly recommend.",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Professional, knowledgeable, and motivating trainer.",
-        rating: 5,
-      },
-      {
-        name: "Lisa K.",
-        text: "Helped me achieve my fitness goals beyond expectations.",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: email,
-      phone: phone,
-      location: location,
-      availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
-    },
   }
 }
