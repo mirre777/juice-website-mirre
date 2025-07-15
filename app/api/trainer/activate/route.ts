@@ -1,88 +1,113 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/firebase"
-import { doc, updateDoc, getDoc } from "firebase/firestore"
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore"
 
 export async function POST(req: NextRequest) {
   try {
     const { tempId, paymentIntentId } = await req.json()
 
-    if (!tempId) {
-      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
+    console.log("Activation request:", { tempId, paymentIntentId })
+
+    if (!tempId || !paymentIntentId) {
+      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
     }
 
-    console.log("Activating trainer:", { tempId, paymentIntentId })
-
-    // Get the temp trainer document
+    // Get the temp trainer data
     const tempTrainerRef = doc(db, "trainers", tempId)
-    const tempTrainerDoc = await getDoc(tempTrainerRef)
+    const tempTrainerSnap = await getDoc(tempTrainerRef)
 
-    if (!tempTrainerDoc.exists()) {
+    if (!tempTrainerSnap.exists()) {
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const tempTrainerData = tempTrainerDoc.data()
+    const tempTrainerData = tempTrainerSnap.data()
 
-    // Generate content for the trainer
-    const generatedContent = {
-      hero: {
-        title: "Transform Your Body, Transform Your Life",
-        subtitle: `${tempTrainerData.specialty || "Fitness Specialist"} • ${tempTrainerData.experience || "Professional"} • ${tempTrainerData.location || "Available"}`,
-        cta: "Book Your Free Consultation",
-      },
-      about: {
-        title: `About ${tempTrainerData.fullName || "Your Trainer"}`,
-        content:
-          tempTrainerData.bio ||
-          "Dedicated fitness professional committed to helping you achieve your goals through personalized training and nutrition guidance.",
-      },
-      services: tempTrainerData.services || [
-        {
-          name: "Personal Training",
-          description: "One-on-one training sessions tailored to your goals",
-        },
-        {
-          name: "Nutrition Coaching",
-          description: "Personalized meal plans and nutrition guidance",
-        },
-      ],
-      contact: {
-        email: tempTrainerData.email,
-        phone: tempTrainerData.phone,
-        location: tempTrainerData.location,
-      },
-      testimonials: [
-        {
-          name: "Sarah M.",
-          text: "Amazing results! Highly recommend this trainer.",
-          rating: 5,
-        },
-        {
-          name: "John D.",
-          text: "Professional, knowledgeable, and motivating.",
-          rating: 5,
-        },
-      ],
+    // Check if already activated
+    if (tempTrainerData.status === "activated" || tempTrainerData.finalId) {
+      return NextResponse.json({
+        success: true,
+        finalId: tempTrainerData.finalId,
+        message: "Trainer already activated",
+      })
     }
 
-    // Update the trainer document
-    await updateDoc(tempTrainerRef, {
+    // Generate content and create final trainer
+    const generatedContent = generateTrainerContent(tempTrainerData)
+    const finalTrainerId = `trainer_${Date.now()}_${Math.random().toString(36).substring(7)}`
+
+    const finalTrainerData = {
+      ...tempTrainerData,
+      id: finalTrainerId,
       status: "active",
       isActive: true,
       isPaid: true,
-      paymentIntentId: paymentIntentId || null,
+      paymentIntentId,
       activatedAt: new Date().toISOString(),
       content: generatedContent,
+      sessionToken: null,
+      expiresAt: null,
+    }
+
+    // Create final trainer document
+    const finalTrainerRef = doc(db, "trainers", finalTrainerId)
+    await setDoc(finalTrainerRef, finalTrainerData)
+
+    // Update temp trainer
+    await updateDoc(tempTrainerRef, {
+      status: "activated",
+      finalId: finalTrainerId,
+      activatedAt: new Date().toISOString(),
     })
 
-    console.log("Trainer activated successfully:", tempId)
+    console.log("Trainer activated successfully:", finalTrainerId)
 
     return NextResponse.json({
       success: true,
+      finalId: finalTrainerId,
       message: "Trainer activated successfully",
-      trainerId: tempId,
     })
   } catch (error) {
-    console.error("Error activating trainer:", error)
-    return NextResponse.json({ error: "Failed to activate trainer" }, { status: 500 })
+    console.error("Activation error:", error)
+    return NextResponse.json({ error: "Activation failed" }, { status: 500 })
+  }
+}
+
+function generateTrainerContent(trainerData: any) {
+  const { name, fullName, specialization, experience, location, bio } = trainerData
+
+  return {
+    hero: {
+      title: "Transform Your Body, Transform Your Life",
+      subtitle: `${specialization} • ${experience} • ${location}`,
+      cta: "Book Your Free Consultation",
+    },
+    about: {
+      title: `About ${fullName || name}`,
+      content: bio || `Professional ${specialization.toLowerCase()} with ${experience} of experience.`,
+    },
+    services: [
+      {
+        title: "Personal Training",
+        description: "One-on-one sessions tailored to your goals.",
+        price: "€80/session",
+      },
+      {
+        title: "Group Classes",
+        description: "Small group training for motivation.",
+        price: "€25/session",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Amazing results in just 3 months!",
+        rating: 5,
+      },
+    ],
+    contact: {
+      email: trainerData.email,
+      phone: trainerData.phone || "Contact for details",
+      location: location,
+    },
   }
 }

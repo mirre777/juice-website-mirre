@@ -1,93 +1,96 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Star, MapPin, Phone, Mail } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Star, MapPin, Mail, Phone, Calendar } from "lucide-react"
 
-interface TrainerData {
+interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    cta: string
+  }
+  about: {
+    title: string
+    content: string
+  }
+  services: Array<{
+    title: string
+    description: string
+    price: string
+  }>
+  testimonials: Array<{
+    name: string
+    text: string
+    rating: number
+  }>
+  contact: {
+    email: string
+    phone: string
+    location: string
+  }
+}
+
+interface Trainer {
   id: string
+  name: string
   fullName: string
   email: string
-  phone?: string
-  location?: string
-  specialty?: string
-  experience?: string
-  bio?: string
-  services?: Array<{
-    name: string
-    description: string
-  }>
-  content?: {
-    hero: {
-      title: string
-      subtitle: string
-      cta: string
-    }
-    about: {
-      title: string
-      content: string
-    }
-    services: Array<{
-      name: string
-      description: string
-    }>
-    contact: {
-      email: string
-      phone?: string
-      location?: string
-    }
-    testimonials: Array<{
-      name: string
-      text: string
-      rating: number
-    }>
-  }
-  status: string
+  specialization: string
+  experience: string
+  location: string
+  bio: string
+  content: TrainerContent
   isActive: boolean
+  status: string
 }
 
 interface TrainerProfilePageProps {
   trainerId: string
 }
 
-export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
-  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+export function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
+  const [trainer, setTrainer] = useState<Trainer | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchTrainer() {
-      try {
-        console.log("Fetching trainer data for:", trainerId)
-
-        const response = await fetch(`/api/trainer/content/${trainerId}`)
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch trainer")
-        }
-
-        console.log("Trainer data received:", data)
-        setTrainer(data.trainer)
-      } catch (err) {
-        console.error("Error fetching trainer:", err)
-        setError(err instanceof Error ? err.message : "Failed to load trainer")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (trainerId) {
-      fetchTrainer()
-    }
+    fetchTrainerData()
   }, [trainerId])
+
+  const fetchTrainerData = async () => {
+    try {
+      console.log("Fetching trainer data for:", trainerId)
+
+      const response = await fetch(`/api/trainer/content/${trainerId}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch trainer data")
+      }
+
+      if (data.success && data.trainer) {
+        setTrainer(data.trainer)
+      } else {
+        throw new Error("Invalid trainer data")
+      }
+    } catch (error) {
+      console.error("Error fetching trainer:", error)
+      setError(error instanceof Error ? error.message : "Failed to load trainer")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice mx-auto mb-4"></div>
+          <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+          </div>
           <p className="text-gray-600">Loading trainer profile...</p>
         </div>
       </div>
@@ -97,125 +100,137 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   if (error || !trainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-6xl mb-4">🚫</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Content Blocked</h1>
-          <p className="text-gray-600 mb-4">{error || "This trainer profile is not available."}</p>
-          <p className="text-sm text-gray-500">Contact the site owner to fix this issue.</p>
+        <div className="text-center max-w-md mx-auto px-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Available</h1>
+          <p className="text-gray-600 mb-4">{error || "Trainer profile not found"}</p>
+          <Button onClick={() => (window.location.href = "/marketplace")}>Back to Marketplace</Button>
         </div>
       </div>
     )
   }
 
-  const content = trainer.content
+  const { content } = trainer
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-juice to-yellow-400 text-black py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            {content?.hero?.title || "Transform Your Body, Transform Your Life"}
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
-            {content?.hero?.subtitle || `${trainer.specialty} • ${trainer.experience} • ${trainer.location}`}
-          </p>
+      <section className="bg-[#D2FF28] py-20">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-black mb-4">{content.hero.title}</h1>
+          <p className="text-xl text-black mb-8">{content.hero.subtitle}</p>
           <Button size="lg" className="bg-black text-white hover:bg-gray-800">
-            {content?.hero?.cta || "Book Your Free Consultation"}
+            {content.hero.cta}
           </Button>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              {content?.about?.title || `About ${trainer.fullName}`}
-            </h2>
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <p className="text-lg text-gray-700 leading-relaxed">
-                {content?.about?.content ||
-                  trainer.bio ||
-                  "Dedicated fitness professional committed to helping you achieve your goals."}
-              </p>
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* About Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
+                <span className="text-black font-bold">A</span>
+              </div>
+              {content.about.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700 leading-relaxed">{content.about.content}</p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Badge variant="secondary">{trainer.specialization}</Badge>
+              <Badge variant="secondary">{trainer.experience}</Badge>
+              <Badge variant="secondary">
+                <MapPin className="h-3 w-3 mr-1" />
+                {trainer.location}
+              </Badge>
             </div>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      {/* Services Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Services</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {(content?.services || trainer.services || []).map((service, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-3">{service.name}</h3>
-                  <p className="text-gray-600">{service.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      {content?.testimonials && content.testimonials.length > 0 && (
-        <section className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">What Clients Say</h2>
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {content.testimonials.map((testimonial, index) => (
-                <Card key={index} className="bg-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 mb-4">"{testimonial.text}"</p>
-                    <p className="font-semibold">- {testimonial.name}</p>
-                  </CardContent>
-                </Card>
+        {/* Services Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Services & Pricing</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {content.services.map((service, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-2">{service.title}</h3>
+                  <p className="text-gray-600 mb-3">{service.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-[#D2FF28]">{service.price}</span>
+                    <Button size="sm">Book Now</Button>
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          </CardContent>
+        </Card>
 
-      {/* Contact Section */}
-      <section className="py-16 bg-black text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8">Get Started Today</h2>
-          <div className="max-w-2xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              {trainer.email && (
-                <div className="flex items-center justify-center space-x-2">
-                  <Mail className="w-5 h-5" />
-                  <span>{trainer.email}</span>
+        {/* Testimonials Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Client Testimonials</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {content.testimonials.map((testimonial, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-2">"{testimonial.text}"</p>
+                  <p className="font-semibold text-sm">- {testimonial.name}</p>
                 </div>
-              )}
-              {trainer.phone && (
-                <div className="flex items-center justify-center space-x-2">
-                  <Phone className="w-5 h-5" />
-                  <span>{trainer.phone}</span>
-                </div>
-              )}
-              {trainer.location && (
-                <div className="flex items-center justify-center space-x-2">
-                  <MapPin className="w-5 h-5" />
-                  <span>{trainer.location}</span>
-                </div>
-              )}
+              ))}
             </div>
-            <Button size="lg" className="bg-juice text-black hover:bg-yellow-400">
-              Book Your Free Consultation
-            </Button>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+
+        {/* Contact Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Get In Touch</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-[#D2FF28]" />
+                <div>
+                  <p className="font-semibold">Email</p>
+                  <p className="text-sm text-gray-600">{content.contact.email}</p>
+                </div>
+              </div>
+              {content.contact.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-[#D2FF28]" />
+                  <div>
+                    <p className="font-semibold">Phone</p>
+                    <p className="text-sm text-gray-600">{content.contact.phone}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-[#D2FF28]" />
+                <div>
+                  <p className="font-semibold">Location</p>
+                  <p className="text-sm text-gray-600">{content.contact.location}</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 text-center">
+              <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#c5f016]">
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule Consultation
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
