@@ -51,7 +51,24 @@ export async function POST(request: NextRequest) {
       tempId,
     })
 
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    let paymentIntent
+    try {
+      paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    } catch (stripeError) {
+      logger.error("Stripe payment verification failed", {
+        tempId,
+        paymentIntentId,
+        error: stripeError instanceof Error ? stripeError.message : String(stripeError),
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Payment verification failed",
+        },
+        { status: 400 },
+      )
+    }
 
     if (paymentIntent.status !== "succeeded") {
       logger.warn("Payment not successful", {
@@ -95,25 +112,42 @@ export async function POST(request: NextRequest) {
     })
 
     // Get temp trainer document
-    const tempTrainerRef = doc(db, "trainers", tempId)
-    const tempTrainerSnap = await getDoc(tempTrainerRef)
+    let tempTrainerRef, tempTrainerSnap, tempTrainerData
+    try {
+      tempTrainerRef = doc(db, "trainers", tempId)
+      tempTrainerSnap = await getDoc(tempTrainerRef)
 
-    if (!tempTrainerSnap.exists()) {
-      logger.error("Temp trainer not found during activation", {
+      if (!tempTrainerSnap.exists()) {
+        logger.error("Temp trainer not found during activation", {
+          tempId,
+          paymentIntentId,
+        })
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Trainer profile not found",
+          },
+          { status: 404 },
+        )
+      }
+
+      tempTrainerData = tempTrainerSnap.data()
+    } catch (firebaseError) {
+      logger.error("Firebase error fetching temp trainer", {
         tempId,
         paymentIntentId,
+        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
       })
 
       return NextResponse.json(
         {
           success: false,
-          error: "Trainer profile not found",
+          error: "Database error",
         },
-        { status: 404 },
+        { status: 500 },
       )
     }
-
-    const tempTrainerData = tempTrainerSnap.data()
 
     // Check if already activated
     if (tempTrainerData.isActive && tempTrainerData.isPaid) {
@@ -129,7 +163,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // **NEW: Generate AI content for permanent profile**
+    // Generate AI content for permanent profile
     const generatedContent = generateTrainerContent(tempTrainerData)
 
     // Create final trainer profile with generated content
@@ -152,7 +186,7 @@ export async function POST(request: NextRequest) {
       isPaid: true,
       paymentIntentId,
 
-      // **NEW: Add generated content**
+      // Add generated content
       content: generatedContent,
 
       // Timestamps
@@ -170,17 +204,34 @@ export async function POST(request: NextRequest) {
     })
 
     // Add final trainer document
-    const finalTrainerRef = await addDoc(collection(db, "trainers"), finalTrainerData)
-    const finalId = finalTrainerRef.id
+    let finalTrainerRef, finalId
+    try {
+      finalTrainerRef = await addDoc(collection(db, "trainers"), finalTrainerData)
+      finalId = finalTrainerRef.id
 
-    // Update temp document with final ID
-    await updateDoc(tempTrainerRef, {
-      finalId,
-      isActive: true,
-      isPaid: true,
-      paymentIntentId,
-      activatedAt: serverTimestamp(),
-    })
+      // Update temp document with final ID
+      await updateDoc(tempTrainerRef, {
+        finalId,
+        isActive: true,
+        isPaid: true,
+        paymentIntentId,
+        activatedAt: serverTimestamp(),
+      })
+    } catch (firebaseError) {
+      logger.error("Firebase error creating final trainer", {
+        tempId,
+        paymentIntentId,
+        error: firebaseError instanceof Error ? firebaseError.message : String(firebaseError),
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create trainer profile",
+        },
+        { status: 500 },
+      )
+    }
 
     logger.info("Trainer activation completed successfully", {
       tempId,
@@ -199,23 +250,25 @@ export async function POST(request: NextRequest) {
     const processingTime = Date.now() - startTime
 
     logger.error("Trainer activation error", {
-      tempId: request.body?.tempId,
+      requestId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString(),
+      processingTime,
     })
 
     return NextResponse.json(
       {
         success: false,
         error: "Activation failed. Please try again.",
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
     )
   }
 }
 
-// **NEW: Content generation function**
+// Content generation function
 function generateTrainerContent(trainerData: any) {
   const name = trainerData.fullName || trainerData.name
   const specialty = trainerData.specialty || trainerData.specialization
