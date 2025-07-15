@@ -21,59 +21,73 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
 
-    console.log("Fetching temp trainer:", { tempId, hasToken: !!token })
+    console.log("Temp trainer API called", { tempId, hasToken: !!token })
 
     if (!tempId) {
       return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
     }
 
-    // Get temp trainer document
-    const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
+    console.log("Fetching trainer document", { tempId })
 
-    if (!tempDoc.exists) {
-      console.log("Temp trainer not found:", tempId)
+    // Get the temp trainer document
+    const trainerDoc = await db.collection("trainers").doc(tempId).get()
+
+    if (!trainerDoc.exists) {
+      console.log("Trainer document not found:", tempId)
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    const tempData = tempDoc.data()!
-    console.log("Found temp trainer:", tempData.name)
+    const trainerData = trainerDoc.data()!
 
-    // Verify token if provided
-    if (token && tempData.sessionToken !== token) {
-      console.log("Invalid token for temp trainer:", tempId)
-      return NextResponse.json({ error: "Invalid access token" }, { status: 403 })
+    console.log("Trainer document retrieved", {
+      tempId,
+      hasSessionToken: !!trainerData.sessionToken,
+      status: trainerData.status,
+    })
+
+    // Validate session token if provided
+    if (token && trainerData.sessionToken !== token) {
+      console.log("Invalid session token")
+      return NextResponse.json({ error: "Invalid session token" }, { status: 403 })
     }
 
-    // Check if expired
-    const expiresAt = new Date(tempData.expiresAt)
-    const now = new Date()
+    // Check if trainer is still temporary and not expired
+    if (trainerData.status !== "temp") {
+      console.log("Trainer is not in temp status:", trainerData.status)
+      return NextResponse.json({ error: "Trainer is not in preview mode" }, { status: 400 })
+    }
 
-    if (now > expiresAt) {
-      console.log("Temp trainer expired:", tempId)
+    const expiresAt = new Date(trainerData.expiresAt)
+    if (expiresAt < new Date()) {
+      console.log("Trainer preview has expired")
       return NextResponse.json({ error: "Preview has expired" }, { status: 410 })
     }
+
+    console.log("Temp trainer data returned successfully", { tempId })
 
     return NextResponse.json({
       success: true,
       trainer: {
-        id: tempData.id,
-        name: tempData.name,
-        fullName: tempData.fullName,
-        email: tempData.email,
-        phone: tempData.phone,
-        location: tempData.location,
-        specialization: tempData.specialization,
-        experience: tempData.experience,
-        bio: tempData.bio,
-        certifications: tempData.certifications,
-        services: tempData.services,
-        expiresAt: tempData.expiresAt,
-        sessionToken: tempData.sessionToken,
-        createdAt: tempData.createdAt,
+        id: trainerData.id,
+        name: trainerData.name,
+        fullName: trainerData.fullName,
+        email: trainerData.email,
+        phone: trainerData.phone,
+        location: trainerData.location,
+        specialization: trainerData.specialization,
+        experience: trainerData.experience,
+        bio: trainerData.bio,
+        certifications: trainerData.certifications,
+        services: trainerData.services,
+        expiresAt: trainerData.expiresAt,
+        createdAt: trainerData.createdAt,
+        status: trainerData.status,
+        isActive: trainerData.isActive || false,
+        sessionToken: trainerData.sessionToken,
       },
     })
   } catch (error: any) {
     console.error("Error fetching temp trainer:", error)
-    return NextResponse.json({ error: "Failed to fetch trainer data" }, { status: 500 })
+    return NextResponse.json({ error: error.message || "Failed to fetch trainer data" }, { status: 500 })
   }
 }

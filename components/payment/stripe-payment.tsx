@@ -227,6 +227,7 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
             colorText: isCoach ? "#000000" : "#ffffff",
           },
         },
+        loader: "auto",
       }}
     >
       <CheckoutForm
