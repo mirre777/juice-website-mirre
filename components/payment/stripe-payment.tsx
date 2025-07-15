@@ -255,6 +255,42 @@ function CheckoutForm({
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [elementsReady, setElementsReady] = useState(false)
+  const [paymentElementOptions, setPaymentElementOptions] = useState(null)
+
+  // Stable payment element options to prevent re-rendering
+  useEffect(() => {
+    const options = {
+      layout: "tabs" as const,
+      defaultValues: {
+        billingDetails: {
+          email: email,
+        },
+      },
+      fields: {
+        billingDetails: {
+          email: "auto" as const,
+          name: "auto" as const,
+          address: {
+            country: "auto" as const,
+            line1: "auto" as const,
+            line2: "auto" as const,
+            city: "auto" as const,
+            state: "auto" as const,
+            postalCode: "auto" as const,
+          },
+        },
+      },
+      // Enable promotion codes - this should be stable
+      promotionCodes: {
+        enabled: true,
+      },
+      wallets: {
+        applePay: "auto" as const,
+        googlePay: "auto" as const,
+      },
+    }
+    setPaymentElementOptions(options)
+  }, []) // Only set once, don't depend on email changes
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -344,43 +380,15 @@ function CheckoutForm({
       )}
 
       <div className="space-y-4">
-        <PaymentElement
-          onReady={() => {
-            console.log("PaymentElement is ready")
-            setElementsReady(true)
-          }}
-          options={{
-            layout: "tabs",
-            defaultValues: {
-              billingDetails: {
-                email: email,
-              },
-            },
-            fields: {
-              billingDetails: {
-                email: "auto",
-                name: "auto",
-                address: {
-                  country: "auto",
-                  line1: "auto",
-                  line2: "auto",
-                  city: "auto",
-                  state: "auto",
-                  postalCode: "auto",
-                },
-              },
-            },
-            // Enable promotion codes (coupon field) - this should work now that you have active promotion codes
-            promotionCodes: {
-              enabled: true,
-            },
-            // Force refresh to detect new promotion codes
-            wallets: {
-              applePay: "auto",
-              googlePay: "auto",
-            },
-          }}
-        />
+        {paymentElementOptions && (
+          <PaymentElement
+            onReady={() => {
+              console.log("PaymentElement is ready")
+              setElementsReady(true)
+            }}
+            options={paymentElementOptions}
+          />
+        )}
       </div>
 
       <div className="space-y-2">
