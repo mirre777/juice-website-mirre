@@ -93,7 +93,7 @@ function PaymentPageContent() {
 
       console.log("Activating trainer with:", { tempId, paymentIntentId })
 
-      // Call activation API
+      // Call activation API with better error handling
       const response = await fetch("/api/trainer/activate", {
         method: "POST",
         headers: {
@@ -105,13 +105,20 @@ function PaymentPageContent() {
         }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Activation failed")
+      // Handle non-JSON responses (like HTML error pages)
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await response.text()
+        console.error("Non-JSON response:", textResponse)
+        throw new Error("Server error - please try again")
       }
 
       const data = await response.json()
       console.log("Activation response:", data)
+
+      if (!response.ok) {
+        throw new Error(data.error || `Activation failed: ${response.status}`)
+      }
 
       if (data.success && data.finalId) {
         toast({
@@ -121,7 +128,9 @@ function PaymentPageContent() {
 
         // Redirect to the live trainer page
         console.log("Redirecting to:", `/marketplace/trainer/${data.finalId}`)
-        router.push(`/marketplace/trainer/${data.finalId}`)
+
+        // Use window.location for more reliable redirect
+        window.location.href = `/marketplace/trainer/${data.finalId}`
       } else {
         throw new Error(data.error || "Activation failed")
       }
