@@ -356,6 +356,24 @@ function CheckoutForm({
                 email: email,
               },
             },
+            fields: {
+              billingDetails: {
+                email: "auto",
+                name: "auto",
+                address: {
+                  country: "auto",
+                  line1: "auto",
+                  line2: "auto",
+                  city: "auto",
+                  state: "auto",
+                  postalCode: "auto",
+                },
+              },
+            },
+            // Enable promotion codes (coupon field)
+            promotionCodes: {
+              enabled: true,
+            },
           }}
         />
       </div>
