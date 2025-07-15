@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
+import { hasRealFirebaseConfig } from "@/app/api/firebase-config"
 
 // Initialize Firebase Admin
 if (!getApps().length) {
@@ -20,46 +21,52 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { id } = params
     console.log("=== API TRAINER CONTENT DEBUG ===")
     console.log("1. Received trainer ID:", id)
-    console.log("2. Firebase Admin config check:", {
+    console.log("2. Has real Firebase config:", hasRealFirebaseConfig)
+    console.log("3. Firebase Admin config check:", {
       projectId: process.env.FIREBASE_PROJECT_ID,
       hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
       hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
     })
 
+    if (!hasRealFirebaseConfig) {
+      console.error("4. ERROR: No real Firebase configuration available")
+      return NextResponse.json({ error: "Firebase not configured" }, { status: 500 })
+    }
+
     if (!id) {
-      console.error("3. ERROR: No trainer ID provided")
+      console.error("5. ERROR: No trainer ID provided")
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    console.log("4. Attempting to fetch from Firebase Admin...")
-    console.log("5. Collection: trainers, Document ID:", id)
+    console.log("6. Attempting to fetch from Firebase Admin...")
+    console.log("7. Collection: trainers, Document ID:", id)
 
     // Get trainer document from Firebase using Admin SDK
     const trainerDoc = await db.collection("trainers").doc(id).get()
-    console.log("6. Firebase Admin query completed")
-    console.log("7. Document exists:", trainerDoc.exists)
+    console.log("8. Firebase Admin query completed")
+    console.log("9. Document exists:", trainerDoc.exists)
 
     if (!trainerDoc.exists) {
-      console.error("8. ERROR: Trainer document not found in Firebase")
-      console.log("9. Attempted path: trainers/" + id)
+      console.error("10. ERROR: Trainer document not found in Firebase")
+      console.log("11. Attempted path: trainers/" + id)
 
       // Let's also try to list some documents to see what's in the collection
       try {
         const trainersRef = db.collection("trainers")
         const snapshot = await trainersRef.limit(5).get()
-        console.log("10. Sample documents in trainers collection:")
+        console.log("12. Sample documents in trainers collection:")
         snapshot.forEach((doc) => {
           console.log("    - Document ID:", doc.id)
         })
       } catch (listError) {
-        console.log("10. Could not list sample documents:", listError)
+        console.log("12. Could not list sample documents:", listError)
       }
 
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
     const trainerData = trainerDoc.data()!
-    console.log("11. Trainer data retrieved:", {
+    console.log("13. Trainer data retrieved:", {
       id: trainerData.id || id,
       hasData: !!trainerData,
       keys: Object.keys(trainerData),
@@ -73,13 +80,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const isActive = trainerData.isActive === true || trainerData.status === "active"
 
     if (!isActive) {
-      console.error("12. Trainer is not active:", { isActive: trainerData.isActive, status: trainerData.status })
+      console.error("14. Trainer is not active:", { isActive: trainerData.isActive, status: trainerData.status })
       return NextResponse.json({ error: "Trainer profile is not active" }, { status: 403 })
     }
 
     // If trainer has existing content, return it
     if (trainerData.content) {
-      console.log("13. Returning existing trainer content")
+      console.log("15. Returning existing trainer content")
       return NextResponse.json({
         success: true,
         trainer: {
@@ -91,7 +98,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Generate default content from trainer's form data
-    console.log("14. Generating default content from trainer data")
+    console.log("16. Generating default content from trainer data")
     const defaultContent = {
       hero: {
         title: `Transform Your Fitness with ${trainerData.fullName || "Professional Training"}`,
@@ -148,7 +155,7 @@ My approach is personalized, results-driven, and focused on creating sustainable
       },
     }
 
-    console.log("15. Generated default content successfully")
+    console.log("17. Generated default content successfully")
 
     return NextResponse.json({
       success: true,
