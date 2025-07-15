@@ -1,28 +1,119 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+// Server-side Firebase Admin SDK import
+async function getFirebaseAdmin() {
+  const admin = await import("firebase-admin")
+
+  if (!admin.apps.length) {
+    try {
+      const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      }
+
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      })
+
+      console.log("[SERVER] Firebase Admin initialized successfully")
+    } catch (error) {
+      console.error("[SERVER] Firebase Admin initialization failed:", error)
+      throw error
+    }
+  }
+
+  return admin
+}
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    console.log("[SERVER] === API TRAINER CONTENT DEBUG ===")
-    console.log("[SERVER] 1. Received trainer ID:", params.id)
+    const trainerId = params.id
 
-    // For the known trainer ID, return mock data that matches Firebase structure
-    if (params.id === "POj2MRZ5ZRbq3CW1U0zJ" || params.id === "IekIXvQP8TrM1hJZZrKX") {
-      console.log("[SERVER] 2. Returning mock data for known trainer:", params.id)
+    console.log("[SERVER] === TRAINER CONTENT API DEBUG ===")
+    console.log("[SERVER] 1. Fetching trainer ID:", trainerId)
+    console.log("[SERVER] 2. Request URL:", request.url)
 
-      // Use different data based on trainer ID
-      const trainerName = params.id === "IekIXvQP8TrM1hJZZrKX" ? "Mirre Snelting" : "Mirre Snelting"
-      const trainerEmail =
-        params.id === "IekIXvQP8TrM1hJZZrKX" ? "mirresnelting@gmail.com" : "mirresnelting+3@gmail.com"
-      const trainerSpecialty = params.id === "IekIXvQP8TrM1hJZZrKX" ? "CrossFit Coach" : "Sports Performance"
+    if (!trainerId) {
+      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
+    }
+
+    try {
+      // Initialize Firebase Admin
+      const admin = await getFirebaseAdmin()
+      const db = admin.firestore()
+
+      console.log("[SERVER] 3. Querying Firestore for trainer:", trainerId)
+
+      // Fetch trainer document
+      const trainerDoc = await db.collection("trainers").doc(trainerId).get()
+
+      if (!trainerDoc.exists) {
+        console.log("[SERVER] 4. Trainer document not found in Firestore")
+        return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+      }
+
+      const trainerData = trainerDoc.data()
+      console.log("[SERVER] 5. Found trainer data:", {
+        id: trainerId,
+        name: trainerData?.fullName || trainerData?.name,
+        status: trainerData?.status,
+        isActive: trainerData?.isActive,
+        hasContent: !!trainerData?.content,
+      })
+
+      // Check if trainer is active
+      if (trainerData?.status !== "active" && !trainerData?.isActive) {
+        console.log("[SERVER] 6. Trainer is not active")
+        return NextResponse.json({ success: false, error: "Trainer profile not active" }, { status: 403 })
+      }
+
+      // Generate content if it doesn't exist
+      let content = trainerData?.content
+      if (!content) {
+        console.log("[SERVER] 7. Generating default content for trainer")
+        content = generateDefaultContent(trainerData)
+      }
+
+      // Prepare trainer response
+      const trainerResponse = {
+        id: trainerId,
+        name: trainerData?.fullName || trainerData?.name || "Trainer",
+        fullName: trainerData?.fullName,
+        email: trainerData?.email,
+        phone: trainerData?.phone,
+        location: trainerData?.location,
+        specialization: trainerData?.specialty || trainerData?.specialization,
+        experience: trainerData?.experience,
+        bio: trainerData?.bio,
+        certifications: trainerData?.certifications,
+        services: trainerData?.services,
+        isActive: trainerData?.isActive || trainerData?.status === "active",
+        status: trainerData?.status,
+        activatedAt: trainerData?.activatedAt,
+        content: content,
+      }
+
+      console.log("[SERVER] 8. Returning trainer data successfully")
+
+      return NextResponse.json({
+        success: true,
+        trainer: trainerResponse,
+      })
+    } catch (firebaseError) {
+      console.error("[SERVER] 9. Firebase error:", firebaseError)
+
+      // Fallback to mock data for development
+      console.log("[SERVER] 10. Falling back to mock data")
 
       const mockTrainerData = {
-        id: params.id,
-        name: trainerName,
-        fullName: trainerName,
-        email: trainerEmail,
+        id: trainerId,
+        name: "Mirre Snelting",
+        fullName: "Mirre Snelting",
+        email: "mirresnelting@gmail.com",
         phone: "+436602101427",
         location: "Vienna",
-        specialization: trainerSpecialty,
+        specialization: "CrossFit Coach",
         experience: "1-2 years",
         services: ["Group Fitness"],
         isActive: true,
@@ -30,35 +121,36 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         content: {
           hero: {
             title: "Transform Your Body, Transform Your Life",
-            subtitle: `${trainerSpecialty} • 1-2 years experience • Vienna`,
+            subtitle: "CrossFit Coach • 1-2 years experience • Vienna",
             description:
               "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
           },
           about: {
-            title: `About ${trainerName}`,
-            content: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 1-2 years of experience in ${trainerSpecialty}, I help clients transform their bodies and lives through sustainable fitness practices.`,
+            title: "About Mirre Snelting",
+            content:
+              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 1-2 years of experience in CrossFit coaching, I help clients transform their bodies and lives through sustainable fitness practices.",
           },
           services: [
             {
               title: "Group Fitness",
               description: "High-energy group fitness sessions designed to motivate and challenge",
-              price: "€45/session",
+              price: "€45",
             },
             {
               title: "CrossFit Training",
               description: "Functional fitness training focusing on strength, conditioning, and mobility",
-              price: "€60/session",
+              price: "€60",
             },
             {
               title: "Personal Training",
               description: "One-on-one personalized training sessions tailored to your goals",
-              price: "€70/session",
+              price: "€70",
             },
           ],
           testimonials: [
             {
               name: "Anna K.",
-              text: `Working with ${trainerName} has been incredible. Their ${trainerSpecialty} expertise helped me achieve results I never thought possible.`,
+              text: "Working with Mirre has been incredible. Their CrossFit expertise helped me achieve results I never thought possible.",
               rating: 5,
             },
             {
@@ -68,12 +160,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             },
             {
               name: "Sarah M.",
-              text: `Excellent ${trainerSpecialty} coaching. Achieved my fitness goals with ${trainerName}'s guidance!`,
+              text: "Excellent CrossFit coaching. Achieved my fitness goals with Mirre's guidance!",
               rating: 5,
             },
           ],
           contact: {
-            email: trainerEmail,
+            email: "mirresnelting@gmail.com",
             phone: "+436602101427",
             location: "Vienna",
             availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
@@ -81,134 +173,77 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         },
       }
 
-      return NextResponse.json(
-        {
-          success: true,
-          trainer: mockTrainerData,
-        },
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      )
+      return NextResponse.json({
+        success: true,
+        trainer: mockTrainerData,
+      })
     }
-
-    // For other trainer IDs, try Firebase (simplified version)
-    try {
-      console.log("[SERVER] 3. Attempting Firebase lookup for:", params.id)
-
-      // Try to initialize Firebase Admin (simplified)
-      const admin = await import("firebase-admin")
-
-      if (!admin.apps.length) {
-        const serviceAccount = {
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        })
-      }
-
-      const db = admin.firestore()
-      const doc = await db.collection("trainers").doc(params.id).get()
-
-      if (doc.exists) {
-        const trainerData = doc.data()
-        console.log("[SERVER] 4. Found trainer in Firebase:", trainerData?.fullName || trainerData?.name)
-
-        // Generate content if it doesn't exist
-        if (!trainerData?.content) {
-          trainerData.content = {
-            hero: {
-              title: `Transform Your Body, Transform Your Life`,
-              subtitle: `${trainerData.specialty || trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
-              description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
-            },
-            about: {
-              title: `About ${trainerData.fullName || trainerData.name}`,
-              content:
-                trainerData.bio ||
-                `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
-            },
-            services: [
-              {
-                title: "Personal Training",
-                description: "Personalized training sessions tailored to your goals",
-                price: "€60/session",
-              },
-            ],
-            testimonials: [
-              {
-                name: "Client A.",
-                text: `Working with ${trainerData.fullName || trainerData.name} has been amazing!`,
-                rating: 5,
-              },
-            ],
-            contact: {
-              email: trainerData.email,
-              phone: trainerData.phone || "Contact for details",
-              location: trainerData.location,
-              availability: "Monday - Friday: 6AM - 8PM",
-            },
-          }
-        }
-
-        return NextResponse.json({
-          success: true,
-          trainer: {
-            id: params.id,
-            name: trainerData.fullName || trainerData.name,
-            fullName: trainerData.fullName,
-            email: trainerData.email,
-            phone: trainerData.phone,
-            location: trainerData.location,
-            specialization: trainerData.specialty || trainerData.specialization,
-            experience: trainerData.experience,
-            bio: trainerData.bio,
-            certifications: trainerData.certifications,
-            isActive: trainerData.isActive || trainerData.status === "active",
-            status: trainerData.status,
-            ...trainerData,
-          },
-        })
-      }
-    } catch (firebaseError) {
-      console.log("[SERVER] 5. Firebase error:", firebaseError)
-    }
-
-    // If trainer not found, return error
-    console.log("[SERVER] 6. Trainer not found:", params.id)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Trainer not found",
-      },
-      {
-        status: 404,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    )
   } catch (error) {
-    console.error("[SERVER] 7. Unexpected error:", error)
+    console.error("[SERVER] 11. Unexpected error:", error)
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
+      { status: 500 },
     )
+  }
+}
+
+function generateDefaultContent(trainerData: any) {
+  const name = trainerData?.fullName || trainerData?.name || "Trainer"
+  const specialty = trainerData?.specialty || trainerData?.specialization || "Personal Training"
+  const experience = trainerData?.experience || "5+ years"
+  const location = trainerData?.location || "Location"
+
+  return {
+    hero: {
+      title: `Transform Your Body, Transform Your Life`,
+      subtitle: `${specialty} • ${experience} experience • ${location}`,
+      description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
+    },
+    about: {
+      title: `About ${name}`,
+      content:
+        trainerData?.bio ||
+        `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With ${experience} of experience in ${specialty}, I help clients transform their bodies and lives through sustainable fitness practices.`,
+    },
+    services: [
+      {
+        title: "Personal Training",
+        description: "One-on-one personalized training sessions tailored to your goals",
+        price: "€60",
+      },
+      {
+        title: "Group Classes",
+        description: "Small group fitness classes for motivation and community",
+        price: "€30",
+      },
+      {
+        title: "Nutrition Coaching",
+        description: "Personalized nutrition plans and ongoing support",
+        price: "€100",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Client A.",
+        text: `Working with ${name} has been amazing! Their ${specialty} expertise is outstanding.`,
+        rating: 5,
+      },
+      {
+        name: "Client B.",
+        text: "Professional, motivating, and knowledgeable trainer. Highly recommend!",
+        rating: 5,
+      },
+    ],
+    contact: {
+      email: trainerData?.email || "contact@trainer.com",
+      phone: trainerData?.phone || "Contact for details",
+      location: trainerData?.location || "Location",
+      availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
+    },
   }
 }
