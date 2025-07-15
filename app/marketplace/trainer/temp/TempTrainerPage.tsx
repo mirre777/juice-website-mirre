@@ -101,7 +101,9 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   }
 
   const handleActivate = () => {
-    router.push(`/payment?tempId=${tempId}`)
+    // Navigate to payment page with tempId and token
+    const paymentUrl = `/payment?tempId=${tempId}&token=${encodeURIComponent(accessToken || "")}`
+    router.push(paymentUrl)
   }
 
   // Show generating screen
@@ -376,7 +378,9 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
                   <p className="text-sm text-black mb-4">
                     Book your free consultation today and take the first step towards your fitness goals.
                   </p>
-                  <Button className="w-full bg-black text-white hover:bg-gray-800">Get Started Now</Button>
+                  <Button onClick={handleActivate} className="w-full bg-black text-white hover:bg-gray-800">
+                    Activate for €29
+                  </Button>
                 </Card>
               </div>
             </div>
