@@ -133,7 +133,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         statusText: response.statusText,
         ok: response.ok,
         duration: `${fetchDuration}ms`,
-        headers: Object.fromEntries(response.headers.entries()),
+        contentType: response.headers.get("content-type"),
         url: response.url,
       })
 
@@ -145,7 +145,18 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         console.log("📄 Response text received", {
           length: responseText.length,
           preview: responseText.substring(0, 200) + (responseText.length > 200 ? "..." : ""),
+          isJson: responseText.trim().startsWith("{") || responseText.trim().startsWith("["),
         })
+
+        // Check if response is JSON
+        if (!responseText.trim().startsWith("{") && !responseText.trim().startsWith("[")) {
+          console.error("❌ Response is not JSON", {
+            responseText: responseText.substring(0, 500),
+            responseStatus: response.status,
+            contentType: response.headers.get("content-type"),
+          })
+          throw new Error(`Server returned non-JSON response: ${responseText}`)
+        }
 
         data = JSON.parse(responseText)
         console.log("📊 Response parsed successfully", {
@@ -160,9 +171,10 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           parseError: parseError instanceof Error ? parseError.message : String(parseError),
           responseText: responseText?.substring(0, 500),
           responseStatus: response.status,
+          contentType: response.headers.get("content-type"),
         })
         throw new Error(
-          `Failed to parse API response: ${parseError instanceof Error ? parseError.message : "Unknown parse error"}`,
+          `Failed to parse API response: ${parseError instanceof Error ? parseError.message : "Unknown parse error"}. Server response: ${responseText?.substring(0, 100)}...`,
         )
       }
 
@@ -174,7 +186,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
           details: data.details,
           responseData: data,
         })
-        throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`)
+        throw new Error(data.error || data.details || `HTTP ${response.status}: ${response.statusText}`)
       }
 
       if (data.success && data.trainer) {
@@ -307,7 +319,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Profile</h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-6 text-sm">
             {error || "The trainer profile you're looking for doesn't exist or the preview has expired."}
           </p>
           <div className="space-y-3">

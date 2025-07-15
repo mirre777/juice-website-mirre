@@ -1,66 +1,116 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore, type FirebaseFirestore } from "firebase-admin/firestore"
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  try {
-    console.log("🔥 Initializing Firebase Admin", {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-      hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-      privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length,
-    })
-
-    const firebaseConfig = {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }
-
-    console.log("🔧 Firebase config prepared", {
-      hasProjectId: !!firebaseConfig.projectId,
-      hasClientEmail: !!firebaseConfig.clientEmail,
-      hasPrivateKey: !!firebaseConfig.privateKey,
-      projectId: firebaseConfig.projectId,
-    })
-
-    initializeApp({
-      credential: cert(firebaseConfig),
-    })
-
-    console.log("✅ Firebase Admin initialized successfully")
-  } catch (error) {
-    console.error("❌ Firebase Admin initialization error", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      errorName: error instanceof Error ? error.name : undefined,
-    })
-    throw error
-  }
-} else {
-  console.log("♻️ Firebase Admin already initialized")
-}
-
-let db: FirebaseFirestore.Firestore
-
-try {
-  db = getFirestore()
-  console.log("📊 Firestore instance created successfully")
-} catch (error) {
-  console.error("❌ Failed to get Firestore instance", {
-    error: error instanceof Error ? error.message : String(error),
-    stack: error instanceof Error ? error.stack : undefined,
-  })
-  throw error
-}
-
+// Wrap everything in a try-catch to ensure we always return JSON
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   const startTime = Date.now()
   let tempId: string | undefined
 
   try {
     console.log("🚀 Starting temp trainer API request")
+
+    // Import Firebase modules inside the handler to catch initialization errors
+    let initializeApp: any, getApps: any, cert: any, getFirestore: any, db: any
+
+    try {
+      const firebaseAdmin = await import("firebase-admin/app")
+      const firestoreAdmin = await import("firebase-admin/firestore")
+
+      initializeApp = firebaseAdmin.initializeApp
+      getApps = firebaseAdmin.getApps
+      cert = firebaseAdmin.cert
+      getFirestore = firestoreAdmin.getFirestore
+
+      console.log("📦 Firebase modules imported successfully")
+    } catch (importError) {
+      console.error("❌ Failed to import Firebase modules", {
+        error: importError instanceof Error ? importError.message : String(importError),
+        stack: importError instanceof Error ? importError.stack : undefined,
+      })
+      return NextResponse.json(
+        {
+          error: "Firebase initialization failed",
+          details: "Failed to import Firebase modules",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
+    }
+
+    // Initialize Firebase Admin if not already initialized
+    if (!getApps().length) {
+      try {
+        console.log("🔥 Initializing Firebase Admin", {
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+          hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+          privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length,
+        })
+
+        // Validate environment variables
+        if (!process.env.FIREBASE_PROJECT_ID) {
+          throw new Error("FIREBASE_PROJECT_ID environment variable is missing")
+        }
+        if (!process.env.FIREBASE_CLIENT_EMAIL) {
+          throw new Error("FIREBASE_CLIENT_EMAIL environment variable is missing")
+        }
+        if (!process.env.FIREBASE_PRIVATE_KEY) {
+          throw new Error("FIREBASE_PRIVATE_KEY environment variable is missing")
+        }
+
+        const firebaseConfig = {
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+        }
+
+        console.log("🔧 Firebase config prepared", {
+          hasProjectId: !!firebaseConfig.projectId,
+          hasClientEmail: !!firebaseConfig.clientEmail,
+          hasPrivateKey: !!firebaseConfig.privateKey,
+          projectId: firebaseConfig.projectId,
+        })
+
+        initializeApp({
+          credential: cert(firebaseConfig),
+        })
+
+        console.log("✅ Firebase Admin initialized successfully")
+      } catch (firebaseInitError) {
+        console.error("❌ Firebase Admin initialization error", {
+          error: firebaseInitError instanceof Error ? firebaseInitError.message : String(firebaseInitError),
+          stack: firebaseInitError instanceof Error ? firebaseInitError.stack : undefined,
+          errorName: firebaseInitError instanceof Error ? firebaseInitError.name : undefined,
+        })
+        return NextResponse.json(
+          {
+            error: "Firebase initialization failed",
+            details: firebaseInitError instanceof Error ? firebaseInitError.message : "Unknown Firebase error",
+            timestamp: new Date().toISOString(),
+          },
+          { status: 500 },
+        )
+      }
+    } else {
+      console.log("♻️ Firebase Admin already initialized")
+    }
+
+    try {
+      db = getFirestore()
+      console.log("📊 Firestore instance created successfully")
+    } catch (firestoreError) {
+      console.error("❌ Failed to get Firestore instance", {
+        error: firestoreError instanceof Error ? firestoreError.message : String(firestoreError),
+        stack: firestoreError instanceof Error ? firestoreError.stack : undefined,
+      })
+      return NextResponse.json(
+        {
+          error: "Database connection failed",
+          details: firestoreError instanceof Error ? firestoreError.message : "Unknown Firestore error",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
+    }
 
     tempId = params.tempId
     const { searchParams } = new URL(request.url)
@@ -72,7 +122,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       tokenLength: token?.length,
       url: request.url,
       method: request.method,
-      userAgent: request.headers.get("user-agent"),
     })
 
     // Validate required parameters
@@ -85,15 +134,8 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       console.error("❌ Missing token parameter", {
         tempId,
         searchParams: Object.fromEntries(searchParams),
-        allHeaders: Object.fromEntries(request.headers.entries()),
       })
       return NextResponse.json({ error: "Token is required" }, { status: 400 })
-    }
-
-    // Check Firebase connection
-    if (!db) {
-      console.error("❌ Firebase not initialized", { tempId })
-      return NextResponse.json({ error: "Database connection failed" }, { status: 500 })
     }
 
     console.log("🔍 Attempting to fetch temp trainer document", {
@@ -103,8 +145,8 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     })
 
     // Get the temp trainer document with detailed error handling
-    let tempTrainerRef: FirebaseFirestore.DocumentReference
-    let tempTrainerDoc: FirebaseFirestore.DocumentSnapshot
+    let tempTrainerRef: any
+    let tempTrainerDoc: any
 
     try {
       tempTrainerRef = db.collection("tempTrainers").doc(tempId)
@@ -118,9 +160,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         tempId,
         exists: tempTrainerDoc.exists,
         docId: tempTrainerDoc.id,
-        readTime: tempTrainerDoc.readTime,
-        createTime: tempTrainerDoc.createTime,
-        updateTime: tempTrainerDoc.updateTime,
       })
     } catch (firestoreError) {
       console.error("❌ Firestore query failed", {
@@ -128,9 +167,16 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         error: firestoreError instanceof Error ? firestoreError.message : String(firestoreError),
         stack: firestoreError instanceof Error ? firestoreError.stack : undefined,
         errorCode: (firestoreError as any)?.code,
-        errorDetails: (firestoreError as any)?.details,
       })
-      throw firestoreError
+      return NextResponse.json(
+        {
+          error: "Database query failed",
+          details: firestoreError instanceof Error ? firestoreError.message : "Unknown database error",
+          tempId,
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
     }
 
     if (!tempTrainerDoc.exists) {
@@ -138,12 +184,11 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         tempId,
         collection: "tempTrainers",
         searchedPath: `tempTrainers/${tempId}`,
-        docExists: tempTrainerDoc.exists,
       })
       return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
     }
 
-    let tempTrainerData: FirebaseFirestore.DocumentData | undefined
+    let tempTrainerData: any
 
     try {
       tempTrainerData = tempTrainerDoc.data()
@@ -155,7 +200,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         hasCreatedAt: !!tempTrainerData?.createdAt,
         name: tempTrainerData?.name,
         email: tempTrainerData?.email,
-        createdAtType: typeof tempTrainerData?.createdAt,
       })
     } catch (dataError) {
       console.error("❌ Failed to extract document data", {
@@ -163,7 +207,15 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         error: dataError instanceof Error ? dataError.message : String(dataError),
         stack: dataError instanceof Error ? dataError.stack : undefined,
       })
-      throw dataError
+      return NextResponse.json(
+        {
+          error: "Failed to read trainer data",
+          details: dataError instanceof Error ? dataError.message : "Unknown data error",
+          tempId,
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
     }
 
     // Verify the token
@@ -171,8 +223,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       console.error("❌ No token found in temp trainer document", {
         tempId,
         documentData: tempTrainerData ? Object.keys(tempTrainerData) : null,
-        hasTokenField: tempTrainerData && "token" in tempTrainerData,
-        tokenValue: tempTrainerData?.token,
       })
       return NextResponse.json({ error: "Invalid trainer session" }, { status: 403 })
     }
@@ -183,7 +233,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         providedToken: token?.substring(0, 10) + "...",
         expectedTokenLength: tempTrainerData.token?.length,
         providedTokenLength: token?.length,
-        tokensMatch: tempTrainerData.token === token,
       })
       return NextResponse.json({ error: "Invalid token" }, { status: 403 })
     }
@@ -208,8 +257,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       console.log("📅 Date parsing successful", {
         tempId,
         createdAt: createdAt.toISOString(),
-        createdAtType: typeof tempTrainerData?.createdAt,
-        hasToDate: !!tempTrainerData?.createdAt?.toDate,
       })
     } catch (dateError) {
       console.error("❌ Date parsing failed", {
@@ -229,7 +276,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       now: now.toISOString(),
       hoursDiff: Math.round(hoursDiff * 100) / 100,
       isExpired: hoursDiff > 24,
-      expirationThreshold: 24,
     })
 
     if (hoursDiff > 24) {
@@ -237,7 +283,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
         tempId,
         hoursDiff: Math.round(hoursDiff * 100) / 100,
         createdAt: createdAt.toISOString(),
-        expirationThreshold: 24,
       })
       return NextResponse.json({ error: "Trainer preview has expired" }, { status: 410 })
     }
@@ -287,8 +332,6 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       name: responseData.trainer.name,
       email: responseData.trainer.email,
       duration: `${duration}ms`,
-      responseDataKeys: Object.keys(responseData),
-      trainerKeys: Object.keys(responseData.trainer),
     })
 
     return NextResponse.json(responseData)
@@ -300,46 +343,15 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       errorType: error instanceof Error ? error.constructor.name : typeof error,
-      errorName: error instanceof Error ? error.name : undefined,
       duration: `${duration}ms`,
       url: request.url,
     })
 
-    // Log additional context for common error types
-    if (error instanceof Error) {
-      if (error.message.includes("Firebase") || error.message.includes("firestore")) {
-        console.error("🔥 Firebase-specific error details", {
-          tempId,
-          firebaseAppsLength: getApps().length,
-          hasFirestoreDb: !!db,
-          errorMessage: error.message,
-          errorCode: (error as any)?.code,
-        })
-      }
-
-      if (error.message.includes("permission") || error.message.includes("auth")) {
-        console.error("🔐 Authentication/permission error", {
-          tempId,
-          hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
-          hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-          hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-          projectId: process.env.FIREBASE_PROJECT_ID,
-        })
-      }
-
-      if (error.message.includes("network") || error.message.includes("timeout")) {
-        console.error("🌐 Network error", {
-          tempId,
-          errorMessage: error.message,
-          userAgent: request.headers.get("user-agent"),
-        })
-      }
-    }
-
+    // Always return JSON, never plain text
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.message : "Unknown error occurred",
         tempId: tempId || "unknown",
         timestamp: new Date().toISOString(),
       },
@@ -355,6 +367,10 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
   try {
     console.log("🚀 Starting temp trainer PUT request")
 
+    // Import Firebase modules inside the handler
+    const { getFirestore } = await import("firebase-admin/firestore")
+    const db = getFirestore()
+
     tempId = params.tempId
     const body = await request.json()
     const { token, ...updateData } = body
@@ -363,7 +379,6 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       tempId,
       hasToken: !!token,
       updateDataKeys: Object.keys(updateData),
-      bodySize: JSON.stringify(body).length,
     })
 
     if (!tempId) {
@@ -430,7 +445,7 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.message : "Unknown error occurred",
         timestamp: new Date().toISOString(),
       },
       { status: 500 },
