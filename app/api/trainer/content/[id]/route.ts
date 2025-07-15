@@ -4,10 +4,13 @@ import { db } from "@/firebase"
 import { doc, getDoc } from "firebase/firestore"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const startTime = Date.now()
   const trainerId = params.id
+  const startTime = Date.now()
 
-  logger.info("Fetching trainer content", { trainerId })
+  logger.info("Trainer content API called", {
+    trainerId,
+    timestamp: new Date().toISOString(),
+  })
 
   try {
     if (!trainerId) {
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    // Get trainer document from Firestore
+    // Get trainer document from Firebase
     const trainerRef = doc(db, "trainers", trainerId)
     const trainerSnap = await getDoc(trainerRef)
 
@@ -37,20 +40,48 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const trainerData = trainerSnap.data()
 
-    // Check if trainer is active (for live profiles)
+    // Check if trainer is active
     if (trainerData.status === "temp") {
-      logger.warn("Attempted to access temp trainer profile", { trainerId })
+      logger.info("Temporary trainer accessed", {
+        trainerId,
+        status: trainerData.status,
+        isActive: trainerData.isActive,
+        isPaid: trainerData.isPaid,
+      })
+
       return NextResponse.json(
         {
           success: false,
-          error: "This is a temporary preview. Please complete payment to activate.",
+          error: "This is a temporary preview. Please complete payment to activate your profile.",
+          isTemp: true,
+          trainer: {
+            id: trainerId,
+            fullName: trainerData.fullName,
+            name: trainerData.fullName,
+            email: trainerData.email,
+            phone: trainerData.phone,
+            location: trainerData.location,
+            specialty: trainerData.specialty,
+            specialization: trainerData.specialty,
+            experience: trainerData.experience,
+            bio: trainerData.bio,
+            certifications: trainerData.certifications || [],
+            status: trainerData.status,
+            isActive: trainerData.isActive || false,
+            isPaid: trainerData.isPaid || false,
+          },
         },
-        { status: 403 },
+        { status: 200 },
       )
     }
 
     if (!trainerData.isActive || !trainerData.isPaid) {
-      logger.warn("Attempted to access inactive trainer profile", { trainerId })
+      logger.warn("Inactive trainer accessed", {
+        trainerId,
+        isActive: trainerData.isActive,
+        isPaid: trainerData.isPaid,
+      })
+
       return NextResponse.json(
         {
           success: false,
@@ -60,52 +91,46 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    // Return trainer data with content
-    const responseData = {
-      success: true,
-      trainer: {
-        id: trainerId,
-        fullName: trainerData.fullName || trainerData.name,
-        name: trainerData.name || trainerData.fullName,
-        email: trainerData.email,
-        phone: trainerData.phone,
-        location: trainerData.location,
-        specialty: trainerData.specialty || trainerData.specialization,
-        specialization: trainerData.specialization || trainerData.specialty,
-        experience: trainerData.experience,
-        bio: trainerData.bio,
-        certifications: trainerData.certifications || [],
-        status: trainerData.status,
-        isActive: trainerData.isActive,
-        isPaid: trainerData.isPaid,
-        content: trainerData.content || null,
-        createdAt: trainerData.createdAt,
-        activatedAt: trainerData.activatedAt,
-      },
-    }
-
-    logger.info("Successfully fetched trainer content", {
-      trainerId,
-      hasContent: !!trainerData.content,
+    // Return active trainer with content
+    const trainer = {
+      id: trainerId,
+      fullName: trainerData.fullName,
+      name: trainerData.fullName,
+      email: trainerData.email,
+      phone: trainerData.phone,
+      location: trainerData.location,
+      specialty: trainerData.specialty,
+      specialization: trainerData.specialty,
+      experience: trainerData.experience,
+      bio: trainerData.bio,
+      certifications: trainerData.certifications || [],
+      status: trainerData.status,
       isActive: trainerData.isActive,
       isPaid: trainerData.isPaid,
+      content: trainerData.content || null,
+    }
+
+    logger.info("Trainer content retrieved successfully", {
+      trainerId,
+      hasContent: !!trainerData.content,
+      processingTime: Date.now() - startTime,
     })
 
-    return NextResponse.json(responseData)
+    return NextResponse.json({
+      success: true,
+      trainer,
+    })
   } catch (error) {
-    const processingTime = Date.now() - startTime
-
     logger.error("Error fetching trainer content", {
       trainerId,
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      processingTime,
+      processingTime: Date.now() - startTime,
     })
 
     return NextResponse.json(
       {
         success: false,
-        error: "Internal server error",
+        error: "Failed to fetch trainer information",
       },
       { status: 500 },
     )

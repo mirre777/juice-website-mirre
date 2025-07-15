@@ -1,9 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { logger } from "@/lib/logger"
+import { db } from "@/firebase"
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore"
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2023-10-16", // Use the latest API version
+  apiVersion: "2024-06-20",
 })
 
 // Your webhook secret from the Stripe dashboard
@@ -64,9 +67,6 @@ export async function POST(req: NextRequest) {
       // Mark this event as processed
       processedEvents.add(event.id)
 
-      // In a production environment, you would store this in a database
-      // await db.processedEvents.create({ data: { eventId: event.id } })
-
       console.log(`Successfully processed event: ${event.type} | ID: ${event.id}`)
 
       // Return a 200 response to acknowledge receipt of the event
@@ -90,16 +90,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   try {
     console.log("Payment succeeded:", paymentIntent.id)
 
-    // Check if we've already processed this payment (idempotency check)
-    // In production, you would check your database
-    // const existingPayment = await db.payments.findUnique({
-    //   where: { paymentIntentId: paymentIntent.id }
-    // })
-    // if (existingPayment) {
-    //   console.log(`Payment ${paymentIntent.id} already recorded, skipping`)
-    //   return
-    // }
-
     // Extract customer information
     const customerId = paymentIntent.customer as string
     const amount = paymentIntent.amount
@@ -109,7 +99,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     // Extract plan information from metadata
     const planId = metadata.plan || "unknown"
     const planType = metadata.planType || "Unknown Plan"
-    const userEmail = metadata.userEmail || email || "unknown" // Use metadata email, fallback to receipt_email
+    const userEmail = metadata.userEmail || email || "unknown"
+
+    // NEW: Extract tempId from metadata for trainer activation
+    const tempId = metadata.tempId
 
     // Log detailed information
     console.log({
@@ -117,51 +110,182 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       paymentId: paymentIntent.id,
       customerId,
       amount,
-      email: userEmail, // Use the extracted email
+      email: userEmail,
       metadata,
       plan: planId,
       planType: planType,
+      tempId: tempId,
       status: "succeeded",
       createdAt: new Date(paymentIntent.created * 1000).toISOString(),
     })
 
-    // TODO: When Firebase is connected, store this information
-    // For now, we'll log it
-    /*
-    await db.payments.create({
-      data: {
-        paymentIntentId: paymentIntent.id,
-        customerId,
-        amount,
-        email,
-        metadata,
-        plan: planId,
-        planType: planType,
-        status: 'succeeded',
-        createdAt: new Date(paymentIntent.created * 1000),
+    // NEW: Handle trainer activation if tempId is present
+    if (tempId && amount === 2900) {
+      // €29.00 in cents
+      try {
+        await activateTrainer(tempId, paymentIntent.id)
+        console.log("Trainer activated successfully", { tempId, paymentIntentId: paymentIntent.id })
+      } catch (activationError) {
+        console.error("Failed to activate trainer", {
+          tempId,
+          paymentIntentId: paymentIntent.id,
+          error: activationError instanceof Error ? activationError.message : String(activationError),
+        })
+        // Don't throw here - we still want to acknowledge the payment
       }
-    })
-
-    // Update user subscription status
-    if (customerId) {
-      await db.users.update({
-        where: { customerId },
-        data: {
-          isPremium: true,
-          plan: planId,
-          subscriptionStatus: 'active',
-          subscriptionUpdatedAt: new Date(),
-        }
-      })
     }
-    */
   } catch (error) {
     console.error("Error handling payment intent success:", error)
     throw error
   }
 }
 
-// NEW: Handler for failed payment intents
+// NEW: Trainer activation function
+async function activateTrainer(tempId: string, paymentIntentId: string): Promise<void> {
+  try {
+    logger.info("Starting trainer activation", { tempId, paymentIntentId })
+
+    // Get temp trainer document
+    const tempTrainerRef = doc(db, "trainers", tempId)
+    const tempTrainerSnap = await getDoc(tempTrainerRef)
+
+    if (!tempTrainerSnap.exists()) {
+      throw new Error(`Temp trainer not found: ${tempId}`)
+    }
+
+    const tempTrainerData = tempTrainerSnap.data()
+
+    // Check if already activated
+    if (tempTrainerData.isActive && tempTrainerData.isPaid) {
+      logger.info("Trainer already activated", { tempId })
+      return
+    }
+
+    // Generate AI content for permanent profile
+    const generatedContent = generateTrainerContent(tempTrainerData)
+
+    // Create final trainer profile with generated content
+    const finalTrainerData = {
+      // Basic trainer info
+      fullName: tempTrainerData.fullName,
+      name: tempTrainerData.fullName,
+      email: tempTrainerData.email,
+      phone: tempTrainerData.phone,
+      location: tempTrainerData.location,
+      specialty: tempTrainerData.specialty,
+      specialization: tempTrainerData.specialty,
+      experience: tempTrainerData.experience,
+      bio: tempTrainerData.bio,
+      certifications: tempTrainerData.certifications || [],
+
+      // Status and payment info
+      status: "active",
+      isActive: true,
+      isPaid: true,
+      paymentIntentId,
+
+      // Add generated content
+      content: generatedContent,
+
+      // Timestamps
+      createdAt: tempTrainerData.createdAt,
+      activatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }
+
+    // Add final trainer document
+    const finalTrainerRef = await addDoc(collection(db, "trainers"), finalTrainerData)
+    const finalId = finalTrainerRef.id
+
+    // Update temp document with final ID and activation status
+    await updateDoc(tempTrainerRef, {
+      finalId,
+      isActive: true,
+      isPaid: true,
+      paymentIntentId,
+      activatedAt: serverTimestamp(),
+      status: "activated", // Change from "temp" to "activated"
+    })
+
+    logger.info("Trainer activation completed successfully", {
+      tempId,
+      finalId,
+      email: tempTrainerData.email,
+      paymentIntentId,
+    })
+  } catch (error) {
+    logger.error("Error in trainer activation", {
+      tempId,
+      paymentIntentId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    throw error
+  }
+}
+
+// Content generation function
+function generateTrainerContent(trainerData: any) {
+  const name = trainerData.fullName || trainerData.name
+  const specialty = trainerData.specialty || trainerData.specialization
+  const location = trainerData.location
+  const experience = trainerData.experience
+  const bio = trainerData.bio
+
+  return {
+    hero: {
+      title: `Transform Your Fitness with ${name}`,
+      subtitle: `Professional ${specialty} Training • ${experience} Experience`,
+      description: `Welcome! I'm ${name}, a certified personal trainer specializing in ${specialty}. With ${experience} of experience in ${location}, I'm here to help you achieve your fitness goals through personalized training programs that deliver real results.`,
+    },
+    about: {
+      title: "About Me",
+      content:
+        bio ||
+        `I'm ${name}, a passionate fitness professional with ${experience} of experience in ${specialty}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+    },
+    services: [
+      {
+        id: "1",
+        title: "Personal Training Session",
+        description: `One-on-one personalized ${specialty.toLowerCase()} training session focused on your specific goals`,
+        price: 60,
+        duration: "60 minutes",
+        featured: true,
+      },
+      {
+        id: "2",
+        title: "Fitness Assessment",
+        description: "Comprehensive fitness evaluation and goal-setting session",
+        price: 40,
+        duration: "45 minutes",
+        featured: false,
+      },
+      {
+        id: "3",
+        title: "Custom Workout Plan",
+        description: `Personalized ${specialty.toLowerCase()} program designed for your goals and schedule`,
+        price: 80,
+        duration: "Digital delivery",
+        featured: false,
+      },
+    ],
+    contact: {
+      title: "Let's Start Your Fitness Journey",
+      description: `Ready to transform your fitness with professional ${specialty.toLowerCase()} training? Get in touch to schedule your first session or ask any questions.`,
+      email: trainerData.email,
+      phone: trainerData.phone || "",
+      location: location,
+    },
+    seo: {
+      title: `${name} - Personal Trainer in ${location}`,
+      description: `Professional ${specialty} training with ${name}. Transform your fitness with personalized programs in ${location}. ${experience} of experience.`,
+    },
+    version: 1,
+    lastModified: new Date().toISOString(),
+  }
+}
+
+// Handler for failed payment intents
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   try {
     console.log("Payment failed:", paymentIntent.id)
@@ -183,36 +307,13 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       errorCode: lastError ? lastError.code : null,
       createdAt: new Date(paymentIntent.created * 1000).toISOString(),
     })
-
-    // TODO: When Firebase is connected, store this information
-    /*
-    await db.paymentFailures.create({
-      data: {
-        paymentIntentId: paymentIntent.id,
-        customerId,
-        amount,
-        email,
-        errorMessage: lastError ? lastError.message : "Unknown error",
-        errorCode: lastError ? lastError.code : null,
-        createdAt: new Date(paymentIntent.created * 1000),
-      }
-    })
-
-    // You might want to notify the user or your support team
-    if (email) {
-      await sendPaymentFailureEmail(email, {
-        amount: formatAmount(amount, paymentIntent.currency),
-        reason: lastError ? lastError.message : "Unknown error",
-      })
-    }
-    */
   } catch (error) {
     console.error("Error handling payment intent failure:", error)
     throw error
   }
 }
 
-// NEW: Handler for subscription creation
+// Handler for subscription creation
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   try {
     console.log("Subscription created:", subscription.id)
@@ -240,43 +341,6 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       currentPeriodEnd: currentPeriodEnd.toISOString(),
       createdAt: new Date(subscription.created * 1000).toISOString(),
     })
-
-    // TODO: When Firebase is connected, store this information
-    /*
-    await db.subscriptions.create({
-      data: {
-        subscriptionId: subscription.id,
-        customerId,
-        status,
-        productId,
-        priceId,
-        amount,
-        currentPeriodEnd,
-        createdAt: new Date(subscription.created * 1000),
-      }
-    })
-
-    // Update user subscription status
-    await db.users.update({
-      where: { customerId },
-      data: {
-        isPremium: true,
-        subscriptionStatus: status,
-        subscriptionId: subscription.id,
-        subscriptionUpdatedAt: new Date(),
-        subscriptionExpiresAt: currentPeriodEnd,
-      }
-    })
-
-    // Send welcome email to the subscriber
-    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
-    if (customer.email) {
-      await sendSubscriptionWelcomeEmail(customer.email, {
-        planName: "Premium Plan", // You'd get this from your product data
-        expiryDate: currentPeriodEnd.toLocaleDateString(),
-      })
-    }
-    */
   } catch (error) {
     console.error("Error handling subscription creation:", error)
     throw error
@@ -305,21 +369,6 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       status: "completed",
       createdAt: new Date(session.created * 1000).toISOString(),
     })
-
-    // TODO: When Firebase is connected, store this information
-    /*
-    await db.checkoutSessions.create({
-      data: {
-        sessionId: session.id,
-        customerId,
-        amount,
-        email,
-        metadata,
-        status: 'completed',
-        createdAt: new Date(session.created * 1000),
-      }
-    })
-    */
   } catch (error) {
     console.error("Error handling checkout session completion:", error)
     throw error
