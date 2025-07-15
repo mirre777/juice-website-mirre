@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { headers } from "next/headers"
 import { db } from "@/firebase"
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { logger } from "@/lib/logger"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
@@ -12,50 +12,57 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
-  const headersList = headers()
-  const sig = headersList.get("stripe-signature")!
+  const sig = req.headers.get("stripe-signature")!
 
   let event: Stripe.Event
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret)
-    console.log("Webhook event received:", event.type)
   } catch (err) {
-    console.error("Webhook signature verification failed:", err)
+    logger.error("Webhook signature verification failed", { error: err })
     return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 })
   }
+
+  logger.info("Stripe webhook received", { type: event.type, id: event.id })
 
   try {
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntent = event.data.object as Stripe.PaymentIntent
-        console.log("Payment succeeded:", paymentIntent.id)
+        logger.info("Payment succeeded", {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          metadata: paymentIntent.metadata,
+        })
 
         // Check if this is a trainer activation payment
         if (paymentIntent.metadata?.tempId && paymentIntent.metadata?.type === "trainer_activation") {
-          console.log("Processing trainer activation for tempId:", paymentIntent.metadata.tempId)
           await activateTrainer(paymentIntent.metadata.tempId, paymentIntent.id)
         }
         break
 
       case "payment_intent.payment_failed":
-        console.log("Payment failed:", event.data.object.id)
+        const failedPayment = event.data.object as Stripe.PaymentIntent
+        logger.error("Payment failed", {
+          paymentIntentId: failedPayment.id,
+          lastPaymentError: failedPayment.last_payment_error,
+        })
         break
 
       default:
-        console.log(`Unhandled event type: ${event.type}`)
+        logger.info("Unhandled event type", { type: event.type })
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("Webhook processing error:", error)
+    logger.error("Webhook processing failed", { error, eventType: event.type })
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
   }
 }
 
 async function activateTrainer(tempId: string, paymentIntentId: string) {
   try {
-    console.log("Activating trainer:", { tempId, paymentIntentId })
+    logger.info("Starting trainer activation", { tempId, paymentIntentId })
 
     // Get the temp trainer data
     const tempTrainerRef = doc(db, "trainers", tempId)
@@ -66,76 +73,71 @@ async function activateTrainer(tempId: string, paymentIntentId: string) {
     }
 
     const tempTrainerData = tempTrainerSnap.data()
-    console.log("Temp trainer data:", tempTrainerData)
+    logger.info("Temp trainer data retrieved", { tempId, status: tempTrainerData.status })
 
     // Generate AI content for the trainer
     const generatedContent = await generateTrainerContent(tempTrainerData)
 
     // Create the final trainer document
-    const finalTrainerId = `trainer_${Date.now()}_${Math.random().toString(36).substring(7)}`
-    const finalTrainerRef = doc(db, "trainers", finalTrainerId)
-
     const finalTrainerData = {
       ...tempTrainerData,
-      id: finalTrainerId,
+      content: generatedContent,
       status: "active",
       isActive: true,
       isPaid: true,
       paymentIntentId: paymentIntentId,
       activatedAt: new Date().toISOString(),
-      content: generatedContent,
-      // Remove temp-specific fields
-      sessionToken: null,
-      expiresAt: null,
+      updatedAt: new Date().toISOString(),
     }
 
-    await setDoc(finalTrainerRef, finalTrainerData)
-    console.log("Final trainer created:", finalTrainerId)
+    // Update the existing document to active status
+    await updateDoc(tempTrainerRef, finalTrainerData)
 
-    // Update the temp trainer to mark as activated
-    await updateDoc(tempTrainerRef, {
-      status: "activated",
-      finalId: finalTrainerId,
-      activatedAt: new Date().toISOString(),
+    logger.info("Trainer activated successfully", {
+      tempId,
+      paymentIntentId,
+      finalId: tempId,
     })
 
-    console.log("Trainer activation completed successfully")
+    return { success: true, finalId: tempId }
   } catch (error) {
-    console.error("Trainer activation failed:", error)
+    logger.error("Trainer activation failed", {
+      tempId,
+      paymentIntentId,
+      error: error instanceof Error ? error.message : String(error),
+    })
     throw error
   }
 }
 
 async function generateTrainerContent(trainerData: any) {
-  const { name, fullName, specialization, experience, location, bio } = trainerData
-
-  return {
+  // Generate AI content based on trainer data
+  const content = {
     hero: {
       title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${specialization} • ${experience} • ${location}`,
-      cta: "Book Your Free Consultation",
+      subtitle: `${trainerData.specialization} • ${trainerData.experience} • ${trainerData.location}`,
+      description: `Professional fitness training tailored to your goals. Get the results you've been looking for with personalized coaching and proven methods.`,
     },
     about: {
-      title: `About ${fullName || name}`,
-      content:
-        bio ||
-        `Professional ${specialization.toLowerCase()} with ${experience} of experience helping clients achieve their fitness goals in ${location}.`,
+      title: `About ${trainerData.fullName || trainerData.name}`,
+      content: `With ${trainerData.experience} of experience in ${trainerData.specialization}, I'm dedicated to helping you achieve your fitness goals. My approach combines proven training methods with personalized attention to ensure you get the results you deserve.`,
+      certifications: trainerData.certifications || ["Certified Personal Trainer", "Nutrition Specialist"],
     },
     services: [
       {
-        title: "Personal Training",
+        name: "Personal Training",
         description: "One-on-one training sessions tailored to your specific goals and fitness level.",
-        price: "€80/session",
+        price: "From €60/session",
       },
       {
-        title: "Group Classes",
+        name: "Group Classes",
         description: "Small group training sessions for motivation and community support.",
-        price: "€25/session",
+        price: "From €25/session",
       },
       {
-        title: "Online Coaching",
-        description: "Remote coaching with personalized workout plans and nutrition guidance.",
-        price: "€150/month",
+        name: "Online Coaching",
+        description: "Remote coaching with custom workout plans and nutrition guidance.",
+        price: "From €150/month",
       },
     ],
     testimonials: [
@@ -146,14 +148,22 @@ async function generateTrainerContent(trainerData: any) {
       },
       {
         name: "Mike R.",
-        text: "Best trainer I've worked with. Really understands how to push you safely.",
+        text: "Best trainer I've worked with. Really understands how to push you to achieve your goals.",
+        rating: 5,
+      },
+      {
+        name: "Lisa K.",
+        text: "Transformed my approach to fitness. Highly recommend!",
         rating: 5,
       },
     ],
     contact: {
       email: trainerData.email,
-      phone: trainerData.phone || "Contact for details",
-      location: location,
+      phone: trainerData.phone || "",
+      location: trainerData.location,
+      availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
     },
   }
+
+  return content
 }

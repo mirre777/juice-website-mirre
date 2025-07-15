@@ -1,23 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Star, MapPin, Mail, Phone, Calendar } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Star, MapPin, Phone, Mail, Clock, CheckCircle } from "lucide-react"
 
 interface TrainerContent {
   hero: {
     title: string
     subtitle: string
-    cta: string
+    description: string
   }
   about: {
     title: string
     content: string
+    certifications: string[]
   }
   services: Array<{
-    title: string
+    name: string
     description: string
     price: string
   }>
@@ -30,6 +30,7 @@ interface TrainerContent {
     email: string
     phone: string
     location: string
+    availability: string
   }
 }
 
@@ -38,20 +39,24 @@ interface Trainer {
   name: string
   fullName: string
   email: string
+  phone: string
+  location: string
   specialization: string
   experience: string
-  location: string
   bio: string
-  content: TrainerContent
-  isActive: boolean
+  certifications: string[]
+  services: string[]
   status: string
+  isActive: boolean
+  isPaid: boolean
+  content: TrainerContent
 }
 
 interface TrainerProfilePageProps {
   trainerId: string
 }
 
-export function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
+export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
   const [trainer, setTrainer] = useState<Trainer | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -62,19 +67,19 @@ export function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
 
   const fetchTrainerData = async () => {
     try {
-      console.log("Fetching trainer data for:", trainerId)
-
+      setLoading(true)
       const response = await fetch(`/api/trainer/content/${trainerId}`)
-      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch trainer data")
+        throw new Error(`Failed to fetch trainer: ${response.status}`)
       }
+
+      const data = await response.json()
 
       if (data.success && data.trainer) {
         setTrainer(data.trainer)
       } else {
-        throw new Error("Invalid trainer data")
+        throw new Error(data.error || "Failed to load trainer")
       }
     } catch (error) {
       console.error("Error fetching trainer:", error)
@@ -102,7 +107,7 @@ export function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Available</h1>
-          <p className="text-gray-600 mb-4">{error || "Trainer profile not found"}</p>
+          <p className="text-gray-600 mb-4">{error || "This trainer profile could not be found."}</p>
           <Button onClick={() => (window.location.href = "/marketplace")}>Back to Marketplace</Button>
         </div>
       </div>
@@ -114,123 +119,147 @@ export function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-[#D2FF28] py-20">
+      <section className="bg-[#D2FF28] py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-black mb-4">{content.hero.title}</h1>
-          <p className="text-xl text-black mb-8">{content.hero.subtitle}</p>
-          <Button size="lg" className="bg-black text-white hover:bg-gray-800">
-            {content.hero.cta}
+          <p className="text-xl text-black mb-6">{content.hero.subtitle}</p>
+          <p className="text-lg text-black/80 mb-8 max-w-2xl mx-auto">{content.hero.description}</p>
+          <Button
+            size="lg"
+            className="bg-black text-[#D2FF28] hover:bg-gray-800 text-lg px-8 py-3"
+            onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+          >
+            Book Your Free Consultation
           </Button>
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* About Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#D2FF28] rounded-full flex items-center justify-center">
-                <span className="text-black font-bold">A</span>
+      {/* About Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mb-6">
+                <span className="text-2xl">💪</span>
               </div>
-              {content.about.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 leading-relaxed">{content.about.content}</p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <Badge variant="secondary">{trainer.specialization}</Badge>
-              <Badge variant="secondary">{trainer.experience}</Badge>
-              <Badge variant="secondary">
-                <MapPin className="h-3 w-3 mr-1" />
-                {trainer.location}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Services Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Services & Pricing</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {content.services.map((service, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-lg mb-2">{service.title}</h3>
-                  <p className="text-gray-600 mb-3">{service.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-[#D2FF28]">{service.price}</span>
-                    <Button size="sm">Book Now</Button>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">{content.about.title}</h2>
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">{content.about.content}</p>
+              <div className="space-y-3">
+                {content.about.certifications.map((cert, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-gray-700">{cert}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="bg-gray-100 rounded-lg p-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-gray-600" />
+                  <span className="text-gray-700">{content.contact.location}</span>
+                </div>
+                {content.contact.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-gray-600" />
+                    <span className="text-gray-700">{content.contact.phone}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-gray-600" />
+                  <span className="text-gray-700">{content.contact.email}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  <span className="text-gray-700">{content.contact.availability}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Testimonials Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Client Testimonials</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {content.testimonials.map((testimonial, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
+      {/* Services Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Services</h2>
+            <p className="text-lg text-gray-600">Choose the training option that works best for you</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {content.services.map((service, index) => (
+              <Card key={index} className="border-2 hover:border-[#D2FF28] transition-colors">
+                <CardHeader>
+                  <CardTitle className="text-xl">{service.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">{service.description}</p>
+                  <div className="text-2xl font-bold text-[#D2FF28]">{service.price}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Clients Say</h2>
+            <p className="text-lg text-gray-600">Real results from real people</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {content.testimonials.map((testimonial, index) => (
+              <Card key={index} className="bg-gray-50">
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-2">"{testimonial.text}"</p>
-                  <p className="font-semibold text-sm">- {testimonial.name}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                  <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>
+                  <p className="font-semibold text-gray-900">- {testimonial.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        {/* Contact Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Get In Touch</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-[#D2FF28]" />
-                <div>
-                  <p className="font-semibold">Email</p>
-                  <p className="text-sm text-gray-600">{content.contact.email}</p>
-                </div>
-              </div>
-              {content.contact.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-[#D2FF28]" />
-                  <div>
-                    <p className="font-semibold">Phone</p>
-                    <p className="text-sm text-gray-600">{content.contact.phone}</p>
-                  </div>
-                </div>
-              )}
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-[#D2FF28]" />
-                <div>
-                  <p className="font-semibold">Location</p>
-                  <p className="text-sm text-gray-600">{content.contact.location}</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 text-center">
-              <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#c5f016]">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule Consultation
+      {/* Contact Section */}
+      <section id="contact" className="py-16 bg-[#D2FF28]">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-black mb-4">Ready to Start Your Transformation?</h2>
+          <p className="text-lg text-black/80 mb-8">
+            Book your free consultation today and take the first step towards your fitness goals.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-black text-[#D2FF28] hover:bg-gray-800"
+              onClick={() =>
+                (window.location.href = `mailto:${content.contact.email}?subject=Free Consultation Request`)
+              }
+            >
+              <Mail className="h-5 w-5 mr-2" />
+              Send Email
+            </Button>
+            {content.contact.phone && (
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-black text-black hover:bg-black hover:text-[#D2FF28] bg-transparent"
+                onClick={() => (window.location.href = `tel:${content.contact.phone}`)}
+              >
+                <Phone className="h-5 w-5 mr-2" />
+                Call Now
               </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

@@ -280,7 +280,7 @@ function PaymentPageContent() {
                   <div className="pt-4 border-t">
                     <div className="flex items-center justify-between text-lg font-semibold">
                       <span>One-time activation fee:</span>
-                      <span className="text-2xl text-[#D2FF28]">€29</span>
+                      <span className="text-2xl text-[#D2FF28]">€69</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">No monthly fees • Lifetime access • Full ownership</p>
                   </div>
@@ -310,8 +310,7 @@ function PaymentPageContent() {
               </CardHeader>
               <CardContent>
                 <StripePayment
-                  amount="29"
-                  description={`Trainer Website Activation - ${displayName}`}
+                  tempId={tempId || undefined}
                   onPaymentComplete={handlePaymentComplete}
                   onPaymentError={handlePaymentError}
                 />
