@@ -370,9 +370,14 @@ function CheckoutForm({
                 },
               },
             },
-            // Enable promotion codes (coupon field)
+            // Enable promotion codes (coupon field) - this should work now that you have active promotion codes
             promotionCodes: {
               enabled: true,
+            },
+            // Force refresh to detect new promotion codes
+            wallets: {
+              applePay: "auto",
+              googlePay: "auto",
             },
           }}
         />
