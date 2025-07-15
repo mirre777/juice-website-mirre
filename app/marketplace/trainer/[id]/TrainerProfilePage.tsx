@@ -74,17 +74,27 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         console.log("4. API Response status:", response.status)
         console.log("5. API Response ok:", response.ok)
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.log("6. Error response data:", errorData)
-          throw new Error(errorData.error || "Failed to fetch trainer content")
+        // Check if response is JSON
+        const contentType = response.headers.get("content-type")
+        console.log("6. Response content-type:", contentType)
+
+        if (!contentType || !contentType.includes("application/json")) {
+          // If it's not JSON, get the text to see what the server returned
+          const textResponse = await response.text()
+          console.log("7. Non-JSON response received:", textResponse.substring(0, 200))
+          throw new Error(`Server returned non-JSON response: ${textResponse.substring(0, 100)}`)
         }
 
         const data = await response.json()
-        console.log("7. Success response data:", data)
+        console.log("8. JSON response parsed successfully:", data)
+
+        if (!response.ok) {
+          console.log("9. API returned error:", data)
+          throw new Error(data.error || data.details || "Failed to fetch trainer content")
+        }
 
         if (data.success && data.trainer) {
-          console.log("8. Setting trainer data:", {
+          console.log("10. Setting trainer data:", {
             id: data.trainer.id,
             name: data.trainer.name,
             isActive: data.trainer.isActive,
@@ -92,18 +102,18 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
           })
           setTrainerData(data.trainer)
         } else {
-          console.log("9. Invalid trainer data structure:", data)
+          console.log("11. Invalid trainer data structure:", data)
           throw new Error("Invalid trainer data received")
         }
       } catch (error) {
-        console.error("10. Error in fetchTrainerContent:", error)
-        console.error("11. Error details:", {
+        console.error("12. Error in fetchTrainerContent:", error)
+        console.error("13. Error details:", {
           message: error instanceof Error ? error.message : "Unknown error",
           stack: error instanceof Error ? error.stack : undefined,
         })
         setError(error instanceof Error ? error.message : "Failed to load trainer content")
       } finally {
-        console.log("12. Setting loading to false")
+        console.log("14. Setting loading to false")
         setLoading(false)
       }
     }
@@ -139,7 +149,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold text-red-600 mb-4">Profile Not Available</h2>
-            <p className="text-gray-600 mb-4">{error || "Trainer profile not found or not activated"}</p>
+            <p className="text-gray-600 mb-4 text-sm">{error || "Trainer profile not found or not activated"}</p>
             <p className="text-sm text-gray-500 mb-4">Trainer ID: {trainerId}</p>
             <Button onClick={() => window.location.reload()} className="bg-juice text-black hover:bg-juice/90">
               Try Again
