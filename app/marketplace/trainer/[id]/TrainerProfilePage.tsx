@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Star, MapPin, Phone, Mail, Clock, CheckCircle } from "lucide-react"
+import { Star, MapPin, Phone, Mail, Clock, Award, Zap, User } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
 
 interface TrainerContent {
   hero: {
@@ -36,159 +36,164 @@ interface TrainerContent {
   }
 }
 
-interface Trainer {
+interface TrainerData {
   id: string
   name: string
-  fullName: string
+  fullName?: string
   email: string
-  phone: string
+  phone?: string
   location: string
   specialization: string
   experience: string
-  bio: string
-  certifications: string[]
-  content: TrainerContent
+  bio?: string
+  certifications?: string[]
+  content?: TrainerContent
   isActive: boolean
-  activatedAt: string
+  activatedAt?: string
 }
 
-export default function TrainerProfilePage() {
-  const params = useParams()
-  const trainerId = params.id as string
+interface TrainerProfilePageProps {
+  trainerId: string
+}
 
-  const [trainer, setTrainer] = useState<Trainer | null>(null)
+export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
+  const { isCoach } = useTheme()
+  const [trainerData, setTrainerData] = useState<TrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const fetchTrainerContent = async () => {
+      try {
+        console.log("Fetching trainer content for:", trainerId)
+        const response = await fetch(`/api/trainer/content/${trainerId}`)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to fetch trainer content")
+        }
+
+        const data = await response.json()
+        console.log("Trainer content received:", data)
+
+        if (data.success && data.trainer) {
+          setTrainerData(data.trainer)
+        } else {
+          throw new Error("Invalid trainer data received")
+        }
+      } catch (error) {
+        console.error("Error fetching trainer content:", error)
+        setError(error instanceof Error ? error.message : "Failed to load trainer content")
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (trainerId) {
       fetchTrainerContent()
     }
   }, [trainerId])
 
-  const fetchTrainerContent = async () => {
-    try {
-      console.log("Fetching trainer content for:", trainerId)
-
-      const response = await fetch(`/api/trainer/content/${trainerId}`)
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to fetch trainer content")
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.trainer) {
-        setTrainer(data.trainer)
-      } else {
-        throw new Error("Invalid trainer data received")
-      }
-    } catch (error) {
-      console.error("Error fetching trainer content:", error)
-      setError(error instanceof Error ? error.message : "Failed to load trainer profile")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
-          </div>
-          <p className="text-gray-600">Loading trainer profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice mx-auto mb-4"></div>
+          <p className={`text-lg ${isCoach ? "text-black" : "text-white"}`}>Loading trainer profile...</p>
         </div>
       </div>
     )
   }
 
-  if (error || !trainer) {
+  if (error || !trainerData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Found</h1>
-          <p className="text-gray-600 mb-4">{error || "This trainer profile could not be found."}</p>
-          <Button onClick={() => window.history.back()} className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
-            Go Back
-          </Button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold text-red-600 mb-4">Profile Not Available</h2>
+            <p className="text-gray-600 mb-4">{error || "Trainer profile not found or not activated"}</p>
+            <Button onClick={() => window.location.reload()} className="bg-juice text-black hover:bg-juice/90">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  const { content } = trainer
+  const content = trainerData.content
+
+  if (!content) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold text-orange-600 mb-4">Profile Not Ready</h2>
+            <p className="text-gray-600 mb-4">This trainer profile is still being set up. Please check back later.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isCoach ? "bg-white" : "bg-black"}`}>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-700 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">{content.hero.title}</h1>
-            <p className="text-xl md:text-2xl mb-6 text-gray-300">{content.hero.subtitle}</p>
-            <p className="text-lg max-w-3xl mx-auto mb-8">{content.hero.description}</p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
-                Book a Session
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-black bg-transparent"
-              >
-                View Programs
-              </Button>
-            </div>
-          </div>
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+            {content.hero.title}
+          </h1>
+          <p className={`text-xl mb-6 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{content.hero.subtitle}</p>
+          <p className={`text-lg max-w-2xl mx-auto mb-8 ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
+            {content.hero.description}
+          </p>
+          <Button size="lg" className="bg-juice text-black hover:bg-juice/90 px-8 py-3 text-lg">
+            Book a Session
+          </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
-            <Card>
+            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-[#D2FF28]" />
+                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
+                  <User className="w-5 h-5" />
                   {content.about.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{content.about.content}</p>
-                {trainer.certifications && trainer.certifications.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold mb-3">Certifications</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {trainer.certifications.map((cert, index) => (
-                        <Badge key={index} variant="secondary">
-                          {cert}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <p className={`text-lg leading-relaxed ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
+                  {content.about.content}
+                </p>
               </CardContent>
             </Card>
 
             {/* Services Section */}
-            <Card>
+            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
               <CardHeader>
-                <CardTitle>Services & Programs</CardTitle>
+                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
+                  <Zap className="w-5 h-5" />
+                  Services
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-6">
                   {content.services.map((service, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-lg">{service.title}</h4>
-                        <span className="text-[#D2FF28] font-bold">{service.price}</span>
+                    <div key={index} className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className={`font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                          {service.title}
+                        </h4>
+                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{service.description}</p>
                       </div>
-                      <p className="text-gray-600">{service.description}</p>
+                      <Badge variant="secondary" className="ml-4 bg-juice text-black">
+                        {service.price}
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -196,21 +201,29 @@ export default function TrainerProfilePage() {
             </Card>
 
             {/* Testimonials Section */}
-            <Card>
+            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
               <CardHeader>
-                <CardTitle>Client Testimonials</CardTitle>
+                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
+                  <Star className="w-5 h-5" />
+                  Client Testimonials
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-6">
                   {content.testimonials.map((testimonial, index) => (
-                    <div key={index} className="border-l-4 border-[#D2FF28] pl-4">
-                      <div className="flex items-center gap-1 mb-2">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        ))}
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                        <span className={`font-medium ${isCoach ? "text-black" : "text-white"}`}>
+                          {testimonial.name}
+                        </span>
                       </div>
-                      <p className="text-gray-700 mb-2">"{testimonial.text}"</p>
-                      <p className="font-semibold text-sm">- {testimonial.name}</p>
+                      <p className={`${isCoach ? "text-gray-700" : "text-gray-300"} italic`}>"{testimonial.text}"</p>
+                      {index < content.testimonials.length - 1 && <Separator className="mt-4" />}
                     </div>
                   ))}
                 </div>
@@ -220,57 +233,64 @@ export default function TrainerProfilePage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
-            <Card>
+            {/* Contact Info */}
+            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
               <CardHeader>
-                <CardTitle>Get in Touch</CardTitle>
+                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
+                  <Phone className="w-5 h-5" />
+                  Contact Info
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-500" />
-                  <a href={`mailto:${content.contact.email}`} className="text-blue-600 hover:underline">
-                    {content.contact.email}
-                  </a>
+                  <Mail className="w-4 h-4 text-juice" />
+                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{content.contact.email}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-gray-500" />
-                  <a href={`tel:${content.contact.phone}`} className="text-blue-600 hover:underline">
-                    {content.contact.phone}
-                  </a>
+                  <Phone className="w-4 h-4 text-juice" />
+                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{content.contact.phone}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500" />
-                  <span>{content.contact.location}</span>
+                  <MapPin className="w-4 h-4 text-juice" />
+                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{content.contact.location}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-gray-500" />
-                  <span className="text-sm">{content.contact.availability}</span>
+                  <Clock className="w-4 h-4 text-juice" />
+                  <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>
+                    {content.contact.availability}
+                  </span>
                 </div>
-                <Separator />
-                <Button className="w-full bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">Book Consultation</Button>
               </CardContent>
             </Card>
 
             {/* Quick Stats */}
-            <Card>
+            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
               <CardHeader>
-                <CardTitle>Experience</CardTitle>
+                <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
+                  <Award className="w-5 h-5" />
+                  Experience
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-semibold">{trainer.experience}</p>
-                    <p className="text-sm text-gray-600">Training Experience</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">{trainer.specialization}</p>
-                    <p className="text-sm text-gray-600">Specialization</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">{trainer.location}</p>
-                    <p className="text-sm text-gray-600">Location</p>
-                  </div>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-juice">{trainerData.experience}</div>
+                  <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Experience</div>
                 </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-juice">{trainerData.specialization}</div>
+                  <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Specialization</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA */}
+            <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
+              <CardContent className="p-6 text-center">
+                <h3 className={`font-bold mb-2 ${isCoach ? "text-black" : "text-white"}`}>Ready to Start?</h3>
+                <p className={`text-sm mb-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                  Book your first session today
+                </p>
+                <Button className="w-full bg-juice text-black hover:bg-juice/90">Contact Now</Button>
               </CardContent>
             </Card>
           </div>

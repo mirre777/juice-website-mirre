@@ -225,6 +225,7 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
             colorPrimary: "#ffcc00",
             colorBackground: isCoach ? "#ffffff" : "#000000",
             colorText: isCoach ? "#000000" : "#ffffff",
+            borderRadius: "8px",
           },
         },
         loader: "auto",
@@ -266,19 +267,6 @@ function CheckoutForm({
 
     setIsProcessing(true)
     setPaymentError(null)
-
-    if (!elements) {
-      console.error("Elements not available")
-      setPaymentError("Payment form not ready. Please wait a moment and try again.")
-      return
-    }
-
-    const paymentElement = elements.getElement("payment")
-    if (!paymentElement) {
-      console.error("PaymentElement not found")
-      setPaymentError("Payment form not loaded properly. Please refresh and try again.")
-      return
-    }
 
     try {
       if (!email) {
@@ -355,15 +343,22 @@ function CheckoutForm({
         </div>
       )}
 
-      <PaymentElement
-        onReady={() => {
-          console.log("PaymentElement is ready")
-          setElementsReady(true)
-        }}
-        options={{
-          layout: "tabs",
-        }}
-      />
+      <div className="space-y-4">
+        <PaymentElement
+          onReady={() => {
+            console.log("PaymentElement is ready")
+            setElementsReady(true)
+          }}
+          options={{
+            layout: "tabs",
+            defaultValues: {
+              billingDetails: {
+                email: email,
+              },
+            },
+          }}
+        />
+      </div>
 
       <div className="space-y-2">
         <label htmlFor="email" className={`block text-sm font-medium ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
