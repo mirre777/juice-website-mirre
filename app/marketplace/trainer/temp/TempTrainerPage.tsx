@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Timer } from "lucide-react"
+import { MapPin, Mail, Phone, Clock, Euro, Star, CheckCircle, Timer, AlertCircle } from "lucide-react"
 
 interface TempTrainerData {
   id: string
@@ -20,10 +20,26 @@ interface TempTrainerData {
   experience: string
   bio: string
   certifications: string[]
+  services: string[]
+  pricing: Record<string, any>
+  availability: Record<string, any>
+  website: string
+  socialMedia: Record<string, string>
+  images: string[]
+  testimonials: any[]
+  content: any
+  isActive: boolean
+  isPaid: boolean
   createdAt: string
   expiresAt: string
-  isActive: boolean
-  sessionToken?: string
+  token: string
+}
+
+interface ApiResponse {
+  success: boolean
+  trainer: TempTrainerData
+  error?: string
+  details?: string
 }
 
 interface TempTrainerPageProps {
@@ -37,15 +53,28 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Get token from props or search params
   const accessToken = token || searchParams.get("token")
 
   useEffect(() => {
+    console.log("🎯 TempTrainerPage useEffect triggered", {
+      tempId,
+      hasToken: !!accessToken,
+      tokenLength: accessToken?.length,
+    })
+
     if (tempId && accessToken) {
       fetchTrainerData()
     } else {
-      console.error("Missing tempId or token", { tempId, hasToken: !!accessToken })
+      console.error("❌ Missing required parameters", {
+        tempId,
+        hasToken: !!accessToken,
+        searchParamsToken: searchParams.get("token"),
+        propsToken: token,
+      })
+      setError("Missing trainer ID or access token")
       setGenerating(false)
       setLoading(false)
     }
@@ -53,16 +82,21 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
 
   const fetchTrainerData = async () => {
     try {
+      console.log("🚀 Starting trainer data fetch process")
+
       // Simulate AI generation process
       setGenerating(true)
+      setError(null)
 
       // Show generating message for 3 seconds
       setTimeout(() => {
+        console.log("⏰ Generation timeout completed, loading trainer data")
         setGenerating(false)
         loadTrainerData()
       }, 3000)
     } catch (error) {
-      console.error("Error:", error)
+      console.error("💥 Error in fetchTrainerData:", error)
+      setError(error instanceof Error ? error.message : "Unknown error")
       setGenerating(false)
       setLoading(false)
     }
@@ -74,44 +108,107 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
         throw new Error("No access token provided")
       }
 
-      console.log("Loading trainer data", { tempId, hasToken: !!accessToken })
-
-      const url = `/api/trainer/temp/${tempId}?token=${encodeURIComponent(accessToken)}`
-      console.log("Fetching from URL:", url)
-
-      const response = await fetch(url)
-      console.log("Response status:", response.status)
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()))
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("API Error Response:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        })
-        throw new Error(`HTTP ${response.status}: ${errorText}`)
-      }
-
-      const data = await response.json()
-      console.log("API Response data:", {
-        hasData: !!data,
-        dataKeys: data ? Object.keys(data) : [],
-        hasSuccess: !!data.success,
-        hasTrainer: !!data.trainer,
-        trainerName: data?.trainer?.name,
+      console.log("📡 Loading trainer data from API", {
+        tempId,
+        hasToken: !!accessToken,
+        tokenPreview: accessToken.substring(0, 10) + "...",
       })
 
+      const url = `/api/trainer/temp/${tempId}?token=${encodeURIComponent(accessToken)}`
+      console.log("🌐 Fetching from URL:", url)
+
+      const fetchStartTime = Date.now()
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": navigator.userAgent,
+        },
+      })
+
+      const fetchDuration = Date.now() - fetchStartTime
+
+      console.log("📥 API Response received", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        duration: `${fetchDuration}ms`,
+        headers: Object.fromEntries(response.headers.entries()),
+        url: response.url,
+      })
+
+      let responseText: string
+      let data: ApiResponse
+
+      try {
+        responseText = await response.text()
+        console.log("📄 Response text received", {
+          length: responseText.length,
+          preview: responseText.substring(0, 200) + (responseText.length > 200 ? "..." : ""),
+        })
+
+        data = JSON.parse(responseText)
+        console.log("📊 Response parsed successfully", {
+          hasData: !!data,
+          dataKeys: data ? Object.keys(data) : [],
+          hasSuccess: !!data.success,
+          hasTrainer: !!data.trainer,
+          hasError: !!data.error,
+        })
+      } catch (parseError) {
+        console.error("❌ Failed to parse response", {
+          parseError: parseError instanceof Error ? parseError.message : String(parseError),
+          responseText: responseText?.substring(0, 500),
+          responseStatus: response.status,
+        })
+        throw new Error(
+          `Failed to parse API response: ${parseError instanceof Error ? parseError.message : "Unknown parse error"}`,
+        )
+      }
+
+      if (!response.ok) {
+        console.error("❌ API Error Response", {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          details: data.details,
+          responseData: data,
+        })
+        throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
       if (data.success && data.trainer) {
+        console.log("✅ Trainer data received successfully", {
+          trainerName: data.trainer.name,
+          trainerEmail: data.trainer.email,
+          trainerKeys: Object.keys(data.trainer),
+          certificationsCount: data.trainer.certifications?.length || 0,
+          servicesCount: data.trainer.services?.length || 0,
+        })
         setTrainer(data.trainer)
       } else {
-        throw new Error(data.error || "Invalid response format")
+        console.error("❌ Invalid response format", {
+          hasSuccess: !!data.success,
+          hasTrainer: !!data.trainer,
+          dataKeys: Object.keys(data),
+          data,
+        })
+        throw new Error(data.error || "Invalid response format from server")
       }
     } catch (error) {
-      console.error("Error loading trainer data:", error)
+      console.error("💥 Error loading trainer data:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        tempId,
+        hasToken: !!accessToken,
+      })
+
+      const errorMessage = error instanceof Error ? error.message : "Failed to load trainer profile"
+      setError(errorMessage)
+
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to load trainer profile",
+        title: "Error Loading Profile",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -120,8 +217,21 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   }
 
   const handleActivate = () => {
+    console.log("🎯 Activate button clicked", { tempId, hasToken: !!accessToken })
+
+    if (!accessToken) {
+      console.error("❌ No access token for activation")
+      toast({
+        title: "Error",
+        description: "Missing access token for activation",
+        variant: "destructive",
+      })
+      return
+    }
+
     // Navigate to payment page with tempId and token
-    const paymentUrl = `/payment?tempId=${tempId}&token=${encodeURIComponent(accessToken || "")}`
+    const paymentUrl = `/payment?tempId=${tempId}&token=${encodeURIComponent(accessToken)}`
+    console.log("🔄 Navigating to payment:", paymentUrl)
     router.push(paymentUrl)
   }
 
@@ -145,7 +255,7 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Timer className="h-4 w-4" />
-                  <span>Time remaining: 23h 59m 49s</span>
+                  <span>Time remaining: 23h 59m</span>
                 </div>
                 <Button className="bg-[#D2FF28] text-black hover:bg-[#C5F01A]">Activate for €29</Button>
               </div>
@@ -188,15 +298,26 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
     )
   }
 
-  if (!trainer) {
+  // Show error screen
+  if (error || !trainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Trainer Not Found</h1>
-          <p className="text-gray-600 mb-4">
-            The trainer profile you're looking for doesn't exist or the preview has expired.
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Profile</h1>
+          <p className="text-gray-600 mb-6">
+            {error || "The trainer profile you're looking for doesn't exist or the preview has expired."}
           </p>
-          <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
+          <div className="space-y-3">
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
+              Back to Marketplace
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -217,6 +338,9 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
     : typeof trainer.certifications === "string"
       ? [trainer.certifications]
       : ["Certified Personal Trainer"]
+
+  // Ensure services is always an array
+  const services = Array.isArray(trainer.services) ? trainer.services : ["Personal Training", "Fitness Consultation"]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -297,22 +421,24 @@ export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold mb-6">My Training Services</h2>
                   <div className="grid gap-4">
-                    <Card className="p-6">
-                      <h3 className="font-bold text-lg mb-2">Flexibility & Mobility</h3>
-                      <p className="text-gray-600 mb-4">
-                        Personalized flexibility & mobility sessions tailored to your goals
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-lg font-bold text-[#D2FF28]">
-                          <Euro className="h-4 w-4" />
-                          60/session
+                    {services.map((service, index) => (
+                      <Card key={index} className="p-6">
+                        <h3 className="font-bold text-lg mb-2">{service}</h3>
+                        <p className="text-gray-600 mb-4">
+                          Personalized {service.toLowerCase()} sessions tailored to your goals
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-lg font-bold text-[#D2FF28]">
+                            <Euro className="h-4 w-4" />
+                            {trainer.pricing?.session || 60}/session
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Clock className="h-4 w-4" />
+                            60 min
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Clock className="h-4 w-4" />
-                          60 min
-                        </div>
-                      </div>
-                    </Card>
+                      </Card>
+                    ))}
                   </div>
                 </div>
 
