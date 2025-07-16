@@ -44,15 +44,24 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Fetch trainer data
   useEffect(() => {
+    if (!mounted) return
+
     const fetchTrainer = async () => {
       try {
         if (!tempId) {
           setError("Missing trainer ID")
           setLoading(false)
+          setIsGenerating(false)
           return
         }
 
@@ -60,22 +69,27 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
           ? `/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`
           : `/api/trainer/temp/${tempId}`
 
+        console.log("Fetching trainer data from:", url)
+
         const response = await fetch(url)
+        const data = await response.json()
+
+        console.log("API Response:", data)
 
         if (!response.ok) {
           if (response.status === 404) {
             setError("Trainer profile not found or has expired")
           } else if (response.status === 401) {
             setError("Invalid access token")
+          } else if (response.status === 410) {
+            setError("Trainer profile has expired")
           } else {
-            setError("Failed to load trainer profile")
+            setError(data.error || "Failed to load trainer profile")
           }
           setLoading(false)
           setIsGenerating(false)
           return
         }
-
-        const data = await response.json()
 
         if (data.success && data.trainer) {
           setTrainer(data.trainer)
@@ -83,9 +97,10 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
           // Simulate generation process
           setTimeout(() => {
             setIsGenerating(false)
-          }, 3000)
+          }, 2000)
         } else {
           setError(data.error || "Failed to load trainer data")
+          setIsGenerating(false)
         }
 
         setLoading(false)
@@ -98,11 +113,11 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
     }
 
     fetchTrainer()
-  }, [tempId, token])
+  }, [tempId, token, mounted])
 
   // Timer countdown
   useEffect(() => {
-    if (!trainer?.expiresAt) return
+    if (!mounted || !trainer?.expiresAt) return
 
     const updateTimer = () => {
       const now = new Date().getTime()
@@ -122,7 +137,7 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
     updateTimer()
     const interval = setInterval(updateTimer, 1000)
     return () => clearInterval(interval)
-  }, [trainer?.expiresAt])
+  }, [trainer?.expiresAt, mounted])
 
   const handleActivate = () => {
     if (!token) {
@@ -130,6 +145,11 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
       return
     }
     router.push(`/payment?tempId=${tempId}&token=${encodeURIComponent(token)}`)
+  }
+
+  // Don't render anything until mounted (prevents hydration issues)
+  if (!mounted) {
+    return null
   }
 
   if (loading || isGenerating) {
