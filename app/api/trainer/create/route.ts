@@ -1,54 +1,49 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { db } from "@/app/api/firebase-config"
 import { FieldValue } from "firebase-admin/firestore"
 import { logger } from "@/lib/logger"
-import crypto from "crypto"
 
-// Validation schema
-const trainerSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  location: z.string().min(5, "Location must be at least 5 characters"),
-  specialty: z.string().min(1, "Specialty is required"),
-  experience: z.string().min(1, "Experience level is required"),
-  bio: z.string().min(50, "Bio must be at least 50 characters").max(500, "Bio must be less than 500 characters"),
-  certifications: z.string().optional(),
-  services: z.array(z.string()).min(1, "At least one service is required"),
-})
+interface TrainerFormData {
+  fullName: string
+  email: string
+  phone: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications: string
+  services: string[]
+}
 
 export async function POST(request: NextRequest) {
-  const requestId = crypto.randomBytes(3).toString("hex")
-
-  logger.info("Trainer creation request started", { requestId })
+  const requestId = Math.random().toString(36).substring(2, 8)
 
   try {
-    const body = await request.json()
+    logger.info("Trainer creation request started", { requestId })
+
+    const formData: TrainerFormData = await request.json()
 
     logger.debug("Form data received", {
       requestId,
-      email: body.email,
-      specialty: body.specialty,
-      location: body.location,
-      servicesCount: body.services?.length || 0,
-      hasPhone: !!body.phone,
-      hasCertifications: !!body.certifications,
-      bioLength: body.bio?.length || 0,
+      email: formData.email,
+      specialty: formData.specialty,
+      location: formData.location,
+      servicesCount: formData.services?.length || 0,
+      hasPhone: !!formData.phone,
+      hasCertifications: !!formData.certifications,
+      bioLength: formData.bio?.length || 0,
     })
 
-    // Validate the data
-    const validatedData = trainerSchema.parse(body)
+    // Generate session token and expiry
+    const sessionToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-    // Generate session token
-    const sessionToken = crypto.randomBytes(32).toString("hex")
-
-    // Create temporary trainer data
+    // Create temporary trainer document
     const tempTrainerData = {
-      ...validatedData,
+      ...formData,
       status: "temp",
       createdAt: FieldValue.serverTimestamp(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+      expiresAt: expiresAt.toISOString(),
       sessionToken,
       isActive: false,
       isPaid: false,
@@ -58,59 +53,36 @@ export async function POST(request: NextRequest) {
 
     logger.info("Creating trainer document", {
       requestId,
-      email: validatedData.email,
-      expiresAt: tempTrainerData.expiresAt.toISOString(),
+      email: formData.email,
+      expiresAt: expiresAt.toISOString(),
       dataKeys: Object.keys(tempTrainerData),
-      servicesCount: validatedData.services.length,
+      servicesCount: formData.services?.length || 0,
     })
 
-    // Save to Firestore using Firebase Admin SDK syntax
+    // Use Firebase Admin SDK syntax
     const trainersCollection = db.collection("trainers")
     const docRef = await trainersCollection.add(tempTrainerData)
 
+    const tempId = docRef.id
+
     logger.info("Trainer document created successfully", {
       requestId,
-      email: validatedData.email,
-      docId: docRef.id,
-      sessionToken: sessionToken.substring(0, 8) + "...", // Log partial token for debugging
-    })
-
-    // Generate the temporary URL
-    const tempUrl = `/marketplace/trainer/temp/${docRef.id}?token=${sessionToken}`
-
-    logger.info("Trainer creation completed", {
-      requestId,
-      email: validatedData.email,
-      tempUrl,
+      tempId,
+      email: formData.email,
       docId: docRef.id,
     })
 
     return NextResponse.json({
       success: true,
-      tempId: docRef.id,
-      redirectUrl: tempUrl,
+      tempId,
+      token: sessionToken,
+      expiresAt: expiresAt.toISOString(),
       message: "Trainer profile created successfully",
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      logger.warn("Validation failed", {
-        requestId,
-        errors: error.errors,
-      })
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Validation failed",
-          details: error.errors,
-        },
-        { status: 400 },
-      )
-    }
-
     logger.error("Firebase write failed", {
       requestId,
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : "Unknown error",
       code: error instanceof Error && "code" in error ? error.code : "unknown",
       stack: error instanceof Error ? error.stack : undefined,
     })
@@ -119,7 +91,8 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: "Failed to create trainer profile. Please try again.",
-        details: error instanceof Error ? error.message : String(error),
+        details: error instanceof Error ? error.message : "Unknown error occurred",
+        requestId,
       },
       { status: 500 },
     )

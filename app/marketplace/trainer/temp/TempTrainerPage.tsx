@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Clock, MapPin, Star, Users, Dumbbell, Award, Phone, Mail } from "lucide-react"
+import { MapPin, Star, Users, Dumbbell, Award, Phone, Mail, Timer, AlertCircle } from "lucide-react"
 
 interface TempTrainerPageProps {
   tempId: string
-  token: string
+  token?: string
 }
 
 interface TrainerData {
@@ -50,7 +50,17 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
   useEffect(() => {
     const fetchTrainer = async () => {
       try {
-        const response = await fetch(`/api/trainer/temp/${tempId}?token=${token}`)
+        if (!tempId) {
+          setError("Missing trainer ID")
+          setLoading(false)
+          return
+        }
+
+        const url = token
+          ? `/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`
+          : `/api/trainer/temp/${tempId}`
+
+        const response = await fetch(url)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -61,28 +71,33 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
             setError("Failed to load trainer profile")
           }
           setLoading(false)
+          setIsGenerating(false)
           return
         }
 
         const data = await response.json()
-        setTrainer(data.trainer)
 
-        // Simulate generation process
-        setTimeout(() => {
-          setIsGenerating(false)
-        }, 3000)
+        if (data.success && data.trainer) {
+          setTrainer(data.trainer)
+
+          // Simulate generation process
+          setTimeout(() => {
+            setIsGenerating(false)
+          }, 3000)
+        } else {
+          setError(data.error || "Failed to load trainer data")
+        }
 
         setLoading(false)
       } catch (err) {
         console.error("Error fetching trainer:", err)
         setError("Failed to load trainer profile")
         setLoading(false)
+        setIsGenerating(false)
       }
     }
 
-    if (tempId && token) {
-      fetchTrainer()
-    }
+    fetchTrainer()
   }, [tempId, token])
 
   // Timer countdown
@@ -110,38 +125,14 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
   }, [trainer?.expiresAt])
 
   const handleActivate = () => {
-    router.push(`/payment?tempId=${tempId}&token=${token}`)
+    if (!token) {
+      setError("Missing access token for activation")
+      return
+    }
+    router.push(`/payment?tempId=${tempId}&token=${encodeURIComponent(token)}`)
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your trainer profile...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-red-500 text-5xl mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (isGenerating) {
+  if (loading || isGenerating) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
         <Card className="w-full max-w-lg">
@@ -155,12 +146,18 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
                   <div className="text-2xl">✨</div>
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">AI is generating your website...</h2>
-              <p className="text-gray-600 mb-6">Creating a personalized trainer website based on your profile</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {isGenerating ? "AI is generating your website..." : "Loading your profile..."}
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {isGenerating
+                  ? "Creating a personalized trainer website based on your profile"
+                  : "Please wait while we load your trainer profile"}
+              </p>
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
               </div>
-              <p className="text-sm text-gray-500">This usually takes 2-3 seconds</p>
+              <p className="text-sm text-gray-500">{isGenerating ? "This usually takes 2-3 seconds" : "Loading..."}</p>
             </div>
           </CardContent>
         </Card>
@@ -168,7 +165,49 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
     )
   }
 
-  if (!trainer) return null
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <div className="space-y-2">
+                <Button onClick={() => window.location.reload()} className="w-full">
+                  Try Again
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/marketplace/personal-trainer-website")}
+                  className="w-full"
+                >
+                  Create New Profile
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!trainer) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
+              <p className="text-gray-600 mb-4">The trainer profile could not be loaded.</p>
+              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -178,13 +217,13 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Badge variant="outline" className="flex items-center space-x-1">
-                <Clock className="h-4 w-4" />
+                <Timer className="h-4 w-4" />
                 <span>Trial expires in: {timeLeft}</span>
               </Badge>
               <Badge variant="secondary">Preview Mode</Badge>
             </div>
-            <Button onClick={handleActivate} size="lg" className="bg-blue-600 hover:bg-blue-700">
-              Activate Website - $29/month
+            <Button onClick={handleActivate} size="lg" className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
+              Activate Website - €29
             </Button>
           </div>
         </div>
@@ -353,6 +392,21 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
                   <span className="font-semibold">{trainer.services.length}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Activation CTA */}
+            <Card className="bg-[#D2FF28] border-[#D2FF28]">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-bold text-black mb-2">Ready to Go Live?</h3>
+                  <p className="text-sm text-black/80 mb-4">
+                    Activate your website now and start attracting clients today!
+                  </p>
+                  <Button onClick={handleActivate} className="w-full bg-black text-white hover:bg-gray-800">
+                    Activate for €29
+                  </Button>
                 </div>
               </CardContent>
             </Card>
