@@ -1,42 +1,42 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { activateTrainer, getTrainerById } from "@/lib/firebase-admin"
+import { activateTrainer } from "@/lib/firebase-admin"
 
 export async function POST(request: NextRequest) {
   try {
-    const { trainerId } = await request.json()
+    const { tempId, paymentIntentId } = await request.json()
 
-    console.log("[ACTIVATE] === TRAINER ACTIVATION DEBUG ===")
-    console.log("[ACTIVATE] 1. Activating trainer:", trainerId)
+    console.log("[ACTIVATE] Manual trainer activation request:", { tempId, paymentIntentId })
 
-    if (!trainerId) {
-      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
+    if (!tempId) {
+      return NextResponse.json({ error: "Missing tempId" }, { status: 400 })
     }
 
-    // Check if trainer exists
-    const trainer = await getTrainerById(trainerId)
-    if (!trainer) {
-      console.log("[ACTIVATE] 2. Trainer not found:", trainerId)
-      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+    try {
+      const result = await activateTrainer(tempId, {
+        paymentIntentId,
+        manualActivation: true,
+        activatedAt: new Date().toISOString(),
+      })
+
+      console.log("[ACTIVATE] Trainer activated successfully:", result.finalId)
+
+      return NextResponse.json({
+        success: true,
+        finalId: result.finalId,
+        message: "Trainer activated successfully",
+      })
+    } catch (error) {
+      console.error("[ACTIVATE] Error activating trainer:", error)
+      return NextResponse.json(
+        {
+          error: "Failed to activate trainer",
+          details: error instanceof Error ? error.message : "Unknown error",
+        },
+        { status: 500 },
+      )
     }
-
-    // Activate the trainer
-    await activateTrainer(trainerId)
-    console.log("[ACTIVATE] 3. Trainer activated successfully:", trainerId)
-
-    return NextResponse.json({
-      success: true,
-      message: "Trainer activated successfully",
-      trainerId,
-    })
   } catch (error) {
-    console.error("[ACTIVATE] 4. Error activating trainer:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to activate trainer",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.error("[ACTIVATE] Request parsing error:", error)
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
 }
