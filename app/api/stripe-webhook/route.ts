@@ -1,66 +1,149 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { activateTrainer } from "@/lib/firebase-admin"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
+// Initialize Firebase Admin
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
+
+const db = getFirestore()
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
-  const signature = request.headers.get("stripe-signature")!
+  const signature = request.headers.get("stripe-signature")
+
+  if (!signature) {
+    console.error("No Stripe signature found")
+    return NextResponse.json({ error: "No signature" }, { status: 400 })
+  }
 
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
-    console.log("[WEBHOOK] Event received:", event.type)
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err: any) {
-    console.error("[WEBHOOK] Webhook signature verification failed:", err.message)
-    return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 })
+    console.error("Webhook signature verification failed:", err.message)
+    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
   }
 
-  // Handle the event
-  switch (event.type) {
-    case "payment_intent.succeeded":
-      const paymentIntent = event.data.object as Stripe.PaymentIntent
-      console.log("[WEBHOOK] Payment succeeded:", paymentIntent.id)
+  console.log("Webhook event received:", event.type)
 
-      try {
-        const tempId = paymentIntent.metadata.tempId
-        if (!tempId) {
-          console.error("[WEBHOOK] No tempId in payment metadata")
-          break
-        }
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
+    console.log("Payment succeeded:", paymentIntent.id)
 
-        console.log("[WEBHOOK] Activating trainer:", tempId)
-
-        // Activate the trainer
-        const result = await activateTrainer(tempId, {
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          email: paymentIntent.metadata.email,
-          paidAt: new Date().toISOString(),
-        })
-
-        console.log("[WEBHOOK] Trainer activated successfully:", result.finalId)
-      } catch (error) {
-        console.error("[WEBHOOK] Error activating trainer:", error)
-        // Don't return error to Stripe - we don't want them to retry
+    try {
+      const tempId = paymentIntent.metadata.tempId
+      if (!tempId) {
+        console.error("No tempId in payment metadata")
+        return NextResponse.json({ error: "Missing tempId" }, { status: 400 })
       }
-      break
 
-    case "payment_intent.payment_failed":
-      const failedPayment = event.data.object as Stripe.PaymentIntent
-      console.log("[WEBHOOK] Payment failed:", failedPayment.id)
-      break
+      // Get temp trainer data
+      const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
+      if (!tempDoc.exists) {
+        console.error("Temp trainer not found:", tempId)
+        return NextResponse.json({ error: "Temp trainer not found" }, { status: 404 })
+      }
 
-    default:
-      console.log("[WEBHOOK] Unhandled event type:", event.type)
+      const tempData = tempDoc.data()!
+      console.log("Activating trainer:", tempData.name)
+
+      // Generate final trainer ID
+      const finalId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // Generate AI content for the trainer
+      const aiContent = await generateTrainerContent(tempData)
+
+      // Create final trainer document
+      const finalTrainerData = {
+        ...tempData,
+        id: finalId,
+        content: aiContent,
+        isActive: true,
+        activatedAt: new Date().toISOString(),
+        paymentIntentId: paymentIntent.id,
+        status: "active",
+      }
+
+      await db.collection("trainers").doc(finalId).set(finalTrainerData)
+      console.log("Trainer activated successfully:", finalId)
+
+      // Clean up temp data
+      await db.collection("tempTrainers").doc(tempId).delete()
+
+      return NextResponse.json({ success: true, finalId })
+    } catch (error) {
+      console.error("Error activating trainer:", error)
+      return NextResponse.json({ error: "Activation failed" }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ received: true })
+}
+
+async function generateTrainerContent(trainerData: any) {
+  return {
+    hero: {
+      title: `Transform Your Fitness with ${trainerData.name}`,
+      subtitle: `Professional ${trainerData.specialization} in ${trainerData.location}`,
+      description: `With ${trainerData.experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
+    },
+    about: {
+      title: "About Me",
+      content: `I'm ${trainerData.name}, a certified ${trainerData.specialization} based in ${trainerData.location}. With ${trainerData.experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results. My approach combines proven training methods with personalized attention to help you reach your fitness goals safely and effectively.`,
+    },
+    services: [
+      {
+        title: "Personal Training",
+        description: "One-on-one sessions tailored to your specific goals and fitness level",
+        price: "€80/session",
+      },
+      {
+        title: "Group Training",
+        description: "Small group sessions for motivation and cost-effective training",
+        price: "€35/session",
+      },
+      {
+        title: "Online Coaching",
+        description: "Remote coaching with custom workout plans and nutrition guidance",
+        price: "€150/month",
+      },
+    ],
+    testimonials: [
+      {
+        name: "Sarah M.",
+        text: "Working with this trainer has completely transformed my approach to fitness. The personalized programs really work!",
+        rating: 5,
+      },
+      {
+        name: "Mike R.",
+        text: "Professional, knowledgeable, and motivating. I've seen incredible results in just 3 months.",
+        rating: 5,
+      },
+      {
+        name: "Emma L.",
+        text: "The best investment I've made in my health. Highly recommend to anyone serious about fitness.",
+        rating: 5,
+      },
+    ],
+    contact: {
+      email: trainerData.email,
+      phone: trainerData.phone || "+31 6 1234 5678",
+      location: trainerData.location,
+      availability: "Monday - Saturday, 6:00 AM - 8:00 PM",
+    },
+  }
 }

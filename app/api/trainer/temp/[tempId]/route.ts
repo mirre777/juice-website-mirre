@@ -1,116 +1,151 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
+  const startTime = Date.now()
+
   try {
+    console.log("🚀 Starting temp trainer API request")
+
+    const tempId = params.tempId
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
-    const tempId = params.tempId
 
-    console.log("🔍 GET /api/trainer/temp/[tempId] called", {
+    console.log("📋 Request parameters", {
       tempId,
       hasToken: !!token,
       tokenLength: token?.length,
       url: request.url,
+      method: request.method,
     })
 
     // Validate required parameters
     if (!tempId) {
-      console.error("❌ Missing tempId parameter")
-      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
+      console.error("❌ Missing tempId parameter", { params })
+      return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
     }
 
     if (!token) {
-      console.error("❌ Missing token parameter")
-      return NextResponse.json({ success: false, error: "Missing access token" }, { status: 401 })
+      console.error("❌ Missing token parameter", { tempId })
+      return NextResponse.json({ error: "Token is required" }, { status: 400 })
     }
 
-    // For now, return mock data to avoid Firebase issues during deployment
-    // This will be replaced with actual Firebase calls once deployment is stable
+    // For now, let's create mock data to test the route works
+    console.log("🎭 Creating mock trainer data for testing")
+
     const mockTrainerData = {
-      id: tempId,
-      name: "Alex Johnson",
-      fullName: "Alex Johnson",
-      email: "alex.johnson@example.com",
-      phone: "+1 (555) 123-4567",
-      location: "New York, NY",
-      specialization: "Strength Training & Weight Loss",
-      experience: "5+ years experience",
-      bio: "Passionate fitness trainer dedicated to helping clients achieve their health and wellness goals. Specializing in strength training, weight loss, and functional movement patterns.",
-      certifications: ["NASM Certified Personal Trainer", "Precision Nutrition Level 1", "FMS Certified"],
-      services: ["Personal Training", "Group Fitness Classes", "Nutrition Coaching", "Online Training Programs"],
-      pricing: {
-        session: 75,
-        package: 300,
-        monthly: 800,
+      success: true,
+      trainer: {
+        id: tempId,
+        name: "John Smith",
+        fullName: "John Smith",
+        email: "john.smith@example.com",
+        specialization: "Personal Trainer",
+        bio: "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+        experience: "8+ years experience",
+        certifications: ["NASM Certified Personal Trainer", "CPR/AED Certified"],
+        services: ["Personal Training", "Fitness Consultation", "Nutrition Coaching"],
+        pricing: { session: 75 },
+        availability: {},
+        location: "New York, NY",
+        phone: "+1 (555) 123-4567",
+        website: "",
+        socialMedia: {},
+        images: [],
+        testimonials: [],
+        content: null,
+        isActive: false,
+        isPaid: false,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        token: token,
       },
-      availability: {
-        monday: "6:00 AM - 8:00 PM",
-        tuesday: "6:00 AM - 8:00 PM",
-        wednesday: "6:00 AM - 8:00 PM",
-        thursday: "6:00 AM - 8:00 PM",
-        friday: "6:00 AM - 6:00 PM",
-        saturday: "8:00 AM - 4:00 PM",
-        sunday: "Closed",
-      },
-      website: "https://alexjohnsontraining.com",
-      socialMedia: {
-        instagram: "@alexjohnsonfit",
-        facebook: "Alex Johnson Training",
-        youtube: "Alex Johnson Fitness",
-      },
-      images: [
-        "/placeholder.svg?height=400&width=600&text=Trainer+Photo",
-        "/placeholder.svg?height=300&width=400&text=Gym+Setup",
-        "/placeholder.svg?height=300&width=400&text=Training+Session",
-      ],
-      testimonials: [
-        {
-          name: "Sarah M.",
-          rating: 5,
-          text: "Alex helped me lose 30 pounds and gain confidence I never had before!",
-        },
-        {
-          name: "Mike R.",
-          rating: 5,
-          text: "Professional, knowledgeable, and motivating. Highly recommend!",
-        },
-      ],
-      content: {
-        hero: {
-          title: "Transform Your Body, Transform Your Life",
-          subtitle: "Professional Personal Training in New York",
-          cta: "Book Your Free Consultation",
-        },
-        about: {
-          title: "About Alex Johnson",
-          description:
-            "With over 5 years of experience in the fitness industry, I'm committed to helping you achieve your health and wellness goals through personalized training programs.",
-        },
-      },
-      isActive: false,
-      isPaid: false,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-      token: token,
     }
 
-    console.log("✅ Returning mock trainer data", {
-      trainerName: mockTrainerData.name,
-      trainerEmail: mockTrainerData.email,
+    const duration = Date.now() - startTime
+
+    console.log("✅ Mock trainer data created successfully", {
+      tempId,
+      name: mockTrainerData.trainer.name,
+      duration: `${duration}ms`,
     })
 
-    return NextResponse.json({
-      success: true,
-      trainer: mockTrainerData,
-    })
+    return NextResponse.json(mockTrainerData)
   } catch (error) {
-    console.error("💥 Error in GET /api/trainer/temp/[tempId]:", error)
+    const duration = Date.now() - startTime
+
+    console.error("💥 Temp trainer API error", {
+      tempId: params?.tempId || "unknown",
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+      duration: `${duration}ms`,
+      url: request.url,
+    })
+
+    // Always return JSON, never plain text
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error occurred",
+        tempId: params?.tempId || "unknown",
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { tempId: string } }) {
+  const startTime = Date.now()
+
+  try {
+    console.log("🚀 Starting temp trainer PUT request")
+
+    const tempId = params.tempId
+    const body = await request.json()
+    const { token, ...updateData } = body
+
+    console.log("📋 PUT request parameters", {
+      tempId,
+      hasToken: !!token,
+      updateDataKeys: Object.keys(updateData),
+    })
+
+    if (!tempId) {
+      console.error("❌ PUT: Missing tempId parameter", { params })
+      return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
+    }
+
+    if (!token) {
+      console.error("❌ PUT: Missing token parameter", { tempId })
+      return NextResponse.json({ error: "Token is required" }, { status: 400 })
+    }
+
+    // For now, just return success for testing
+    const duration = Date.now() - startTime
+
+    console.log("✅ PUT: Mock update successful", {
+      tempId,
+      duration: `${duration}ms`,
+      updatedFields: Object.keys(updateData),
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    const duration = Date.now() - startTime
+
+    console.error("💥 PUT: Temp trainer error", {
+      tempId: params?.tempId || "unknown",
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`,
+    })
 
     return NextResponse.json(
       {
-        success: false,
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.message : "Unknown error occurred",
+        timestamp: new Date().toISOString(),
       },
       { status: 500 },
     )

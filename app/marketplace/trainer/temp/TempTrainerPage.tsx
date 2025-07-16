@@ -47,8 +47,7 @@ interface TempTrainerPageProps {
   token?: string
 }
 
-// Export as default to fix import error
-export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
+export function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
