@@ -28,6 +28,17 @@ function initializeFirebaseAdmin() {
 // Initialize Firestore Admin
 export const db = getFirestore(initializeFirebaseAdmin())
 
+// Check if we have real Firebase configuration (not mock/test data)
+export function hasRealFirebaseConfig(): boolean {
+  return !!(
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY &&
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+    process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  )
+}
+
 // Debug function for server-side use only
 export function getFirebaseDebugInfo() {
   return {
@@ -35,6 +46,7 @@ export function getFirebaseDebugInfo() {
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,
     hasApp: getApps().length > 0,
     hasDb: !!db,
+    hasRealConfig: hasRealFirebaseConfig(),
     envVars: {
       NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
       NEXT_PUBLIC_FIREBASE_APP_ID: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,

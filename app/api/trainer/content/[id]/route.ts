@@ -36,6 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         services: ["Personal Training"],
         isActive: true,
         status: "active",
+        bio: "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
       }
 
       const mockContent = {
@@ -47,8 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         },
         about: {
           title: "About Mirre Snelting",
-          content:
-            "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
+          content: mockTrainerData.bio, // Use the original bio field
         },
         services: [
           {
@@ -116,13 +116,17 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         const trainerData = doc.data()
         console.log("[SERVER] 5. Found trainer in Firebase:", trainerData?.name)
 
-        // Generate content if it doesn't exist
-        if (!trainerData?.content) {
-          trainerData.content = {
+        // Use existing content if available, otherwise generate from trainer data
+        let content = trainerData?.content
+
+        if (!content) {
+          content = {
             hero: {
               title: `Transform Your Body, Transform Your Life`,
               subtitle: `${trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
-              description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
+              description:
+                trainerData.bio ||
+                `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
             },
             about: {
               title: `About ${trainerData.fullName || trainerData.name}`,
@@ -153,12 +157,20 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
               description: `Professional ${trainerData.specialization || "personal training"} with ${trainerData.fullName || trainerData.name}. Transform your fitness with personalized programs in ${trainerData.location}.`,
             },
           }
+        } else {
+          // If content exists but about.content is missing, use the original bio
+          if (!content.about?.content && trainerData.bio) {
+            content.about = {
+              ...content.about,
+              content: trainerData.bio,
+            }
+          }
         }
 
         return NextResponse.json({
           success: true,
           trainer: { id: params.id, ...trainerData },
-          content: trainerData.content,
+          content: content,
         })
       }
     } catch (firebaseError) {
@@ -208,7 +220,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // For the mock trainer, simulate saving
     if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
       console.log("[SERVER] Simulating save for mock trainer")
-      // In a real scenario, this would save to Firebase
       return NextResponse.json({
         success: true,
         message: "Content updated successfully",
@@ -217,14 +228,22 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // For real trainers, save to Firebase
     try {
-      await db.collection("trainers").doc(params.id).update({
+      // Update both the content object AND sync the bio field
+      const updateData: any = {
         content: content,
         updatedAt: new Date().toISOString(),
         "customization.lastUpdated": new Date().toISOString(),
-        "customization.version": Date.now(), // Simple versioning
-      })
+        "customization.version": Date.now(),
+      }
 
-      console.log("[SERVER] Successfully updated trainer content in Firebase")
+      // If the about content was updated, also update the top-level bio field
+      if (content.about?.content) {
+        updateData.bio = content.about.content
+      }
+
+      await db.collection("trainers").doc(params.id).update(updateData)
+
+      console.log("[SERVER] Successfully updated trainer content and bio in Firebase")
 
       return NextResponse.json({
         success: true,
