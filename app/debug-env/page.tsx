@@ -49,7 +49,7 @@ export default function DebugEnvPage() {
           </div>
 
           <div className="mt-6">
-            <h3 className="text-xl font-semibold mb-2">Firebase Connection Test</h3>
+            <h3 className="text-xl font-semibold mb-2">Firebase Initialization Test</h3>
             <FirebaseTest />
           </div>
         </div>
@@ -67,15 +67,17 @@ function FirebaseTest() {
     setTestResult("Testing Firebase connection...")
 
     try {
-      // Test Firebase connection via API route instead of direct import
-      const response = await fetch("/api/debug-firebase-temp")
-      const result = await response.json()
+      // Dynamically import Firebase
+      const { getFirestore, collection, getDocs, limit, query } = await import("firebase/firestore")
+      const { db } = await import("@/app/api/firebase-config")
 
-      if (response.ok) {
-        setTestResult("✅ Firebase connection successful! " + result.message)
-      } else {
-        setTestResult("❌ Firebase test failed: " + result.error)
-      }
+      setTestResult("Firebase initialized successfully. Attempting to query database...")
+
+      // Try a simple query
+      const q = query(collection(db, "potential_users"), limit(1))
+      await getDocs(q)
+
+      setTestResult("✅ Firebase connection successful! Database query completed without errors.")
     } catch (error) {
       setTestResult(`❌ Firebase test failed: ${error instanceof Error ? error.message : String(error)}`)
     } finally {

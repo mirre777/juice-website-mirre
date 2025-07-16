@@ -121,8 +121,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           trainerData.content = {
             hero: {
               title: `Transform Your Body, Transform Your Life`,
-              subtitle: `${trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
-              description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
+              subtitle: `${trainerData.specialty || trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
+              description:
+                trainerData.bio ||
+                `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
             },
             about: {
               title: `About ${trainerData.fullName || trainerData.name}`,
