@@ -1,4 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
+
+// Initialize Firebase Admin
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
+
+const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -21,58 +36,58 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         services: ["Personal Training"],
         isActive: true,
         status: "active",
-        content: {
-          hero: {
-            title: "Transform Your Body, Transform Your Life",
-            subtitle: "Sports Performance • 5-10 years experience • Vienna",
-            description:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+      }
+
+      const mockContent = {
+        hero: {
+          title: "Transform Your Body, Transform Your Life",
+          subtitle: "Sports Performance • 5-10 years experience • Vienna",
+          description:
+            "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+        },
+        about: {
+          title: "About Mirre Snelting",
+          content:
+            "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
+        },
+        services: [
+          {
+            id: "1",
+            title: "Personal Training",
+            description: "Personalized personal training sessions tailored to your goals",
+            price: 60,
+            duration: "60 minutes",
+            featured: true,
           },
-          about: {
-            title: "About Mirre Snelting",
-            content:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
+          {
+            id: "2",
+            title: "Sports Performance Training",
+            description: "Specialized training to improve athletic performance and competition readiness",
+            price: 80,
+            duration: "60 minutes",
+            featured: false,
           },
-          services: [
-            {
-              title: "Personal Training",
-              description: "Personalized personal training sessions tailored to your goals",
-              price: "€60/session",
-            },
-            {
-              title: "Sports Performance Training",
-              description: "Specialized training to improve athletic performance and competition readiness",
-              price: "€80/session",
-            },
-            {
-              title: "Custom Workout Plan",
-              description: "Personalized workout program designed for your goals and schedule",
-              price: "€100/plan",
-            },
-          ],
-          testimonials: [
-            {
-              name: "Sarah M.",
-              text: "Working with Mirre has been life-changing. Their expertise in Sports Performance helped me achieve results I never thought possible.",
-              rating: 5,
-            },
-            {
-              name: "Mike R.",
-              text: "Professional, knowledgeable, and motivating. Mirre creates personalized programs that actually work.",
-              rating: 5,
-            },
-            {
-              name: "Lisa K.",
-              text: "Excellent sports performance coaching. Achieved my competition goals with Mirre's guidance!",
-              rating: 5,
-            },
-          ],
-          contact: {
-            email: "mirresnelting+3@gmail.com",
-            phone: "+436602101427",
-            location: "Vienna",
-            availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
+          {
+            id: "3",
+            title: "Custom Workout Plan",
+            description: "Personalized workout program designed for your goals and schedule",
+            price: 100,
+            duration: "Digital delivery",
+            featured: false,
           },
+        ],
+        contact: {
+          title: "Let's Start Your Fitness Journey",
+          description:
+            "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+          email: "mirresnelting+3@gmail.com",
+          phone: "+436602101427",
+          location: "Vienna",
+        },
+        seo: {
+          title: "Mirre Snelting - Personal Trainer in Vienna",
+          description:
+            "Professional Sports Performance training with Mirre Snelting. Transform your fitness with personalized programs in Vienna.",
         },
       }
 
@@ -80,6 +95,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         {
           success: true,
           trainer: mockTrainerData,
+          content: mockContent,
         },
         {
           status: 200,
@@ -90,26 +106,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    // For other trainer IDs, try Firebase (simplified version)
+    // For other trainer IDs, try Firebase
     try {
       console.log("[SERVER] 4. Attempting Firebase lookup for:", params.id)
 
-      // Try to initialize Firebase Admin (simplified)
-      const admin = await import("firebase-admin")
-
-      if (!admin.apps.length) {
-        const serviceAccount = {
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        })
-      }
-
-      const db = admin.firestore()
       const doc = await db.collection("trainers").doc(params.id).get()
 
       if (doc.exists) {
@@ -132,23 +132,25 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             },
             services: [
               {
+                id: "1",
                 title: "Personal Training",
                 description: "Personalized training sessions tailored to your goals",
-                price: "€60/session",
-              },
-            ],
-            testimonials: [
-              {
-                name: "Client A.",
-                text: `Working with ${trainerData.fullName || trainerData.name} has been amazing!`,
-                rating: 5,
+                price: 60,
+                duration: "60 minutes",
+                featured: true,
               },
             ],
             contact: {
+              title: "Let's Start Your Fitness Journey",
+              description:
+                "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
               email: trainerData.email,
               phone: trainerData.phone || "Contact for details",
               location: trainerData.location,
-              availability: "Monday - Friday: 6AM - 8PM",
+            },
+            seo: {
+              title: `${trainerData.fullName || trainerData.name} - Personal Trainer in ${trainerData.location}`,
+              description: `Professional ${trainerData.specialization || "personal training"} with ${trainerData.fullName || trainerData.name}. Transform your fitness with personalized programs in ${trainerData.location}.`,
             },
           }
         }
@@ -156,6 +158,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         return NextResponse.json({
           success: true,
           trainer: { id: params.id, ...trainerData },
+          content: trainerData.content,
         })
       }
     } catch (firebaseError) {
@@ -190,6 +193,62 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           "Content-Type": "application/json",
         },
       },
+    )
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    console.log("[SERVER] === UPDATING TRAINER CONTENT ===")
+    console.log("[SERVER] Trainer ID:", params.id)
+
+    const { content } = await request.json()
+    console.log("[SERVER] Content to update:", Object.keys(content))
+
+    // For the mock trainer, simulate saving
+    if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
+      console.log("[SERVER] Simulating save for mock trainer")
+      // In a real scenario, this would save to Firebase
+      return NextResponse.json({
+        success: true,
+        message: "Content updated successfully",
+      })
+    }
+
+    // For real trainers, save to Firebase
+    try {
+      await db.collection("trainers").doc(params.id).update({
+        content: content,
+        updatedAt: new Date().toISOString(),
+        "customization.lastUpdated": new Date().toISOString(),
+        "customization.version": Date.now(), // Simple versioning
+      })
+
+      console.log("[SERVER] Successfully updated trainer content in Firebase")
+
+      return NextResponse.json({
+        success: true,
+        message: "Content updated successfully",
+      })
+    } catch (firebaseError) {
+      console.error("[SERVER] Firebase update error:", firebaseError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to update content in database",
+        },
+        { status: 500 },
+      )
+    }
+  } catch (error) {
+    console.error("[SERVER] Update error:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to update content",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     )
   }
 }

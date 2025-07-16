@@ -1,319 +1,273 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, Mail, MapPin, Phone, Star, CheckCircle } from "lucide-react"
-
-interface TempTrainerData {
-  id: string
-  fullName: string
-  email: string
-  phone?: string
-  location: string
-  specialty: string
-  experience: string
-  bio: string
-  certifications?: string
-  services: string[]
-  createdAt: string
-  expiresAt: string
-}
+import { Clock, MapPin, Star, Mail, Phone, Edit } from "lucide-react"
 
 interface TempTrainerPageProps {
   tempId: string
-  token: string
 }
 
-export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
+export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
+  const router = useRouter()
+  const [trainer, setTrainer] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [mounted, setMounted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    fetchTrainerData()
+  }, [tempId])
 
-  useEffect(() => {
-    if (!mounted) return
+  const fetchTrainerData = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/trainer/temp/${tempId}`)
 
-    const fetchTrainerData = async () => {
-      try {
-        console.log("Fetching trainer data for tempId:", tempId, "with token:", token)
-
-        const response = await fetch(`/api/trainer/temp/${tempId}?token=${token}`)
-        console.log("API Response status:", response.status)
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error("API Error:", errorData)
-          throw new Error(errorData.error || `HTTP ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log("API Response data:", data)
-
-        if (data.success && data.trainer) {
-          setTrainer(data.trainer)
-        } else {
-          throw new Error(data.error || "Failed to fetch trainer data")
-        }
-      } catch (err) {
-        console.error("Error fetching trainer data:", err)
-        setError(err instanceof Error ? err.message : "Failed to load trainer data")
-      } finally {
-        setLoading(false)
+      if (!response.ok) {
+        throw new Error("Failed to fetch trainer data")
       }
+
+      const data = await response.json()
+      setTrainer(data.trainer)
+    } catch (error) {
+      console.error("Error fetching trainer:", error)
+      setError("Failed to load trainer profile")
+    } finally {
+      setLoading(false)
     }
-
-    // Show loading screen for 3 seconds, then fetch data
-    const timer = setTimeout(() => {
-      fetchTrainerData()
-    }, 3000)
-
-    return () => clearTimeout(timer)
-  }, [tempId, token, mounted])
-
-  if (!mounted) {
-    return null
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🤖</div>
-          <div className="absolute top-4 right-4 text-2xl">✨</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">AI is generating your website...</h2>
-          <p className="text-gray-600 mb-6">Creating a personalized trainer website based on your profile</p>
-          <div className="w-full max-w-md bg-gray-200 rounded-full h-2 mb-4">
-            <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
+          <div className="text-4xl mb-4">🤖</div>
+          <h2 className="text-xl font-semibold mb-2">AI is generating your website...</h2>
+          <p className="text-gray-600 mb-4">Creating a personalized trainer website based on your profile</p>
+          <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
+            <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: "70%" }}></div>
           </div>
-          <p className="text-sm text-gray-500">This usually takes 2-3 seconds</p>
+          <p className="text-sm text-gray-500 mt-2">This usually takes 2-3 seconds</p>
         </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !trainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4 p-8 text-center">
-          <div className="text-red-500 mb-4">
-            <CheckCircle className="w-12 h-12 mx-auto" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Preview</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#D2FF28] text-black hover:bg-[#B8E625]">
-            Try Again
-          </Button>
-        </Card>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Profile Not Found</h2>
+          <p className="text-gray-600 mb-4">{error || "The trainer profile could not be loaded."}</p>
+          <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Go Back</Button>
+        </div>
       </div>
     )
-  }
-
-  if (!trainer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4 p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Trainer Not Found</h2>
-          <p className="text-gray-600">This preview may have expired or is invalid.</p>
-        </Card>
-      </div>
-    )
-  }
-
-  const handleActivate = () => {
-    // Redirect to payment page with trainer data
-    window.location.href = `/payment?tempId=${tempId}&token=${token}`
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-orange-500" />
-            <span className="text-sm font-medium text-gray-700">Trial expires in: Expired</span>
-            <Badge variant="outline" className="text-xs">
-              Preview Mode
-            </Badge>
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-medium">Trial expires in: 23h 59m 41s</span>
+              </div>
+              <Badge variant="secondary">Preview Mode</Badge>
+            </div>
+            <Button className="bg-lime-400 hover:bg-lime-500 text-black font-semibold">Activate Website - €70</Button>
           </div>
-          <Button onClick={handleActivate} className="bg-[#D2FF28] text-black hover:bg-[#B8E625] font-semibold px-6">
-            Activate Website - €70
-          </Button>
         </div>
       </div>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Fitness with {trainer.fullName}</h1>
-          <p className="text-xl mb-6">
-            Professional {trainer.specialty} trainer in {trainer.location}
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 break-words">
+            Transform Your Fitness with {trainer.name}
+          </h1>
+          <p className="text-xl mb-6 break-words">
+            Professional {trainer.specialization} trainer in {trainer.location}
           </p>
-
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Badge className="bg-white/20 text-white px-4 py-2">
-              <Clock className="w-4 h-4 mr-2" />
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Clock className="h-3 w-3 mr-1" />
               {trainer.experience} Experience
             </Badge>
-            <Badge className="bg-white/20 text-white px-4 py-2">
-              <MapPin className="w-4 h-4 mr-2" />
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <MapPin className="h-3 w-3 mr-1" />
               {trainer.location}
             </Badge>
-            <Badge className="bg-white/20 text-white px-4 py-2">
-              <Star className="w-4 h-4 mr-2" />
-              {trainer.specialty}
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Star className="h-3 w-3 mr-1" />
+              {trainer.specialization}
             </Badge>
           </div>
-
           <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
             Book Free Consultation
           </Button>
         </div>
-      </section>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* About Section */}
+          <div className="lg:col-span-2">
             <Card>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                  About {trainer.fullName}
-                </h2>
-                <p className="text-gray-600 leading-relaxed mb-4 break-words overflow-wrap-anywhere">{trainer.bio}</p>
-
-                {trainer.certifications && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Certifications</h3>
-                    <p className="text-gray-600 break-words overflow-wrap-anywhere">{trainer.certifications}</p>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold">👤</span>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  About {trainer.name}
+                </CardTitle>
+                <Button variant="outline" size="sm" onClick={() => router.push(`/marketplace/trainer/${tempId}/edit`)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 leading-relaxed break-words overflow-wrap-anywhere">
+                    {trainer.bio ||
+                      `I'm ${trainer.name}, a passionate fitness professional with ${trainer.experience} of experience in ${trainer.specialization}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.
 
-            {/* Services Section */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                  Services Offered
-                </h2>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {trainer.services.map((service, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-gray-700 break-words">{service}</span>
-                    </div>
-                  ))}
+My approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.
+
+I'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`}
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Testimonials Section */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                  Client Testimonials
-                </h2>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex text-yellow-400 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
+            {/* Services Section */}
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Services & Pricing</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Personal Training</h3>
+                      <Badge>Featured</Badge>
                     </div>
-                    <p className="text-gray-600 italic mb-2 break-words">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
+                    <p className="text-gray-600 text-sm mb-3 break-words">
+                      One-on-one personalized training session focused on your specific goals
                     </p>
-                    <p className="text-sm text-gray-500">- Sarah M.</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-blue-600">€60</span>
+                      <span className="text-sm text-gray-500">60 minutes</span>
+                    </div>
                   </div>
 
-                  <div className="border-l-4 border-green-500 pl-4">
-                    <div className="flex text-yellow-400 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-gray-600 italic mb-2 break-words">
-                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold mb-2">Fitness Assessment</h3>
+                    <p className="text-gray-600 text-sm mb-3 break-words">
+                      Comprehensive fitness evaluation and goal-setting session
                     </p>
-                    <p className="text-sm text-gray-500">- Mike R.</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-blue-600">€40</span>
+                      <span className="text-sm text-gray-500">45 minutes</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg md:col-span-2">
+                    <h3 className="font-semibold mb-2">Custom Workout Plan</h3>
+                    <p className="text-gray-600 text-sm mb-3 break-words">
+                      Personalized workout program designed for your goals and schedule
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-blue-600">€80</span>
+                      <span className="text-sm text-gray-500">Digital delivery</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Info */}
+          {/* Contact Section */}
+          <div>
             <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4">Get In Touch</h3>
-                <div className="space-y-3">
+              <CardHeader>
+                <CardTitle>Get In Touch</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-sm break-all">{trainer.email}</span>
+                </div>
+                {trainer.phone && (
                   <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 break-all">{trainer.email}</span>
+                    <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                    <span className="text-sm break-words">{trainer.phone}</span>
                   </div>
-                  {trainer.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                      <span className="text-gray-700 break-words">{trainer.phone}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 break-words">{trainer.location}</span>
-                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-sm break-words">{trainer.location}</span>
                 </div>
 
-                <Button className="w-full mt-4 bg-black text-white hover:bg-gray-800">Schedule Consultation</Button>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4">Quick Stats</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Experience</span>
-                    <span className="font-medium break-words">{trainer.experience}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Specialty</span>
-                    <span className="font-medium break-words">{trainer.specialty}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Location</span>
-                    <span className="font-medium break-words">{trainer.location}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Services</span>
-                    <span className="font-medium">{trainer.services.length}</span>
-                  </div>
+                <div className="pt-4 border-t">
+                  <h4 className="font-semibold mb-2">Availability</h4>
+                  <p className="text-sm text-gray-600 break-words">
+                    Monday - Friday: 6AM - 8PM
+                    <br />
+                    Saturday: 8AM - 4PM
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* CTA Card */}
-            <Card className="bg-[#D2FF28]">
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-bold text-black mb-2">Ready to Go Live?</h3>
-                <p className="text-black/80 mb-4">Activate your website now and start attracting clients today!</p>
-                <Button onClick={handleActivate} className="w-full bg-black text-white hover:bg-gray-800">
-                  Activate for €70
+                <Button className="w-full mt-4">Book Consultation</Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  onClick={() => router.push(`/marketplace/trainer/${tempId}/edit`)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Website
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Testimonials */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Client Reviews</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-1 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-700 break-words">
+                    "Working with {trainer.name} has been life-changing. Their expertise in {trainer.specialization}{" "}
+                    helped me achieve results I never thought possible."
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">- Sarah M.</p>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-1 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-700 break-words">
+                    "Professional, knowledgeable, and motivating. {trainer.name} creates personalized programs that
+                    actually work."
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">- Mike R.</p>
+                </div>
               </CardContent>
             </Card>
           </div>
