@@ -6,44 +6,61 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(request: NextRequest) {
+  const body = await request.text()
+  const signature = request.headers.get("stripe-signature")!
+
+  let event: Stripe.Event
+
   try {
-    const body = await request.text()
-    const signature = request.headers.get("stripe-signature")!
-
-    let event: Stripe.Event
-
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } catch (err) {
-      console.error("Webhook signature verification failed:", err)
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
-    }
-
-    console.log("[WEBHOOK] Received event:", event.type)
-
-    if (event.type === "payment_intent.succeeded") {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent
-      const tempId = paymentIntent.metadata.tempId
-
-      console.log("[WEBHOOK] Payment succeeded for tempId:", tempId)
-
-      if (tempId) {
-        try {
-          await activateTrainer(tempId, paymentIntent.id)
-          console.log("[WEBHOOK] Trainer activated successfully:", tempId)
-        } catch (error) {
-          console.error("[WEBHOOK] Failed to activate trainer:", error)
-          // Don't return error to Stripe, just log it
-        }
-      }
-    }
-
-    return NextResponse.json({ received: true })
-  } catch (error) {
-    console.error("[WEBHOOK] Error processing webhook:", error)
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
+    event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
+    console.log("[WEBHOOK] Event received:", event.type)
+  } catch (err: any) {
+    console.error("[WEBHOOK] Webhook signature verification failed:", err.message)
+    return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 })
   }
+
+  // Handle the event
+  switch (event.type) {
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object as Stripe.PaymentIntent
+      console.log("[WEBHOOK] Payment succeeded:", paymentIntent.id)
+
+      try {
+        const tempId = paymentIntent.metadata.tempId
+        if (!tempId) {
+          console.error("[WEBHOOK] No tempId in payment metadata")
+          break
+        }
+
+        console.log("[WEBHOOK] Activating trainer:", tempId)
+
+        // Activate the trainer
+        const result = await activateTrainer(tempId, {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          email: paymentIntent.metadata.email,
+          paidAt: new Date().toISOString(),
+        })
+
+        console.log("[WEBHOOK] Trainer activated successfully:", result.finalId)
+      } catch (error) {
+        console.error("[WEBHOOK] Error activating trainer:", error)
+        // Don't return error to Stripe - we don't want them to retry
+      }
+      break
+
+    case "payment_intent.payment_failed":
+      const failedPayment = event.data.object as Stripe.PaymentIntent
+      console.log("[WEBHOOK] Payment failed:", failedPayment.id)
+      break
+
+    default:
+      console.log("[WEBHOOK] Unhandled event type:", event.type)
+  }
+
+  return NextResponse.json({ received: true })
 }

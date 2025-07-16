@@ -3,27 +3,30 @@ import { activateTrainer } from "@/lib/firebase-admin"
 
 export async function POST(request: NextRequest) {
   try {
-    const { tempId, paymentIntentId } = await request.json()
+    const { tempId, paymentData } = await request.json()
 
-    console.log("[ACTIVATE] Activating trainer:", { tempId, paymentIntentId })
+    console.log("[TRAINER ACTIVATE] Activating trainer:", tempId)
 
-    if (!tempId || !paymentIntentId) {
-      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
+    if (!tempId) {
+      return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
     }
 
     try {
-      const activatedTrainer = await activateTrainer(tempId, paymentIntentId)
+      const result = await activateTrainer(tempId, paymentData)
+
+      console.log("[TRAINER ACTIVATE] Trainer activated successfully:", result.finalId)
 
       return NextResponse.json({
         success: true,
-        trainer: activatedTrainer,
+        finalId: result.finalId,
+        message: "Trainer activated successfully",
       })
     } catch (firebaseError) {
-      console.error("[ACTIVATE] Firebase error:", firebaseError)
+      console.error("[TRAINER ACTIVATE] Firebase error:", firebaseError)
       return NextResponse.json({ error: "Failed to activate trainer" }, { status: 500 })
     }
   } catch (error) {
-    console.error("[ACTIVATE] Error activating trainer:", error)
+    console.error("[TRAINER ACTIVATE] Unexpected error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
