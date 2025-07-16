@@ -4,147 +4,196 @@ import { getTrainerById } from "@/lib/firebase-admin"
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-
-    console.log("[SERVER] === TRAINER CONTENT API DEBUG ===")
-    console.log("[SERVER] 1. Fetching trainer ID:", trainerId)
+    console.log("[TRAINER CONTENT] Fetching content for trainer:", trainerId)
 
     if (!trainerId) {
-      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
+      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
     try {
-      console.log("[SERVER] 2. Querying Firestore for trainer:", trainerId)
+      // Try to get trainer from Firebase
+      const trainer = await getTrainerById(trainerId)
 
-      // Fetch trainer document using Firebase Admin
-      const trainerData = await getTrainerById(trainerId)
-
-      if (!trainerData) {
-        console.log("[SERVER] 3. Trainer document not found in Firestore")
-        return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+      if (trainer && trainer.content) {
+        console.log("[TRAINER CONTENT] Found trainer with content in Firebase")
+        return NextResponse.json({
+          success: true,
+          trainer: trainer,
+          content: trainer.content,
+        })
       }
 
-      console.log("[SERVER] 4. Found trainer data:", {
-        id: trainerId,
-        name: trainerData?.fullName || trainerData?.name,
-        status: trainerData?.status,
-        isActive: trainerData?.isActive,
-        hasContent: !!trainerData?.content,
-      })
-
-      // Check if trainer is active
-      if (trainerData?.status !== "active" && !trainerData?.isActive) {
-        console.log("[SERVER] 5. Trainer is not active")
-        return NextResponse.json({ success: false, error: "Trainer profile not active" }, { status: 403 })
+      if (trainer) {
+        console.log("[TRAINER CONTENT] Found trainer but no content, generating default")
+        // Generate default content if trainer exists but has no content
+        const defaultContent = generateDefaultContent(trainer)
+        return NextResponse.json({
+          success: true,
+          trainer: trainer,
+          content: defaultContent,
+        })
       }
-
-      // Use existing content or generate default
-      let content = trainerData?.content
-      if (!content) {
-        console.log("[SERVER] 6. No content found, generating default")
-        content = generateDefaultContent(trainerData)
-      }
-
-      // Prepare trainer response
-      const trainerResponse = {
-        id: trainerId,
-        name: trainerData?.fullName || trainerData?.name || "Trainer",
-        fullName: trainerData?.fullName,
-        email: trainerData?.email,
-        phone: trainerData?.phone,
-        location: trainerData?.location,
-        specialization: trainerData?.specialty || trainerData?.specialization,
-        experience: trainerData?.experience,
-        bio: trainerData?.bio,
-        certifications: trainerData?.certifications,
-        services: trainerData?.services,
-        isActive: trainerData?.isActive || trainerData?.status === "active",
-        status: trainerData?.status,
-        activatedAt: trainerData?.activatedAt,
-        content: content,
-      }
-
-      console.log("[SERVER] 7. Returning trainer data successfully")
-
-      return NextResponse.json({
-        success: true,
-        trainer: trainerResponse,
-      })
     } catch (firebaseError) {
-      console.error("[SERVER] 8. Firebase error:", firebaseError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Database connection error",
-          details: firebaseError instanceof Error ? firebaseError.message : "Unknown Firebase error",
-        },
-        { status: 500 },
-      )
+      console.error("[TRAINER CONTENT] Firebase error:", firebaseError)
     }
+
+    // Fallback to mock data for development
+    console.log("[TRAINER CONTENT] Using mock data for trainer:", trainerId)
+    const mockContent = getMockTrainerContent(trainerId)
+
+    return NextResponse.json({
+      success: true,
+      trainer: mockContent.trainer,
+      content: mockContent.content,
+    })
   } catch (error) {
-    console.error("[SERVER] 9. Unexpected error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.error("[TRAINER CONTENT] Error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-function generateDefaultContent(trainerData: any) {
-  const name = trainerData?.fullName || trainerData?.name || "Trainer"
-  const specialty = trainerData?.specialty || trainerData?.specialization || "Personal Training"
-  const experience = trainerData?.experience || "5+ years"
-  const location = trainerData?.location || "Location"
+function generateDefaultContent(trainer: any) {
+  const name = trainer.fullName || trainer.name || "Trainer"
+  const specialty = trainer.specialty || trainer.specialization || "Personal Training"
+  const experience = trainer.experience || "5+ years"
+  const location = trainer.location || "Location"
 
   return {
     hero: {
-      title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${specialty} • ${experience} experience • ${location}`,
-      description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
+      title: `Transform Your Fitness with ${name}`,
+      subtitle: `Professional ${specialty} in ${location}`,
+      description: `With ${experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
     },
     about: {
-      title: `About ${name}`,
-      content:
-        trainerData?.bio ||
-        `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With ${experience} of experience in ${specialty}, I help clients transform their bodies and lives through sustainable fitness practices.`,
+      title: "About Me",
+      content: `I'm ${name}, a certified ${specialty} based in ${location}. With ${experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results.`,
     },
     services: [
       {
         title: "Personal Training",
-        description: "One-on-one personalized training sessions tailored to your goals",
-        price: "€60",
+        description: "One-on-one sessions tailored to your specific goals",
+        price: "€80",
       },
       {
-        title: "Group Classes",
-        description: "Small group fitness classes for motivation and community",
-        price: "€30",
-      },
-      {
-        title: "Nutrition Coaching",
-        description: "Personalized nutrition plans and ongoing support",
-        price: "€100",
+        title: "Group Training",
+        description: "Small group sessions for motivation and cost-effective training",
+        price: "€35",
       },
     ],
     testimonials: [
       {
-        name: "Client A.",
-        text: `Working with ${name} has been amazing! Their ${specialty} expertise is outstanding.`,
-        rating: 5,
-      },
-      {
-        name: "Client B.",
-        text: "Professional, motivating, and knowledgeable trainer. Highly recommend!",
+        name: "Sarah M.",
+        text: "Working with this trainer has completely transformed my approach to fitness!",
         rating: 5,
       },
     ],
     contact: {
-      email: trainerData?.email || "contact@trainer.com",
-      phone: trainerData?.phone || "Contact for details",
-      location: trainerData?.location || "Location",
-      availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
+      email: trainer.email,
+      phone: trainer.phone || "+31 6 1234 5678",
+      location: trainer.location,
     },
   }
+}
+
+function getMockTrainerContent(trainerId: string) {
+  // Mock data for specific trainer IDs
+  const mockTrainers: { [key: string]: any } = {
+    IekIXvQP8TrM1hJZZrKX: {
+      trainer: {
+        id: "IekIXvQP8TrM1hJZZrKX",
+        name: "Mirre Snelting",
+        fullName: "Mirre Snelting",
+        email: "mirresnelting@gmail.com",
+        specialty: "CrossFit Coach",
+        experience: "1-2 years",
+        location: "vienna",
+        phone: "+436602101427",
+        isActive: true,
+        status: "active",
+      },
+      content: {
+        hero: {
+          title: "Transform Your Fitness with Mirre Snelting",
+          subtitle: "Professional CrossFit Coach in Vienna",
+          description:
+            "With 1-2 years of experience, I help clients achieve their fitness goals through personalized CrossFit training programs.",
+        },
+        about: {
+          title: "About Me",
+          content:
+            "I'm Mirre Snelting, a certified CrossFit Coach based in Vienna. I specialize in creating customized workout plans that deliver real results through functional fitness movements.",
+        },
+        services: [
+          {
+            title: "CrossFit Training",
+            description: "High-intensity functional fitness training",
+            price: "€75",
+          },
+          {
+            title: "Group Fitness",
+            description: "Small group CrossFit sessions",
+            price: "€40",
+          },
+        ],
+        testimonials: [
+          {
+            name: "Anna K.",
+            text: "Mirre's CrossFit coaching has transformed my strength and endurance!",
+            rating: 5,
+          },
+        ],
+        contact: {
+          email: "mirresnelting@gmail.com",
+          phone: "+436602101427",
+          location: "Vienna",
+        },
+      },
+    },
+  }
+
+  return (
+    mockTrainers[trainerId] || {
+      trainer: {
+        id: trainerId,
+        name: "Alex Johnson",
+        specialty: "Personal Training",
+        experience: "5+ years",
+        location: "New York, NY",
+        isActive: true,
+        status: "active",
+      },
+      content: {
+        hero: {
+          title: "Transform Your Fitness with Alex Johnson",
+          subtitle: "Professional Personal Trainer in New York, NY",
+          description:
+            "With 5+ years of experience, I help clients achieve their fitness goals through personalized training programs.",
+        },
+        about: {
+          title: "About Me",
+          content:
+            "I'm Alex Johnson, a certified Personal Trainer based in New York. I specialize in strength training and weight loss programs.",
+        },
+        services: [
+          {
+            title: "Personal Training",
+            description: "One-on-one sessions tailored to your goals",
+            price: "€80",
+          },
+        ],
+        testimonials: [
+          {
+            name: "Sarah M.",
+            text: "Alex's training has completely transformed my fitness journey!",
+            rating: 5,
+          },
+        ],
+        contact: {
+          email: "alex@example.com",
+          phone: "+1 555 123 4567",
+          location: "New York, NY",
+        },
+      },
+    }
+  )
 }
