@@ -37,9 +37,10 @@ interface TempTrainerData {
 
 interface TempTrainerPageProps {
   tempId: string
+  token?: string
 }
 
-export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
+export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
   const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
