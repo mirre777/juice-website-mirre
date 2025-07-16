@@ -4,147 +4,235 @@ import { getTrainerById } from "@/lib/firebase-admin"
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-
-    console.log("[SERVER] === TRAINER CONTENT API DEBUG ===")
-    console.log("[SERVER] 1. Fetching trainer ID:", trainerId)
+    console.log("=== TRAINER PROFILE PAGE INIT ===")
+    console.log("Trainer ID provided:", trainerId)
 
     if (!trainerId) {
-      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
+      console.error("No trainer ID provided")
+      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
+    // Try to fetch trainer from Firebase
+    let trainer = null
     try {
-      console.log("[SERVER] 2. Querying Firestore for trainer:", trainerId)
+      trainer = await getTrainerById(trainerId)
+      console.log("Firebase lookup result:", trainer ? "Found" : "Not found")
+    } catch (error) {
+      console.error("Firebase error:", error)
+    }
 
-      // Fetch trainer document using Firebase Admin
-      const trainerData = await getTrainerById(trainerId)
+    // If trainer found in Firebase, use real data
+    if (trainer) {
+      console.log("Using real trainer data from Firebase")
 
-      if (!trainerData) {
-        console.log("[SERVER] 3. Trainer document not found in Firestore")
-        return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+      // Generate content based on trainer data
+      const content = {
+        hero: {
+          title: `Transform Your Fitness with ${trainer.fullName || trainer.name}`,
+          subtitle: `Professional ${trainer.specialty || trainer.specialization} in ${trainer.location}`,
+          description:
+            trainer.bio ||
+            `Experienced ${trainer.specialty || trainer.specialization} with ${trainer.experience} of proven results. Ready to help you achieve your fitness goals.`,
+          image: "/placeholder.svg?height=600&width=800&text=Trainer+Photo",
+          cta: "Book Your Session",
+        },
+        about: {
+          title: "About Me",
+          content:
+            trainer.bio ||
+            `I'm ${trainer.fullName || trainer.name}, a certified ${trainer.specialty || trainer.specialization} with ${trainer.experience} of experience. I specialize in helping clients achieve their fitness goals through personalized training programs.`,
+          image: "/placeholder.svg?height=400&width=600&text=About+Photo",
+          certifications: trainer.certifications || ["Certified Personal Trainer", "Nutrition Specialist"],
+        },
+        services: [
+          {
+            title: "Personal Training",
+            description: "One-on-one training sessions tailored to your specific goals and fitness level.",
+            price: "€80/session",
+            duration: "60 minutes",
+            image: "/placeholder.svg?height=300&width=400&text=Personal+Training",
+          },
+          {
+            title: "Group Classes",
+            description: "Small group training sessions for a more social and cost-effective approach.",
+            price: "€25/session",
+            duration: "45 minutes",
+            image: "/placeholder.svg?height=300&width=400&text=Group+Classes",
+          },
+          {
+            title: "Online Coaching",
+            description: "Remote coaching with personalized workout plans and nutrition guidance.",
+            price: "€150/month",
+            duration: "Ongoing support",
+            image: "/placeholder.svg?height=300&width=400&text=Online+Coaching",
+          },
+        ],
+        testimonials: [
+          {
+            name: "Sarah M.",
+            text: `${trainer.fullName || trainer.name} completely transformed my approach to fitness. The results speak for themselves!`,
+            rating: 5,
+            image: "/placeholder.svg?height=100&width=100&text=Sarah",
+          },
+          {
+            name: "Mike R.",
+            text: "Professional, knowledgeable, and motivating. Couldn't ask for a better trainer!",
+            rating: 5,
+            image: "/placeholder.svg?height=100&width=100&text=Mike",
+          },
+          {
+            name: "Emma L.",
+            text: "The personalized approach and attention to detail made all the difference in my fitness journey.",
+            rating: 5,
+            image: "/placeholder.svg?height=100&width=100&text=Emma",
+          },
+        ],
+        contact: {
+          email: trainer.email,
+          phone: trainer.phone || "+43 123 456 789",
+          location: trainer.location,
+          socialMedia: {
+            instagram: `@${(trainer.fullName || trainer.name).toLowerCase().replace(/\s+/g, "")}fitness`,
+            facebook: `${trainer.fullName || trainer.name} Fitness`,
+          },
+        },
       }
-
-      console.log("[SERVER] 4. Found trainer data:", {
-        id: trainerId,
-        name: trainerData?.fullName || trainerData?.name,
-        status: trainerData?.status,
-        isActive: trainerData?.isActive,
-        hasContent: !!trainerData?.content,
-      })
-
-      // Check if trainer is active
-      if (trainerData?.status !== "active" && !trainerData?.isActive) {
-        console.log("[SERVER] 5. Trainer is not active")
-        return NextResponse.json({ success: false, error: "Trainer profile not active" }, { status: 403 })
-      }
-
-      // Generate content if it doesn't exist
-      let content = trainerData?.content
-      if (!content) {
-        console.log("[SERVER] 6. Generating default content for trainer")
-        content = generateDefaultContent(trainerData)
-      }
-
-      // Prepare trainer response
-      const trainerResponse = {
-        id: trainerId,
-        name: trainerData?.fullName || trainerData?.name || "Trainer",
-        fullName: trainerData?.fullName,
-        email: trainerData?.email,
-        phone: trainerData?.phone,
-        location: trainerData?.location,
-        specialization: trainerData?.specialty || trainerData?.specialization,
-        experience: trainerData?.experience,
-        bio: trainerData?.bio,
-        certifications: trainerData?.certifications,
-        services: trainerData?.services,
-        isActive: trainerData?.isActive || trainerData?.status === "active",
-        status: trainerData?.status,
-        activatedAt: trainerData?.activatedAt,
-        content: content,
-      }
-
-      console.log("[SERVER] 7. Returning trainer data successfully")
 
       return NextResponse.json({
         success: true,
-        trainer: trainerResponse,
-      })
-    } catch (firebaseError) {
-      console.error("[SERVER] 8. Firebase error:", firebaseError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Database connection error",
-          details: firebaseError instanceof Error ? firebaseError.message : "Unknown Firebase error",
+        trainer: {
+          id: trainerId,
+          name: trainer.fullName || trainer.name,
+          email: trainer.email,
+          location: trainer.location,
+          specialty: trainer.specialty || trainer.specialization,
+          experience: trainer.experience,
+          status: trainer.status,
+          isActive: trainer.isActive,
         },
-        { status: 500 },
-      )
+        content,
+      })
     }
-  } catch (error) {
-    console.error("[SERVER] 9. Unexpected error:", error)
+
+    // Fallback to mock data for specific trainer IDs during development
+    const mockTrainers = {
+      IekIXvQP8TrM1hJZZrKX: {
+        name: "Mirre Snelting",
+        email: "mirresnelting@gmail.com",
+        location: "Vienna",
+        specialty: "CrossFit Coach",
+        experience: "1-2 years",
+        status: "active",
+        isActive: true,
+      },
+      mQ0sMdqycqlm2Gb8N9D5: {
+        name: "Alex Johnson",
+        email: "alex@example.com",
+        location: "New York, NY",
+        specialty: "Strength Training & Weight Loss",
+        experience: "5+ years",
+        status: "temp",
+        isActive: false,
+      },
+    }
+
+    const mockTrainer = mockTrainers[trainerId as keyof typeof mockTrainers]
+
+    if (mockTrainer) {
+      console.log("Using mock trainer data for:", trainerId)
+
+      const content = {
+        hero: {
+          title: `Transform Your Fitness with ${mockTrainer.name}`,
+          subtitle: `Professional ${mockTrainer.specialty} in ${mockTrainer.location}`,
+          description: `Experienced ${mockTrainer.specialty} with ${mockTrainer.experience} of proven results. Ready to help you achieve your fitness goals.`,
+          image: "/placeholder.svg?height=600&width=800&text=Trainer+Photo",
+          cta: "Book Your Session",
+        },
+        about: {
+          title: "About Me",
+          content: `I'm ${mockTrainer.name}, a certified ${mockTrainer.specialty} with ${mockTrainer.experience} of experience. I specialize in helping clients achieve their fitness goals through personalized training programs.`,
+          image: "/placeholder.svg?height=400&width=600&text=About+Photo",
+          certifications: ["Certified Personal Trainer", "Nutrition Specialist"],
+        },
+        services: [
+          {
+            title: "Personal Training",
+            description: "One-on-one training sessions tailored to your specific goals and fitness level.",
+            price: "€80/session",
+            duration: "60 minutes",
+            image: "/placeholder.svg?height=300&width=400&text=Personal+Training",
+          },
+          {
+            title: "Group Classes",
+            description: "Small group training sessions for a more social and cost-effective approach.",
+            price: "€25/session",
+            duration: "45 minutes",
+            image: "/placeholder.svg?height=300&width=400&text=Group+Classes",
+          },
+          {
+            title: "Online Coaching",
+            description: "Remote coaching with personalized workout plans and nutrition guidance.",
+            price: "€150/month",
+            duration: "Ongoing support",
+            image: "/placeholder.svg?height=300&width=400&text=Online+Coaching",
+          },
+        ],
+        testimonials: [
+          {
+            name: "Sarah M.",
+            text: `${mockTrainer.name} completely transformed my approach to fitness. The results speak for themselves!`,
+            rating: 5,
+            image: "/placeholder.svg?height=100&width=100&text=Sarah",
+          },
+          {
+            name: "Mike R.",
+            text: "Professional, knowledgeable, and motivating. Couldn't ask for a better trainer!",
+            rating: 5,
+            image: "/placeholder.svg?height=100&width=100&text=Mike",
+          },
+          {
+            name: "Emma L.",
+            text: "The personalized approach and attention to detail made all the difference in my fitness journey.",
+            rating: 5,
+            image: "/placeholder.svg?height=100&width=100&text=Emma",
+          },
+        ],
+        contact: {
+          email: mockTrainer.email,
+          phone: "+43 123 456 789",
+          location: mockTrainer.location,
+          socialMedia: {
+            instagram: `@${mockTrainer.name.toLowerCase().replace(/\s+/g, "")}fitness`,
+            facebook: `${mockTrainer.name} Fitness`,
+          },
+        },
+      }
+
+      return NextResponse.json({
+        success: true,
+        trainer: mockTrainer,
+        content,
+      })
+    }
+
+    // If no trainer found
+    console.log("No trainer found for ID:", trainerId)
     return NextResponse.json(
       {
-        success: false,
+        error: "Trainer not found",
+        trainerId: trainerId,
+      },
+      { status: 404 },
+    )
+  } catch (error) {
+    console.error("Error in trainer content API:", error)
+    return NextResponse.json(
+      {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     )
-  }
-}
-
-function generateDefaultContent(trainerData: any) {
-  const name = trainerData?.fullName || trainerData?.name || "Trainer"
-  const specialty = trainerData?.specialty || trainerData?.specialization || "Personal Training"
-  const experience = trainerData?.experience || "5+ years"
-  const location = trainerData?.location || "Location"
-
-  return {
-    hero: {
-      title: `Transform Your Body, Transform Your Life`,
-      subtitle: `${specialty} • ${experience} experience • ${location}`,
-      description: `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
-    },
-    about: {
-      title: `About ${name}`,
-      content:
-        trainerData?.bio ||
-        `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With ${experience} of experience in ${specialty}, I help clients transform their bodies and lives through sustainable fitness practices.`,
-    },
-    services: [
-      {
-        title: "Personal Training",
-        description: "One-on-one personalized training sessions tailored to your goals",
-        price: "€60",
-      },
-      {
-        title: "Group Classes",
-        description: "Small group fitness classes for motivation and community",
-        price: "€30",
-      },
-      {
-        title: "Nutrition Coaching",
-        description: "Personalized nutrition plans and ongoing support",
-        price: "€100",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Client A.",
-        text: `Working with ${name} has been amazing! Their ${specialty} expertise is outstanding.`,
-        rating: 5,
-      },
-      {
-        name: "Client B.",
-        text: "Professional, motivating, and knowledgeable trainer. Highly recommend!",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData?.email || "contact@trainer.com",
-      phone: trainerData?.phone || "Contact for details",
-      location: trainerData?.location || "Location",
-      availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
-    },
   }
 }
