@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/app/api/firebase-config"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { FieldValue } from "firebase-admin/firestore"
 import { z } from "zod"
 
 // Enhanced validation schema
@@ -21,7 +21,7 @@ function generateSessionToken(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   let result = ""
   for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.random() * chars.length)
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
 }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const sessionToken = generateSessionToken()
 
     // Prepare the data with proper serialization
-    // Note: We use serverTimestamp() for createdAt but a regular Date for expiresAt
+    // Note: We use FieldValue.serverTimestamp() for createdAt but a regular Date for expiresAt
     const tempTrainerData = {
       // Basic trainer info
       fullName: formData.fullName,
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
       // Status and metadata
       status: "temp",
-      createdAt: serverTimestamp(), // Use serverTimestamp for creation time
+      createdAt: FieldValue.serverTimestamp(), // Use Firebase Admin's serverTimestamp
       expiresAt: expiresAt, // Use regular Date object for expiration
       sessionToken: sessionToken,
       isActive: false,
@@ -113,10 +113,10 @@ export async function POST(request: NextRequest) {
       })}`,
     )
 
-    // Add to Firebase with enhanced error handling
+    // Add to Firebase with enhanced error handling using Firebase Admin SDK syntax
     let docRef
     try {
-      const trainersCollection = collection(db, "trainers")
+      const trainersCollection = db.collection("trainers") // Firebase Admin SDK syntax
       console.log(
         `[${new Date().toISOString()}] DEBUG: Collection reference created | ${JSON.stringify({
           requestId,
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         })}`,
       )
 
-      docRef = await addDoc(trainersCollection, tempTrainerData)
+      docRef = await trainersCollection.add(tempTrainerData) // Firebase Admin SDK syntax
 
       console.log(
         `[${new Date().toISOString()}] INFO: Document created successfully | ${JSON.stringify({
