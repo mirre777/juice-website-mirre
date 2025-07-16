@@ -1,57 +1,70 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function DebugEnvPage() {
-  const [envStatus] = useState<Record<string, string>>({
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? "✅ Set" : "❌ Not set",
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? "✅ Set" : "❌ Not set",
-    NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "✅ Set" : "❌ Not set",
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? "✅ Set" : "❌ Not set",
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-      ? "✅ Set"
-      : "❌ Not set",
-    NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? "✅ Set" : "❌ Not set",
-  })
+  const [firebaseTest, setFirebaseTest] = useState<string>("")
+  const [loading, setLoading] = useState(false)
+
+  const testFirebaseConnection = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch("/api/debug-firestore")
+      const data = await response.json()
+      setFirebaseTest(JSON.stringify(data, null, 2))
+    } catch (error) {
+      setFirebaseTest(`Error: ${error}`)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <main className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-zinc-400 hover:text-white">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Link>
-        </div>
+    <div className="container mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8">Environment Debug Page</h1>
 
-        <div className="flex flex-col items-center text-center mb-8">
-          <h1 className="text-4xl font-bold mb-6">Environment Variables Debug</h1>
-          <p className="text-zinc-400 max-w-3xl mb-8">
-            This page helps verify if your Firebase environment variables are properly set.
-          </p>
-        </div>
-
-        <div className="bg-zinc-800 rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4">Environment Variables Status</h2>
-          <div className="bg-black/50 p-4 rounded-lg">
-            <pre className="whitespace-pre-wrap">
-              {Object.entries(envStatus)
-                .map(([key, value]) => `${key}: ${value}\n`)
-                .join("")}
-            </pre>
-          </div>
-
-          <div className="mt-6">
-            <h3 className="text-xl font-semibold mb-2">Firebase Connection Test</h3>
-            <div className="mt-4 p-3 rounded bg-zinc-700/20 text-zinc-300">
-              Firebase connection test disabled to prevent build errors. Use API routes for server-side Firebase
-              operations.
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Environment Variables</CardTitle>
+            <CardDescription>Client-side accessible environment variables</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div>
+                <strong>NEXT_PUBLIC_APP_URL:</strong> {process.env.NEXT_PUBLIC_APP_URL || "Not set"}
+              </div>
+              <div>
+                <strong>NEXT_PUBLIC_FIREBASE_PROJECT_ID:</strong>{" "}
+                {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "Not set"}
+              </div>
+              <div>
+                <strong>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:</strong>{" "}
+                {process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "Not set"}
+              </div>
+              <div>
+                <strong>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:</strong>{" "}
+                {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? "Set" : "Not set"}
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Firebase Connection Test</CardTitle>
+            <CardDescription>Test Firebase connection via API route</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={testFirebaseConnection} disabled={loading}>
+              {loading ? "Testing..." : "Test Firebase Connection"}
+            </Button>
+            {firebaseTest && <pre className="mt-4 p-4 bg-gray-100 rounded text-sm overflow-auto">{firebaseTest}</pre>}
+          </CardContent>
+        </Card>
       </div>
-    </main>
+    </div>
   )
 }
