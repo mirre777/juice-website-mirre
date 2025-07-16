@@ -2,7 +2,6 @@ import { initializeApp, getApps, getApp } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 import { getAuth } from "firebase/auth"
 import { logger } from "@/lib/logger"
-import { getFirebaseDebugInfo } from "@/app/api/firebase-config"
 
 // Firebase configuration
 const firebaseConfig = {
@@ -41,33 +40,31 @@ function initializeFirebaseApp() {
   }
 }
 
-// Initialize Firestore
+// Initialize Firestore (client-side only)
 export const db = getFirestore(initializeFirebaseApp())
 
-// Initialize Auth
+// Initialize Auth (client-side only)
 export const auth = getAuth(initializeFirebaseApp())
 
 // Helper function to check if Firestore is available
 export function isFirestoreAvailable() {
   try {
-    const { hasDb, projectId } = getFirebaseDebugInfo()
-    return hasDb && !!projectId
+    return !!(firebaseConfig.projectId && firebaseConfig.apiKey)
   } catch (error) {
     console.error("Firestore availability check failed:", error)
     return false
   }
 }
 
-// Export configuration for debugging
+// Export configuration for debugging (client-side safe)
 export function getFirebaseConfig() {
-  const debugInfo = getFirebaseDebugInfo()
   return {
-    projectId: debugInfo.projectId,
-    authDomain: debugInfo.authDomain,
-    hasApiKey: debugInfo.envVars.NEXT_PUBLIC_FIREBASE_API_KEY,
-    hasAppId: debugInfo.envVars.NEXT_PUBLIC_FIREBASE_APP_ID,
-    hasApp: debugInfo.hasApp,
-    hasDb: debugInfo.hasDb,
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasAppId: !!firebaseConfig.appId,
+    hasApp: getApps().length > 0,
+    hasDb: !!db,
   }
 }
 
