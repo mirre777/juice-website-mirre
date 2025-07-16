@@ -4,141 +4,103 @@ import { getTrainerById } from "@/lib/firebase-admin"
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const trainerId = params.id
-    console.log("[TRAINER CONTENT] Fetching content for trainer:", trainerId)
+    console.log("[TRAINER-CONTENT] Fetching content for trainer:", trainerId)
 
-    if (!trainerId) {
-      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
-    }
-
+    // Try to get trainer from Firebase
+    let trainer = null
     try {
-      // Try to get trainer from Firebase
-      const trainer = await getTrainerById(trainerId)
-
-      if (trainer && trainer.content) {
-        console.log("[TRAINER CONTENT] Found trainer with content in Firebase")
-        return NextResponse.json({
-          success: true,
-          trainer: trainer,
-          content: trainer.content,
-        })
-      }
-
-      if (trainer) {
-        console.log("[TRAINER CONTENT] Found trainer but no content, generating default")
-        // Generate default content if trainer exists but has no content
-        const defaultContent = generateDefaultContent(trainer)
-        return NextResponse.json({
-          success: true,
-          trainer: trainer,
-          content: defaultContent,
-        })
-      }
+      trainer = await getTrainerById(trainerId)
     } catch (firebaseError) {
-      console.error("[TRAINER CONTENT] Firebase error:", firebaseError)
+      console.error("[TRAINER-CONTENT] Firebase error:", firebaseError)
+      // Continue with mock data if Firebase fails
     }
 
-    // Fallback to mock data for development
-    console.log("[TRAINER CONTENT] Using mock data for trainer:", trainerId)
-    const mockContent = getMockTrainerContent(trainerId)
+    if (trainer) {
+      console.log("[TRAINER-CONTENT] Trainer found in Firebase:", trainer.fullName || trainer.name)
 
-    return NextResponse.json({
-      success: true,
-      trainer: mockContent.trainer,
-      content: mockContent.content,
-    })
-  } catch (error) {
-    console.error("[TRAINER CONTENT] Error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
-}
-
-function generateDefaultContent(trainer: any) {
-  const name = trainer.fullName || trainer.name || "Trainer"
-  const specialty = trainer.specialty || trainer.specialization || "Personal Training"
-  const experience = trainer.experience || "5+ years"
-  const location = trainer.location || "Location"
-
-  return {
-    hero: {
-      title: `Transform Your Fitness with ${name}`,
-      subtitle: `Professional ${specialty} in ${location}`,
-      description: `With ${experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
-    },
-    about: {
-      title: "About Me",
-      content: `I'm ${name}, a certified ${specialty} based in ${location}. With ${experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results.`,
-    },
-    services: [
-      {
-        title: "Personal Training",
-        description: "One-on-one sessions tailored to your specific goals",
-        price: "€80",
-      },
-      {
-        title: "Group Training",
-        description: "Small group sessions for motivation and cost-effective training",
-        price: "€35",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Working with this trainer has completely transformed my approach to fitness!",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainer.email,
-      phone: trainer.phone || "+31 6 1234 5678",
-      location: trainer.location,
-    },
-  }
-}
-
-function getMockTrainerContent(trainerId: string) {
-  // Mock data for specific trainer IDs
-  const mockTrainers: { [key: string]: any } = {
-    IekIXvQP8TrM1hJZZrKX: {
-      trainer: {
-        id: "IekIXvQP8TrM1hJZZrKX",
-        name: "Mirre Snelting",
-        fullName: "Mirre Snelting",
-        email: "mirresnelting@gmail.com",
-        specialty: "CrossFit Coach",
-        experience: "1-2 years",
-        location: "vienna",
-        phone: "+436602101427",
-        isActive: true,
-        status: "active",
-      },
-      content: {
+      // Generate content based on Firebase data
+      const content = {
         hero: {
-          title: "Transform Your Fitness with Mirre Snelting",
-          subtitle: "Professional CrossFit Coach in Vienna",
+          title: `Transform Your Fitness with ${trainer.fullName || trainer.name}`,
+          subtitle: `${trainer.specialty || "Personal Training"} • ${trainer.experience || "5+ years experience"} • ${trainer.location || "Available Online"}`,
           description:
-            "With 1-2 years of experience, I help clients achieve their fitness goals through personalized CrossFit training programs.",
+            trainer.bio ||
+            `Professional ${trainer.specialty || "personal trainer"} dedicated to helping you achieve your fitness goals.`,
+          image: trainer.profileImage || "/placeholder.svg?height=400&width=600&text=Trainer+Photo",
         },
         about: {
           title: "About Me",
           content:
-            "I'm Mirre Snelting, a certified CrossFit Coach based in Vienna. I specialize in creating customized workout plans that deliver real results through functional fitness movements.",
+            trainer.bio ||
+            `Hi, I'm ${trainer.fullName || trainer.name}! I'm a certified ${trainer.specialty || "personal trainer"} with ${trainer.experience || "5+ years"} of experience helping clients achieve their fitness goals.`,
+          image: trainer.profileImage || "/placeholder.svg?height=300&width=400&text=About+Photo",
+        },
+        services: trainer.services || [
+          {
+            title: trainer.specialty || "Personal Training",
+            description: "Customized workout plans tailored to your goals",
+            price: "€80/session",
+          },
+        ],
+        testimonials: trainer.testimonials || [
+          {
+            name: "Client Review",
+            text: `${trainer.fullName || trainer.name} is an amazing trainer! Highly recommended.`,
+            rating: 5,
+          },
+        ],
+        contact: {
+          email: trainer.email || "contact@trainer.com",
+          phone: trainer.phone || "+1234567890",
+          location: trainer.location || "Available Online",
+        },
+      }
+
+      return NextResponse.json({
+        success: true,
+        content,
+        trainer: {
+          id: trainer.id,
+          name: trainer.fullName || trainer.name,
+          specialty: trainer.specialty,
+          location: trainer.location,
+          isActive: trainer.isActive,
+        },
+      })
+    }
+
+    // Mock data for specific trainer IDs
+    const mockTrainers: Record<string, any> = {
+      IekIXvQP8TrM1hJZZrKX: {
+        hero: {
+          title: "Transform Your Fitness with Mirre Snelting",
+          subtitle: "CrossFit Coach • 1-2 years experience • Vienna",
+          description:
+            "Professional CrossFit coach dedicated to helping you achieve your fitness goals through functional movements and high-intensity workouts.",
+          image: "/placeholder.svg?height=400&width=600&text=CrossFit+Coach",
+        },
+        about: {
+          title: "About Me",
+          content:
+            "Hi, I'm Mirre Snelting! I'm a certified CrossFit coach with 1-2 years of experience helping clients build strength, endurance, and confidence through functional fitness.",
+          image: "/placeholder.svg?height=300&width=400&text=About+Mirre",
         },
         services: [
           {
             title: "CrossFit Training",
-            description: "High-intensity functional fitness training",
-            price: "€75",
+            description: "High-intensity functional movement workouts",
+            price: "€75/session",
           },
           {
             title: "Group Fitness",
-            description: "Small group CrossFit sessions",
-            price: "€40",
+            description: "Small group training sessions",
+            price: "€45/session",
           },
         ],
         testimonials: [
           {
-            name: "Anna K.",
-            text: "Mirre's CrossFit coaching has transformed my strength and endurance!",
+            name: "Sarah M.",
+            text: "Mirre's CrossFit classes are challenging but so rewarding! I've never felt stronger.",
             rating: 5,
           },
         ],
@@ -148,52 +110,27 @@ function getMockTrainerContent(trainerId: string) {
           location: "Vienna",
         },
       },
-    },
-  }
-
-  return (
-    mockTrainers[trainerId] || {
-      trainer: {
-        id: trainerId,
-        name: "Alex Johnson",
-        specialty: "Personal Training",
-        experience: "5+ years",
-        location: "New York, NY",
-        isActive: true,
-        status: "active",
-      },
-      content: {
-        hero: {
-          title: "Transform Your Fitness with Alex Johnson",
-          subtitle: "Professional Personal Trainer in New York, NY",
-          description:
-            "With 5+ years of experience, I help clients achieve their fitness goals through personalized training programs.",
-        },
-        about: {
-          title: "About Me",
-          content:
-            "I'm Alex Johnson, a certified Personal Trainer based in New York. I specialize in strength training and weight loss programs.",
-        },
-        services: [
-          {
-            title: "Personal Training",
-            description: "One-on-one sessions tailored to your goals",
-            price: "€80",
-          },
-        ],
-        testimonials: [
-          {
-            name: "Sarah M.",
-            text: "Alex's training has completely transformed my fitness journey!",
-            rating: 5,
-          },
-        ],
-        contact: {
-          email: "alex@example.com",
-          phone: "+1 555 123 4567",
-          location: "New York, NY",
-        },
-      },
     }
-  )
+
+    if (mockTrainers[trainerId]) {
+      console.log("[TRAINER-CONTENT] Using mock data for trainer:", trainerId)
+      return NextResponse.json({
+        success: true,
+        content: mockTrainers[trainerId],
+        trainer: {
+          id: trainerId,
+          name: "Mirre Snelting",
+          specialty: "CrossFit Coach",
+          location: "Vienna",
+          isActive: true,
+        },
+      })
+    }
+
+    console.log("[TRAINER-CONTENT] Trainer not found:", trainerId)
+    return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+  } catch (error) {
+    console.error("[TRAINER-CONTENT] Error fetching trainer content:", error)
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+  }
 }
