@@ -23,6 +23,27 @@ export async function POST(request: NextRequest) {
 
     const formData: TrainerFormData = await request.json()
 
+    // Validate required fields
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.location ||
+      !formData.specialty ||
+      !formData.experience ||
+      !formData.bio ||
+      !formData.services ||
+      formData.services.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required fields",
+          details: "Please fill in all required fields",
+        },
+        { status: 400 },
+      )
+    }
+
     logger.debug("Form data received", {
       requestId,
       email: formData.email,
@@ -55,7 +76,6 @@ export async function POST(request: NextRequest) {
       requestId,
       email: formData.email,
       expiresAt: expiresAt.toISOString(),
-      dataKeys: Object.keys(tempTrainerData),
       servicesCount: formData.services?.length || 0,
     })
 
@@ -69,15 +89,17 @@ export async function POST(request: NextRequest) {
       requestId,
       tempId,
       email: formData.email,
-      docId: docRef.id,
+      sessionToken: sessionToken.substring(0, 8) + "...", // Log partial token for security
     })
 
+    // Return the response with tempId and token
     return NextResponse.json({
       success: true,
-      tempId,
+      tempId: tempId,
       token: sessionToken,
       expiresAt: expiresAt.toISOString(),
       message: "Trainer profile created successfully",
+      redirectUrl: `/marketplace/trainer/temp/${tempId}?token=${sessionToken}`,
     })
   } catch (error) {
     logger.error("Firebase write failed", {

@@ -82,6 +82,9 @@ export default function PersonalTrainerWebsitePage() {
       ...prev,
       services: checked ? [...prev.services, service] : prev.services.filter((s) => s !== service),
     }))
+    if (errors.services) {
+      setErrors((prev) => ({ ...prev, services: "" }))
+    }
   }
 
   const validateForm = (): boolean => {
@@ -104,6 +107,8 @@ export default function PersonalTrainerWebsitePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    console.log("Form submission started")
+
     if (!validateForm()) {
       toast({
         title: "Please fix the errors",
@@ -116,6 +121,11 @@ export default function PersonalTrainerWebsitePage() {
     setIsSubmitting(true)
 
     try {
+      console.log("Sending request to API with data:", {
+        ...formData,
+        services: formData.services.length,
+      })
+
       const response = await fetch("/api/trainer/create", {
         method: "POST",
         headers: {
@@ -124,17 +134,33 @@ export default function PersonalTrainerWebsitePage() {
         body: JSON.stringify(formData),
       })
 
+      console.log("API Response status:", response.status)
+
       const data = await response.json()
+      console.log("API Response data:", data)
 
       if (!response.ok) {
-        throw new Error(data.error || data.details || "Failed to create trainer profile")
+        throw new Error(data.error || data.details || `HTTP ${response.status}`)
       }
 
-      if (data.success && data.tempId && data.token) {
-        // Redirect to preview page
-        window.location.href = `/marketplace/trainer/temp/${data.tempId}?token=${data.token}`
+      if (data.success) {
+        console.log("Success! Redirecting to:", data.redirectUrl)
+
+        // Validate that we have the required data
+        if (!data.tempId || !data.token) {
+          console.error("Missing tempId or token in response:", data)
+          throw new Error("Invalid response from server - missing required data")
+        }
+
+        // Use the redirectUrl from the response or construct it
+        const redirectUrl = data.redirectUrl || `/marketplace/trainer/temp/${data.tempId}?token=${data.token}`
+
+        console.log("Final redirect URL:", redirectUrl)
+
+        // Redirect to temp page
+        window.location.href = redirectUrl
       } else {
-        throw new Error("Invalid response from server")
+        throw new Error(data.error || "Failed to create trainer profile")
       }
     } catch (error) {
       console.error("Error creating trainer profile:", error)
