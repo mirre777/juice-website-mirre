@@ -1,30 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// Server-side Firebase Admin SDK import
-async function getFirebaseAdmin() {
-  const admin = await import("firebase-admin")
-
-  if (!admin.apps.length) {
-    try {
-      const serviceAccount = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      }
-
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      })
-
-      console.log("[SERVER] Firebase Admin initialized successfully")
-    } catch (error) {
-      console.error("[SERVER] Firebase Admin initialization failed:", error)
-      throw error
-    }
-  }
-
-  return admin
-}
+import { getTrainerById } from "@/lib/firebase-admin"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -32,29 +7,23 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     console.log("[SERVER] === TRAINER CONTENT API DEBUG ===")
     console.log("[SERVER] 1. Fetching trainer ID:", trainerId)
-    console.log("[SERVER] 2. Request URL:", request.url)
 
     if (!trainerId) {
       return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
     }
 
     try {
-      // Initialize Firebase Admin
-      const admin = await getFirebaseAdmin()
-      const db = admin.firestore()
+      console.log("[SERVER] 2. Querying Firestore for trainer:", trainerId)
 
-      console.log("[SERVER] 3. Querying Firestore for trainer:", trainerId)
+      // Fetch trainer document using Firebase Admin
+      const trainerData = await getTrainerById(trainerId)
 
-      // Fetch trainer document
-      const trainerDoc = await db.collection("trainers").doc(trainerId).get()
-
-      if (!trainerDoc.exists) {
-        console.log("[SERVER] 4. Trainer document not found in Firestore")
+      if (!trainerData) {
+        console.log("[SERVER] 3. Trainer document not found in Firestore")
         return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
       }
 
-      const trainerData = trainerDoc.data()
-      console.log("[SERVER] 5. Found trainer data:", {
+      console.log("[SERVER] 4. Found trainer data:", {
         id: trainerId,
         name: trainerData?.fullName || trainerData?.name,
         status: trainerData?.status,
@@ -64,14 +33,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
       // Check if trainer is active
       if (trainerData?.status !== "active" && !trainerData?.isActive) {
-        console.log("[SERVER] 6. Trainer is not active")
+        console.log("[SERVER] 5. Trainer is not active")
         return NextResponse.json({ success: false, error: "Trainer profile not active" }, { status: 403 })
       }
 
       // Generate content if it doesn't exist
       let content = trainerData?.content
       if (!content) {
-        console.log("[SERVER] 7. Generating default content for trainer")
+        console.log("[SERVER] 6. Generating default content for trainer")
         content = generateDefaultContent(trainerData)
       }
 
@@ -94,93 +63,25 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         content: content,
       }
 
-      console.log("[SERVER] 8. Returning trainer data successfully")
+      console.log("[SERVER] 7. Returning trainer data successfully")
 
       return NextResponse.json({
         success: true,
         trainer: trainerResponse,
       })
     } catch (firebaseError) {
-      console.error("[SERVER] 9. Firebase error:", firebaseError)
-
-      // Fallback to mock data for development
-      console.log("[SERVER] 10. Falling back to mock data")
-
-      const mockTrainerData = {
-        id: trainerId,
-        name: "Mirre Snelting",
-        fullName: "Mirre Snelting",
-        email: "mirresnelting@gmail.com",
-        phone: "+436602101427",
-        location: "Vienna",
-        specialization: "CrossFit Coach",
-        experience: "1-2 years",
-        services: ["Group Fitness"],
-        isActive: true,
-        status: "active",
-        content: {
-          hero: {
-            title: "Transform Your Body, Transform Your Life",
-            subtitle: "CrossFit Coach • 1-2 years experience • Vienna",
-            description:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
-          },
-          about: {
-            title: "About Mirre Snelting",
-            content:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 1-2 years of experience in CrossFit coaching, I help clients transform their bodies and lives through sustainable fitness practices.",
-          },
-          services: [
-            {
-              title: "Group Fitness",
-              description: "High-energy group fitness sessions designed to motivate and challenge",
-              price: "€45",
-            },
-            {
-              title: "CrossFit Training",
-              description: "Functional fitness training focusing on strength, conditioning, and mobility",
-              price: "€60",
-            },
-            {
-              title: "Personal Training",
-              description: "One-on-one personalized training sessions tailored to your goals",
-              price: "€70",
-            },
-          ],
-          testimonials: [
-            {
-              name: "Anna K.",
-              text: "Working with Mirre has been incredible. Their CrossFit expertise helped me achieve results I never thought possible.",
-              rating: 5,
-            },
-            {
-              name: "Tom R.",
-              text: "Professional, motivating, and knowledgeable. The group fitness sessions are amazing!",
-              rating: 5,
-            },
-            {
-              name: "Sarah M.",
-              text: "Excellent CrossFit coaching. Achieved my fitness goals with Mirre's guidance!",
-              rating: 5,
-            },
-          ],
-          contact: {
-            email: "mirresnelting@gmail.com",
-            phone: "+436602101427",
-            location: "Vienna",
-            availability: "Monday - Friday: 6AM - 8PM, Saturday: 8AM - 4PM",
-          },
+      console.error("[SERVER] 8. Firebase error:", firebaseError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection error",
+          details: firebaseError instanceof Error ? firebaseError.message : "Unknown Firebase error",
         },
-      }
-
-      return NextResponse.json({
-        success: true,
-        trainer: mockTrainerData,
-      })
+        { status: 500 },
+      )
     }
   } catch (error) {
-    console.error("[SERVER] 11. Unexpected error:", error)
-
+    console.error("[SERVER] 9. Unexpected error:", error)
     return NextResponse.json(
       {
         success: false,

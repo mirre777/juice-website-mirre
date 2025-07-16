@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { getTrainerById } from "@/lib/firebase-admin"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -7,41 +8,51 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { tempId, email } = body
+    const { trainerId, amount = 2900 } = await request.json() // Default €29.00
 
-    console.log("Creating payment intent with:", { tempId, email })
+    console.log("[PAYMENT] === CREATE PAYMENT INTENT DEBUG ===")
+    console.log("[PAYMENT] 1. Creating payment intent for trainer:", trainerId)
+    console.log("[PAYMENT] 2. Amount:", amount)
 
-    if (!tempId) {
-      console.error("Missing tempId in request")
-      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
+    if (!trainerId) {
+      return NextResponse.json({ error: "Missing trainer ID" }, { status: 400 })
     }
 
-    // Create payment intent with €69 (6900 cents)
+    // Verify trainer exists
+    const trainer = await getTrainerById(trainerId)
+    if (!trainer) {
+      console.log("[PAYMENT] 3. Trainer not found:", trainerId)
+      return NextResponse.json({ error: "Trainer not found" }, { status: 404 })
+    }
+
+    console.log("[PAYMENT] 4. Trainer found:", trainer.fullName || trainer.name)
+
+    // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 6900, // €69 in cents
+      amount: amount, // Amount in cents
       currency: "eur",
-      description: `Trainer Website Activation - ${tempId}`,
       metadata: {
-        tempId: tempId,
-        plan: "trainer-activation",
-        planType: "Trainer Website Activation",
-        ...(email && { email }),
+        trainerId: trainerId,
+        trainerName: trainer.fullName || trainer.name,
+        service: "trainer_website_activation",
       },
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: "never", // Prevent redirects for better UX
-      },
+      description: `Trainer Website Activation - ${trainer.fullName || trainer.name}`,
     })
 
-    console.log("Payment intent created successfully:", paymentIntent.id)
+    console.log("[PAYMENT] 5. Payment intent created:", paymentIntent.id)
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
     })
-  } catch (error: any) {
-    console.error("Error creating payment intent:", error)
-    return NextResponse.json({ error: error.message || "Failed to create payment intent" }, { status: 500 })
+  } catch (error) {
+    console.error("[PAYMENT] 6. Error creating payment intent:", error)
+    return NextResponse.json(
+      {
+        error: "Failed to create payment intent",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
