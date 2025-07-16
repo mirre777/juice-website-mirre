@@ -1,40 +1,46 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
 
-// Check if we have real Firebase configuration
-export const hasRealFirebaseConfig = !!(
-  process.env.FIREBASE_PROJECT_ID &&
-  process.env.FIREBASE_CLIENT_EMAIL &&
-  process.env.FIREBASE_PRIVATE_KEY
-)
+// Initialize Firebase Admin SDK
+function initializeFirebaseAdmin() {
+  if (getApps().length > 0) {
+    return getApps()[0]
+  }
 
-// Initialize Firebase Admin
-let app
-let db
-
-try {
-  if (hasRealFirebaseConfig && getApps().length === 0) {
-    app = initializeApp({
+  try {
+    const app = initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
       }),
+      projectId: process.env.FIREBASE_PROJECT_ID,
     })
-    db = getFirestore(app)
+
+    console.log("Firebase Admin initialized successfully")
+    return app
+  } catch (error) {
+    console.error("Failed to initialize Firebase Admin:", error)
+    throw error
   }
-} catch (error) {
-  console.error("Firebase Admin initialization error:", error)
 }
 
-export { app, db }
+// Initialize Firestore Admin
+export const db = getFirestore(initializeFirebaseAdmin())
 
+// Debug function for server-side use only
 export function getFirebaseDebugInfo() {
   return {
-    hasRealFirebaseConfig,
-    projectId: process.env.FIREBASE_PROJECT_ID || "Not set",
-    hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-    hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-    appsLength: getApps().length,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    hasApp: getApps().length > 0,
+    hasDb: !!db,
+    envVars: {
+      NEXT_PUBLIC_FIREBASE_API_KEY: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      NEXT_PUBLIC_FIREBASE_APP_ID: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
+      FIREBASE_CLIENT_EMAIL: !!process.env.FIREBASE_CLIENT_EMAIL,
+      FIREBASE_PRIVATE_KEY: !!process.env.FIREBASE_PRIVATE_KEY,
+    },
   }
 }
