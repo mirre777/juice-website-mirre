@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Clock, MapPin, Star, Users, Dumbbell, Award, Phone, Mail } from "lucide-react"
+import { Clock, MapPin, Star, Users, Dumbbell, Award, Phone, Mail } from 'lucide-react'
 
 interface TempTrainerPageProps {
   tempId: string
@@ -165,17 +165,15 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="relative mb-6">
-                <div className="animate-pulse">
-                  <div className="text-6xl mb-4">🤖</div>
-                </div>
-                <div className="absolute -top-2 -right-2 animate-bounce">
+                <div className="text-6xl mb-4">🤖</div>
+                <div className="absolute -top-2 -right-2">
                   <div className="text-2xl">✨</div>
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">AI is generating your website...</h2>
               <p className="text-gray-600 mb-6">Creating a personalized trainer website based on your profile</p>
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
+                <div className="bg-blue-600 h-2 rounded-full" style={{ width: "75%" }}></div>
               </div>
               <p className="text-sm text-gray-500">This usually takes 2-3 seconds</p>
             </div>
@@ -217,8 +215,8 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
               </Badge>
               <Badge variant="secondary">Preview Mode</Badge>
             </div>
-            <Button onClick={handleActivate} size="lg" className="bg-blue-600 hover:bg-blue-700">
-              Activate Website - $29/month
+            <Button onClick={handleActivate} size="lg" className="bg-[#D2FF28] text-black hover:bg-[#D2FF28]/90">
+              Activate Website - €70
             </Button>
           </div>
         </div>
@@ -387,6 +385,21 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
                   <span className="font-semibold">{trainer.services.length}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Activation CTA */}
+            <Card className="bg-[#D2FF28] border-[#D2FF28]">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-bold text-black mb-2">Ready to Go Live?</h3>
+                  <p className="text-sm text-black/80 mb-4">
+                    Activate your website now and start attracting clients today!
+                  </p>
+                  <Button onClick={handleActivate} className="w-full bg-black text-white hover:bg-gray-800">
+                    Activate for €70
+                  </Button>
                 </div>
               </CardContent>
             </Card>
