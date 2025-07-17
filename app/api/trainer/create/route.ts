@@ -59,18 +59,59 @@ export async function POST(request: NextRequest) {
     const sessionToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-    // Create improved trainer document structure
+    // Create structured content object
+    const content = {
+      hero: {
+        title: `Transform Your Fitness with ${formData.fullName}`,
+        subtitle: `Professional ${formData.specialty} trainer in ${formData.location}`,
+        description: formData.bio,
+      },
+      about: {
+        title: `About ${formData.fullName}`,
+        content: formData.bio,
+      },
+      services: formData.services.map((service, index) => ({
+        id: String(index + 1),
+        title: service,
+        description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+        price: 60,
+        duration: "60 minutes",
+        featured: index === 0,
+      })),
+      contact: {
+        title: "Let's Start Your Fitness Journey",
+        description:
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        email: formData.email,
+        phone: formData.phone || "Contact for details",
+        location: formData.location,
+      },
+      seo: {
+        title: `${formData.fullName} - Personal Trainer in ${formData.location}`,
+        description: `Professional ${formData.specialty} training with ${formData.fullName}. Transform your fitness with personalized programs in ${formData.location}.`,
+      },
+      customization: {
+        lastUpdated: new Date(),
+        version: 1,
+        isDraft: false,
+      },
+    }
+
+    // Create temporary trainer document with new schema
     const tempTrainerData = {
-      // Core trainer info (unchangeable)
+      // Basic trainer info
       fullName: formData.fullName,
       email: formData.email,
-      phone: formData.phone || "",
+      phone: formData.phone,
       location: formData.location,
       specialty: formData.specialty,
       experience: formData.experience,
-      certifications: formData.certifications || "",
+      certifications: formData.certifications,
 
-      // System fields
+      // All content organized under content object
+      content: content,
+
+      // Status and metadata
       status: "temp",
       createdAt: FieldValue.serverTimestamp(),
       expiresAt: expiresAt.toISOString(),
@@ -79,51 +120,14 @@ export async function POST(request: NextRequest) {
       isPaid: false,
       requestId,
       userAgent: request.headers.get("user-agent") || "unknown",
-
-      // All editable content under one section
-      content: {
-        about: {
-          title: `About ${formData.fullName}`,
-          content: formData.bio, // Bio goes directly here
-        },
-        hero: {
-          title: `Transform Your Fitness with ${formData.fullName}`,
-          subtitle: `Professional ${formData.specialty} in ${formData.location}`,
-          description: `With ${formData.experience} of experience, I help clients achieve their fitness goals through personalized training programs.`,
-        },
-        contact: {
-          title: "Let's Start Your Fitness Journey",
-          description:
-            "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-          email: formData.email,
-          phone: formData.phone || "",
-          location: formData.location,
-        },
-        services: formData.services.map((service, index) => ({
-          id: `service_${index + 1}`,
-          title: service,
-          description: `Professional ${service.toLowerCase()} service tailored to your goals`,
-          price: 60 + index * 20, // Default pricing
-          duration: "60 minutes",
-          featured: index === 0,
-        })),
-        seo: {
-          title: `${formData.fullName} - Personal Trainer in ${formData.location}`,
-          description: `Professional ${formData.specialty} training with ${formData.fullName}. Transform your fitness with personalized programs in ${formData.location}.`,
-        },
-        customization: {
-          lastUpdated: FieldValue.serverTimestamp(),
-          version: 1,
-          isDraft: false,
-        },
-      },
     }
 
-    logger.info("Creating trainer document", {
+    logger.info("Creating trainer document with new schema", {
       requestId,
       email: formData.email,
       expiresAt: expiresAt.toISOString(),
       servicesCount: formData.services?.length || 0,
+      hasContent: !!content,
     })
 
     // Use Firebase Admin SDK syntax
@@ -132,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     const tempId = docRef.id
 
-    logger.info("Trainer document created successfully", {
+    logger.info("Trainer document created successfully with new schema", {
       requestId,
       tempId,
       email: formData.email,
