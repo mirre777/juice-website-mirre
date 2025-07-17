@@ -54,6 +54,7 @@ function PaymentPageContent() {
 
       try {
         console.log("Fetching trainer data for:", tempId, "with token:", token?.substring(0, 10) + "...")
+        // Fixed: Use the correct API endpoint that matches the file structure
         const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
 
         if (!response.ok) {
