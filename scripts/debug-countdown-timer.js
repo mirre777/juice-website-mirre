@@ -1,51 +1,58 @@
-console.log("🔍 Testing Countdown Timer Functionality")
+console.log("🕐 Debug: Countdown Timer Analysis")
 console.log("=".repeat(50))
 
-// Test 1: Date parsing and calculation
-console.log("\n⏰ Test 1: Date parsing and calculation...")
+// Test data - simulating the expiresAt from database
+const testExpiresAt = "2025-07-17T20:12:58.510Z"
 
-const expiresAtString = "2025-07-17T20:12:58.510Z"
-const expiresAt = new Date(expiresAtString)
+console.log("📅 Test 1: Date parsing...")
+console.log("Raw expiresAt:", testExpiresAt)
+
+try {
+  const expirationDate = new Date(testExpiresAt)
+  console.log("Parsed date:", expirationDate)
+  console.log("Is valid date:", !isNaN(expirationDate.getTime()))
+  console.log("Timestamp:", expirationDate.getTime())
+} catch (error) {
+  console.log("❌ Date parsing failed:", error.message)
+}
+
+console.log("\n⏰ Test 2: Time calculation...")
 const now = new Date()
+const expires = new Date(testExpiresAt)
+const timeDiff = expires.getTime() - now.getTime()
 
 console.log("Current time:", now.toISOString())
-console.log("Expires at:", expiresAt.toISOString())
-console.log("Time difference (ms):", expiresAt.getTime() - now.getTime())
+console.log("Expiration time:", expires.toISOString())
+console.log("Time difference (ms):", timeDiff)
+console.log("Time difference (hours):", Math.floor(timeDiff / (1000 * 60 * 60)))
 
-// Test 2: Countdown formatting
-console.log("\n📊 Test 2: Countdown formatting...")
-
-function formatCountdown(milliseconds) {
+// Format time function
+function formatTimeRemaining(milliseconds) {
   if (milliseconds <= 0) return "Expired"
 
-  const totalSeconds = Math.floor(milliseconds / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
+  const hours = Math.floor(milliseconds / (1000 * 60 * 60))
+  const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
 
   return `${hours}h ${minutes}m ${seconds}s`
 }
 
-const timeRemaining = expiresAt.getTime() - now.getTime()
-const formatted = formatCountdown(timeRemaining)
+console.log("\n🎯 Test 3: Format validation...")
+const formatted = formatTimeRemaining(timeDiff)
 console.log("Formatted:", formatted)
 
-// Test 3: Format validation
-console.log("\n🔍 Test 3: Format validation...")
-console.log("ISO format valid:", !isNaN(expiresAt.getTime()))
+console.log("ISO format valid:", /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(testExpiresAt))
 console.log("Expected format: YYYY-MM-DDTHH:mm:ss.sssZ")
-console.log("Actual format:", expiresAtString)
+console.log("Actual format:", testExpiresAt)
 
-// Test 4: Countdown simulation
 console.log("\n⏱️ Test 4: Countdown simulation...")
-let simulatedTime = timeRemaining
+let remainingTime = timeDiff
 for (let i = 1; i <= 5; i++) {
-  console.log(`Update ${i}:`, formatCountdown(simulatedTime))
-  simulatedTime -= 1000 // Subtract 1 second
+  console.log(`Update ${i}:`, formatTimeRemaining(remainingTime))
+  remainingTime -= 1000 // Subtract 1 second
 }
 
-// Analysis
-console.log("\n🚨 Potential Issues Analysis:")
+console.log("\n🔍 Potential Issues Analysis:")
 console.log("⚠️ Hours won't change for a while (normal if >1h remaining)")
 
 console.log("\n📋 Recommendations:")

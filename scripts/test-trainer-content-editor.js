@@ -1,14 +1,12 @@
 console.log("🧪 Testing Trainer Content Editor Functionality")
 console.log("=".repeat(50))
 
-// Test configuration
-const TRAINER_ID = "POj2MRZ5ZRbq3CW1U0zJ" // Known trainer ID
-const BASE_URL = "http://localhost:3000" // Adjust if needed
-
-// Test 1: Fetching trainer content
-console.log("\n👤 Test 1: Fetching trainer content...")
+const TRAINER_ID = "POj2MRZ5ZRbq3CW1U0zJ"
+const BASE_URL = "http://localhost:3000"
 
 async function testFetchContent() {
+  console.log("\n👤 Test 1: Fetching trainer content...")
+
   try {
     const response = await fetch(`${BASE_URL}/api/trainer/content/${TRAINER_ID}`)
 
@@ -18,10 +16,10 @@ async function testFetchContent() {
 
     const data = await response.json()
     console.log("✅ Successfully fetched trainer content")
-    console.log("Content structure:", Object.keys(data))
+    console.log("📊 Content structure:", Object.keys(data))
 
     if (data.content) {
-      console.log("Content sections:", Object.keys(data.content))
+      console.log("📝 Content sections:", Object.keys(data.content))
     }
 
     return data
@@ -35,10 +33,9 @@ async function testFetchContent() {
   }
 }
 
-// Test 2: Updating trainer content
-console.log("\n✏️ Test 2: Updating trainer content...")
-
 async function testUpdateContent(originalData) {
+  console.log("\n✏️ Test 2: Updating trainer content...")
+
   try {
     const updatedContent = {
       ...originalData.content,
@@ -68,7 +65,7 @@ async function testUpdateContent(originalData) {
 
     const data = await response.json()
     console.log("✅ Successfully updated trainer content")
-    console.log("Update response:", data.success ? "Success" : "Failed")
+    console.log("💾 Update response:", data.success ? "Success" : "Failed")
 
     return data
   } catch (error) {
@@ -77,20 +74,18 @@ async function testUpdateContent(originalData) {
   }
 }
 
-// Test 3: Verifying persistence
-console.log("\n🔍 Test 3: Verifying content persistence...")
-
 async function testPersistence() {
+  console.log("\n🔍 Test 3: Verifying content persistence...")
+
   try {
-    // Wait a moment for database to update
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     const response = await fetch(`${BASE_URL}/api/trainer/content/${TRAINER_ID}`)
     const data = await response.json()
 
     console.log("✅ Successfully re-fetched content")
-    console.log("About content preview:", data.content?.about?.content?.substring(0, 50) + "...")
-    console.log("Hero title:", data.content?.hero?.title)
+    console.log("📝 About content preview:", data.content?.about?.content?.substring(0, 50) + "...")
+    console.log("🎯 Hero title:", data.content?.hero?.title)
 
     return data
   } catch (error) {
@@ -99,16 +94,13 @@ async function testPersistence() {
   }
 }
 
-// Test 4: Error handling
-console.log("\n🚨 Test 4: Error handling...")
-
 async function testErrorHandling() {
-  try {
-    // Test with invalid trainer ID
-    const response = await fetch(`${BASE_URL}/api/trainer/content/invalid-id`)
-    console.log("Invalid ID response status:", response.status)
+  console.log("\n🚨 Test 4: Error handling...")
 
-    // Test with malformed data
+  try {
+    const response = await fetch(`${BASE_URL}/api/trainer/content/invalid-id`)
+    console.log("📊 Invalid ID response status:", response.status)
+
     const malformedResponse = await fetch(`${BASE_URL}/api/trainer/content/${TRAINER_ID}`, {
       method: "PUT",
       headers: {
@@ -118,7 +110,7 @@ async function testErrorHandling() {
         invalidField: "test",
       }),
     })
-    console.log("Malformed data response status:", malformedResponse.status)
+    console.log("📊 Malformed data response status:", malformedResponse.status)
 
     console.log("✅ Error handling tests completed")
   } catch (error) {
@@ -126,7 +118,6 @@ async function testErrorHandling() {
   }
 }
 
-// Run all tests
 async function runAllTests() {
   try {
     console.log("\n🚀 Starting comprehensive test suite...")
@@ -149,5 +140,4 @@ async function runAllTests() {
   }
 }
 
-// Execute tests
 runAllTests()

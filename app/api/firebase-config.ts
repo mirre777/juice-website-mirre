@@ -10,60 +10,60 @@ function getEnvString(key: string, defaultValue = ""): string {
   return String(value)
 }
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK with proper error handling
 function initializeFirebaseAdmin() {
+  // Return existing app if already initialized
   if (getApps().length > 0) {
     return getApps()[0]
   }
 
   try {
-    // Safely extract environment variables as strings
+    // Safely extract and validate environment variables
     const projectId = getEnvString("FIREBASE_PROJECT_ID")
     const clientEmail = getEnvString("FIREBASE_CLIENT_EMAIL")
     const privateKey = getEnvString("FIREBASE_PRIVATE_KEY").replace(/\\n/g, "\n")
 
-    // Validate required fields
+    // Validate required configuration
     if (!projectId || !clientEmail || !privateKey) {
-      console.warn("Missing Firebase configuration, using mock setup")
-      throw new Error("Missing required Firebase environment variables")
+      console.warn("Missing Firebase configuration - using fallback")
+      return null
     }
 
-    // Create credential object with validated strings
-    const credential = cert({
-      projectId: projectId,
-      clientEmail: clientEmail,
-      privateKey: privateKey,
-    })
-
+    // Initialize with validated string values
     const app = initializeApp({
-      credential: credential,
+      credential: cert({
+        projectId: projectId,
+        clientEmail: clientEmail,
+        privateKey: privateKey,
+      }),
       projectId: projectId,
     })
 
-    console.log("Firebase Admin initialized successfully")
     return app
   } catch (error) {
-    console.error("Failed to initialize Firebase Admin:", error instanceof Error ? error.message : String(error))
-    throw error
+    console.error("Firebase Admin initialization failed:", String(error))
+    return null
   }
 }
 
-// Initialize Firestore Admin with error handling
-let db: any
+// Initialize Firestore with fallback
+let db: any = null
 try {
-  db = getFirestore(initializeFirebaseAdmin())
+  const app = initializeFirebaseAdmin()
+  if (app) {
+    db = getFirestore(app)
+  }
 } catch (error) {
-  console.error("Failed to initialize Firestore:", error instanceof Error ? error.message : String(error))
-  // Create a mock db object to prevent further errors
+  console.error("Firestore initialization failed:", String(error))
   db = null
 }
 
 export { db }
 
-// Check if we have real Firebase configuration
+// Check if Firebase is properly configured
 export function hasRealFirebaseConfig(): boolean {
   try {
-    const requiredVars = [
+    const requiredEnvVars = [
       "FIREBASE_PROJECT_ID",
       "FIREBASE_CLIENT_EMAIL",
       "FIREBASE_PRIVATE_KEY",
@@ -71,24 +71,18 @@ export function hasRealFirebaseConfig(): boolean {
       "NEXT_PUBLIC_FIREBASE_APP_ID",
     ]
 
-    return requiredVars.every((varName) => {
+    return requiredEnvVars.every((varName) => {
       const value = process.env[varName]
       return typeof value === "string" && value.length > 0
     })
   } catch (error) {
-    console.error("Error checking Firebase config:", error instanceof Error ? error.message : String(error))
     return false
   }
 }
 
-// Debug function for server-side use only
+// Debug function for server-side diagnostics
 export function getFirebaseDebugInfo() {
   try {
-    const safeGetEnv = (key: string) => {
-      const value = process.env[key]
-      return typeof value === "string" && value.length > 0
-    }
-
     return {
       projectId: getEnvString("FIREBASE_PROJECT_ID"),
       authDomain: getEnvString("FIREBASE_AUTH_DOMAIN"),
@@ -96,17 +90,16 @@ export function getFirebaseDebugInfo() {
       hasDb: db !== null,
       hasRealConfig: hasRealFirebaseConfig(),
       envVars: {
-        NEXT_PUBLIC_FIREBASE_API_KEY: safeGetEnv("NEXT_PUBLIC_FIREBASE_API_KEY"),
-        NEXT_PUBLIC_FIREBASE_APP_ID: safeGetEnv("NEXT_PUBLIC_FIREBASE_APP_ID"),
-        FIREBASE_PROJECT_ID: safeGetEnv("FIREBASE_PROJECT_ID"),
-        FIREBASE_CLIENT_EMAIL: safeGetEnv("FIREBASE_CLIENT_EMAIL"),
-        FIREBASE_PRIVATE_KEY: safeGetEnv("FIREBASE_PRIVATE_KEY"),
+        NEXT_PUBLIC_FIREBASE_API_KEY: Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+        NEXT_PUBLIC_FIREBASE_APP_ID: Boolean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
+        FIREBASE_PROJECT_ID: Boolean(process.env.FIREBASE_PROJECT_ID),
+        FIREBASE_CLIENT_EMAIL: Boolean(process.env.FIREBASE_CLIENT_EMAIL),
+        FIREBASE_PRIVATE_KEY: Boolean(process.env.FIREBASE_PRIVATE_KEY),
       },
     }
   } catch (error) {
-    console.error("Error getting Firebase debug info:", error instanceof Error ? error.message : String(error))
     return {
-      error: "Failed to get debug info",
+      error: String(error),
       hasApp: false,
       hasDb: false,
       hasRealConfig: false,

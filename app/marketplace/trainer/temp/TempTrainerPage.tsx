@@ -1,66 +1,94 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Clock, Mail, MapPin, Phone, Star, CheckCircle } from "lucide-react"
+import { Clock, MapPin, Phone, Mail, Star, Edit, ExternalLink } from "lucide-react"
+import Link from "next/link"
 
-interface TempTrainerData {
+interface Service {
   id: string
-  fullName: string
+  title: string
+  description: string
+  price: number
+  duration: string
+  featured: boolean
+}
+
+interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    content: string
+  }
+  services: Service[]
+  contact: {
+    title: string
+    description: string
+    email: string
+    phone: string
+    location: string
+  }
+  seo: {
+    title: string
+    description: string
+  }
+}
+
+interface Trainer {
+  id: string
+  name: string
   email: string
-  phone?: string
+  phone: string
   location: string
-  specialty: string
-  experience: string
   bio: string
-  certifications?: string
-  services: string[]
-  createdAt: string
+  certifications: string
+  experience: string
+  specialization: string
   expiresAt: string
+  isActive: boolean
+  content?: TrainerContent
 }
 
 interface TempTrainerPageProps {
-  tempId: string
-  token: string
+  trainer: Trainer
 }
 
-export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [mounted, setMounted] = useState(false)
-  const [timeRemaining, setTimeRemaining] = useState("")
+// Countdown timer hook
+function useCountdown(expiresAt: string) {
+  const [timeLeft, setTimeLeft] = useState<string>("")
   const [isExpired, setIsExpired] = useState(false)
 
-  // Format countdown timer
-  const formatCountdown = (milliseconds: number): string => {
-    if (milliseconds <= 0) return "Expired"
-
-    const totalSeconds = Math.floor(milliseconds / 1000)
-    const hours = Math.floor(totalSeconds / 3600)
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-    const seconds = totalSeconds % 60
-
-    return `${hours}h ${minutes}m ${seconds}s`
-  }
-
-  // Update countdown timer
   useEffect(() => {
-    if (!trainer?.expiresAt) return
+    if (!expiresAt) return
 
     const updateCountdown = () => {
-      const now = new Date().getTime()
-      const expiresAt = new Date(trainer.expiresAt).getTime()
-      const difference = expiresAt - now
+      try {
+        const now = new Date().getTime()
+        const expiration = new Date(expiresAt).getTime()
+        const difference = expiration - now
 
-      if (difference <= 0) {
-        setTimeRemaining("Expired")
-        setIsExpired(true)
-      } else {
-        setTimeRemaining(formatCountdown(difference))
+        if (difference <= 0) {
+          setTimeLeft("Expired")
+          setIsExpired(true)
+          return
+        }
+
+        const hours = Math.floor(difference / (1000 * 60 * 60))
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000)
+
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`)
         setIsExpired(false)
+      } catch (error) {
+        console.error("Countdown error:", error)
+        setTimeLeft("Invalid date")
+        setIsExpired(true)
       }
     }
 
@@ -70,156 +98,110 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
     // Update every second
     const interval = setInterval(updateCountdown, 1000)
 
+    // Cleanup interval on unmount
     return () => clearInterval(interval)
-  }, [trainer?.expiresAt])
+  }, [expiresAt])
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  return { timeLeft, isExpired }
+}
 
-  useEffect(() => {
-    if (!mounted) return
+export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
+  const { timeLeft, isExpired } = useCountdown(trainer.expiresAt)
 
-    const fetchTrainerData = async () => {
-      try {
-        console.log("Fetching trainer data for tempId:", tempId, "with token:", token)
-
-        const response = await fetch(`/api/trainer/temp/${tempId}?token=${token}`)
-        console.log("API Response status:", response.status)
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error("API Error:", errorData)
-          throw new Error(errorData.error || `HTTP ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log("API Response data:", data)
-
-        if (data.success && data.trainer) {
-          setTrainer(data.trainer)
-          console.log("Trainer expiresAt:", data.trainer.expiresAt)
-        } else {
-          throw new Error(data.error || "Failed to fetch trainer data")
-        }
-      } catch (err) {
-        console.error("Error fetching trainer data:", err)
-        setError(err instanceof Error ? err.message : "Failed to load trainer data")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    // Show loading screen for 3 seconds, then fetch data
-    const timer = setTimeout(() => {
-      fetchTrainerData()
-    }, 3000)
-
-    return () => clearTimeout(timer)
-  }, [tempId, token, mounted])
-
-  if (!mounted) {
-    return null
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🤖</div>
-          <h2 className="text-xl font-semibold mb-2">AI is generating your website...</h2>
-          <p className="text-gray-600 mb-4">Creating a personalized trainer website based on your profile</p>
-          <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
-            <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: "70%" }}></div>
-          </div>
-          <p className="text-sm text-gray-500 mt-2">This usually takes 2-3 seconds</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4 p-8 text-center">
-          <div className="text-red-500 mb-4">
-            <CheckCircle className="w-12 h-12 mx-auto" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Preview</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#D2FF28] text-black hover:bg-[#B8E625]">
-            Try Again
-          </Button>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!trainer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4 p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Trainer Not Found</h2>
-          <p className="text-gray-600">This preview may have expired or is invalid.</p>
-        </Card>
-      </div>
-    )
-  }
-
-  const handleActivate = () => {
-    // Redirect to payment page with trainer data
-    window.location.href = `/payment?tempId=${tempId}&token=${token}`
+  // Use content if available, otherwise fall back to original trainer data
+  const content = trainer.content || {
+    hero: {
+      title: `Transform Your Fitness with ${trainer.name}`,
+      subtitle: `Professional ${trainer.specialization} trainer in ${trainer.location}`,
+      description:
+        trainer.bio ||
+        "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+    },
+    about: {
+      title: `About ${trainer.name}`,
+      content:
+        trainer.bio || "Passionate fitness professional with years of experience helping clients achieve their goals.",
+    },
+    services: [
+      {
+        id: "1",
+        title: "Personal Training Session",
+        description: "One-on-one personalized training session focused on your specific goals",
+        price: 60,
+        duration: "60 minutes",
+        featured: true,
+      },
+      {
+        id: "2",
+        title: "Fitness Assessment",
+        description: "Comprehensive fitness evaluation and goal-setting session",
+        price: 40,
+        duration: "45 minutes",
+        featured: false,
+      },
+      {
+        id: "3",
+        title: "Custom Workout Plan",
+        description: "Personalized workout program designed for your goals and schedule",
+        price: 80,
+        duration: "Digital delivery",
+        featured: false,
+      },
+    ],
+    contact: {
+      title: "Let's Start Your Fitness Journey",
+      description: "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+      email: trainer.email,
+      phone: trainer.phone || "",
+      location: trainer.location,
+    },
+    seo: {
+      title: `${trainer.name} - Personal Trainer in ${trainer.location}`,
+      description: `Professional ${trainer.specialization} training with ${trainer.name}. Transform your fitness with personalized programs in ${trainer.location}.`,
+    },
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header with countdown */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-orange-500" />
-            <span className="text-sm font-medium text-gray-700">
-              Trial expires in: {isExpired ? "Expired" : timeRemaining}
-            </span>
-            <Badge variant="outline" className="text-xs">
-              Preview Mode
-            </Badge>
+            <Clock className="h-5 w-5 text-orange-500" />
+            <span className="text-sm font-medium">Trial expires in: {timeLeft}</span>
+            <Badge variant="secondary">Preview Mode</Badge>
           </div>
-          <Button
-            onClick={handleActivate}
-            className="bg-[#D2FF28] text-black hover:bg-[#B8E625] font-semibold px-6"
-            disabled={isExpired}
-          >
-            {isExpired ? "Trial Expired" : "Activate Website - €70"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Link href={`/marketplace/trainer/${trainer.id}/edit`}>
+              <Button variant="outline" size="sm">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </Link>
+            <Button className="bg-lime-500 hover:bg-lime-600 text-black">Activate Website - €70</Button>
+          </div>
         </div>
       </div>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
+      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 break-words">
-            Transform Your Fitness with {trainer.fullName}
-          </h1>
-          <p className="text-xl mb-6 break-words">
-            Professional {trainer.specialty} trainer in {trainer.location}
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Badge className="bg-white/20 text-white px-4 py-2">
-              <Clock className="w-4 h-4 mr-2" />
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 break-words">{content.hero.title}</h1>
+          <p className="text-xl mb-6 text-blue-100 break-words">{content.hero.subtitle}</p>
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Star className="h-4 w-4 mr-1" />
               {trainer.experience} Experience
             </Badge>
-            <Badge className="bg-white/20 text-white px-4 py-2">
-              <MapPin className="w-4 h-4 mr-2" />
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <MapPin className="h-4 w-4 mr-1" />
               {trainer.location}
             </Badge>
-            <Badge className="bg-white/20 text-white px-4 py-2">
-              <Star className="w-4 h-4 mr-2" />
-              {trainer.specialty}
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Star className="h-4 w-4 mr-1" />
+              {trainer.specialization}
             </Badge>
           </div>
-
           <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
             Book Free Consultation
           </Button>
@@ -233,71 +215,47 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
             {/* About Section */}
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                  About {trainer.fullName}
-                </h2>
-                <p className="text-gray-600 leading-relaxed mb-4 break-words overflow-wrap-anywhere">{trainer.bio}</p>
-
-                {trainer.certifications && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Certifications</h3>
-                    <p className="text-gray-600 break-words">{trainer.certifications}</p>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Star className="h-4 w-4 text-blue-600" />
                   </div>
-                )}
+                  <h2 className="text-2xl font-bold">{content.about.title}</h2>
+                </div>
+                <div className="prose prose-gray max-w-none">
+                  <p className="text-gray-600 leading-relaxed break-words overflow-wrap-anywhere">
+                    {content.about.content}
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
             {/* Services Section */}
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                  Services Offered
-                </h2>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {trainer.services.map((service, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-gray-700 break-words">{service}</span>
+                <h2 className="text-2xl font-bold mb-6">Services</h2>
+                <div className="grid gap-4">
+                  {content.services.map((service) => (
+                    <div
+                      key={service.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold break-words">{service.title}</h3>
+                          {service.featured && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-lg font-bold">€{service.price}</div>
+                          <div className="text-sm text-gray-500 break-words">{service.duration}</div>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm break-words overflow-wrap-anywhere">{service.description}</p>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Testimonials Section */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                  Client Testimonials
-                </h2>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex text-yellow-400 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-gray-600 italic mb-2 break-words">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
-                    </p>
-                    <p className="text-sm text-gray-500">- Sarah M.</p>
-                  </div>
-
-                  <div className="border-l-4 border-green-500 pl-4">
-                    <div className="flex text-yellow-400 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-gray-600 italic mb-2 break-words">
-                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
-                    </p>
-                    <p className="text-sm text-gray-500">- Mike R.</p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -305,69 +263,40 @@ export default function TempTrainerPage({ tempId, token }: TempTrainerPageProps)
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Info */}
+            {/* Contact Card */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Get In Touch</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 break-all">{trainer.email}</span>
+                    <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                    <span className="text-sm break-all">{content.contact.email}</span>
                   </div>
-                  {trainer.phone && (
+                  {content.contact.phone && (
                     <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                      <span className="text-gray-700 break-words">{trainer.phone}</span>
+                      <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                      <span className="text-sm break-words">{content.contact.phone}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 break-words">{trainer.location}</span>
+                    <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                    <span className="text-sm break-words">{content.contact.location}</span>
                   </div>
                 </div>
-
-                <Button className="w-full mt-4 bg-black text-white hover:bg-gray-800">Schedule Consultation</Button>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4">Quick Stats</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Experience</span>
-                    <span className="font-medium break-words">{trainer.experience}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Specialty</span>
-                    <span className="font-medium break-words">{trainer.specialty}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Location</span>
-                    <span className="font-medium break-words">{trainer.location}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Services</span>
-                    <span className="font-medium">{trainer.services.length}</span>
-                  </div>
-                </div>
+                <Button className="w-full mt-4">Contact Now</Button>
               </CardContent>
             </Card>
 
             {/* CTA Card */}
-            <Card className="bg-[#D2FF28]">
+            <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
               <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-bold text-black mb-2">Ready to Go Live?</h3>
-                <p className="text-black/80 mb-4 break-words">
-                  Activate your website now and start attracting clients today!
+                <h3 className="font-bold mb-2">{content.contact.title}</h3>
+                <p className="text-sm text-gray-600 mb-4 break-words overflow-wrap-anywhere">
+                  {content.contact.description}
                 </p>
-                <Button
-                  onClick={handleActivate}
-                  className="w-full bg-black text-white hover:bg-gray-800"
-                  disabled={isExpired}
-                >
-                  {isExpired ? "Trial Expired" : "Activate for €70"}
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Get Started
                 </Button>
               </CardContent>
             </Card>
