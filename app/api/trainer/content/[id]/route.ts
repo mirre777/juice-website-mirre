@@ -1,5 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "../../firebase-config"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
+
+// Initialize Firebase Admin
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
+
+const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -34,7 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         },
         about: {
           title: "About Mirre Snelting",
-          content: mockTrainerData.bio,
+          content: mockTrainerData.bio, // Use the original bio field
         },
         services: [
           {
@@ -92,79 +106,75 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    // For other trainer IDs, try Firebase if available
-    if (db) {
-      try {
-        console.log("[SERVER] 4. Attempting Firebase lookup for:", params.id)
+    // For other trainer IDs, try Firebase
+    try {
+      console.log("[SERVER] 4. Attempting Firebase lookup for:", params.id)
 
-        const doc = await db.collection("trainers").doc(params.id).get()
+      const doc = await db.collection("trainers").doc(params.id).get()
 
-        if (doc.exists) {
-          const trainerData = doc.data()
-          console.log("[SERVER] 5. Found trainer in Firebase:", trainerData?.name)
+      if (doc.exists) {
+        const trainerData = doc.data()
+        console.log("[SERVER] 5. Found trainer in Firebase:", trainerData?.name)
 
-          // Use existing content if available, otherwise generate from trainer data
-          let content = trainerData?.content
+        // Use existing content if available, otherwise generate from trainer data
+        let content = trainerData?.content
 
-          if (!content) {
-            content = {
-              hero: {
-                title: "Transform Your Body, Transform Your Life",
-                subtitle: `${trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
-                description:
-                  trainerData.bio ||
-                  "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+        if (!content) {
+          content = {
+            hero: {
+              title: `Transform Your Body, Transform Your Life`,
+              subtitle: `${trainerData.specialization || "Personal Trainer"} • ${trainerData.experience || "5+ years"} experience • ${trainerData.location || "Location"}`,
+              description:
+                trainerData.bio ||
+                `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
+            },
+            about: {
+              title: `About ${trainerData.fullName || trainerData.name}`,
+              content:
+                trainerData.bio ||
+                `Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.`,
+            },
+            services: [
+              {
+                id: "1",
+                title: "Personal Training",
+                description: "Personalized training sessions tailored to your goals",
+                price: 60,
+                duration: "60 minutes",
+                featured: true,
               },
-              about: {
-                title: `About ${trainerData.fullName || trainerData.name}`,
-                content:
-                  trainerData.bio ||
-                  "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
-              },
-              services: [
-                {
-                  id: "1",
-                  title: "Personal Training",
-                  description: "Personalized training sessions tailored to your goals",
-                  price: 60,
-                  duration: "60 minutes",
-                  featured: true,
-                },
-              ],
-              contact: {
-                title: "Let's Start Your Fitness Journey",
-                description:
-                  "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-                email: trainerData.email,
-                phone: trainerData.phone || "Contact for details",
-                location: trainerData.location,
-              },
-              seo: {
-                title: `${trainerData.fullName || trainerData.name} - Personal Trainer in ${trainerData.location}`,
-                description: `Professional ${trainerData.specialization || "personal training"} with ${trainerData.fullName || trainerData.name}. Transform your fitness with personalized programs in ${trainerData.location}.`,
-              },
-            }
-          } else {
-            // If content exists but about.content is missing, use the original bio
-            if (!content.about?.content && trainerData.bio) {
-              content.about = {
-                ...content.about,
-                content: trainerData.bio,
-              }
+            ],
+            contact: {
+              title: "Let's Start Your Fitness Journey",
+              description:
+                "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+              email: trainerData.email,
+              phone: trainerData.phone || "Contact for details",
+              location: trainerData.location,
+            },
+            seo: {
+              title: `${trainerData.fullName || trainerData.name} - Personal Trainer in ${trainerData.location}`,
+              description: `Professional ${trainerData.specialization || "personal training"} with ${trainerData.fullName || trainerData.name}. Transform your fitness with personalized programs in ${trainerData.location}.`,
+            },
+          }
+        } else {
+          // If content exists but about.content is missing, use the original bio
+          if (!content.about?.content && trainerData.bio) {
+            content.about = {
+              ...content.about,
+              content: trainerData.bio,
             }
           }
-
-          return NextResponse.json({
-            success: true,
-            trainer: { id: params.id, ...trainerData },
-            content: content,
-          })
         }
-      } catch (firebaseError) {
-        console.log("[SERVER] 6. Firebase error:", firebaseError)
+
+        return NextResponse.json({
+          success: true,
+          trainer: { id: params.id, ...trainerData },
+          content: content,
+        })
       }
-    } else {
-      console.log("[SERVER] Firebase not available, skipping database lookup")
+    } catch (firebaseError) {
+      console.log("[SERVER] 6. Firebase error:", firebaseError)
     }
 
     // If trainer not found, return error
@@ -216,48 +226,37 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       })
     }
 
-    // For real trainers, save to Firebase if available
-    if (db) {
-      try {
-        // Update both the content object AND sync the bio field
-        const updateData: any = {
-          content: content,
-          updatedAt: new Date().toISOString(),
-          "customization.lastUpdated": new Date().toISOString(),
-          "customization.version": Date.now(),
-        }
-
-        // If the about content was updated, also update the top-level bio field
-        if (content.about?.content) {
-          updateData.bio = content.about.content
-        }
-
-        await db.collection("trainers").doc(params.id).update(updateData)
-
-        console.log("[SERVER] Successfully updated trainer content and bio in Firebase")
-
-        return NextResponse.json({
-          success: true,
-          message: "Content updated successfully",
-        })
-      } catch (firebaseError) {
-        console.error("[SERVER] Firebase update error:", firebaseError)
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Failed to update content in database",
-          },
-          { status: 500 },
-        )
+    // For real trainers, save to Firebase
+    try {
+      // Update both the content object AND sync the bio field
+      const updateData: any = {
+        content: content,
+        updatedAt: new Date().toISOString(),
+        "customization.lastUpdated": new Date().toISOString(),
+        "customization.version": Date.now(),
       }
-    } else {
-      console.log("[SERVER] Firebase not available, cannot save to database")
+
+      // If the about content was updated, also update the top-level bio field
+      if (content.about?.content) {
+        updateData.bio = content.about.content
+      }
+
+      await db.collection("trainers").doc(params.id).update(updateData)
+
+      console.log("[SERVER] Successfully updated trainer content and bio in Firebase")
+
+      return NextResponse.json({
+        success: true,
+        message: "Content updated successfully",
+      })
+    } catch (firebaseError) {
+      console.error("[SERVER] Firebase update error:", firebaseError)
       return NextResponse.json(
         {
           success: false,
-          error: "Database not available",
+          error: "Failed to update content in database",
         },
-        { status: 503 },
+        { status: 500 },
       )
     }
   } catch (error) {
