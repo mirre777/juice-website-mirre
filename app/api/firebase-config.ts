@@ -1,109 +1,64 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
+import { getFirestore, type FirebaseFirestore } from "firebase-admin/firestore"
 
-// Safely get environment variable as string
+// Safe environment variable getter
 function getEnvString(key: string, defaultValue = ""): string {
   const value = process.env[key]
   if (value === undefined || value === null) {
     return defaultValue
   }
-  return String(value)
+  return String(value).trim()
 }
 
-// Initialize Firebase Admin SDK with proper error handling
-function initializeFirebaseAdmin() {
-  // Return existing app if already initialized
-  if (getApps().length > 0) {
-    return getApps()[0]
-  }
+// Initialize Firebase Admin SDK
+let db: FirebaseFirestore
 
-  try {
-    // Safely extract and validate environment variables
+try {
+  if (!getApps().length) {
     const projectId = getEnvString("FIREBASE_PROJECT_ID")
     const clientEmail = getEnvString("FIREBASE_CLIENT_EMAIL")
     const privateKey = getEnvString("FIREBASE_PRIVATE_KEY").replace(/\\n/g, "\n")
 
-    // Validate required configuration
     if (!projectId || !clientEmail || !privateKey) {
-      console.warn("Missing Firebase configuration - using fallback")
-      return null
+      throw new Error("Missing required Firebase environment variables")
     }
 
-    // Initialize with validated string values
-    const app = initializeApp({
+    initializeApp({
       credential: cert({
-        projectId: projectId,
-        clientEmail: clientEmail,
-        privateKey: privateKey,
+        projectId,
+        clientEmail,
+        privateKey,
       }),
-      projectId: projectId,
     })
-
-    return app
-  } catch (error) {
-    console.error("Firebase Admin initialization failed:", String(error))
-    return null
   }
-}
 
-// Initialize Firestore with fallback
-let db: any = null
-try {
-  const app = initializeFirebaseAdmin()
-  if (app) {
-    db = getFirestore(app)
-  }
+  db = getFirestore()
 } catch (error) {
-  console.error("Firestore initialization failed:", String(error))
-  db = null
+  console.error("Firebase initialization error:", error)
+  // Create a mock db object to prevent crashes
+  db = {} as FirebaseFirestore
 }
 
 export { db }
 
-// Check if Firebase is properly configured
 export function hasRealFirebaseConfig(): boolean {
   try {
-    const requiredEnvVars = [
-      "FIREBASE_PROJECT_ID",
-      "FIREBASE_CLIENT_EMAIL",
-      "FIREBASE_PRIVATE_KEY",
-      "NEXT_PUBLIC_FIREBASE_API_KEY",
-      "NEXT_PUBLIC_FIREBASE_APP_ID",
-    ]
+    const required = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"]
 
-    return requiredEnvVars.every((varName) => {
-      const value = process.env[varName]
-      return typeof value === "string" && value.length > 0
+    return required.every((key) => {
+      const value = getEnvString(key)
+      return value.length > 0
     })
-  } catch (error) {
+  } catch {
     return false
   }
 }
 
-// Debug function for server-side diagnostics
 export function getFirebaseDebugInfo() {
-  try {
-    return {
-      projectId: getEnvString("FIREBASE_PROJECT_ID"),
-      authDomain: getEnvString("FIREBASE_AUTH_DOMAIN"),
-      hasApp: getApps().length > 0,
-      hasDb: db !== null,
-      hasRealConfig: hasRealFirebaseConfig(),
-      envVars: {
-        NEXT_PUBLIC_FIREBASE_API_KEY: Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
-        NEXT_PUBLIC_FIREBASE_APP_ID: Boolean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
-        FIREBASE_PROJECT_ID: Boolean(process.env.FIREBASE_PROJECT_ID),
-        FIREBASE_CLIENT_EMAIL: Boolean(process.env.FIREBASE_CLIENT_EMAIL),
-        FIREBASE_PRIVATE_KEY: Boolean(process.env.FIREBASE_PRIVATE_KEY),
-      },
-    }
-  } catch (error) {
-    return {
-      error: String(error),
-      hasApp: false,
-      hasDb: false,
-      hasRealConfig: false,
-      envVars: {},
-    }
+  return {
+    hasConfig: hasRealFirebaseConfig(),
+    projectId: getEnvString("FIREBASE_PROJECT_ID") ? "✓ Set" : "✗ Missing",
+    clientEmail: getEnvString("FIREBASE_CLIENT_EMAIL") ? "✓ Set" : "✗ Missing",
+    privateKey: getEnvString("FIREBASE_PRIVATE_KEY") ? "✓ Set" : "✗ Missing",
   }
 }

@@ -59,9 +59,18 @@ export async function POST(request: NextRequest) {
     const sessionToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-    // Create temporary trainer document
+    // Create improved trainer document structure
     const tempTrainerData = {
-      ...formData,
+      // Core trainer info (unchangeable)
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone || "",
+      location: formData.location,
+      specialty: formData.specialty,
+      experience: formData.experience,
+      certifications: formData.certifications || "",
+
+      // System fields
       status: "temp",
       createdAt: FieldValue.serverTimestamp(),
       expiresAt: expiresAt.toISOString(),
@@ -70,6 +79,44 @@ export async function POST(request: NextRequest) {
       isPaid: false,
       requestId,
       userAgent: request.headers.get("user-agent") || "unknown",
+
+      // All editable content under one section
+      content: {
+        about: {
+          title: `About ${formData.fullName}`,
+          content: formData.bio, // Bio goes directly here
+        },
+        hero: {
+          title: `Transform Your Fitness with ${formData.fullName}`,
+          subtitle: `Professional ${formData.specialty} in ${formData.location}`,
+          description: `With ${formData.experience} of experience, I help clients achieve their fitness goals through personalized training programs.`,
+        },
+        contact: {
+          title: "Let's Start Your Fitness Journey",
+          description:
+            "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+          email: formData.email,
+          phone: formData.phone || "",
+          location: formData.location,
+        },
+        services: formData.services.map((service, index) => ({
+          id: `service_${index + 1}`,
+          title: service,
+          description: `Professional ${service.toLowerCase()} service tailored to your goals`,
+          price: 60 + index * 20, // Default pricing
+          duration: "60 minutes",
+          featured: index === 0,
+        })),
+        seo: {
+          title: `${formData.fullName} - Personal Trainer in ${formData.location}`,
+          description: `Professional ${formData.specialty} training with ${formData.fullName}. Transform your fitness with personalized programs in ${formData.location}.`,
+        },
+        customization: {
+          lastUpdated: FieldValue.serverTimestamp(),
+          version: 1,
+          isDraft: false,
+        },
+      },
     }
 
     logger.info("Creating trainer document", {
