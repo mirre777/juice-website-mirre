@@ -16,7 +16,7 @@ interface TempTrainerData {
   experience: string
   bio: string
   certifications?: string
-  services: string[]
+  services?: string[]
   createdAt: string
   expiresAt: string
 }
@@ -94,6 +94,17 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
     )
   }
 
+  // Default services if none provided
+  const defaultServices = [
+    "Personal Training Sessions",
+    "Fitness Assessments",
+    "Custom Workout Plans",
+    "Nutritional Guidance",
+    "Group Training Classes",
+  ]
+
+  const services = trainer.services && trainer.services.length > 0 ? trainer.services : defaultServices
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -122,24 +133,24 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
       <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 break-words">
-            Transform Your Fitness with {trainer.fullName}
+            Transform Your Fitness with {trainer.fullName || "Your Trainer"}
           </h1>
           <p className="text-xl mb-6 break-words">
-            Professional {trainer.specialty} trainer in {trainer.location}
+            Professional {trainer.specialty || "fitness"} trainer in {trainer.location || "your area"}
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Badge className="bg-white/20 text-white px-4 py-2">
               <Clock className="w-4 h-4 mr-2" />
-              {trainer.experience} Experience
+              {trainer.experience || "Experienced"} Experience
             </Badge>
             <Badge className="bg-white/20 text-white px-4 py-2">
               <MapPin className="w-4 h-4 mr-2" />
-              {trainer.location}
+              {trainer.location || "Local Area"}
             </Badge>
             <Badge className="bg-white/20 text-white px-4 py-2">
               <Star className="w-4 h-4 mr-2" />
-              {trainer.specialty}
+              {trainer.specialty || "Fitness Training"}
             </Badge>
           </div>
 
@@ -158,9 +169,12 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <CheckCircle className="w-6 h-6 text-green-500" />
-                  About {trainer.fullName}
+                  About {trainer.fullName || "Your Trainer"}
                 </h2>
-                <p className="text-gray-600 leading-relaxed mb-4 break-words overflow-wrap-anywhere">{trainer.bio}</p>
+                <p className="text-gray-600 leading-relaxed mb-4 break-words overflow-wrap-anywhere">
+                  {trainer.bio ||
+                    "Passionate fitness professional dedicated to helping clients achieve their health and wellness goals through personalized training programs and expert guidance."}
+                </p>
 
                 {trainer.certifications && (
                   <div>
@@ -179,7 +193,7 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
                   Services Offered
                 </h2>
                 <div className="grid md:grid-cols-2 gap-3">
-                  {trainer.services.map((service, index) => (
+                  {services.map((service, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                       <span className="text-gray-700 break-words">{service}</span>
@@ -204,8 +218,8 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
                       ))}
                     </div>
                     <p className="text-gray-600 italic mb-2 break-words">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
+                      "Working with {trainer.fullName || "this trainer"} has completely transformed my fitness journey.
+                      Their expertise in {trainer.specialty?.toLowerCase() || "fitness training"} is unmatched!"
                     </p>
                     <p className="text-sm text-gray-500">- Sarah M.</p>
                   </div>
@@ -235,7 +249,7 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 break-all">{trainer.email}</span>
+                    <span className="text-gray-700 break-all">{trainer.email || "contact@trainer.com"}</span>
                   </div>
                   {trainer.phone && (
                     <div className="flex items-center gap-3">
@@ -245,7 +259,7 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
                   )}
                   <div className="flex items-center gap-3">
                     <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-700 break-words">{trainer.location}</span>
+                    <span className="text-gray-700 break-words">{trainer.location || "Local Area"}</span>
                   </div>
                 </div>
 
@@ -260,19 +274,19 @@ export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Experience</span>
-                    <span className="font-medium break-words">{trainer.experience}</span>
+                    <span className="font-medium break-words">{trainer.experience || "Professional"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Specialty</span>
-                    <span className="font-medium break-words">{trainer.specialty}</span>
+                    <span className="font-medium break-words">{trainer.specialty || "Fitness Training"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Location</span>
-                    <span className="font-medium break-words">{trainer.location}</span>
+                    <span className="font-medium break-words">{trainer.location || "Local Area"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Services</span>
-                    <span className="font-medium">{trainer.services.length}</span>
+                    <span className="font-medium">{services.length}</span>
                   </div>
                 </div>
               </CardContent>

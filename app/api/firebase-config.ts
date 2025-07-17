@@ -1,66 +1,57 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore, type FirebaseFirestore } from "firebase-admin/firestore"
+import { getFirestore } from "firebase-admin/firestore"
 
-// Helper function to safely get environment variable as string
-function getEnvString(key: string): string {
-  const value = process.env[key]
-  return typeof value === "string" ? value : ""
+function hasRealFirebaseConfig(): boolean {
+  const requiredVars = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"]
+
+  return requiredVars.every((varName) => {
+    const value = process.env[varName]
+    return value && value.trim() !== "" && !value.includes("your-") && !value.includes("placeholder")
+  })
 }
 
-// Helper function to check if we have real Firebase config
-export function hasRealFirebaseConfig(): boolean {
-  try {
-    const apiKey = getEnvString("FIREBASE_API_KEY")
-    const projectId = getEnvString("FIREBASE_PROJECT_ID")
-    const privateKey = getEnvString("FIREBASE_PRIVATE_KEY")
-
-    return !!(
-      apiKey &&
-      projectId &&
-      privateKey &&
-      apiKey !== "your-api-key" &&
-      projectId !== "your-project-id" &&
-      privateKey !== "your-private-key"
-    )
-  } catch (error) {
-    console.error("Error checking Firebase config:", error)
-    return false
+function initializeFirebaseAdmin() {
+  if (getApps().length > 0) {
+    return getApps()[0]
   }
-}
 
-// Initialize Firebase Admin
-let db: FirebaseFirestore.Firestore
+  if (!hasRealFirebaseConfig()) {
+    console.warn("Firebase Admin not initialized: Missing or placeholder configuration")
+    return null
+  }
 
-try {
-  if (getApps().length === 0) {
-    const privateKey = getEnvString("FIREBASE_PRIVATE_KEY").replace(/\\n/g, "\n")
+  try {
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
 
     const app = initializeApp({
       credential: cert({
-        projectId: getEnvString("FIREBASE_PROJECT_ID"),
-        clientEmail: getEnvString("FIREBASE_CLIENT_EMAIL"),
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: privateKey,
       }),
+      projectId: process.env.FIREBASE_PROJECT_ID,
     })
 
-    db = getFirestore(app)
-  } else {
-    db = getFirestore()
-  }
-} catch (error) {
-  console.error("Firebase initialization error:", error)
-  // Create a mock db object to prevent crashes
-  db = {} as FirebaseFirestore.Firestore
-}
-
-export { db }
-
-export function getFirebaseDebugInfo() {
-  return {
-    hasConfig: hasRealFirebaseConfig(),
-    projectId: getEnvString("FIREBASE_PROJECT_ID"),
-    clientEmail: getEnvString("FIREBASE_CLIENT_EMAIL"),
-    hasPrivateKey: !!getEnvString("FIREBASE_PRIVATE_KEY"),
-    appsLength: getApps().length,
+    return app
+  } catch (error) {
+    console.error("Failed to initialize Firebase Admin:", error)
+    return null
   }
 }
+
+export function getFirebaseAdmin() {
+  const app = initializeFirebaseAdmin()
+  if (!app) return null
+
+  try {
+    return {
+      app,
+      db: getFirestore(app),
+    }
+  } catch (error) {
+    console.error("Failed to get Firestore instance:", error)
+    return null
+  }
+}
+
+export { hasRealFirebaseConfig }
