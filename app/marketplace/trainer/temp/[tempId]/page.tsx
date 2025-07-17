@@ -1,27 +1,43 @@
-import { Suspense } from "react"
+import { notFound } from "next/navigation"
 import TempTrainerPage from "../TempTrainerPage"
 
 interface PageProps {
-  params: Promise<{ tempId: string }>
-  searchParams: Promise<{ token?: string }>
+  params: { tempId: string }
+  searchParams: { token?: string }
 }
 
-export default async function TempTrainerPageRoute({ params, searchParams }: PageProps) {
-  const { tempId } = await params
-  const { token } = await searchParams
+async function getTrainerData(tempId: string, token?: string) {
+  try {
+    const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trainer/temp/${tempId}`)
+    if (token) {
+      url.searchParams.set("token", token)
+    }
 
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your trainer profile...</p>
-          </div>
-        </div>
-      }
-    >
-      <TempTrainerPage tempId={tempId} token={token} />
-    </Suspense>
-  )
+    const response = await fetch(url.toString(), {
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    return data.success ? data.trainer : null
+  } catch (error) {
+    console.error("Error fetching trainer data:", error)
+    return null
+  }
+}
+
+export default async function TempTrainerPageWrapper({ params, searchParams }: PageProps) {
+  const { tempId } = params
+  const { token } = searchParams
+
+  const trainer = await getTrainerData(tempId, token)
+
+  if (!trainer) {
+    notFound()
+  }
+
+  return <TempTrainerPage trainer={trainer} />
 }
