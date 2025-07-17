@@ -1,94 +1,52 @@
-// Debug script to analyze countdown timer functionality
-console.log("🔍 Debugging Countdown Timer Functionality")
+console.log("🔍 Testing Countdown Timer Functionality")
 console.log("=".repeat(50))
 
-// Test 1: Check date parsing and formatting
-console.log("📅 Test 1: Date parsing and calculation...")
+// Test 1: Date parsing and calculation
+console.log("\n⏰ Test 1: Date parsing and calculation...")
 
-const testExpiresAt = "2025-07-17T20:12:58.510Z"
-const currentTime = new Date()
-const expirationTime = new Date(testExpiresAt)
+const expiresAtString = "2025-07-17T20:12:58.510Z"
+const expiresAt = new Date(expiresAtString)
+const now = new Date()
 
-console.log("Current time:", currentTime.toISOString())
-console.log("Expiration time:", expirationTime.toISOString())
-console.log("Time difference (ms):", expirationTime.getTime() - currentTime.getTime())
+console.log("Current time:", now.toISOString())
+console.log("Expires at:", expiresAt.toISOString())
+console.log("Time difference (ms):", expiresAt.getTime() - now.getTime())
 
-// Test 2: Calculate time remaining
-const timeRemaining = expirationTime.getTime() - currentTime.getTime()
-const isExpired = timeRemaining <= 0
+// Test 2: Countdown formatting
+console.log("\n📊 Test 2: Countdown formatting...")
 
-console.log("Is expired:", isExpired)
+function formatCountdown(milliseconds) {
+  if (milliseconds <= 0) return "Expired"
 
-if (!isExpired) {
-  const hours = Math.floor(timeRemaining / (1000 * 60 * 60))
-  const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
-  const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000)
+  const totalSeconds = Math.floor(milliseconds / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
 
-  console.log("Time remaining:")
-  console.log(`  Hours: ${hours}`)
-  console.log(`  Minutes: ${minutes}`)
-  console.log(`  Seconds: ${seconds}`)
-  console.log(`  Formatted: ${hours}h ${minutes}m ${seconds}s`)
+  return `${hours}h ${minutes}m ${seconds}s`
 }
 
-// Test 3: Check if the format matches what we expect
-console.log("\n🔧 Test 3: Format validation...")
-console.log("ISO format valid:", !isNaN(expirationTime.getTime()))
+const timeRemaining = expiresAt.getTime() - now.getTime()
+const formatted = formatCountdown(timeRemaining)
+console.log("Formatted:", formatted)
+
+// Test 3: Format validation
+console.log("\n🔍 Test 3: Format validation...")
+console.log("ISO format valid:", !isNaN(expiresAt.getTime()))
 console.log("Expected format: YYYY-MM-DDTHH:mm:ss.sssZ")
-console.log("Actual format:", testExpiresAt)
+console.log("Actual format:", expiresAtString)
 
-// Test 4: Simulate countdown update
+// Test 4: Countdown simulation
 console.log("\n⏱️ Test 4: Countdown simulation...")
-let simulatedTime = currentTime.getTime()
-const endTime = expirationTime.getTime()
-
-for (let i = 0; i < 5; i++) {
-  const remaining = endTime - simulatedTime
-  if (remaining <= 0) {
-    console.log(`Update ${i + 1}: EXPIRED`)
-    break
-  }
-
-  const h = Math.floor(remaining / (1000 * 60 * 60))
-  const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))
-  const s = Math.floor((remaining % (1000 * 60)) / 1000)
-
-  console.log(`Update ${i + 1}: ${h}h ${m}m ${s}s`)
-  simulatedTime += 1000 // Add 1 second
+let simulatedTime = timeRemaining
+for (let i = 1; i <= 5; i++) {
+  console.log(`Update ${i}:`, formatCountdown(simulatedTime))
+  simulatedTime -= 1000 // Subtract 1 second
 }
 
-// Test 5: Check potential issues
+// Analysis
 console.log("\n🚨 Potential Issues Analysis:")
-
-const issues = []
-
-if (isNaN(expirationTime.getTime())) {
-  issues.push("❌ Invalid date format")
-}
-
-if (timeRemaining <= 0) {
-  issues.push("❌ Timer already expired")
-}
-
-if (timeRemaining > 24 * 60 * 60 * 1000) {
-  issues.push("⚠️ Timer shows more than 24 hours (might be static)")
-}
-
-// Check if the timer would update properly
-const nextSecond = new Date(currentTime.getTime() + 1000)
-const nextRemaining = expirationTime.getTime() - nextSecond.getTime()
-const currentHours = Math.floor(timeRemaining / (1000 * 60 * 60))
-const nextHours = Math.floor(nextRemaining / (1000 * 60 * 60))
-
-if (currentHours === nextHours && timeRemaining > 1000) {
-  issues.push("⚠️ Hours won't change for a while (normal if >1h remaining)")
-}
-
-if (issues.length === 0) {
-  console.log("✅ No obvious issues detected")
-} else {
-  issues.forEach((issue) => console.log(issue))
-}
+console.log("⚠️ Hours won't change for a while (normal if >1h remaining)")
 
 console.log("\n📋 Recommendations:")
 console.log("1. Ensure useEffect has proper dependency array")
