@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator"
 import { MapPin, Star, Users, Dumbbell, Award, Phone, Mail, CreditCard, CheckCircle } from "lucide-react"
 
 interface TempTrainerPageProps {
-  tempId: string
+  trainer: any
+  token?: string
 }
 
 interface TempTrainerData {
@@ -25,9 +26,24 @@ interface TempTrainerData {
   services: string[]
   status: string
   createdAt: string
+  content?: {
+    about?: {
+      title?: string
+      content?: string
+      specialty?: string
+    }
+    contact?: {
+      title?: string
+      description?: string
+      email?: string
+      phone?: string
+      location?: string
+      fullName?: string
+    }
+  }
 }
 
-export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
+export default function TempTrainerPage({ trainer: initialTrainer, token }: TempTrainerPageProps) {
   const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -41,49 +57,47 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
   useEffect(() => {
     if (!mounted) return
 
-    const fetchTempTrainer = async () => {
-      try {
-        console.log("=== FETCHING TEMP TRAINER ===")
-        console.log("Temp ID:", tempId)
+    if (initialTrainer) {
+      console.log("=== PROCESSING INITIAL TRAINER DATA ===")
+      console.log("Raw trainer data:", initialTrainer)
 
-        const response = await fetch(`/api/trainer/temp/${tempId}`)
-        const data = await response.json()
-
-        console.log("API Response:", data)
-
-        if (!response.ok) {
-          setError(data.error || "Failed to load trainer preview")
-          setLoading(false)
-          return
-        }
-
-        if (data.success && data.trainer) {
-          console.log("Setting temp trainer data:", data.trainer)
-          setTrainer(data.trainer)
-        } else {
-          setError(data.error || "Failed to load trainer data")
-        }
-
-        setLoading(false)
-      } catch (err) {
-        console.error("Error fetching temp trainer:", err)
-        setError("Failed to load trainer preview")
-        setLoading(false)
+      // Process trainer data to handle both old and new structures
+      const processedTrainer: TempTrainerData = {
+        id: initialTrainer.id,
+        fullName: initialTrainer.content?.contact?.fullName || initialTrainer.fullName || "Unknown Trainer",
+        email: initialTrainer.content?.contact?.email || initialTrainer.email || "",
+        phone: initialTrainer.content?.contact?.phone || initialTrainer.phone || "",
+        location: initialTrainer.content?.contact?.location || initialTrainer.location || "",
+        specialty: initialTrainer.content?.about?.specialty || initialTrainer.specialty || "",
+        experience: initialTrainer.experience || "",
+        bio: initialTrainer.content?.about?.content || initialTrainer.bio || "",
+        certifications: initialTrainer.certifications || "",
+        services: initialTrainer.services || [],
+        status: initialTrainer.status || "temp",
+        createdAt: initialTrainer.createdAt || "",
+        content: initialTrainer.content,
       }
-    }
 
-    if (tempId) {
-      fetchTempTrainer()
+      console.log("Processed trainer data:", processedTrainer)
+      setTrainer(processedTrainer)
+      setLoading(false)
+    } else {
+      setError("No trainer data provided")
+      setLoading(false)
     }
-  }, [tempId, mounted])
+  }, [initialTrainer, mounted])
 
   const handleActivateWebsite = () => {
+    if (!trainer) return
+
     console.log("=== ACTIVATE WEBSITE CLICKED ===")
-    console.log("Temp ID:", tempId)
-    console.log("Trainer:", trainer)
+    console.log("Trainer ID:", trainer.id)
+    console.log("Token:", token)
 
     // Navigate to payment page with temp trainer data
-    router.push(`/payment?tempId=${tempId}`)
+    const paymentUrl = `/payment?tempId=${trainer.id}${token ? `&token=${token}` : ""}`
+    console.log("Navigating to:", paymentUrl)
+    router.push(paymentUrl)
   }
 
   if (!mounted) {
