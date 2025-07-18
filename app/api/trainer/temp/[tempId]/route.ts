@@ -1,76 +1,31 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { TrainerService } from "@/lib/firebase-trainer"
-import { logger } from "@/lib/logger"
+import { db } from "../../../firebase-config"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
-  const requestId = Math.random().toString(36).substring(2, 15)
-
   try {
-    const { tempId } = params
-    const { searchParams } = new URL(request.url)
-    const token = searchParams.get("token")
+    console.log("Fetching temp trainer with ID:", params.tempId)
 
-    logger.info("Fetching temporary trainer", {
-      requestId,
-      tempId,
-      hasToken: !!token,
-    })
-
-    if (!tempId) {
-      logger.warn("Missing tempId parameter", { requestId })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Missing trainer ID",
-          requestId,
-        },
-        { status: 400 },
-      )
+    if (!db) {
+      console.error("Database not initialized")
+      return NextResponse.json({ success: false, error: "Database not available" }, { status: 500 })
     }
 
-    // Get temporary trainer from Firebase
-    const trainer = await TrainerService.getTempTrainer(tempId)
+    const doc = await db.collection("trainers").doc(params.tempId).get()
 
-    if (!trainer) {
-      logger.warn("Temporary trainer not found", { requestId, tempId })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer preview not found",
-          requestId,
-        },
-        { status: 404 },
-      )
+    if (!doc.exists) {
+      console.log("Trainer not found:", params.tempId)
+      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
-    logger.info("Successfully retrieved temporary trainer", {
-      requestId,
-      tempId,
-      status: trainer.status,
-      email: trainer.email,
-    })
+    const trainerData = { id: doc.id, ...doc.data() }
+    console.log("Trainer data fetched successfully:", trainerData.id)
 
     return NextResponse.json({
       success: true,
-      trainer,
-      requestId,
+      trainer: trainerData,
     })
   } catch (error) {
-    logger.error("Error fetching temporary trainer", {
-      requestId,
-      tempId: params.tempId,
-      error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to load trainer preview",
-        details: error instanceof Error ? error.message : "Unknown error",
-        requestId,
-      },
-      { status: 500 },
-    )
+    console.error("Error fetching temp trainer:", error)
+    return NextResponse.json({ success: false, error: "Failed to fetch trainer data" }, { status: 500 })
   }
 }
