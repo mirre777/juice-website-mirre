@@ -8,12 +8,14 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
 
   try {
     const { tempId } = params
+    const { searchParams } = new URL(request.url)
+    const token = searchParams.get("token")
 
     if (!tempId) {
       return NextResponse.json(
         {
           success: false,
-          error: "Temp ID is required",
+          error: "Trainer ID is required",
           requestId,
         },
         { status: 400 },
@@ -26,26 +28,39 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json(
         {
           success: false,
-          error: "Service configuration error",
+          error: "Service temporarily unavailable",
           requestId,
         },
-        { status: 500 },
+        { status: 503 },
       )
     }
 
-    logger.info("Fetching temp trainer", { requestId, tempId })
+    logger.info("Fetching temp trainer", { requestId, tempId, hasToken: !!token })
 
     const trainer = await TrainerService.getTempTrainer(tempId)
 
     if (!trainer) {
-      logger.warn("Temp trainer not found", { requestId, tempId })
+      logger.warn("Temp trainer not found or expired", { requestId, tempId })
       return NextResponse.json(
         {
           success: false,
-          error: "Trainer not found",
+          error: "Trainer preview not found or has expired",
           requestId,
         },
         { status: 404 },
+      )
+    }
+
+    // Validate session token if provided
+    if (token && trainer.sessionToken !== token) {
+      logger.warn("Invalid session token", { requestId, tempId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid access token",
+          requestId,
+        },
+        { status: 401 },
       )
     }
 
@@ -53,6 +68,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       requestId,
       tempId,
       email: trainer.email,
+      status: trainer.status,
     })
 
     return NextResponse.json({

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { TrainerService } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { hasRealFirebaseConfig } from "@/app/api/firebase-config"
 
 export async function POST(request: NextRequest) {
   const requestId = Math.random().toString(36).substring(2, 15)
@@ -13,23 +13,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Service configuration error",
+          error: "Service temporarily unavailable. Please try again later.",
           requestId,
         },
-        { status: 500 },
-      )
-    }
-
-    // Check if database is initialized
-    if (!db) {
-      logger.error("Database not initialized", { requestId })
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Database configuration error",
-          requestId,
-        },
-        { status: 500 },
+        { status: 503 },
       )
     }
 
@@ -38,19 +25,34 @@ export async function POST(request: NextRequest) {
       requestId,
       email: formData.email,
       fullName: formData.fullName,
+      specialty: formData.specialty,
+      location: formData.location,
     })
 
     // Validate required fields
     const requiredFields = ["fullName", "email", "location", "specialty", "experience", "bio"]
-    const missingFields = requiredFields.filter((field) => !formData[field])
+    const missingFields = requiredFields.filter((field) => !formData[field] || formData[field].trim() === "")
 
     if (missingFields.length > 0) {
       logger.warn("Missing required fields", { requestId, missingFields })
       return NextResponse.json(
         {
           success: false,
-          error: "Missing required fields",
+          error: "Please fill in all required fields",
           details: `Missing: ${missingFields.join(", ")}`,
+          requestId,
+        },
+        { status: 400 },
+      )
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Please enter a valid email address",
           requestId,
         },
         { status: 400 },
@@ -60,15 +62,19 @@ export async function POST(request: NextRequest) {
     // Create temporary trainer
     const tempId = await TrainerService.createTempTrainer(formData)
 
+    const redirectUrl = `/marketplace/trainer/temp/${tempId}`
+
     logger.info("Successfully created temporary trainer", {
       requestId,
       tempId,
       email: formData.email,
+      redirectUrl,
     })
 
     return NextResponse.json({
       success: true,
       tempId,
+      redirectUrl,
       message: "Trainer profile created successfully",
       requestId,
     })
