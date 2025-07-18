@@ -1,46 +1,52 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Phone, Mail, Clock, CheckCircle, Star } from "lucide-react"
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { User, MapPin, Phone, Mail, Star, Clock, CheckCircle, ArrowLeft, CreditCard } from "lucide-react"
 
 interface TrainerData {
   id: string
-  fullName?: string
-  email?: string
+  fullName: string
+  email: string
   phone?: string
-  location?: string
-  specialty?: string
-  experience?: string
-  bio?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
   certifications?: string
-  services?: string[]
+  services: string[]
+  status: string
+  createdAt: string
   content?: {
+    hero?: {
+      title?: string
+      subtitle?: string
+      description?: string
+    }
     about?: {
       title?: string
       content?: string
-      specialty?: string
     }
     contact?: {
-      title?: string
-      description?: string
       email?: string
       phone?: string
       location?: string
-      fullName?: string
+      title?: string
+      description?: string
     }
-    customization?: {
-      isDraft?: boolean
-    }
+    services?: Array<{
+      id: string
+      title: string
+      description: string
+      price: number
+      duration: string
+      featured: boolean
+    }>
   }
-  status?: string
-  isActive?: boolean
-  isPaid?: boolean
-  createdAt?: any
-  updatedAt?: any
 }
 
 interface TempTrainerPageProps {
@@ -50,12 +56,13 @@ interface TempTrainerPageProps {
 }
 
 export default function TempTrainerPage({ trainer: initialTrainer, tempId, token }: TempTrainerPageProps) {
+  const router = useRouter()
   const [trainer, setTrainer] = useState<TrainerData | null>(initialTrainer || null)
   const [loading, setLoading] = useState(!initialTrainer)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!initialTrainer) {
+    if (!initialTrainer && tempId) {
       fetchTrainerData()
     }
   }, [tempId, initialTrainer])
@@ -63,27 +70,39 @@ export default function TempTrainerPage({ trainer: initialTrainer, tempId, token
   const fetchTrainerData = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/trainer/temp/${tempId}`)
+      const url = token ? `/api/trainer/temp/${tempId}?token=${token}` : `/api/trainer/temp/${tempId}`
+
+      const response = await fetch(url)
       const data = await response.json()
 
-      if (data.success) {
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load trainer data")
+      }
+
+      if (data.success && data.trainer) {
         setTrainer(data.trainer)
       } else {
-        setError(data.error || "Failed to load trainer data")
+        throw new Error(data.error || "Invalid response format")
       }
     } catch (err) {
       console.error("Error fetching trainer:", err)
-      setError("Failed to load trainer data")
+      setError(err instanceof Error ? err.message : "Failed to load trainer data")
     } finally {
       setLoading(false)
     }
   }
 
+  const handleActivateWebsite = () => {
+    if (trainer) {
+      router.push(`/payment?tempId=${trainer.id}`)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading trainer preview...</p>
         </div>
       </div>
@@ -92,105 +111,124 @@ export default function TempTrainerPage({ trainer: initialTrainer, tempId, token
 
   if (error || !trainer) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "Trainer not found"}</p>
-          <Link href="/marketplace/personal-trainer-website">
-            <Button>Back to Form</Button>
-          </Link>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-red-500 text-5xl mb-4">⚠️</div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <div className="space-y-2">
+                <Button onClick={() => window.location.reload()} className="w-full">
+                  Try Again
+                </Button>
+                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
+                  Back to Marketplace
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Extract data with fallbacks for both old and new structure
-  const getName = () => {
-    return trainer.content?.contact?.fullName || trainer.fullName || "Professional Trainer"
-  }
+  // Extract data with fallbacks for both nested content structure and root level
+  const fullName = trainer.content?.contact?.fullName || trainer.fullName || "Trainer"
+  const email = trainer.content?.contact?.email || trainer.email || ""
+  const phone = trainer.content?.contact?.phone || trainer.phone || ""
+  const location = trainer.content?.contact?.location || trainer.location || ""
+  const specialty = trainer.content?.about?.specialty || trainer.specialty || ""
+  const experience = trainer.experience || ""
+  const bio = trainer.content?.about?.content || trainer.bio || ""
+  const certifications = trainer.certifications || ""
 
-  const getEmail = () => {
-    return trainer.content?.contact?.email || trainer.email || ""
-  }
-
-  const getPhone = () => {
-    return trainer.content?.contact?.phone || trainer.phone || ""
-  }
-
-  const getLocation = () => {
-    return trainer.content?.contact?.location || trainer.location || ""
-  }
-
-  const getSpecialty = () => {
-    return trainer.content?.about?.specialty || trainer.specialty || "Fitness Training"
-  }
-
-  const getBio = () => {
-    return (
-      trainer.content?.about?.content ||
-      trainer.bio ||
-      "Passionate fitness professional dedicated to helping clients achieve their goals."
-    )
-  }
-
-  const getServices = () => {
-    return trainer.services || ["Personal Training", "Fitness Consultation"]
-  }
-
-  const getCertifications = () => {
-    return trainer.certifications || "Certified Fitness Professional"
-  }
-
-  const getExperience = () => {
-    return trainer.experience || "1+ years"
-  }
+  const heroTitle = trainer.content?.hero?.title || `Transform Your Fitness with ${fullName}`
+  const heroSubtitle = trainer.content?.hero?.subtitle || `Professional trainer in ${location}`
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-juice rounded-full flex items-center justify-center">
-                <span className="text-black font-bold text-lg">{getName().charAt(0).toUpperCase()}</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">{getName()}</h1>
-                <p className="text-gray-600">{getSpecialty()}</p>
-              </div>
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Button variant="ghost" onClick={() => router.back()} className="flex items-center space-x-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back</span>
+            </Button>
+
+            <div className="flex items-center space-x-4">
+              <Badge variant="outline" className="text-orange-600 border-orange-200">
+                Preview Mode
+              </Badge>
+              <Badge variant="secondary">Pending Activation</Badge>
+              <Button
+                onClick={handleActivateWebsite}
+                className="bg-[#D2FF28] text-black hover:bg-[#c5f01f] flex items-center space-x-2"
+              >
+                <CreditCard className="h-4 w-4" />
+                <span>Activate Website - €70 ONE-TIME</span>
+              </Button>
             </div>
-            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-              Preview Mode
-            </Badge>
           </div>
         </div>
       </div>
 
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroTitle}</h1>
+          <p className="text-xl mb-6 text-blue-100">{heroSubtitle}</p>
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            {experience && (
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Clock className="h-3 w-3 mr-1" />
+                {experience} Experience
+              </Badge>
+            )}
+            {location && (
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <MapPin className="h-3 w-3 mr-1" />
+                {location}
+              </Badge>
+            )}
+            {specialty && (
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                {specialty}
+              </Badge>
+            )}
+          </div>
+          <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#c5f01f]">
+            Book Free Consultation
+          </Button>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - About & Services */}
+          <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Star className="w-5 h-5 text-juice" />
-                  <span>About {getName().split(" ")[0]}</span>
+                  <User className="h-5 w-5" />
+                  <span>About {fullName}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed mb-4">{getBio()}</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <p className="text-gray-600 mb-4">
+                  {bio ||
+                    `Passionate fitness professional dedicated to helping clients achieve their goals through ${specialty}.`}
+                </p>
+
+                {certifications && (
                   <div>
-                    <span className="font-medium text-gray-900">Experience:</span>
-                    <p className="text-gray-600">{getExperience()}</p>
+                    <h4 className="font-semibold mb-2">Certifications</h4>
+                    <p className="text-gray-600">{certifications}</p>
                   </div>
-                  <div>
-                    <span className="font-medium text-gray-900">Specialty:</span>
-                    <p className="text-gray-600">{getSpecialty()}</p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -198,103 +236,146 @@ export default function TempTrainerPage({ trainer: initialTrainer, tempId, token
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-juice" />
+                  <CheckCircle className="h-5 w-5" />
                   <span>Services Offered</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {getServices().map((service, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-gray-700">{service}</span>
+                <div className="grid gap-4">
+                  {trainer.content?.services?.map((service) => (
+                    <div key={service.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold">{service.title}</h4>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">€{service.price}</p>
+                          <p className="text-sm text-gray-500">{service.duration}</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-600">{service.description}</p>
+                      {service.featured && (
+                        <Badge className="mt-2" variant="secondary">
+                          Most Popular
+                        </Badge>
+                      )}
                     </div>
-                  ))}
+                  )) || <div className="text-gray-500">Services will be customized based on your specialization</div>}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Certifications Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Certifications & Qualifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700">{getCertifications()}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Contact Info */}
-          <div className="space-y-6">
-            {/* Contact Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Get in Touch</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {getEmail() && (
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">{getEmail()}</span>
-                  </div>
-                )}
-                {getPhone() && (
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">{getPhone()}</span>
-                  </div>
-                )}
-                {getLocation() && (
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">{getLocation()}</span>
-                  </div>
-                )}
-                <Button className="w-full bg-juice hover:bg-juice/90 text-black">
-                  Contact {getName().split(" ")[0]}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Status Card */}
+            {/* Testimonials Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5 text-gray-400" />
-                  <span>Status</span>
+                  <Star className="h-5 w-5" />
+                  <span>Client Testimonials</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Profile Status:</span>
-                    <Badge variant={trainer.isActive ? "default" : "secondary"}>
-                      {trainer.isActive ? "Active" : "Draft"}
-                    </Badge>
+                <div className="space-y-4">
+                  <div className="border-l-4 border-[#D2FF28] pl-4">
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 italic mb-2">
+                      "Working with {fullName} has completely transformed my fitness journey. Their expertise in{" "}
+                      {specialty} is unmatched!"
+                    </p>
+                    <p className="text-sm text-gray-500">- Sarah M.</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Payment:</span>
-                    <Badge variant={trainer.isPaid ? "default" : "destructive"}>
-                      {trainer.isPaid ? "Paid" : "Pending"}
-                    </Badge>
+
+                  <div className="border-l-4 border-[#D2FF28] pl-4">
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 italic mb-2">
+                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
+                    </p>
+                    <p className="text-sm text-gray-500">- Mike R.</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-center space-x-4">
-          <Link href="/marketplace/personal-trainer-website">
-            <Button variant="outline">Edit Profile</Button>
-          </Link>
-          {!trainer.isPaid && (
-            <Link href={`/payment?trainerId=${trainer.id}`}>
-              <Button className="bg-juice hover:bg-juice/90 text-black">Activate Profile - €70</Button>
-            </Link>
-          )}
+          {/* Right Column - Contact & Stats */}
+          <div className="space-y-6">
+            {/* Contact Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Get In Touch</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {email && (
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">{email}</span>
+                  </div>
+                )}
+                {phone && (
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">{phone}</span>
+                  </div>
+                )}
+                {location && (
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">{location}</span>
+                  </div>
+                )}
+                <Separator />
+                <Button className="w-full bg-black text-white hover:bg-gray-800">Schedule Consultation</Button>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Experience</span>
+                  <span className="font-semibold">{experience}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Specialty</span>
+                  <span className="font-semibold">{specialty || "Fitness"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Location</span>
+                  <span className="font-semibold">{location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Services</span>
+                  <span className="font-semibold">{trainer.services?.length || 0}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Activation CTA */}
+            <Card className="bg-[#D2FF28] border-[#D2FF28]">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="font-bold text-lg mb-2">Ready to Go Live?</h3>
+                  <p className="text-sm mb-4">
+                    Your website preview looks great! Activate it now to start attracting clients.
+                  </p>
+                  <Button onClick={handleActivateWebsite} className="w-full bg-black text-white hover:bg-gray-800">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Activate for €70 ONE-TIME
+                  </Button>
+                  <p className="text-xs text-gray-600 mt-2">One-time payment • No monthly fees • Full ownership</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
