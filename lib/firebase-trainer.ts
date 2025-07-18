@@ -1,4 +1,4 @@
-import { getAdminDb, hasFirebaseConfig } from "@/app/api/firebase-config"
+import { db, hasFirebaseConfig } from "@/app/api/firebase-config"
 
 export interface TrainerFormData {
   fullName: string
@@ -30,7 +30,6 @@ export class TrainerService {
         throw new Error("Firebase configuration missing")
       }
 
-      const db = await getAdminDb()
       if (!db) {
         throw new Error("Database not available")
       }
@@ -69,7 +68,6 @@ export class TrainerService {
         throw new Error("Firebase configuration missing")
       }
 
-      const db = await getAdminDb()
       if (!db) {
         throw new Error("Database not available")
       }
@@ -108,7 +106,6 @@ export class TrainerService {
         throw new Error("Firebase configuration missing")
       }
 
-      const db = await getAdminDb()
       if (!db) {
         throw new Error("Database not available")
       }
@@ -159,7 +156,6 @@ export class TrainerService {
         throw new Error("Firebase configuration missing")
       }
 
-      const db = await getAdminDb()
       if (!db) {
         throw new Error("Database not available")
       }

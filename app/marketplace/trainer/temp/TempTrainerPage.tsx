@@ -4,31 +4,16 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Mail, Phone, Clock, Star, CheckCircle } from "lucide-react"
+import { MapPin, Mail, Phone, Clock, CheckCircle } from "lucide-react"
 import Link from "next/link"
-
-interface TrainerData {
-  id: string
-  fullName: string
-  email: string
-  phone?: string
-  location: string
-  specialty: string
-  experience: string
-  bio: string
-  certifications?: string
-  services?: string[]
-  status: string
-  createdAt: string
-  expiresAt?: string
-}
+import type { TrainerDocument } from "@/lib/firebase-trainer"
 
 interface TempTrainerPageProps {
   tempId: string
 }
 
 export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+  const [trainer, setTrainer] = useState<TrainerDocument | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,10 +30,10 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
           throw new Error(data.error || "Failed to load trainer")
         }
 
-        if (data.success && data.trainer) {
+        if (data.success) {
           setTrainer(data.trainer)
         } else {
-          throw new Error("Trainer not found")
+          throw new Error(data.error || "Failed to load trainer")
         }
       } catch (err) {
         console.error("Error fetching trainer:", err)
@@ -74,25 +59,30 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
     )
   }
 
-  if (error || !trainer) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-red-600 text-xl">⚠️</span>
+            <div className="text-red-500 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Error</h3>
-            <p className="text-gray-600 mb-4">{error || "Failed to load trainer preview"}</p>
+            <p className="text-gray-600 mb-4">{error}</p>
             <div className="space-y-2">
               <Button onClick={() => window.location.reload()} className="w-full">
                 Try Again
               </Button>
-              <Link href="/marketplace" className="block">
-                <Button variant="outline" className="w-full bg-transparent">
-                  Back to Marketplace
-                </Button>
-              </Link>
+              <Button variant="outline" asChild className="w-full bg-transparent">
+                <Link href="/marketplace">Back to Marketplace</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -100,9 +90,20 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
     )
   }
 
-  const timeRemaining = trainer.expiresAt
-    ? Math.max(0, Math.floor((new Date(trainer.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)))
-    : 0
+  if (!trainer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <p className="text-gray-600 mb-4">Trainer not found</p>
+            <Button variant="outline" asChild>
+              <Link href="/marketplace">Back to Marketplace</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -110,12 +111,15 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/marketplace" className="text-blue-600 hover:text-blue-700">
-              ← Back to Marketplace
-            </Link>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              Preview expires in {timeRemaining}h
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-6 w-6 text-green-500" />
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Website Preview</h1>
+                <p className="text-sm text-gray-600">Your trainer website is ready for review</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Preview Mode
             </Badge>
           </div>
         </div>
@@ -123,144 +127,134 @@ export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Success Banner */}
-        <Card className="mb-8 border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-              <div>
-                <h3 className="font-semibold text-green-900">Website Preview Created!</h3>
-                <p className="text-green-700">
-                  Your trainer website preview is ready. Complete payment to activate it.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Trainer Profile */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Profile */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Hero Section */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center mb-6">
-                  <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl font-bold text-blue-600">
-                      {trainer.fullName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </span>
+        <div className="grid gap-8">
+          {/* Hero Section */}
+          <Card>
+            <CardContent className="p-8">
+              <div className="text-center">
+                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl font-bold text-blue-600">
+                    {trainer.fullName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </span>
+                </div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{trainer.fullName}</h1>
+                <p className="text-xl text-blue-600 mb-4">{trainer.specialty} Specialist</p>
+                <div className="flex items-center justify-center space-x-4 text-gray-600 mb-6">
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>{trainer.location}</span>
                   </div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{trainer.fullName}</h1>
-                  <p className="text-xl text-blue-600 mb-2">{trainer.specialty} Specialist</p>
-                  <div className="flex items-center justify-center gap-4 text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {trainer.location}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4" />
-                      {trainer.experience} experience
-                    </div>
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>{trainer.experience}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex justify-center space-x-2 mb-6">
+                  {trainer.services?.map((service, index) => (
+                    <Badge key={index} variant="outline">
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* About Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>About Me</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">{trainer.bio}</p>
-              </CardContent>
-            </Card>
-
-            {/* Services */}
-            {trainer.services && trainer.services.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Services Offered</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-3">
-                    {trainer.services.map((service, index) => (
-                      <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-gray-700">{service}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Certifications */}
-            {trainer.certifications && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Certifications & Qualifications</CardTitle>
-                </CardHeader>
-                <CardContent>
+          {/* About Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>About Me</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 leading-relaxed">{trainer.bio}</p>
+              {trainer.certifications && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-gray-900 mb-2">Certifications & Qualifications</h4>
                   <p className="text-gray-700">{trainer.certifications}</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-700">{trainer.email}</span>
+          {/* Services Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Services Offered</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">Personal Training Session</h4>
+                  <p className="text-gray-600 text-sm mb-3">
+                    One-on-one personalized training session focused on your specific goals
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-blue-600">€60</span>
+                    <span className="text-sm text-gray-500">60 minutes</span>
+                  </div>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">Fitness Assessment</h4>
+                  <p className="text-gray-600 text-sm mb-3">
+                    Comprehensive fitness evaluation and goal-setting session
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-blue-600">€40</span>
+                    <span className="text-sm text-gray-500">45 minutes</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Get In Touch</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-center space-x-3">
+                  <Mail className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">Email</p>
+                    <p className="text-gray-600">{trainer.email}</p>
+                  </div>
                 </div>
                 {trainer.phone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">{trainer.phone}</span>
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Phone</p>
+                      <p className="text-gray-600">{trainer.phone}</p>
+                    </div>
                   </div>
                 )}
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-700">{trainer.location}</span>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Activation CTA */}
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold text-blue-900 mb-2">Activate Your Website</h3>
-                <p className="text-blue-700 text-sm mb-4">
-                  Complete payment to make your website live and start accepting clients.
-                </p>
-                <Button className="w-full" size="lg">
-                  Activate for €70
+          {/* Action Section */}
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready to Activate Your Website?</h3>
+              <p className="text-gray-600 mb-6">
+                Your website preview looks great! Activate it now for just €70 and start attracting clients.
+              </p>
+              <div className="space-y-3">
+                <Button size="lg" className="w-full md:w-auto">
+                  Activate Website - €70
                 </Button>
-                <p className="text-xs text-blue-600 mt-2 text-center">One-time payment • No monthly fees</p>
-              </CardContent>
-            </Card>
-
-            {/* Preview Notice */}
-            <Card className="border-amber-200 bg-amber-50">
-              <CardContent className="pt-6">
-                <h4 className="font-medium text-amber-900 mb-2">Preview Mode</h4>
-                <p className="text-amber-700 text-sm">
-                  This is a preview of your trainer website. It will expire in {timeRemaining} hours.
+                <p className="text-sm text-gray-500">
+                  24-hour preview expires on{" "}
+                  {trainer.expiresAt ? new Date(trainer.expiresAt).toLocaleDateString() : "soon"}
                 </p>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
