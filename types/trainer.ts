@@ -84,7 +84,7 @@ export interface TrainerDocument extends TrainerFormData {
   paymentIntentId?: string
 
   // NEW: Editable content
-  content?: EditableTrainerContent
+  content?: TrainerContent
 
   // NEW: Customization settings
   customization?: TrainerCustomization
@@ -131,11 +131,8 @@ export interface TrainerActivationResponse {
 // NEW: Trainer Profile interface
 export interface TrainerProfile {
   id: string
-  name: string
   email: string
-  phone?: string
   location: string
-  specialization: string
   experience: string
   bio: string
   certifications: string[]
@@ -147,7 +144,7 @@ export interface TrainerProfile {
   content?: TrainerContent
 }
 
-// NEW: Trainer Content interface
+// UPDATED: Trainer Content interface with nested personal info
 export interface TrainerContent {
   hero: {
     title: string
@@ -157,13 +154,15 @@ export interface TrainerContent {
   about: {
     title: string
     content: string
+    specialty: string // MOVED HERE from root level
   }
   services: Service[]
   contact: {
     title: string
     description: string
+    fullName: string // MOVED HERE from root level
     email: string
-    phone: string
+    phone: string // MOVED HERE from root level
     location: string
   }
   seo: {
@@ -187,14 +186,12 @@ export interface Service {
 // NEW: Temp Trainer Data interface
 export interface TempTrainerData {
   tempId: string
-  name: string
   email: string
-  phone?: string
   location: string
-  specialization: string
   experience: string
   bio: string
   certifications: string[]
   createdAt: string
   expiresAt: string
+  content?: TrainerContent
 }

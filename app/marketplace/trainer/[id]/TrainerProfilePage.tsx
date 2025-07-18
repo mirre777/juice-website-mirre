@@ -48,12 +48,16 @@ interface TrainerContent {
   about: {
     title: string
     content: string
+    specialty: string // NOW UNDER ABOUT
   }
   services: Service[]
   contact: {
     title: string
     description: string
-    phone: string
+    fullName: string // NOW UNDER CONTACT
+    email: string
+    phone: string // NOW UNDER CONTACT
+    location: string
   }
   seo: {
     title: string
@@ -63,15 +67,11 @@ interface TrainerContent {
 
 interface TrainerData {
   id: string
-  fullName: string
   email: string
-  phone?: string
   location: string
-  specialty: string
   experience: string
   bio: string
   certifications?: string
-  services: string[]
   status: string
   isActive: boolean
   isPaid: boolean
@@ -145,13 +145,14 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const generateDefaultContent = (trainer: TrainerData): TrainerContent => {
     return {
       hero: {
-        title: `Transform Your Fitness with ${trainer.fullName}`,
-        subtitle: `Professional ${trainer.specialty} trainer in ${trainer.location}`,
-        description: `Welcome! I'm ${trainer.fullName}, a certified personal trainer specializing in ${trainer.specialty}. With ${trainer.experience} of experience, I'm here to help you achieve your fitness goals through personalized training programs.`,
+        title: `Transform Your Fitness with ${trainer.content?.contact?.fullName || "You"}`,
+        subtitle: `Professional ${trainer.content?.about?.specialty || "Personal"} trainer in ${trainer.location}`,
+        description: `Welcome! I'm ${trainer.content?.contact?.fullName || "your trainer"}, a certified personal trainer specializing in ${trainer.content?.about?.specialty || "fitness"}. With ${trainer.experience} of experience, I'm here to help you achieve your fitness goals through personalized training programs.`,
       },
       about: {
         title: "About Me",
-        content: `I'm ${trainer.fullName}, a passionate fitness professional with ${trainer.experience} of experience in ${trainer.specialty}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+        content: `I'm ${trainer.content?.contact?.fullName || "a trainer"}, a passionate fitness professional with ${trainer.experience} of experience in ${trainer.content?.about?.specialty || "fitness"}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+        specialty: trainer.content?.about?.specialty || "Personal Training",
       },
       services: [
         {
@@ -175,11 +176,14 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         title: "Let's Start Your Fitness Journey",
         description:
           "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-        phone: trainer.phone || "",
+        fullName: trainer.content?.contact?.fullName || "Trainer",
+        email: trainer.email,
+        phone: trainer.content?.contact?.phone || "",
+        location: trainer.location,
       },
       seo: {
-        title: `${trainer.fullName} - Personal Trainer in ${trainer.location}`,
-        description: `Professional ${trainer.specialty} training with ${trainer.fullName}. Transform your fitness with personalized programs in ${trainer.location}.`,
+        title: `${trainer.content?.contact?.fullName || "Personal Trainer"} - Personal Trainer in ${trainer.location}`,
+        description: `Professional ${trainer.content?.about?.specialty || "Personal"} training. Transform your fitness with personalized programs in ${trainer.location}.`,
       },
     }
   }
@@ -466,11 +470,11 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <MapPin className="h-4 w-4 mr-1" />
-                {trainer.location}
+                {displayContent.contact.location}
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <Dumbbell className="h-4 w-4 mr-1" />
-                {trainer.specialty}
+                {displayContent.about.specialty}
               </Badge>
             </div>
             <Button size="lg" variant="secondary" className="text-blue-600">
@@ -500,15 +504,34 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardHeader>
               <CardContent>
                 {isEditing ? (
-                  <Textarea
-                    value={displayContent.about.content}
-                    onChange={(e) => updateContent("about.content", e.target.value)}
-                    placeholder="Tell your story..."
-                    rows={8}
-                    className="w-full"
-                  />
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Specialty</Label>
+                      <Input
+                        value={displayContent.about.specialty}
+                        onChange={(e) => updateContent("about.specialty", e.target.value)}
+                        placeholder="Your specialty"
+                      />
+                    </div>
+                    <div>
+                      <Label>About Content</Label>
+                      <Textarea
+                        value={displayContent.about.content}
+                        onChange={(e) => updateContent("about.content", e.target.value)}
+                        placeholder="Tell your story..."
+                        rows={8}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{displayContent.about.content}</p>
+                  <>
+                    <p className="text-gray-600 leading-relaxed whitespace-pre-line">{displayContent.about.content}</p>
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Specialty</h4>
+                      <p className="text-gray-600">{displayContent.about.specialty}</p>
+                    </div>
+                  </>
                 )}
                 {trainer.certifications && (
                   <div className="mt-4">
@@ -642,8 +665,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                       </div>
                     </div>
                     <p className="text-gray-600 italic">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
+                      "Working with {displayContent.contact.fullName} has completely transformed my fitness journey.
+                      Their expertise in {displayContent.about.specialty.toLowerCase()} is unmatched!"
                     </p>
                     <p className="text-sm text-gray-500 mt-2">- Sarah M.</p>
                   </div>
@@ -684,20 +707,30 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardHeader>
               <CardContent className="space-y-4">
                 {isEditing && (
-                  <div>
-                    <Label className="text-sm">Description</Label>
-                    <Textarea
-                      value={displayContent.contact.description}
-                      onChange={(e) => updateContent("contact.description", e.target.value)}
-                      placeholder="Contact description"
-                      rows={3}
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <Label className="text-sm">Full Name</Label>
+                      <Input
+                        value={displayContent.contact.fullName}
+                        onChange={(e) => updateContent("contact.fullName", e.target.value)}
+                        placeholder="Your full name"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Description</Label>
+                      <Textarea
+                        value={displayContent.contact.description}
+                        onChange={(e) => updateContent("contact.description", e.target.value)}
+                        placeholder="Contact description"
+                        rows={3}
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{trainer.email}</span>
+                  <span className="text-sm">{displayContent.contact.email}</span>
                 </div>
 
                 <div className="flex items-center">
@@ -710,13 +743,13 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                       className="text-sm"
                     />
                   ) : (
-                    <span className="text-sm">{displayContent.contact.phone || trainer.phone}</span>
+                    <span className="text-sm">{displayContent.contact.phone}</span>
                   )}
                 </div>
 
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{trainer.location}</span>
+                  <span className="text-sm">{displayContent.contact.location}</span>
                 </div>
 
                 <Separator />
@@ -736,11 +769,11 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Specialty</span>
-                  <span className="font-semibold">{trainer.specialty}</span>
+                  <span className="font-semibold">{displayContent.about.specialty}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{trainer.location}</span>
+                  <span className="font-semibold">{displayContent.contact.location}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>

@@ -28,11 +28,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
       const mockTrainerData = {
         id: "POj2MRZ5ZRbq3CW1U0zJ",
-        fullName: "Mirre Snelting",
         email: "mirresnelting+3@gmail.com",
-        phone: "+436602101427",
         location: "Vienna",
-        specialty: "Sports Performance",
         experience: "5-10 years",
         certifications: "",
         isActive: true,
@@ -48,6 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             title: "About Mirre Snelting",
             content:
               "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
+            specialty: "Sports Performance", // NOW UNDER ABOUT
           },
           services: [
             {
@@ -79,8 +77,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             title: "Let's Start Your Fitness Journey",
             description:
               "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+            fullName: "Mirre Snelting", // NOW UNDER CONTACT
             email: "mirresnelting+3@gmail.com",
-            phone: "+436602101427",
+            phone: "+436602101427", // NOW UNDER CONTACT
             location: "Vienna",
           },
           seo: {
@@ -118,24 +117,26 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
       if (doc.exists) {
         const trainerData = doc.data()
-        console.log("5. Found trainer in Firebase:", trainerData?.fullName)
+        console.log("5. Found trainer in Firebase:", trainerData?.content?.contact?.fullName)
 
         let content = trainerData?.content
 
         if (!content) {
+          // Generate default content with NEW SCHEMA
           content = {
             hero: {
-              title: `Transform Your Fitness with ${trainerData.fullName}`,
-              subtitle: `Professional ${trainerData.specialty} trainer in ${trainerData.location}`,
+              title: `Transform Your Fitness with ${trainerData.content?.contact?.fullName || "You"}`,
+              subtitle: `Professional ${trainerData.content?.about?.specialty || "Personal"} trainer in ${trainerData.location}`,
               description:
                 trainerData.bio ||
                 "Experienced personal trainer dedicated to helping clients achieve their fitness goals.",
             },
             about: {
-              title: `About ${trainerData.fullName}`,
+              title: `About ${trainerData.content?.contact?.fullName || "Me"}`,
               content:
                 trainerData.bio ||
                 "Experienced personal trainer dedicated to helping clients achieve their fitness goals.",
+              specialty: trainerData.content?.about?.specialty || "Personal Training",
             },
             services: trainerData.services?.map((service: string, index: number) => ({
               id: String(index + 1),
@@ -158,13 +159,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
               title: "Let's Start Your Fitness Journey",
               description:
                 "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+              fullName: trainerData.content?.contact?.fullName || "Trainer",
               email: trainerData.email,
-              phone: trainerData.phone || "Contact for details",
+              phone: trainerData.content?.contact?.phone || "Contact for details",
               location: trainerData.location,
             },
             seo: {
-              title: `${trainerData.fullName} - Personal Trainer in ${trainerData.location}`,
-              description: `Professional ${trainerData.specialty} training with ${trainerData.fullName}. Transform your fitness with personalized programs in ${trainerData.location}.`,
+              title: `${trainerData.content?.contact?.fullName || "Personal Trainer"} - Personal Trainer in ${trainerData.location}`,
+              description: `Professional ${trainerData.content?.about?.specialty || "Personal"} training. Transform your fitness with personalized programs in ${trainerData.location}.`,
             },
             customization: {
               lastUpdated: new Date(),

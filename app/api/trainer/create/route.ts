@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const sessionToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-    // Create structured content object
+    // Create structured content object with NEW SCHEMA
     const content = {
       hero: {
         title: `Transform Your Fitness with ${formData.fullName}`,
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       about: {
         title: `About ${formData.fullName}`,
         content: formData.bio,
+        specialty: formData.specialty, // MOVED HERE from root level
       },
       services: formData.services.map((service, index) => ({
         id: String(index + 1),
@@ -82,8 +83,9 @@ export async function POST(request: NextRequest) {
         title: "Let's Start Your Fitness Journey",
         description:
           "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        fullName: formData.fullName, // MOVED HERE from root level
         email: formData.email,
-        phone: formData.phone || "Contact for details",
+        phone: formData.phone || "", // MOVED HERE from root level
         location: formData.location,
       },
       seo: {
@@ -97,18 +99,15 @@ export async function POST(request: NextRequest) {
       },
     }
 
-    // Create temporary trainer document with new schema
+    // Create temporary trainer document with UPDATED SCHEMA
     const tempTrainerData = {
-      // Basic trainer info
-      fullName: formData.fullName,
+      // Keep only essential info at root level
       email: formData.email,
-      phone: formData.phone,
       location: formData.location,
-      specialty: formData.specialty,
       experience: formData.experience,
       certifications: formData.certifications,
 
-      // All content organized under content object
+      // All personal/contact info now under content
       content: content,
 
       // Status and metadata
@@ -122,12 +121,18 @@ export async function POST(request: NextRequest) {
       userAgent: request.headers.get("user-agent") || "unknown",
     }
 
-    logger.info("Creating trainer document with new schema", {
+    logger.info("Creating trainer document with updated schema", {
       requestId,
       email: formData.email,
       expiresAt: expiresAt.toISOString(),
       servicesCount: formData.services?.length || 0,
       hasContent: !!content,
+      contentStructure: {
+        hasHero: !!content.hero,
+        hasAbout: !!content.about,
+        hasContact: !!content.contact,
+        servicesCount: content.services.length,
+      },
     })
 
     // Use Firebase Admin SDK syntax
@@ -136,7 +141,7 @@ export async function POST(request: NextRequest) {
 
     const tempId = docRef.id
 
-    logger.info("Trainer document created successfully with new schema", {
+    logger.info("Trainer document created successfully with updated schema", {
       requestId,
       tempId,
       email: formData.email,
