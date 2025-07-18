@@ -1,129 +1,77 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { TrainerService } from "@/lib/firebase-trainer"
+import { logger } from "@/lib/logger"
 import { db } from "@/app/api/firebase-config"
-import { serverTimestamp } from "firebase-admin/firestore"
 
 export async function POST(request: NextRequest) {
-  try {
-    console.log("=== TRAINER CREATE API DEBUG ===")
+  const requestId = Math.random().toString(36).substring(2, 15)
 
+  try {
     // Check if database is initialized
     if (!db) {
-      console.error("Database not initialized")
+      logger.error("Database not initialized", { requestId })
       return NextResponse.json(
         {
           success: false,
           error: "Database configuration error",
-          details: "Firebase database not initialized",
+          requestId,
         },
         { status: 500 },
       )
     }
 
-    const body = await request.json()
-    console.log("1. Received form data:", {
-      fullName: body.fullName,
-      email: body.email,
-      location: body.location,
-      specialty: body.specialty,
+    const formData = await request.json()
+    logger.info("Received trainer creation request", {
+      requestId,
+      email: formData.email,
+      fullName: formData.fullName,
     })
 
     // Validate required fields
     const requiredFields = ["fullName", "email", "location", "specialty", "experience", "bio"]
-    const missingFields = requiredFields.filter((field) => !body[field])
+    const missingFields = requiredFields.filter((field) => !formData[field])
 
     if (missingFields.length > 0) {
+      logger.warn("Missing required fields", { requestId, missingFields })
       return NextResponse.json(
         {
           success: false,
           error: "Missing required fields",
           details: `Missing: ${missingFields.join(", ")}`,
+          requestId,
         },
         { status: 400 },
       )
     }
 
-    // Generate unique temp ID
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const sessionToken = Math.random().toString(36).substr(2, 15)
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
+    // Create temporary trainer
+    const tempId = await TrainerService.createTempTrainer(formData)
 
-    console.log("2. Generated temp ID:", tempId)
-
-    // Create trainer document with new nested structure
-    const trainerDoc = {
-      id: tempId,
+    logger.info("Successfully created temporary trainer", {
+      requestId,
       tempId,
-      status: "temp",
-      sessionToken,
-      expiresAt: expiresAt.toISOString(),
-
-      // Root level fields (for backward compatibility)
-      fullName: body.fullName,
-      email: body.email,
-      phone: body.phone || "",
-      location: body.location,
-      specialty: body.specialty,
-      experience: body.experience,
-      bio: body.bio,
-      certifications: body.certifications || "",
-      services: body.services || [],
-
-      // New nested content structure
-      content: {
-        about: {
-          title: `About ${body.fullName}`,
-          content: body.bio,
-          specialty: body.specialty,
-        },
-        contact: {
-          title: "Let's Start Your Fitness Journey",
-          description:
-            "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-          email: body.email,
-          phone: body.phone || "",
-          location: body.location,
-          fullName: body.fullName,
-        },
-        customization: {
-          isDraft: false,
-          lastUpdated: serverTimestamp(),
-          version: 1,
-        },
-      },
-
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }
-
-    console.log("3. Creating document in Firestore...")
-
-    // Save to Firestore
-    await db.collection("trainers").doc(tempId).set(trainerDoc)
-
-    console.log("4. Document created successfully")
-
-    // Generate preview URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    const previewUrl = `${baseUrl}/marketplace/trainer/temp/${tempId}?token=${sessionToken}`
-
-    console.log("5. Generated preview URL:", previewUrl)
+      email: formData.email,
+    })
 
     return NextResponse.json({
       success: true,
       tempId,
-      previewUrl,
-      expiresAt: expiresAt.toISOString(),
       message: "Trainer profile created successfully",
+      requestId,
     })
   } catch (error) {
-    console.error("Error creating trainer:", error)
+    logger.error("Error creating trainer", {
+      requestId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
 
     return NextResponse.json(
       {
         success: false,
         error: "Failed to create trainer profile. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error",
-        requestId: Math.random().toString(36).substr(2, 9),
+        requestId,
       },
       { status: 500 },
     )

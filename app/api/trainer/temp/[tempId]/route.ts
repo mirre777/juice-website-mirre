@@ -1,84 +1,76 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      }),
-    })
-  } catch (error) {
-    console.error("Firebase initialization error:", error)
-  }
-}
-
-const db = getFirestore()
+import { TrainerService } from "@/lib/firebase-trainer"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
-  const { tempId } = params
-  const { searchParams } = new URL(request.url)
-  const token = searchParams.get("token")
+  const requestId = Math.random().toString(36).substring(2, 15)
 
   try {
-    console.log("=== TEMP TRAINER API DEBUG ===")
-    console.log("1. Received tempId:", tempId)
-    console.log("2. Has token:", !!token)
+    const { tempId } = params
+    const { searchParams } = new URL(request.url)
+    const token = searchParams.get("token")
 
-    if (!tempId) {
-      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
-    }
-
-    const docRef = db.collection("trainers").doc(tempId)
-    const docSnap = await docRef.get()
-
-    if (!docSnap.exists) {
-      console.log("3. Trainer not found in Firebase:", tempId)
-      return NextResponse.json({ success: false, error: "Trainer profile not found" }, { status: 404 })
-    }
-
-    const trainerData = docSnap.data()
-
-    if (!trainerData) {
-      return NextResponse.json({ success: false, error: "Invalid trainer data" }, { status: 404 })
-    }
-
-    console.log("4. Found trainer:", {
-      name: trainerData.name,
-      status: trainerData.status,
-      hasExpiresAt: !!trainerData.expiresAt,
+    logger.info("Fetching temporary trainer", {
+      requestId,
+      tempId,
+      hasToken: !!token,
     })
 
-    if (token && trainerData.sessionToken !== token) {
-      console.log("5. Invalid token provided")
-      return NextResponse.json({ success: false, error: "Invalid access token" }, { status: 401 })
+    if (!tempId) {
+      logger.warn("Missing tempId parameter", { requestId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing trainer ID",
+          requestId,
+        },
+        { status: 400 },
+      )
     }
 
-    if (trainerData.expiresAt) {
-      const expiresAt = new Date(trainerData.expiresAt)
-      if (expiresAt < new Date()) {
-        console.log("6. Trainer expired")
-        return NextResponse.json({ success: false, error: "Trainer profile has expired" }, { status: 410 })
-      }
+    // Get temporary trainer from Firebase
+    const trainer = await TrainerService.getTempTrainer(tempId)
+
+    if (!trainer) {
+      logger.warn("Temporary trainer not found", { requestId, tempId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Trainer preview not found",
+          requestId,
+        },
+        { status: 404 },
+      )
     }
 
-    const trainer = {
-      ...trainerData,
-      id: docSnap.id,
-      createdAt: trainerData.createdAt?.toDate?.()?.toISOString() || trainerData.createdAt,
-    }
-
-    console.log("7. Returning trainer data successfully")
+    logger.info("Successfully retrieved temporary trainer", {
+      requestId,
+      tempId,
+      status: trainer.status,
+      email: trainer.email,
+    })
 
     return NextResponse.json({
       success: true,
       trainer,
+      requestId,
     })
   } catch (error) {
-    console.error("Error fetching temp trainer:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch trainer profile" }, { status: 500 })
+    logger.error("Error fetching temporary trainer", {
+      requestId,
+      tempId: params.tempId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to load trainer preview",
+        details: error instanceof Error ? error.message : "Unknown error",
+        requestId,
+      },
+      { status: 500 },
+    )
   }
 }

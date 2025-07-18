@@ -4,39 +4,36 @@ import { getFirestore } from "firebase-admin/firestore"
 // Initialize Firebase Admin SDK
 if (!getApps().length) {
   try {
-    const requiredEnvVars = {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY,
-    }
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
 
-    // Check if all required environment variables are present
-    const missingVars = Object.entries(requiredEnvVars)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-
-    if (missingVars.length > 0) {
-      console.error("Missing Firebase environment variables:", missingVars)
-      throw new Error(`Missing Firebase environment variables: ${missingVars.join(", ")}`)
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
+      throw new Error("Missing Firebase configuration environment variables")
     }
 
     initializeApp({
       credential: cert({
-        projectId: requiredEnvVars.projectId,
-        clientEmail: requiredEnvVars.clientEmail,
-        privateKey: requiredEnvVars.privateKey?.replace(/\\n/g, "\n"),
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: privateKey,
       }),
     })
 
     console.log("Firebase Admin SDK initialized successfully")
   } catch (error) {
-    console.error("Firebase initialization error:", error)
+    console.error("Failed to initialize Firebase Admin SDK:", error)
     throw error
   }
 }
 
-// Export the Firestore database instance
 export const db = getFirestore()
 
-// Export Firebase app for other uses
-export const app = getApps()[0]
+// Client-side Firebase config for frontend
+export const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+}

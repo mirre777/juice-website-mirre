@@ -13,39 +13,9 @@ interface TempTrainerPageProps {
   token?: string
 }
 
-interface TempTrainerData {
-  id: string
-  fullName: string
-  email: string
-  phone?: string
-  location: string
-  specialty: string
-  experience: string
-  bio: string
-  certifications?: string
-  services: string[]
-  status: string
-  createdAt: string
-  content?: {
-    about?: {
-      title?: string
-      content?: string
-      specialty?: string
-    }
-    contact?: {
-      title?: string
-      description?: string
-      email?: string
-      phone?: string
-      location?: string
-      fullName?: string
-    }
-  }
-}
-
 export default function TempTrainerPage({ trainer: initialTrainer, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [trainer, setTrainer] = useState(initialTrainer)
+  const [loading, setLoading] = useState(!initialTrainer)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
@@ -55,49 +25,57 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
-
+    // If we already have trainer data from props, use it
     if (initialTrainer) {
-      console.log("=== PROCESSING INITIAL TRAINER DATA ===")
-      console.log("Raw trainer data:", initialTrainer)
-
-      // Process trainer data to handle both old and new structures
-      const processedTrainer: TempTrainerData = {
-        id: initialTrainer.id,
-        fullName: initialTrainer.content?.contact?.fullName || initialTrainer.fullName || "Unknown Trainer",
-        email: initialTrainer.content?.contact?.email || initialTrainer.email || "",
-        phone: initialTrainer.content?.contact?.phone || initialTrainer.phone || "",
-        location: initialTrainer.content?.contact?.location || initialTrainer.location || "",
-        specialty: initialTrainer.content?.about?.specialty || initialTrainer.specialty || "",
-        experience: initialTrainer.experience || "",
-        bio: initialTrainer.content?.about?.content || initialTrainer.bio || "",
-        certifications: initialTrainer.certifications || "",
-        services: initialTrainer.services || [],
-        status: initialTrainer.status || "temp",
-        createdAt: initialTrainer.createdAt || "",
-        content: initialTrainer.content,
-      }
-
-      console.log("Processed trainer data:", processedTrainer)
-      setTrainer(processedTrainer)
+      setTrainer(initialTrainer)
       setLoading(false)
-    } else {
-      setError("No trainer data provided")
-      setLoading(false)
+      return
     }
-  }, [initialTrainer, mounted])
+
+    // Only fetch if we don't have initial data
+    if (!mounted || !trainer?.id) return
+
+    const fetchTempTrainer = async () => {
+      try {
+        console.log("=== FETCHING TEMP TRAINER ===")
+        console.log("Trainer ID:", trainer.id)
+
+        const response = await fetch(`/api/trainer/temp/${trainer.id}${token ? `?token=${token}` : ""}`)
+        const data = await response.json()
+
+        console.log("API Response:", data)
+
+        if (!response.ok) {
+          setError(data.error || "Failed to load trainer preview")
+          setLoading(false)
+          return
+        }
+
+        if (data.success && data.trainer) {
+          console.log("Setting temp trainer data:", data.trainer)
+          setTrainer(data.trainer)
+        } else {
+          setError(data.error || "Failed to load trainer data")
+        }
+
+        setLoading(false)
+      } catch (err) {
+        console.error("Error fetching temp trainer:", err)
+        setError("Failed to load trainer preview")
+        setLoading(false)
+      }
+    }
+
+    fetchTempTrainer()
+  }, [trainer?.id, token, mounted, initialTrainer])
 
   const handleActivateWebsite = () => {
-    if (!trainer) return
-
     console.log("=== ACTIVATE WEBSITE CLICKED ===")
     console.log("Trainer ID:", trainer.id)
-    console.log("Token:", token)
+    console.log("Trainer:", trainer)
 
     // Navigate to payment page with temp trainer data
-    const paymentUrl = `/payment?tempId=${trainer.id}${token ? `&token=${token}` : ""}`
-    console.log("Navigating to:", paymentUrl)
-    router.push(paymentUrl)
+    router.push(`/payment?tempId=${trainer.id}`)
   }
 
   if (!mounted) {
@@ -155,6 +133,17 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
     )
   }
 
+  // Extract data from nested content structure or fallback to root level
+  const fullName = trainer.content?.contact?.fullName || trainer.fullName || "Unknown Trainer"
+  const email = trainer.content?.contact?.email || trainer.email || ""
+  const phone = trainer.content?.contact?.phone || trainer.phone || ""
+  const location = trainer.content?.contact?.location || trainer.location || ""
+  const specialty = trainer.content?.about?.specialty || trainer.specialty || ""
+  const experience = trainer.experience || ""
+  const bio = trainer.bio || trainer.content?.about?.content || ""
+  const certifications = trainer.certifications || ""
+  const services = trainer.services || []
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Preview Status */}
@@ -184,22 +173,22 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Fitness with {trainer.fullName}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Fitness with {fullName}</h1>
             <p className="text-xl mb-6 opacity-90">
-              Professional {trainer.specialty} trainer in {trainer.location}
+              Professional {specialty} trainer in {location}
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <Badge variant="secondary" className="text-blue-600">
                 <Award className="h-4 w-4 mr-1" />
-                {trainer.experience} Experience
+                {experience} Experience
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <MapPin className="h-4 w-4 mr-1" />
-                {trainer.location}
+                {location}
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <Dumbbell className="h-4 w-4 mr-1" />
-                {trainer.specialty}
+                {specialty}
               </Badge>
             </div>
             <Button size="lg" variant="secondary" className="text-blue-600">
@@ -216,15 +205,15 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2" />
-                  About {trainer.fullName}
+                  About {fullName}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">{trainer.bio}</p>
-                {trainer.certifications && (
+                <p className="text-gray-600 leading-relaxed">{bio}</p>
+                {certifications && (
                   <div className="mt-4">
                     <h4 className="font-semibold mb-2">Certifications</h4>
-                    <p className="text-gray-600">{trainer.certifications}</p>
+                    <p className="text-gray-600">{certifications}</p>
                   </div>
                 )}
               </CardContent>
@@ -240,7 +229,7 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
               </CardHeader>
               <CardContent>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {trainer.services.map((service, index) => (
+                  {services.map((service: string, index: number) => (
                     <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
                       <div className="h-2 w-2 bg-blue-600 rounded-full mr-3"></div>
                       <span>{service}</span>
@@ -269,8 +258,8 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
                       </div>
                     </div>
                     <p className="text-gray-600 italic">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
+                      "Working with {fullName} has completely transformed my fitness journey. Their expertise in{" "}
+                      {specialty.toLowerCase()} is unmatched!"
                     </p>
                     <p className="text-sm text-gray-500 mt-2">- Sarah M.</p>
                   </div>
@@ -302,17 +291,17 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
               <CardContent className="space-y-4">
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{trainer.email}</span>
+                  <span className="text-sm">{email}</span>
                 </div>
-                {trainer.phone && (
+                {phone && (
                   <div className="flex items-center">
                     <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                    <span className="text-sm">{trainer.phone}</span>
+                    <span className="text-sm">{phone}</span>
                   </div>
                 )}
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{trainer.location}</span>
+                  <span className="text-sm">{location}</span>
                 </div>
                 <Separator />
                 <Button className="w-full">Schedule Consultation</Button>
@@ -327,19 +316,19 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Experience</span>
-                  <span className="font-semibold">{trainer.experience}</span>
+                  <span className="font-semibold">{experience}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Specialty</span>
-                  <span className="font-semibold">{trainer.specialty}</span>
+                  <span className="font-semibold">{specialty}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{trainer.location}</span>
+                  <span className="font-semibold">{location}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{trainer.services.length}</span>
+                  <span className="font-semibold">{services.length}</span>
                 </div>
               </CardContent>
             </Card>
