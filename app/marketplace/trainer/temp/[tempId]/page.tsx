@@ -6,25 +6,54 @@ interface PageProps {
   searchParams: { token?: string }
 }
 
-async function getTrainerData(tempId: string, token?: string) {
+async function fetchTempTrainer(tempId: string, token?: string) {
+  console.log("fetchTempTrainer called with:", { tempId, hasToken: !!token })
+
   try {
-    const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/trainer/temp/${tempId}`)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const url = new URL(`/api/trainer/temp/${tempId}`, baseUrl)
+
     if (token) {
       url.searchParams.set("token", token)
     }
 
+    console.log("Fetching from URL:", url.toString())
+
     const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
       cache: "no-store",
     })
 
+    console.log("Response status:", response.status)
+
     if (!response.ok) {
-      return null
+      const errorText = await response.text()
+      console.error("API response error:", { status: response.status, error: errorText })
+
+      if (response.status === 404) {
+        return null
+      }
+      throw new Error(`HTTP ${response.status}: ${errorText}`)
     }
 
     const data = await response.json()
-    return data.success ? data.trainer : null
+    console.log("API response data:", { success: data.success, hasTrainer: !!data.trainer })
+
+    if (!data.success || !data.trainer) {
+      console.error("Invalid API response:", data)
+      return null
+    }
+
+    return data.trainer
   } catch (error) {
-    console.error("Error fetching trainer data:", error)
+    console.error("Error in fetchTempTrainer:", {
+      tempId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return null
   }
 }
@@ -33,11 +62,21 @@ export default async function TempTrainerPageWrapper({ params, searchParams }: P
   const { tempId } = params
   const { token } = searchParams
 
-  const trainer = await getTrainerData(tempId, token)
+  console.log("TempTrainerPageWrapper called with:", { tempId, token })
 
-  if (!trainer) {
+  try {
+    const trainer = await fetchTempTrainer(tempId, token)
+
+    if (!trainer) {
+      console.error("Trainer not found, calling notFound()")
+      notFound()
+    }
+
+    console.log("Rendering TempTrainerPage with trainer:", { id: trainer.id, name: trainer.name })
+
+    return <TempTrainerPage trainer={trainer} token={token} />
+  } catch (error) {
+    console.error("Error in TempTrainerPageWrapper:", error)
     notFound()
   }
-
-  return <TempTrainerPage trainer={trainer} />
 }

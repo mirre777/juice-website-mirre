@@ -1,16 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/app/api/firebase-config"
-import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   const { tempId } = params
   const { searchParams } = new URL(request.url)
   const token = searchParams.get("token")
 
-  try {
-    logger.info("Fetching temp trainer", { tempId, hasToken: !!token })
+  console.log("GET /api/trainer/temp/[tempId] - Fetching temp trainer:", { tempId, hasToken: !!token })
 
+  try {
     if (!tempId) {
+      console.error("Missing trainer ID")
       return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
     }
 
@@ -19,27 +19,38 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     const docSnap = await docRef.get()
 
     if (!docSnap.exists) {
-      logger.warn("Temp trainer not found", { tempId })
+      console.error("Temp trainer not found:", tempId)
       return NextResponse.json({ success: false, error: "Trainer profile not found" }, { status: 404 })
     }
 
     const trainerData = docSnap.data()
 
     if (!trainerData) {
+      console.error("Invalid trainer data for:", tempId)
       return NextResponse.json({ success: false, error: "Invalid trainer data" }, { status: 404 })
     }
 
+    console.log("Trainer data found:", {
+      tempId,
+      name: trainerData.name,
+      status: trainerData.status,
+      hasExpiresAt: !!trainerData.expiresAt,
+      hasSessionToken: !!trainerData.sessionToken,
+    })
+
     // Check if token is required and valid
     if (token && trainerData.sessionToken !== token) {
-      logger.warn("Invalid token", { tempId, providedToken: token?.substring(0, 8) })
+      console.error("Invalid token provided:", { tempId, providedToken: token?.substring(0, 8) })
       return NextResponse.json({ success: false, error: "Invalid access token" }, { status: 401 })
     }
 
     // Check if expired
-    const expiresAt = new Date(trainerData.expiresAt)
-    if (expiresAt < new Date()) {
-      logger.warn("Temp trainer expired", { tempId, expiresAt })
-      return NextResponse.json({ success: false, error: "Trainer profile has expired" }, { status: 410 })
+    if (trainerData.expiresAt) {
+      const expiresAt = new Date(trainerData.expiresAt)
+      if (expiresAt < new Date()) {
+        console.error("Temp trainer expired:", { tempId, expiresAt })
+        return NextResponse.json({ success: false, error: "Trainer profile has expired" }, { status: 410 })
+      }
     }
 
     // Convert Firestore timestamp to regular date if needed
@@ -49,7 +60,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       createdAt: trainerData.createdAt?.toDate?.()?.toISOString() || trainerData.createdAt,
     }
 
-    logger.info("Temp trainer fetched successfully", {
+    console.log("Temp trainer fetched successfully:", {
       tempId,
       status: trainer.status,
       email: trainer.email,
@@ -60,9 +71,10 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       trainer,
     })
   } catch (error) {
-    logger.error("Error fetching temp trainer", {
+    console.error("Error fetching temp trainer:", {
       tempId,
       error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     })
 
     return NextResponse.json({ success: false, error: "Failed to fetch trainer profile" }, { status: 500 })

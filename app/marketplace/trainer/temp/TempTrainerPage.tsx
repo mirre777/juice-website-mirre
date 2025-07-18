@@ -110,23 +110,38 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
   const { timeLeft, isExpired } = useCountdown(trainer.expiresAt)
 
   const handleActivate = () => {
-    if (trainer?.id && token) {
-      window.location.href = `/payment?tempId=${trainer.id}&token=${encodeURIComponent(token)}`
+    console.log("Activate button clicked:", { trainerId: trainer?.id, hasToken: !!token })
+
+    if (!trainer?.id) {
+      console.error("No trainer ID available")
+      alert("Error: No trainer ID available")
+      return
     }
+
+    if (!token) {
+      console.error("No token available")
+      alert("Error: No access token available")
+      return
+    }
+
+    const paymentUrl = `/payment?tempId=${trainer.id}&token=${encodeURIComponent(token)}`
+    console.log("Redirecting to payment URL:", paymentUrl)
+
+    window.location.href = paymentUrl
   }
 
   const handleBookConsultation = () => {
-    // Simulate booking action
+    console.log("Book consultation clicked - showing preview alert")
     alert("This is a preview. Activate your website to enable booking functionality!")
   }
 
   const handleContactNow = () => {
-    // Simulate contact action
+    console.log("Contact now clicked - showing preview alert")
     alert("This is a preview. Activate your website to enable contact functionality!")
   }
 
   const handleGetStarted = () => {
-    // Simulate get started action
+    console.log("Get started clicked - showing preview alert")
     alert("This is a preview. Activate your website to enable this functionality!")
   }
 
@@ -182,6 +197,14 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
       description: `Professional ${trainer.specialization} training with ${trainer.name}. Transform your fitness with personalized programs in ${trainer.location}.`,
     },
   }
+
+  console.log("TempTrainerPage rendering:", {
+    trainerId: trainer.id,
+    trainerName: trainer.name,
+    hasToken: !!token,
+    timeLeft,
+    isExpired,
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
