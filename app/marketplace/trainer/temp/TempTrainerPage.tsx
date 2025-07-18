@@ -1,86 +1,67 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { MapPin, Star, Users, Dumbbell, Award, Phone, Mail, CreditCard, CheckCircle } from "lucide-react"
+import { MapPin, Mail, Phone, Clock, Star, CheckCircle } from "lucide-react"
+import Link from "next/link"
 
-interface TempTrainerPageProps {
-  trainer: any
-  token?: string
+interface TrainerData {
+  id: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications?: string
+  services?: string[]
+  status: string
+  createdAt: string
+  expiresAt?: string
 }
 
-export default function TempTrainerPage({ trainer: initialTrainer, token }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState(initialTrainer)
-  const [loading, setLoading] = useState(!initialTrainer)
+interface TempTrainerPageProps {
+  tempId: string
+}
+
+export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    // If we already have trainer data from props, use it
-    if (initialTrainer) {
-      setTrainer(initialTrainer)
-      setLoading(false)
-      return
-    }
-
-    // Only fetch if we don't have initial data
-    if (!mounted || !trainer?.id) return
-
-    const fetchTempTrainer = async () => {
+    async function fetchTrainer() {
       try {
-        console.log("=== FETCHING TEMP TRAINER ===")
-        console.log("Trainer ID:", trainer.id)
+        setLoading(true)
+        setError(null)
 
-        const response = await fetch(`/api/trainer/temp/${trainer.id}${token ? `?token=${token}` : ""}`)
+        const response = await fetch(`/api/trainer/temp/${tempId}`)
         const data = await response.json()
 
-        console.log("API Response:", data)
-
         if (!response.ok) {
-          setError(data.error || "Failed to load trainer preview")
-          setLoading(false)
-          return
+          throw new Error(data.error || "Failed to load trainer")
         }
 
         if (data.success && data.trainer) {
-          console.log("Setting temp trainer data:", data.trainer)
           setTrainer(data.trainer)
         } else {
-          setError(data.error || "Failed to load trainer data")
+          throw new Error("Trainer not found")
         }
-
-        setLoading(false)
       } catch (err) {
-        console.error("Error fetching temp trainer:", err)
-        setError("Failed to load trainer preview")
+        console.error("Error fetching trainer:", err)
+        setError(err instanceof Error ? err.message : "Failed to load trainer")
+      } finally {
         setLoading(false)
       }
     }
 
-    fetchTempTrainer()
-  }, [trainer?.id, token, mounted, initialTrainer])
-
-  const handleActivateWebsite = () => {
-    console.log("=== ACTIVATE WEBSITE CLICKED ===")
-    console.log("Trainer ID:", trainer.id)
-    console.log("Trainer:", trainer)
-
-    // Navigate to payment page with temp trainer data
-    router.push(`/payment?tempId=${trainer.id}`)
-  }
-
-  if (!mounted) {
-    return null
-  }
+    if (tempId) {
+      fetchTrainer()
+    }
+  }, [tempId])
 
   if (loading) {
     return (
@@ -93,263 +74,190 @@ export default function TempTrainerPage({ trainer: initialTrainer, token }: Temp
     )
   }
 
-  if (error) {
+  if (error || !trainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-red-500 text-5xl mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <div className="space-y-2">
-                <Button onClick={() => window.location.reload()} className="w-full">
-                  Try Again
-                </Button>
-                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
+          <CardContent className="pt-6 text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-red-600 text-xl">⚠️</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error</h3>
+            <p className="text-gray-600 mb-4">{error || "Failed to load trainer preview"}</p>
+            <div className="space-y-2">
+              <Button onClick={() => window.location.reload()} className="w-full">
+                Try Again
+              </Button>
+              <Link href="/marketplace" className="block">
+                <Button variant="outline" className="w-full bg-transparent">
                   Back to Marketplace
                 </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const timeRemaining = trainer.expiresAt
+    ? Math.max(0, Math.floor((new Date(trainer.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)))
+    : 0
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/marketplace" className="text-blue-600 hover:text-blue-700">
+              ← Back to Marketplace
+            </Link>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Preview expires in {timeRemaining}h
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Success Banner */}
+        <Card className="mb-8 border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-green-900">Website Preview Created!</h3>
+                <p className="text-green-700">
+                  Your trainer website preview is ready. Complete payment to activate it.
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-    )
-  }
 
-  if (!trainer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Not Found</h2>
-              <p className="text-gray-600 mb-4">The trainer preview could not be loaded.</p>
-              <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+        {/* Trainer Profile */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Profile */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Hero Section */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center mb-6">
+                  <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl font-bold text-blue-600">
+                      {trainer.fullName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{trainer.fullName}</h1>
+                  <p className="text-xl text-blue-600 mb-2">{trainer.specialty} Specialist</p>
+                  <div className="flex items-center justify-center gap-4 text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {trainer.location}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4" />
+                      {trainer.experience} experience
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-  // Extract data from nested content structure or fallback to root level
-  const fullName = trainer.content?.contact?.fullName || trainer.fullName || "Unknown Trainer"
-  const email = trainer.content?.contact?.email || trainer.email || ""
-  const phone = trainer.content?.contact?.phone || trainer.phone || ""
-  const location = trainer.content?.contact?.location || trainer.location || ""
-  const specialty = trainer.content?.about?.specialty || trainer.specialty || ""
-  const experience = trainer.experience || ""
-  const bio = trainer.bio || trainer.content?.about?.content || ""
-  const certifications = trainer.certifications || ""
-  const services = trainer.services || []
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with Preview Status */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="border-orange-500 text-orange-600">
-                Preview Mode
-              </Badge>
-              <Badge variant="secondary">Pending Activation</Badge>
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                onClick={handleActivateWebsite}
-                className="flex items-center space-x-2 bg-[#D2FF28] text-black hover:bg-[#c5f01f]"
-              >
-                <CreditCard className="h-4 w-4" />
-                <span>Activate Website - €70 ONE-TIME</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Fitness with {fullName}</h1>
-            <p className="text-xl mb-6 opacity-90">
-              Professional {specialty} trainer in {location}
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              <Badge variant="secondary" className="text-blue-600">
-                <Award className="h-4 w-4 mr-1" />
-                {experience} Experience
-              </Badge>
-              <Badge variant="secondary" className="text-blue-600">
-                <MapPin className="h-4 w-4 mr-1" />
-                {location}
-              </Badge>
-              <Badge variant="secondary" className="text-blue-600">
-                <Dumbbell className="h-4 w-4 mr-1" />
-                {specialty}
-              </Badge>
-            </div>
-            <Button size="lg" variant="secondary" className="text-blue-600">
-              Book Free Consultation
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="md:col-span-2 space-y-8">
             {/* About Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  About {fullName}
-                </CardTitle>
+                <CardTitle>About Me</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">{bio}</p>
-                {certifications && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold mb-2">Certifications</h4>
-                    <p className="text-gray-600">{certifications}</p>
-                  </div>
-                )}
+                <p className="text-gray-700 leading-relaxed">{trainer.bio}</p>
               </CardContent>
             </Card>
 
-            {/* Services Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Dumbbell className="h-5 w-5 mr-2" />
-                  Services Offered
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {services.map((service: string, index: number) => (
-                    <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="h-2 w-2 bg-blue-600 rounded-full mr-3"></div>
-                      <span>{service}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Services */}
+            {trainer.services && trainer.services.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Services Offered</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-3">
+                    {trainer.services.map((service, index) => (
+                      <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-gray-700">{service}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Testimonials Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Star className="h-5 w-5 mr-2" />
-                  Client Testimonials
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 italic">
-                      "Working with {fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {specialty.toLowerCase()} is unmatched!"
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">- Sarah M.</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 italic">
-                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">- Mike R.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Certifications */}
+            {trainer.certifications && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Certifications & Qualifications</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700">{trainer.certifications}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
+            {/* Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Get In Touch</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center">
-                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{email}</span>
-                </div>
-                {phone && (
-                  <div className="flex items-center">
-                    <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                    <span className="text-sm">{phone}</span>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{location}</span>
-                </div>
-                <Separator />
-                <Button className="w-full">Schedule Consultation</Button>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Stats</CardTitle>
+                <CardTitle>Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Experience</span>
-                  <span className="font-semibold">{experience}</span>
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{trainer.email}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Specialty</span>
-                  <span className="font-semibold">{specialty}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{location}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{services.length}</span>
+                {trainer.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-700">{trainer.phone}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{trainer.location}</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Activation CTA */}
-            <Card className="bg-[#D2FF28] border-[#c5f01f]">
+            <Card className="border-blue-200 bg-blue-50">
               <CardContent className="pt-6">
-                <div className="text-center">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Ready to Go Live?</h3>
-                  <p className="text-sm text-gray-700 mb-4">
-                    Your website preview looks great! Activate it now to start attracting clients.
-                  </p>
-                  <div className="space-y-2">
-                    <Button onClick={handleActivateWebsite} className="w-full bg-black text-white hover:bg-gray-800">
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Activate for €70 ONE-TIME
-                    </Button>
-                    <p className="text-xs text-gray-600">One-time payment • No monthly fees • Full ownership</p>
-                  </div>
-                </div>
+                <h3 className="font-semibold text-blue-900 mb-2">Activate Your Website</h3>
+                <p className="text-blue-700 text-sm mb-4">
+                  Complete payment to make your website live and start accepting clients.
+                </p>
+                <Button className="w-full" size="lg">
+                  Activate for €70
+                </Button>
+                <p className="text-xs text-blue-600 mt-2 text-center">One-time payment • No monthly fees</p>
+              </CardContent>
+            </Card>
+
+            {/* Preview Notice */}
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-6">
+                <h4 className="font-medium text-amber-900 mb-2">Preview Mode</h4>
+                <p className="text-amber-700 text-sm">
+                  This is a preview of your trainer website. It will expire in {timeRemaining} hours.
+                </p>
               </CardContent>
             </Card>
           </div>

@@ -1,8 +1,6 @@
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
-import { logger } from "@/lib/logger"
+import { getAdminDb, hasFirebaseConfig } from "@/app/api/firebase-config"
 
-export interface TrainerData {
-  id?: string
+export interface TrainerFormData {
   fullName: string
   email: string
   phone?: string
@@ -12,165 +10,158 @@ export interface TrainerData {
   bio: string
   certifications?: string
   services?: string[]
-  hourlyRate?: number
-  availability?: string[]
-  profileImage?: string
-  status?: "pending" | "active" | "inactive"
-  createdAt?: any
-  updatedAt?: any
-  expiresAt?: any
+}
+
+export interface TrainerDocument extends TrainerFormData {
+  id: string
+  status: "temp" | "active" | "inactive"
+  createdAt: Date | string
+  updatedAt: Date | string
+  activatedAt?: Date | string
+  expiresAt?: Date | string
   sessionToken?: string
+  paymentIntentId?: string
 }
 
 export class TrainerService {
-  static async createTempTrainer(data: TrainerData): Promise<string> {
+  static async createTempTrainer(formData: TrainerFormData): Promise<string> {
     try {
-      // Check Firebase configuration
-      if (!hasRealFirebaseConfig()) {
-        throw new Error("Firebase configuration is incomplete")
+      if (!hasFirebaseConfig()) {
+        throw new Error("Firebase configuration missing")
       }
 
+      const db = await getAdminDb()
       if (!db) {
-        throw new Error("Database not initialized")
+        throw new Error("Database not available")
       }
 
-      // Generate session token for secure access
-      const sessionToken = Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
+      // Generate unique temp ID and session token
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const sessionToken = Math.random().toString(36).substr(2, 15)
 
-      // Set expiration to 24 hours from now
+      // Set expiration to 24 hours
       const expiresAt = new Date()
       expiresAt.setHours(expiresAt.getHours() + 24)
 
-      // Prepare trainer data
       const trainerData = {
-        ...data,
-        status: "pending" as const,
+        ...formData,
+        id: tempId,
+        status: "temp" as const,
         sessionToken,
         expiresAt: expiresAt.toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
 
-      logger.info("Creating temp trainer with data", {
-        email: data.email,
-        fullName: data.fullName,
-      })
+      await db.collection("trainers").doc(tempId).set(trainerData)
 
-      // Create document in trainers collection with temp status
-      const docRef = await db.collection("trainers").add(trainerData)
-
-      logger.info("Successfully created temp trainer", {
-        tempId: docRef.id,
-        email: data.email,
-        expiresAt: expiresAt.toISOString(),
-      })
-
-      return docRef.id
+      console.log("Created temp trainer:", tempId)
+      return tempId
     } catch (error) {
-      logger.error("Error in createTempTrainer", {
-        error: error instanceof Error ? error.message : "Unknown error",
-        stack: error instanceof Error ? error.stack : undefined,
-      })
-      throw error
+      console.error("Error creating temp trainer:", error)
+      throw new Error("Failed to create trainer profile")
     }
   }
 
-  static async getTempTrainer(tempId: string): Promise<TrainerData | null> {
+  static async getTempTrainer(tempId: string): Promise<TrainerDocument | null> {
     try {
-      if (!hasRealFirebaseConfig()) {
-        throw new Error("Firebase configuration is incomplete")
+      if (!hasFirebaseConfig()) {
+        throw new Error("Firebase configuration missing")
       }
 
+      const db = await getAdminDb()
       if (!db) {
-        throw new Error("Database not initialized")
+        throw new Error("Database not available")
       }
 
       const doc = await db.collection("trainers").doc(tempId).get()
 
       if (!doc.exists) {
-        logger.warn("Temp trainer document not found", { tempId })
+        console.log("Temp trainer not found:", tempId)
         return null
       }
 
       const data = doc.data()
-      if (!data) {
-        logger.warn("Temp trainer data is empty", { tempId })
-        return null
-      }
 
-      // Check if trainer has expired
+      // Check if expired
       if (data.expiresAt) {
         const expiresAt = new Date(data.expiresAt)
         if (expiresAt < new Date()) {
-          logger.warn("Temp trainer has expired", { tempId, expiresAt })
+          console.log("Temp trainer expired:", tempId)
           return null
         }
       }
 
-      return { id: doc.id, ...data } as TrainerData
+      return {
+        ...data,
+        id: doc.id,
+      } as TrainerDocument
     } catch (error) {
-      logger.error("Error in getTempTrainer", {
-        tempId,
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
-      throw error
+      console.error("Error getting temp trainer:", error)
+      throw new Error("Failed to load trainer")
     }
   }
 
   static async activateTrainer(tempId: string, paymentIntentId: string): Promise<string> {
     try {
-      if (!hasRealFirebaseConfig()) {
-        throw new Error("Firebase configuration is incomplete")
+      if (!hasFirebaseConfig()) {
+        throw new Error("Firebase configuration missing")
       }
 
+      const db = await getAdminDb()
       if (!db) {
-        throw new Error("Database not initialized")
+        throw new Error("Database not available")
       }
 
-      // Get temp trainer data
+      // Get temp trainer
       const tempTrainer = await this.getTempTrainer(tempId)
       if (!tempTrainer) {
-        throw new Error("Temp trainer not found or expired")
+        throw new Error("Temp trainer not found")
       }
 
-      // Update trainer to active status
-      const updateData = {
+      // Generate permanent ID
+      const permanentId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // Create activated trainer
+      const activatedData = {
+        ...tempTrainer,
+        id: permanentId,
         status: "active" as const,
         paymentIntentId,
         activatedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        // Remove temporary fields
+        // Remove temp fields
         sessionToken: null,
         expiresAt: null,
       }
 
-      await db.collection("trainers").doc(tempId).update(updateData)
+      // Save activated trainer
+      await db.collection("trainers").doc(permanentId).set(activatedData)
 
-      logger.info("Successfully activated trainer", {
-        tempId,
-        email: tempTrainer.email,
+      // Update temp trainer status
+      await db.collection("trainers").doc(tempId).update({
+        status: "processed",
         paymentIntentId,
+        updatedAt: new Date().toISOString(),
       })
 
-      return tempId
+      console.log("Activated trainer:", permanentId)
+      return permanentId
     } catch (error) {
-      logger.error("Error in activateTrainer", {
-        tempId,
-        paymentIntentId,
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
-      throw error
+      console.error("Error activating trainer:", error)
+      throw new Error("Failed to activate trainer")
     }
   }
 
-  static async getActiveTrainer(trainerId: string): Promise<TrainerData | null> {
+  static async getActiveTrainer(trainerId: string): Promise<TrainerDocument | null> {
     try {
-      if (!hasRealFirebaseConfig()) {
-        throw new Error("Firebase configuration is incomplete")
+      if (!hasFirebaseConfig()) {
+        throw new Error("Firebase configuration missing")
       }
 
+      const db = await getAdminDb()
       if (!db) {
-        throw new Error("Database not initialized")
+        throw new Error("Database not available")
       }
 
       const doc = await db.collection("trainers").doc(trainerId).get()
@@ -180,17 +171,18 @@ export class TrainerService {
       }
 
       const data = doc.data()
-      if (!data || data.status !== "active") {
+
+      if (data.status !== "active") {
         return null
       }
 
-      return { id: doc.id, ...data } as TrainerData
+      return {
+        ...data,
+        id: doc.id,
+      } as TrainerDocument
     } catch (error) {
-      logger.error("Error in getActiveTrainer", {
-        trainerId,
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
-      throw error
+      console.error("Error getting active trainer:", error)
+      throw new Error("Failed to load trainer")
     }
   }
 }

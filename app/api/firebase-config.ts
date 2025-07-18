@@ -1,47 +1,59 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore, type FirebaseFirestore } from "firebase-admin/firestore"
+// Server-side Firebase Admin configuration
+let adminDb: any = null
+let isInitialized = false
 
-let db: FirebaseFirestore.Firestore | null = null
-
-export function hasRealFirebaseConfig(): boolean {
-  return !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY)
+export function hasFirebaseConfig(): boolean {
+  const required = [
+    process.env.FIREBASE_PROJECT_ID,
+    process.env.FIREBASE_CLIENT_EMAIL,
+    process.env.FIREBASE_PRIVATE_KEY,
+  ]
+  return required.every((val) => val && val.length > 0)
 }
 
-export function initializeFirebase() {
+export async function getAdminDb() {
+  if (adminDb) return adminDb
+
+  if (!hasFirebaseConfig()) {
+    console.warn("Firebase Admin config missing")
+    return null
+  }
+
   try {
-    if (!hasRealFirebaseConfig()) {
-      console.warn("Firebase configuration incomplete - some features may not work")
-      return null
+    // Dynamic import to avoid client-side issues
+    const { initializeApp, getApps, cert } = await import("firebase-admin/app")
+    const { getFirestore } = await import("firebase-admin/firestore")
+
+    if (!isInitialized && getApps().length === 0) {
+      const app = initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        }),
+      })
+
+      adminDb = getFirestore(app)
+      isInitialized = true
+      console.log("Firebase Admin initialized")
+    } else if (getApps().length > 0) {
+      adminDb = getFirestore()
     }
 
-    // Check if Firebase Admin is already initialized
-    if (getApps().length > 0) {
-      const app = getApps()[0]
-      db = getFirestore(app)
-      return db
-    }
-
-    // Initialize Firebase Admin
-    const app = initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID!,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-      }),
-    })
-
-    db = getFirestore(app)
-    console.log("Firebase Admin initialized successfully")
-    return db
+    return adminDb
   } catch (error) {
-    console.error("Failed to initialize Firebase Admin:", error)
+    console.error("Firebase Admin init error:", error)
     return null
   }
 }
 
-// Initialize on import (server-side only)
-if (typeof window === "undefined") {
-  db = initializeFirebase()
+// Client-side Firebase config (for frontend use)
+export const clientConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
-
-export { db }
