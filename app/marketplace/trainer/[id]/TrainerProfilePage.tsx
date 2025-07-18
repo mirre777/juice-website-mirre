@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Star, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink } from 'lucide-react'
+import { MapPin, Star, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink } from "lucide-react"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -27,12 +27,35 @@ interface TrainerData {
   isActive: boolean
   isPaid: boolean
   content?: {
-    heroTitle?: string
-    heroSubtitle?: string
-    aboutSection?: string
-    servicesSection?: string
-    testimonialsSection?: string
-    contactSection?: string
+    hero?: {
+      title?: string
+      subtitle?: string
+      description?: string
+    }
+    about?: {
+      title?: string
+      content?: string
+    }
+    services?: Array<{
+      id: string
+      title: string
+      description: string
+      price: number
+      duration: string
+      featured: boolean
+    }>
+    contact?: {
+      title?: string
+      description?: string
+      email?: string
+      phone?: string
+      location?: string
+    }
+    testimonials?: Array<{
+      name: string
+      text: string
+      rating: number
+    }>
   }
 }
 
@@ -43,18 +66,17 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
 
-  // Handle client-side mounting
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Fetch trainer data
   useEffect(() => {
     if (!mounted) return
 
     const fetchTrainer = async () => {
       try {
-        console.log("Fetching trainer data for ID:", trainerId)
+        console.log("=== FETCHING TRAINER PROFILE ===")
+        console.log("Trainer ID:", trainerId)
 
         const response = await fetch(`/api/trainer/content/${trainerId}`)
         const data = await response.json()
@@ -74,6 +96,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         }
 
         if (data.success && data.trainer) {
+          console.log("Setting trainer data:", data.trainer)
           setTrainer(data.trainer)
         } else {
           setError(data.error || "Failed to load trainer data")
@@ -92,7 +115,6 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     }
   }, [trainerId, mounted])
 
-  // Don't render anything until mounted (prevents hydration issues)
   if (!mounted) {
     return null
   }
@@ -121,11 +143,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 <Button onClick={() => window.location.reload()} className="w-full">
                   Try Again
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/marketplace")}
-                  className="w-full"
-                >
+                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
                   Back to Marketplace
                 </Button>
               </div>
@@ -152,14 +170,65 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
+  // Safe access to trainer data with fallbacks
+  const heroTitle = trainer.content?.hero?.title || `Transform Your Fitness with ${trainer.fullName}`
+  const heroSubtitle =
+    trainer.content?.hero?.subtitle || `Professional ${trainer.specialty} trainer in ${trainer.location}`
+  const aboutTitle = trainer.content?.about?.title || `About ${trainer.fullName}`
+  const aboutContent =
+    trainer.content?.about?.content ||
+    trainer.bio ||
+    "Experienced personal trainer dedicated to helping clients achieve their fitness goals."
+
+  // Safe services array with fallback
+  const services = trainer.content?.services || []
+  const trainerServices = Array.isArray(trainer.services) ? trainer.services : []
+
+  // Default services if none exist
+  const defaultServices = [
+    {
+      id: "1",
+      title: "Personal Training",
+      description: "One-on-one personalized training sessions",
+      price: 60,
+      duration: "60 minutes",
+      featured: true,
+    },
+    {
+      id: "2",
+      title: "Group Training",
+      description: "Small group training sessions",
+      price: 35,
+      duration: "60 minutes",
+      featured: false,
+    },
+  ]
+
+  const displayServices = services.length > 0 ? services : defaultServices
+
+  // Safe testimonials with fallback
+  const testimonials = trainer.content?.testimonials || [
+    {
+      name: "Sarah M.",
+      text: `Working with ${trainer.fullName} has completely transformed my fitness journey. Their expertise is unmatched!`,
+      rating: 5,
+    },
+    {
+      name: "Mike R.",
+      text: "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!",
+      rating: 5,
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with edit button for the trainer */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <Badge variant="default" className="bg-green-500">Live</Badge>
+              <Badge variant="default" className="bg-green-500">
+                Live
+              </Badge>
               <Badge variant="secondary">Active Profile</Badge>
             </div>
             <div className="flex space-x-2">
@@ -184,17 +253,11 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         </div>
       </div>
 
-      {/* Website Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              {trainer.content?.heroTitle || `Transform Your Fitness with ${trainer.fullName}`}
-            </h1>
-            <p className="text-xl mb-6 opacity-90">
-              {trainer.content?.heroSubtitle || `Professional ${trainer.specialty} trainer in ${trainer.location}`}
-            </p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroTitle}</h1>
+            <p className="text-xl mb-6 opacity-90">{heroSubtitle}</p>
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <Badge variant="secondary" className="text-blue-600">
                 <Award className="h-4 w-4 mr-1" />
@@ -216,18 +279,16 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="md:col-span-2 space-y-8">
-            {/* About Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2" />
-                  About {trainer.fullName}
+                  {aboutTitle}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">{trainer.content?.aboutSection || trainer.bio}</p>
+                <p className="text-gray-600 leading-relaxed">{aboutContent}</p>
                 {trainer.certifications && (
                   <div className="mt-4">
                     <h4 className="font-semibold mb-2">Certifications</h4>
@@ -237,7 +298,6 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardContent>
             </Card>
 
-            {/* Services Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -246,18 +306,30 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {trainer.services.map((service, index) => (
-                    <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="h-2 w-2 bg-blue-600 rounded-full mr-3"></div>
-                      <span>{service}</span>
+                <div className="space-y-4">
+                  {displayServices.map((service, index) => (
+                    <div key={service.id || index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{service.title}</h3>
+                          {service.featured && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold">€{service.price}</div>
+                          <div className="text-sm text-gray-500">{service.duration}</div>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm">{service.description}</p>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Testimonials Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -267,41 +339,25 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-current" />
-                        ))}
+                  {testimonials.map((testimonial, index) => (
+                    <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <div className="flex text-yellow-400">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-current" />
+                          ))}
+                        </div>
                       </div>
+                      <p className="text-gray-600 italic">{testimonial.text}</p>
+                      <p className="text-sm text-gray-500 mt-2">- {testimonial.name}</p>
                     </div>
-                    <p className="text-gray-600 italic">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">- Sarah M.</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 italic">
-                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">- Mike R.</p>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Get In Touch</CardTitle>
@@ -326,7 +382,6 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardContent>
             </Card>
 
-            {/* Quick Stats */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Stats</CardTitle>
@@ -346,19 +401,16 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{trainer.services.length}</span>
+                  <span className="font-semibold">{displayServices.length}</span>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Profile Management */}
             <Card className="bg-blue-50 border-blue-200">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <h3 className="text-lg font-bold text-blue-900 mb-2">Profile Management</h3>
-                  <p className="text-sm text-blue-700 mb-4">
-                    Your profile is live and attracting clients!
-                  </p>
+                  <p className="text-sm text-blue-700 mb-4">Your profile is live and attracting clients!</p>
                   <div className="space-y-2">
                     <Button
                       onClick={() => router.push(`/marketplace/trainer/${trainerId}/edit`)}

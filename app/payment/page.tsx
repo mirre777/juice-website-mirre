@@ -54,7 +54,6 @@ function PaymentPageContent() {
 
       try {
         console.log("Fetching trainer data for:", tempId, "with token:", token?.substring(0, 10) + "...")
-        // Fixed: Use the correct API endpoint that matches the file structure
         const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
 
         if (!response.ok) {
@@ -83,13 +82,11 @@ function PaymentPageContent() {
 
   const handlePaymentComplete = () => {
     console.log("Payment completed successfully")
-    // Payment success will be handled by Stripe redirect
   }
 
   const handlePaymentError = (error: string) => {
     console.error("Payment error:", error)
     setPaymentError(error)
-    // Reset payment component to try again
     setPaymentResetCounter((prev) => prev + 1)
   }
 
@@ -135,7 +132,6 @@ function PaymentPageContent() {
 
   return (
     <div className={`min-h-screen py-8 px-4 ${isCoach ? "bg-white" : "bg-black"}`}>
-      {/* Header with Back Button */}
       <div className="max-w-6xl mx-auto mb-6">
         <Button
           onClick={handleGoBack}
@@ -149,7 +145,6 @@ function PaymentPageContent() {
 
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Trainer Info */}
           <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
             <CardHeader>
               <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
@@ -160,7 +155,6 @@ function PaymentPageContent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Trainer Details */}
               <div>
                 <h3 className={`text-xl font-bold ${isCoach ? "text-black" : "text-white"}`}>
                   {trainerData.fullName || trainerData.name}
@@ -171,7 +165,6 @@ function PaymentPageContent() {
                 </p>
               </div>
 
-              {/* Features List */}
               <div className="space-y-3">
                 {[
                   "Professional website generated",
@@ -187,7 +180,6 @@ function PaymentPageContent() {
                 ))}
               </div>
 
-              {/* Pricing */}
               <div className="border-t pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -199,14 +191,14 @@ function PaymentPageContent() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-3xl font-bold text-juice">€69</span>
+                    <span className="text-3xl font-bold text-juice">€70</span>
+                    <div className="text-sm font-medium text-juice">ONE-TIME</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Right Column - Payment */}
           <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
             <CardHeader>
               <CardTitle className={`${isCoach ? "text-black" : "text-white"}`}>Complete Your Payment</CardTitle>

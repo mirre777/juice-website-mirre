@@ -211,7 +211,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               </Button>
             </Link>
             <Button className="bg-lime-500 hover:bg-lime-600 text-black" onClick={handleActivate} disabled={isExpired}>
-              {isExpired ? "Trial Expired" : "Activate Website - €70"}
+              {isExpired ? "Trial Expired" : "Activate Website - €70 ONE-TIME"}
             </Button>
           </div>
         </div>
