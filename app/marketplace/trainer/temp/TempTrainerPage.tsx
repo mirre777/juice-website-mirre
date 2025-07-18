@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -18,9 +19,9 @@ import {
   Calendar,
   ArrowRight,
   Loader2,
+  CreditCard,
 } from "lucide-react"
 import Navbar from "@/components/navbar"
-import { logger } from "@/lib/logger"
 
 interface TrainerData {
   id?: string
@@ -44,43 +45,28 @@ interface TempTrainerPageProps {
 
 export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps) {
   const [isActivating, setIsActivating] = useState(false)
+  const router = useRouter()
 
   const handleActivate = async () => {
     setIsActivating(true)
-    logger.info("Starting trainer activation", {
-      trainerId: trainer.id,
-      email: trainer.email,
-    })
 
     try {
-      // Here you would integrate with your payment system
-      // For now, we'll just show the activation process
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      logger.info("Trainer activation completed", {
-        trainerId: trainer.id,
-        email: trainer.email,
-      })
-
-      // Redirect to payment or success page
-      window.location.href = `/payment?tempId=${trainer.id}`
+      // Navigate to payment page with temp trainer ID
+      router.push(`/payment?tempId=${trainer.id}`)
     } catch (error) {
-      logger.error("Error activating trainer", {
-        trainerId: trainer.id,
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
+      console.error("Error navigating to payment:", error)
     } finally {
       setIsActivating(false)
     }
   }
 
   const formatServices = (services?: string[]) => {
-    if (!services || services.length === 0) return "No services specified"
-    return services.join(", ")
+    if (!services || services.length === 0) return ["Personal Training", "Fitness Consultation"]
+    return services
   }
 
   const formatCertifications = (certifications?: string) => {
-    if (!certifications) return "No certifications specified"
+    if (!certifications) return "Certified Personal Trainer"
     return certifications
   }
 
@@ -193,19 +179,26 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                 <Briefcase className="w-5 h-5" />
                 Services Offered
               </h3>
-              <p className="text-gray-700">{formatServices(trainer.services)}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formatServices(trainer.services).map((service, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="text-gray-700">{service}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <Separator className="my-8" />
 
             {/* Activation Section */}
-            <div className="bg-gray-50 rounded-lg p-6 text-center">
+            <div className="bg-gradient-to-r from-[#D2FF28] to-[#B8E625] rounded-lg p-6 text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <Clock className="w-6 h-6 text-orange-600" />
-                <span className="text-lg font-medium text-gray-900">24 Hour Preview Period</span>
+                <Clock className="w-6 h-6 text-black" />
+                <span className="text-lg font-medium text-black">24 Hour Preview Period</span>
               </div>
 
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-800 mb-6">
                 This preview will expire in 24 hours. Activate your website now for just €70 to make it live and start
                 attracting clients!
               </p>
@@ -214,7 +207,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                 <Button
                   onClick={handleActivate}
                   disabled={isActivating}
-                  className="w-full md:w-auto px-8 py-3 text-lg font-semibold bg-[#D2FF28] hover:bg-[#B8E625] text-black disabled:opacity-50"
+                  className="w-full md:w-auto px-8 py-3 text-lg font-semibold bg-black hover:bg-gray-800 text-white disabled:opacity-50"
                 >
                   {isActivating ? (
                     <>
@@ -223,13 +216,14 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                     </>
                   ) : (
                     <>
+                      <CreditCard className="w-5 h-5 mr-2" />
                       Activate Website - €70
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </>
                   )}
                 </Button>
 
-                <p className="text-sm text-gray-500">Secure payment • 30-day money-back guarantee • Cancel anytime</p>
+                <p className="text-sm text-gray-700">One-time payment • No monthly fees • Full ownership</p>
               </div>
             </div>
           </CardContent>

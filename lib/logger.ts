@@ -61,20 +61,20 @@ class Logger {
   }
 
   info(message: string, data?: LogData): void {
-    console.log(this.formatMessage("info", message, data))
+    console.log(`[INFO] ${message}`, data ? JSON.stringify(data, null, 2) : "")
   }
 
   warn(message: string, data?: LogData): void {
-    console.warn(this.formatMessage("warn", message, data))
+    console.warn(`[WARN] ${message}`, data ? JSON.stringify(data, null, 2) : "")
   }
 
   error(message: string, data?: LogData): void {
-    console.error(this.formatMessage("error", message, data))
+    console.error(`[ERROR] ${message}`, data ? JSON.stringify(data, null, 2) : "")
   }
 
   debug(message: string, data?: LogData): void {
     if (process.env.NODE_ENV === "development") {
-      console.debug(this.formatMessage("debug", message, data))
+      console.debug(`[DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : "")
     }
   }
 
