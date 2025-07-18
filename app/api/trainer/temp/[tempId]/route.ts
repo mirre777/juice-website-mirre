@@ -1,78 +1,79 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/app/api/firebase-config"
+import { TrainerService } from "@/lib/firebase-trainer"
+import { logger } from "@/lib/logger"
+import { hasRealFirebaseConfig } from "@/app/api/firebase-config"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
-  const { tempId } = params
-  const { searchParams } = new URL(request.url)
-  const token = searchParams.get("token")
+  const requestId = Math.random().toString(36).substring(2, 15)
 
   try {
-    console.log("=== TEMP TRAINER API DEBUG ===")
-    console.log("1. Received tempId:", tempId)
-    console.log("2. Has token:", !!token)
-    console.log("3. DB initialized:", !!db)
+    const { tempId } = params
 
     if (!tempId) {
-      return NextResponse.json({ success: false, error: "Missing trainer ID" }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Temp ID is required",
+          requestId,
+        },
+        { status: 400 },
+      )
     }
 
-    if (!db) {
-      console.error("4. Firebase not initialized")
-      return NextResponse.json({ success: false, error: "Database not available" }, { status: 500 })
+    // Check Firebase configuration
+    if (!hasRealFirebaseConfig()) {
+      logger.error("Firebase configuration incomplete", { requestId, tempId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Service configuration error",
+          requestId,
+        },
+        { status: 500 },
+      )
     }
 
-    const docRef = db.collection("trainers").doc(tempId)
-    const docSnap = await docRef.get()
+    logger.info("Fetching temp trainer", { requestId, tempId })
 
-    if (!docSnap.exists) {
-      console.log("5. Trainer not found in Firebase:", tempId)
-      return NextResponse.json({ success: false, error: "Trainer profile not found" }, { status: 404 })
+    const trainer = await TrainerService.getTempTrainer(tempId)
+
+    if (!trainer) {
+      logger.warn("Temp trainer not found", { requestId, tempId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Trainer not found",
+          requestId,
+        },
+        { status: 404 },
+      )
     }
 
-    const trainerData = docSnap.data()
-
-    if (!trainerData) {
-      return NextResponse.json({ success: false, error: "Invalid trainer data" }, { status: 404 })
-    }
-
-    console.log("6. Found trainer:", {
-      name: trainerData.name || trainerData.fullName,
-      status: trainerData.status,
-      hasExpiresAt: !!trainerData.expiresAt,
+    logger.info("Successfully fetched temp trainer", {
+      requestId,
+      tempId,
+      email: trainer.email,
     })
-
-    if (token && trainerData.sessionToken !== token) {
-      console.log("7. Invalid token provided")
-      return NextResponse.json({ success: false, error: "Invalid access token" }, { status: 401 })
-    }
-
-    if (trainerData.expiresAt) {
-      const expiresAt = new Date(trainerData.expiresAt)
-      if (expiresAt < new Date()) {
-        console.log("8. Trainer expired")
-        return NextResponse.json({ success: false, error: "Trainer profile has expired" }, { status: 410 })
-      }
-    }
-
-    const trainer = {
-      ...trainerData,
-      id: docSnap.id,
-      createdAt: trainerData.createdAt?.toDate?.()?.toISOString() || trainerData.createdAt,
-    }
-
-    console.log("9. Returning trainer data successfully")
 
     return NextResponse.json({
       success: true,
       trainer,
+      requestId,
     })
   } catch (error) {
-    console.error("Error fetching temp trainer:", error)
+    logger.error("Error fetching temp trainer", {
+      requestId,
+      tempId: params?.tempId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch trainer profile",
+        error: "Failed to load trainer preview",
         details: error instanceof Error ? error.message : "Unknown error",
+        requestId,
       },
       { status: 500 },
     )

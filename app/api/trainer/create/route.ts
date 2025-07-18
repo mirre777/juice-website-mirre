@@ -1,12 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { TrainerService } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
-import { db } from "@/app/api/firebase-config"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
 
 export async function POST(request: NextRequest) {
   const requestId = Math.random().toString(36).substring(2, 15)
 
   try {
+    // Check if Firebase is properly configured
+    if (!hasRealFirebaseConfig()) {
+      logger.error("Firebase configuration incomplete", { requestId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Service configuration error",
+          requestId,
+        },
+        { status: 500 },
+      )
+    }
+
     // Check if database is initialized
     if (!db) {
       logger.error("Database not initialized", { requestId })
