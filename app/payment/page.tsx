@@ -1,128 +1,355 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import type React from "react"
+
+import { Suspense, useState, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Award, ArrowLeft } from "lucide-react"
-import { StripePayment } from "@/components/payment/stripe-payment"
-import { useTheme } from "@/components/theme-provider"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CheckCircle, CreditCard, Shield, ArrowLeft } from "lucide-react"
+import { loadStripe } from "@stripe/stripe-js"
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 
-interface TrainerData {
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+interface TempTrainerData {
   id: string
-  name: string
-  fullName?: string
+  fullName: string
   email: string
   phone?: string
   location: string
-  specialization: string
+  specialty: string
   experience: string
-  bio?: string
-  certifications?: string[]
+  bio: string
+  certifications?: string
+  services: string[]
   status: string
   createdAt: string
-  expiresAt: string
-  hasSessionToken: boolean
+}
+
+function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const router = useRouter()
+  const [processing, setProcessing] = useState(false)
+  const [email, setEmail] = useState(tempTrainer?.email || "")
+  const [country, setCountry] = useState("AT")
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+
+    if (!stripe || !elements) {
+      return
+    }
+
+    setProcessing(true)
+
+    try {
+      console.log("=== PROCESSING PAYMENT ===")
+      console.log("Temp Trainer:", tempTrainer)
+      console.log("Email:", email)
+
+      // Create payment intent
+      const response = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: 7000, // €70.00 in cents
+          currency: "eur",
+          tempTrainerId: tempTrainer.id,
+          email: email,
+        }),
+      })
+
+      const { client_secret } = await response.json()
+
+      // Confirm payment
+      const { error, paymentIntent } = await stripe.confirmCardPayment(client_secret, {
+        payment_method: {
+          card: elements.getElement(CardElement)!,
+          billing_details: {
+            email: email,
+          },
+        },
+      })
+
+      if (error) {
+        console.error("Payment failed:", error)
+        alert("Payment failed: " + error.message)
+      } else if (paymentIntent.status === "succeeded") {
+        console.log("Payment succeeded:", paymentIntent)
+
+        // Redirect to success page
+        router.push(`/payment/success?payment_intent=${paymentIntent.id}`)
+      }
+    } catch (error) {
+      console.error("Payment error:", error)
+      alert("Payment failed. Please try again.")
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4 flex items-center space-x-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Preview</span>
+          </Button>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column - Trainer Info */}
+          <div>
+            <Card className="mb-6">
+              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mr-4">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Activate Your Website</CardTitle>
+                  <p className="text-gray-600 text-sm">Complete your trainer profile activation</p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-lg">{tempTrainer.fullName}</h3>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {tempTrainer.experience}
+                      </Badge>
+                      <span>•</span>
+                      <span>{tempTrainer.location}</span>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Professional website generated</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Custom content & testimonials</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Mobile-responsive design</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">SEO optimized</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Easy content editing</span>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-lg">One-time activation fee:</p>
+                        <p className="text-sm text-gray-600">No monthly fees • Lifetime access • Full ownership</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-3xl font-bold text-[#D2FF28] bg-black px-3 py-1 rounded">€70</p>
+                        <p className="text-xs text-gray-500 mt-1">ONE-TIME</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Payment Form */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CreditCard className="h-5 w-5" />
+                  <span>Complete Your Payment</span>
+                </CardTitle>
+                <p className="text-sm text-gray-600">Secure payment powered by Stripe</p>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+                    <Shield className="h-4 w-4" />
+                    <span>Secure, 1-click checkout with Link</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="card">Card information</Label>
+                      <div className="mt-1 p-3 border border-gray-300 rounded-md">
+                        <CardElement
+                          options={{
+                            style: {
+                              base: {
+                                fontSize: "16px",
+                                color: "#424770",
+                                "::placeholder": {
+                                  color: "#aab7c4",
+                                },
+                              },
+                            },
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="country">Country</Label>
+                      <Select value={country} onValueChange={setCountry}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="AT">Austria</SelectItem>
+                          <SelectItem value="DE">Germany</SelectItem>
+                          <SelectItem value="CH">Switzerland</SelectItem>
+                          <SelectItem value="NL">Netherlands</SelectItem>
+                          <SelectItem value="BE">Belgium</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email">Email for receipt</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={!stripe || processing}
+                    className="w-full bg-[#D2FF28] text-black hover:bg-[#c5f01f] text-lg py-6"
+                  >
+                    {processing ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      `Pay €70`
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-gray-500 text-center">
+                    By completing your purchase, you agree to our terms of service.
+                  </p>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function PaymentPageContent() {
-  const { isCoach } = useTheme()
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const tempId = searchParams.get("tempId")
-  const token = searchParams.get("token")
-
-  const [trainerData, setTrainerData] = useState<TrainerData | null>(null)
+  const router = useRouter()
+  const [tempTrainer, setTempTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [paymentError, setPaymentError] = useState<string | null>(null)
-  const [paymentResetCounter, setPaymentResetCounter] = useState(0)
+
+  const tempId = searchParams.get("tempId")
 
   useEffect(() => {
-    const fetchTrainerData = async () => {
-      if (!tempId) {
-        setError("No trainer ID provided")
-        setLoading(false)
-        return
-      }
+    if (!tempId) {
+      setError("No trainer ID provided")
+      setLoading(false)
+      return
+    }
 
-      if (!token) {
-        setError("No access token provided")
-        setLoading(false)
-        return
-      }
-
+    const fetchTempTrainer = async () => {
       try {
-        console.log("Fetching trainer data for:", tempId, "with token:", token?.substring(0, 10) + "...")
-        const response = await fetch(`/api/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
+        console.log("=== FETCHING TEMP TRAINER FOR PAYMENT ===")
+        console.log("Temp ID:", tempId)
+
+        const response = await fetch(`/api/trainer/temp/${tempId}`)
+        const data = await response.json()
+
+        console.log("API Response:", data)
 
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to fetch trainer data")
+          setError(data.error || "Failed to load trainer data")
+          setLoading(false)
+          return
         }
-
-        const data = await response.json()
-        console.log("Trainer data received:", data)
 
         if (data.success && data.trainer) {
-          setTrainerData(data.trainer)
+          console.log("Setting temp trainer for payment:", data.trainer)
+          setTempTrainer(data.trainer)
         } else {
-          throw new Error("Invalid trainer data received")
+          setError(data.error || "Failed to load trainer data")
         }
-      } catch (error) {
-        console.error("Error fetching trainer data:", error)
-        setError(error instanceof Error ? error.message : "Failed to load trainer data")
-      } finally {
+
+        setLoading(false)
+      } catch (err) {
+        console.error("Error fetching temp trainer:", err)
+        setError("Failed to load trainer data")
         setLoading(false)
       }
     }
 
-    fetchTrainerData()
-  }, [tempId, token])
-
-  const handlePaymentComplete = () => {
-    console.log("Payment completed successfully")
-  }
-
-  const handlePaymentError = (error: string) => {
-    console.error("Payment error:", error)
-    setPaymentError(error)
-    setPaymentResetCounter((prev) => prev + 1)
-  }
-
-  const handleGoBack = () => {
-    if (tempId && token) {
-      router.push(`/marketplace/trainer/temp/${tempId}?token=${encodeURIComponent(token)}`)
-    } else {
-      router.back()
-    }
-  }
+    fetchTempTrainer()
+  }, [tempId])
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice mx-auto mb-4"></div>
-          <p className={`text-lg ${isCoach ? "text-black" : "text-white"}`}>Loading trainer information...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading payment page...</p>
         </div>
       </div>
     )
   }
 
-  if (error || !trainerData) {
+  if (error || !tempTrainer) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-bold text-red-600 mb-4">Error</h2>
-            <p className="text-gray-600 mb-4">{error || "Trainer data not found"}</p>
-            <div className="space-y-2">
-              <Button onClick={() => window.location.reload()} className="w-full bg-juice text-black hover:bg-juice/90">
-                Try Again
-              </Button>
-              <Button onClick={handleGoBack} variant="outline" className="w-full bg-transparent">
-                Go Back
-              </Button>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-red-500 text-5xl mb-4">⚠️</div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <div className="space-y-2">
+                <Button onClick={() => window.location.reload()} className="w-full">
+                  Try Again
+                </Button>
+                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
+                  Back to Marketplace
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -130,113 +357,24 @@ function PaymentPageContent() {
     )
   }
 
-  return (
-    <div className={`min-h-screen py-8 px-4 ${isCoach ? "bg-white" : "bg-black"}`}>
-      <div className="max-w-6xl mx-auto mb-6">
-        <Button
-          onClick={handleGoBack}
-          variant="ghost"
-          className={`flex items-center gap-2 ${isCoach ? "text-black hover:bg-gray-100" : "text-white hover:bg-gray-800"}`}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Preview
-        </Button>
-      </div>
-
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-            <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${isCoach ? "text-black" : "text-white"}`}>
-                <div className="w-8 h-8 bg-juice rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold">⚡</span>
-                </div>
-                Activate Your Website
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className={`text-xl font-bold ${isCoach ? "text-black" : "text-white"}`}>
-                  {trainerData.fullName || trainerData.name}
-                </h3>
-                <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} flex items-center gap-2 mt-1`}>
-                  <Award className="w-4 h-4" />
-                  {trainerData.specialization} • {trainerData.experience} • {trainerData.location}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  "Professional website generated",
-                  "Custom content & testimonials",
-                  "Mobile-responsive design",
-                  "SEO optimized",
-                  "Easy content editing",
-                ].map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span className={`${isCoach ? "text-gray-700" : "text-gray-300"}`}>{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>
-                      One-time activation fee:
-                    </h4>
-                    <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                      No monthly fees • Lifetime access • Full ownership
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-3xl font-bold text-juice">€70</span>
-                    <div className="text-sm font-medium text-juice">ONE-TIME</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className={`${isCoach ? "bg-white border-gray-200" : "bg-gray-900 border-gray-700"}`}>
-            <CardHeader>
-              <CardTitle className={`${isCoach ? "text-black" : "text-white"}`}>Complete Your Payment</CardTitle>
-              <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                Secure payment powered by Stripe
-              </p>
-            </CardHeader>
-            <CardContent>
-              {paymentError && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-red-600">{paymentError}</p>
-                </div>
-              )}
-
-              <StripePayment
-                tempId={tempId || ""}
-                onPaymentComplete={handlePaymentComplete}
-                onPaymentError={handlePaymentError}
-                resetCounter={paymentResetCounter}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  )
+  return <PaymentForm tempTrainer={tempTrainer} />
 }
 
 export default function PaymentPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-juice"></div>
-        </div>
-      }
-    >
-      <PaymentPageContent />
-    </Suspense>
+    <Elements stripe={stripePromise}>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading payment page...</p>
+            </div>
+          </div>
+        }
+      >
+        <PaymentPageContent />
+      </Suspense>
+    </Elements>
   )
 }

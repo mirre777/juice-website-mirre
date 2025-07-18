@@ -6,10 +6,59 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Star, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { toast } from "@/components/ui/use-toast"
+import {
+  MapPin,
+  Star,
+  Users,
+  Dumbbell,
+  Award,
+  Phone,
+  Mail,
+  Edit,
+  ExternalLink,
+  Save,
+  X,
+  Plus,
+  Trash2,
+} from "lucide-react"
 
 interface TrainerProfilePageProps {
   trainerId: string
+}
+
+interface Service {
+  id: string
+  title: string
+  description: string
+  price: number
+  duration: string
+  featured: boolean
+}
+
+interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    content: string
+  }
+  services: Service[]
+  contact: {
+    title: string
+    description: string
+    phone: string
+  }
+  seo: {
+    title: string
+    description: string
+  }
 }
 
 interface TrainerData {
@@ -26,37 +75,7 @@ interface TrainerData {
   status: string
   isActive: boolean
   isPaid: boolean
-  content?: {
-    hero?: {
-      title?: string
-      subtitle?: string
-      description?: string
-    }
-    about?: {
-      title?: string
-      content?: string
-    }
-    services?: Array<{
-      id: string
-      title: string
-      description: string
-      price: number
-      duration: string
-      featured: boolean
-    }>
-    contact?: {
-      title?: string
-      description?: string
-      email?: string
-      phone?: string
-      location?: string
-    }
-    testimonials?: Array<{
-      name: string
-      text: string
-      rating: number
-    }>
-  }
+  content?: TrainerContent
 }
 
 export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
@@ -64,6 +83,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [saving, setSaving] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -98,6 +121,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         if (data.success && data.trainer) {
           console.log("Setting trainer data:", data.trainer)
           setTrainer(data.trainer)
+
+          // Initialize editing content
+          const content = data.content || generateDefaultContent(data.trainer)
+          setEditingContent(content)
         } else {
           setError(data.error || "Failed to load trainer data")
         }
@@ -114,6 +141,157 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       fetchTrainer()
     }
   }, [trainerId, mounted])
+
+  const generateDefaultContent = (trainer: TrainerData): TrainerContent => {
+    return {
+      hero: {
+        title: `Transform Your Fitness with ${trainer.fullName}`,
+        subtitle: `Professional ${trainer.specialty} trainer in ${trainer.location}`,
+        description: `Welcome! I'm ${trainer.fullName}, a certified personal trainer specializing in ${trainer.specialty}. With ${trainer.experience} of experience, I'm here to help you achieve your fitness goals through personalized training programs.`,
+      },
+      about: {
+        title: "About Me",
+        content: `I'm ${trainer.fullName}, a passionate fitness professional with ${trainer.experience} of experience in ${trainer.specialty}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+      },
+      services: [
+        {
+          id: "1",
+          title: "Personal Training Session",
+          description: "One-on-one personalized training session focused on your specific goals",
+          price: 60,
+          duration: "60 minutes",
+          featured: true,
+        },
+        {
+          id: "2",
+          title: "Fitness Assessment",
+          description: "Comprehensive fitness evaluation and goal-setting session",
+          price: 40,
+          duration: "45 minutes",
+          featured: false,
+        },
+      ],
+      contact: {
+        title: "Let's Start Your Fitness Journey",
+        description:
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        phone: trainer.phone || "",
+      },
+      seo: {
+        title: `${trainer.fullName} - Personal Trainer in ${trainer.location}`,
+        description: `Professional ${trainer.specialty} training with ${trainer.fullName}. Transform your fitness with personalized programs in ${trainer.location}.`,
+      },
+    }
+  }
+
+  const handleStartEditing = () => {
+    setIsEditing(true)
+    setHasUnsavedChanges(false)
+  }
+
+  const handleCancelEditing = () => {
+    if (hasUnsavedChanges) {
+      if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+        setIsEditing(false)
+        setHasUnsavedChanges(false)
+        // Reset editing content to original
+        if (trainer) {
+          const content = trainer.content || generateDefaultContent(trainer)
+          setEditingContent(content)
+        }
+      }
+    } else {
+      setIsEditing(false)
+    }
+  }
+
+  const handleSaveChanges = async () => {
+    if (!editingContent) return
+
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/trainer/content/${trainerId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: editingContent }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save content")
+      }
+
+      // Update trainer data with new content
+      if (trainer) {
+        setTrainer({ ...trainer, content: editingContent })
+      }
+
+      setIsEditing(false)
+      setHasUnsavedChanges(false)
+
+      toast({
+        title: "Success",
+        description: "Content saved successfully!",
+      })
+    } catch (error) {
+      console.error("Error saving content:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save content",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const updateContent = (path: string, value: any) => {
+    if (!editingContent) return
+
+    const keys = path.split(".")
+    const newContent = { ...editingContent }
+    let current: any = newContent
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      current = current[keys[i]]
+    }
+    current[keys[keys.length - 1]] = value
+
+    setEditingContent(newContent)
+    setHasUnsavedChanges(true)
+  }
+
+  const addService = () => {
+    if (!editingContent) return
+
+    const newService: Service = {
+      id: Date.now().toString(),
+      title: "New Service",
+      description: "Service description",
+      price: 50,
+      duration: "60 minutes",
+      featured: false,
+    }
+
+    updateContent("services", [...editingContent.services, newService])
+  }
+
+  const updateService = (serviceId: string, updates: Partial<Service>) => {
+    if (!editingContent) return
+
+    const updatedServices = editingContent.services.map((service) =>
+      service.id === serviceId ? { ...service, ...updates } : service,
+    )
+    updateContent("services", updatedServices)
+  }
+
+  const removeService = (serviceId: string) => {
+    if (!editingContent) return
+
+    const updatedServices = editingContent.services.filter((service) => service.id !== serviceId)
+    updateContent("services", updatedServices)
+  }
 
   if (!mounted) {
     return null
@@ -154,7 +332,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
-  if (!trainer) {
+  if (!trainer || !editingContent) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -170,94 +348,117 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
-  // Safe access to trainer data with fallbacks
-  const heroTitle = trainer.content?.hero?.title || `Transform Your Fitness with ${trainer.fullName}`
-  const heroSubtitle =
-    trainer.content?.hero?.subtitle || `Professional ${trainer.specialty} trainer in ${trainer.location}`
-  const aboutTitle = trainer.content?.about?.title || `About ${trainer.fullName}`
-  const aboutContent =
-    trainer.content?.about?.content ||
-    trainer.bio ||
-    "Experienced personal trainer dedicated to helping clients achieve their fitness goals."
-
-  // Safe services array with fallback
-  const services = trainer.content?.services || []
-  const trainerServices = Array.isArray(trainer.services) ? trainer.services : []
-
-  // Default services if none exist
-  const defaultServices = [
-    {
-      id: "1",
-      title: "Personal Training",
-      description: "One-on-one personalized training sessions",
-      price: 60,
-      duration: "60 minutes",
-      featured: true,
-    },
-    {
-      id: "2",
-      title: "Group Training",
-      description: "Small group training sessions",
-      price: 35,
-      duration: "60 minutes",
-      featured: false,
-    },
-  ]
-
-  const displayServices = services.length > 0 ? services : defaultServices
-
-  // Safe testimonials with fallback
-  const testimonials = trainer.content?.testimonials || [
-    {
-      name: "Sarah M.",
-      text: `Working with ${trainer.fullName} has completely transformed my fitness journey. Their expertise is unmatched!`,
-      rating: 5,
-    },
-    {
-      name: "Mike R.",
-      text: "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!",
-      rating: 5,
-    },
-  ]
+  const displayContent = isEditing ? editingContent : trainer.content || editingContent
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
+      {/* Enhanced Header with Editing States */}
+      <div className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
+              {/* Status Badges */}
               <Badge variant="default" className="bg-green-500">
-                Live
+                {trainer.isActive ? "Live" : "Draft"}
               </Badge>
-              <Badge variant="secondary">Active Profile</Badge>
+              <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
+              {hasUnsavedChanges && (
+                <Badge variant="outline" className="border-orange-500 text-orange-600">
+                  Unsaved Changes
+                </Badge>
+              )}
             </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/marketplace/trainer/${trainerId}/edit`)}
-                className="flex items-center space-x-2"
-              >
-                <Edit className="h-4 w-4" />
-                <span>Edit Profile</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                className="flex items-center space-x-2"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Dashboard</span>
-              </Button>
+
+            <div className="flex items-center space-x-2">
+              {!isEditing ? (
+                // View Mode Actions
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleStartEditing}
+                    className="flex items-center space-x-2 bg-transparent"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+                    className="flex items-center space-x-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Button>
+                </>
+              ) : (
+                // Edit Mode Actions
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEditing}
+                    className="flex items-center space-x-2 bg-transparent"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Cancel</span>
+                  </Button>
+                  <Button
+                    onClick={handleSaveChanges}
+                    disabled={saving || !hasUnsavedChanges}
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>{saving ? "Saving..." : "Save Changes"}</span>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
+        {/* Hero Section - Editable */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroTitle}</h1>
-            <p className="text-xl mb-6 opacity-90">{heroSubtitle}</p>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-white/80 text-sm">Hero Title</Label>
+                  <Input
+                    value={displayContent.hero.title}
+                    onChange={(e) => updateContent("hero.title", e.target.value)}
+                    className="text-center text-4xl md:text-5xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
+                    placeholder="Your main headline"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-sm">Subtitle</Label>
+                  <Input
+                    value={displayContent.hero.subtitle}
+                    onChange={(e) => updateContent("hero.subtitle", e.target.value)}
+                    className="text-center text-xl bg-white/10 border-white/20 text-white placeholder-white/60"
+                    placeholder="Supporting headline"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-sm">Description</Label>
+                  <Textarea
+                    value={displayContent.hero.description}
+                    onChange={(e) => updateContent("hero.description", e.target.value)}
+                    className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
+                    placeholder="Brief introduction"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">{displayContent.hero.title}</h1>
+                <p className="text-xl mb-6 opacity-90">{displayContent.hero.subtitle}</p>
+                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{displayContent.hero.description}</p>
+              </>
+            )}
+
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <Badge variant="secondary" className="text-blue-600">
                 <Award className="h-4 w-4 mr-1" />
@@ -280,15 +481,35 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            <Card>
+            {/* About Section - Editable */}
+            <Card className="relative group">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2" />
-                  {aboutTitle}
+                  {isEditing ? (
+                    <Input
+                      value={displayContent.about.title}
+                      onChange={(e) => updateContent("about.title", e.target.value)}
+                      className="font-semibold"
+                      placeholder="About section title"
+                    />
+                  ) : (
+                    displayContent.about.title
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">{aboutContent}</p>
+                {isEditing ? (
+                  <Textarea
+                    value={displayContent.about.content}
+                    onChange={(e) => updateContent("about.content", e.target.value)}
+                    placeholder="Tell your story..."
+                    rows={8}
+                    className="w-full"
+                  />
+                ) : (
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{displayContent.about.content}</p>
+                )}
                 {trainer.certifications && (
                   <div className="mt-4">
                     <h4 className="font-semibold mb-2">Certifications</h4>
@@ -298,38 +519,111 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardContent>
             </Card>
 
+            {/* Services Section - Editable */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Dumbbell className="h-5 w-5 mr-2" />
-                  Services Offered
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Dumbbell className="h-5 w-5 mr-2" />
+                    Services Offered
+                  </CardTitle>
+                  {isEditing && (
+                    <Button onClick={addService} size="sm" variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Service
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {displayServices.map((service, index) => (
-                    <div key={service.id || index} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{service.title}</h3>
-                          {service.featured && (
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                              Featured
-                            </Badge>
-                          )}
+                  {displayContent.services.map((service, index) => (
+                    <div key={service.id} className="border border-gray-200 rounded-lg p-4 relative">
+                      {isEditing ? (
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1 space-y-2">
+                              <Input
+                                value={service.title}
+                                onChange={(e) => updateService(service.id, { title: e.target.value })}
+                                placeholder="Service title"
+                                className="font-semibold"
+                              />
+                              <Textarea
+                                value={service.description}
+                                onChange={(e) => updateService(service.id, { description: e.target.value })}
+                                placeholder="Service description"
+                                rows={2}
+                              />
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeService(service.id)}
+                              className="text-red-500 hover:text-red-700 ml-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Price (€)</Label>
+                              <Input
+                                type="number"
+                                value={service.price}
+                                onChange={(e) =>
+                                  updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
+                                }
+                                placeholder="Price"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Duration</Label>
+                              <Input
+                                value={service.duration}
+                                onChange={(e) => updateService(service.id, { duration: e.target.value })}
+                                placeholder="Duration"
+                              />
+                            </div>
+                            <div className="flex items-end">
+                              <label className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={service.featured}
+                                  onChange={(e) => updateService(service.id, { featured: e.target.checked })}
+                                  className="rounded"
+                                />
+                                <span className="text-xs">Featured</span>
+                              </label>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold">€{service.price}</div>
-                          <div className="text-sm text-gray-500">{service.duration}</div>
-                        </div>
-                      </div>
-                      <p className="text-gray-600 text-sm">{service.description}</p>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">{service.title}</h3>
+                              {service.featured && (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                  Featured
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold">€{service.price}</div>
+                              <div className="text-sm text-gray-500">{service.duration}</div>
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-sm">{service.description}</p>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
+            {/* Testimonials Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -339,49 +633,98 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {testimonials.map((testimonial, index) => (
-                    <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center mb-2">
-                        <div className="flex text-yellow-400">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-current" />
-                          ))}
-                        </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-current" />
+                        ))}
                       </div>
-                      <p className="text-gray-600 italic">{testimonial.text}</p>
-                      <p className="text-sm text-gray-500 mt-2">- {testimonial.name}</p>
                     </div>
-                  ))}
+                    <p className="text-gray-600 italic">
+                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
+                      {trainer.specialty.toLowerCase()} is unmatched!"
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">- Sarah M.</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-current" />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 italic">
+                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">- Mike R.</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
+          {/* Sidebar */}
           <div className="space-y-6">
+            {/* Contact Card - Editable */}
             <Card>
               <CardHeader>
-                <CardTitle>Get In Touch</CardTitle>
+                <CardTitle>
+                  {isEditing ? (
+                    <Input
+                      value={displayContent.contact.title}
+                      onChange={(e) => updateContent("contact.title", e.target.value)}
+                      placeholder="Contact section title"
+                    />
+                  ) : (
+                    displayContent.contact.title
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {isEditing && (
+                  <div>
+                    <Label className="text-sm">Description</Label>
+                    <Textarea
+                      value={displayContent.contact.description}
+                      onChange={(e) => updateContent("contact.description", e.target.value)}
+                      placeholder="Contact description"
+                      rows={3}
+                    />
+                  </div>
+                )}
+
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-3 text-gray-400" />
                   <span className="text-sm">{trainer.email}</span>
                 </div>
-                {trainer.phone && (
-                  <div className="flex items-center">
-                    <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                    <span className="text-sm">{trainer.phone}</span>
-                  </div>
-                )}
+
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                  {isEditing ? (
+                    <Input
+                      value={displayContent.contact.phone}
+                      onChange={(e) => updateContent("contact.phone", e.target.value)}
+                      placeholder="Phone number"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <span className="text-sm">{displayContent.contact.phone || trainer.phone}</span>
+                  )}
+                </div>
+
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
                   <span className="text-sm">{trainer.location}</span>
                 </div>
+
                 <Separator />
                 <Button className="w-full">Schedule Consultation</Button>
               </CardContent>
             </Card>
 
+            {/* Quick Stats */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Stats</CardTitle>
@@ -401,30 +744,56 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{displayServices.length}</span>
+                  <span className="font-semibold">{displayContent.services.length}</span>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Profile Management */}
             <Card className="bg-blue-50 border-blue-200">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <h3 className="text-lg font-bold text-blue-900 mb-2">Profile Management</h3>
-                  <p className="text-sm text-blue-700 mb-4">Your profile is live and attracting clients!</p>
+                  <h3 className="text-lg font-bold text-blue-900 mb-2">
+                    {isEditing ? "Editing Mode" : "Profile Management"}
+                  </h3>
+                  <p className="text-sm text-blue-700 mb-4">
+                    {isEditing ? "Make changes and save when ready!" : "Your profile is live and attracting clients!"}
+                  </p>
                   <div className="space-y-2">
-                    <Button
-                      onClick={() => router.push(`/marketplace/trainer/${trainerId}/edit`)}
-                      className="w-full bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      Edit Content
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                      className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
-                    >
-                      View Dashboard
-                    </Button>
+                    {!isEditing ? (
+                      <>
+                        <Button
+                          onClick={handleStartEditing}
+                          className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                        >
+                          Edit Content
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+                          className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                        >
+                          View Dashboard
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={handleSaveChanges}
+                          disabled={saving || !hasUnsavedChanges}
+                          className="w-full bg-green-600 text-white hover:bg-green-700"
+                        >
+                          {saving ? "Saving..." : "Save Changes"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleCancelEditing}
+                          className="w-full border-red-300 text-red-700 hover:bg-red-50 bg-transparent"
+                        >
+                          Cancel Editing
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
