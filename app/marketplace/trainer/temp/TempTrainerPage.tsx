@@ -1,259 +1,268 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Mail, Phone, Clock, CheckCircle } from "lucide-react"
-import Link from "next/link"
-import type { TrainerDocument } from "@/lib/firebase-trainer"
+import { Separator } from "@/components/ui/separator"
+import {
+  Clock,
+  MapPin,
+  Mail,
+  Phone,
+  Star,
+  CheckCircle,
+  User,
+  Award,
+  Briefcase,
+  Calendar,
+  ArrowRight,
+  Loader2,
+} from "lucide-react"
+import Navbar from "@/components/navbar"
+import { logger } from "@/lib/logger"
 
-interface TempTrainerPageProps {
-  tempId: string
+interface TrainerData {
+  id?: string
+  fullName: string
+  email: string
+  phone?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications?: string
+  services?: string[]
+  status?: string
+  createdAt?: string
 }
 
-export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TrainerDocument | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+interface TempTrainerPageProps {
+  trainer: TrainerData
+  token?: string
+}
 
-  useEffect(() => {
-    async function fetchTrainer() {
-      try {
-        setLoading(true)
-        setError(null)
+export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps) {
+  const [isActivating, setIsActivating] = useState(false)
 
-        const response = await fetch(`/api/trainer/temp/${tempId}`)
-        const data = await response.json()
+  const handleActivate = async () => {
+    setIsActivating(true)
+    logger.info("Starting trainer activation", {
+      trainerId: trainer.id,
+      email: trainer.email,
+    })
 
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to load trainer")
-        }
+    try {
+      // Here you would integrate with your payment system
+      // For now, we'll just show the activation process
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-        if (data.success) {
-          setTrainer(data.trainer)
-        } else {
-          throw new Error(data.error || "Failed to load trainer")
-        }
-      } catch (err) {
-        console.error("Error fetching trainer:", err)
-        setError(err instanceof Error ? err.message : "Failed to load trainer")
-      } finally {
-        setLoading(false)
-      }
+      logger.info("Trainer activation completed", {
+        trainerId: trainer.id,
+        email: trainer.email,
+      })
+
+      // Redirect to payment or success page
+      window.location.href = `/payment?tempId=${trainer.id}`
+    } catch (error) {
+      logger.error("Error activating trainer", {
+        trainerId: trainer.id,
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
+    } finally {
+      setIsActivating(false)
     }
-
-    if (tempId) {
-      fetchTrainer()
-    }
-  }, [tempId])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading trainer preview...</p>
-        </div>
-      </div>
-    )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <div className="text-red-500 mb-4">
-              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <div className="space-y-2">
-              <Button onClick={() => window.location.reload()} className="w-full">
-                Try Again
-              </Button>
-              <Button variant="outline" asChild className="w-full bg-transparent">
-                <Link href="/marketplace">Back to Marketplace</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  const formatServices = (services?: string[]) => {
+    if (!services || services.length === 0) return "No services specified"
+    return services.join(", ")
   }
 
-  if (!trainer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <p className="text-gray-600 mb-4">Trainer not found</p>
-            <Button variant="outline" asChild>
-              <Link href="/marketplace">Back to Marketplace</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  const formatCertifications = (certifications?: string) => {
+    if (!certifications) return "No certifications specified"
+    return certifications
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="h-6 w-6 text-green-500" />
+      <Navbar />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="p-3 bg-[#D2FF28] rounded-full">
+              <CheckCircle className="w-8 h-8 text-black" />
+            </div>
+            <Badge className="bg-green-100 text-green-800 px-4 py-2 text-lg font-medium">Preview Ready</Badge>
+          </div>
+
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Your Trainer Website Preview</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Here's how your professional trainer website will look. Review the details and activate when you're ready!
+          </p>
+        </div>
+
+        {/* Preview Card */}
+        <Card className="shadow-xl border-0 mb-8">
+          <CardHeader className="bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-t-lg">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-full">
+                <User className="w-8 h-8" />
+              </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Website Preview</h1>
-                <p className="text-sm text-gray-600">Your trainer website is ready for review</p>
+                <CardTitle className="text-2xl">{trainer.fullName}</CardTitle>
+                <p className="text-gray-200">{trainer.specialty}</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              Preview Mode
-            </Badge>
-          </div>
-        </div>
-      </div>
+          </CardHeader>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="grid gap-8">
-          {/* Hero Section */}
-          <Card>
-            <CardContent className="p-8">
-              <div className="text-center">
-                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {trainer.fullName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </span>
+          <CardContent className="p-8">
+            {/* Hero Section Preview */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Transform Your Fitness with {trainer.fullName}</h2>
+              <p className="text-lg text-gray-600 mb-6">{trainer.bio}</p>
+
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MapPin className="w-5 h-5" />
+                  <span>{trainer.location}</span>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{trainer.fullName}</h1>
-                <p className="text-xl text-blue-600 mb-4">{trainer.specialty} Specialist</p>
-                <div className="flex items-center justify-center space-x-4 text-gray-600 mb-6">
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>{trainer.location}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span>{trainer.experience}</span>
-                  </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Briefcase className="w-5 h-5" />
+                  <span>{trainer.experience} experience</span>
                 </div>
-                <div className="flex justify-center space-x-2 mb-6">
-                  {trainer.services?.map((service, index) => (
-                    <Badge key={index} variant="outline">
-                      {service}
-                    </Badge>
-                  ))}
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Star className="w-5 h-5" />
+                  <span>{trainer.specialty}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* About Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>About Me</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 leading-relaxed">{trainer.bio}</p>
-              {trainer.certifications && (
-                <div className="mt-6">
-                  <h4 className="font-semibold text-gray-900 mb-2">Certifications & Qualifications</h4>
-                  <p className="text-gray-700">{trainer.certifications}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <Separator className="my-8" />
 
-          {/* Services Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Services Offered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">Personal Training Session</h4>
-                  <p className="text-gray-600 text-sm mb-3">
-                    One-on-one personalized training session focused on your specific goals
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-blue-600">€60</span>
-                    <span className="text-sm text-gray-500">60 minutes</span>
+            {/* Contact Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Contact Information
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-700">{trainer.email}</span>
                   </div>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">Fitness Assessment</h4>
-                  <p className="text-gray-600 text-sm mb-3">
-                    Comprehensive fitness evaluation and goal-setting session
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-blue-600">€40</span>
-                    <span className="text-sm text-gray-500">45 minutes</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contact Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Get In Touch</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-center space-x-3">
-                  <Mail className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium text-gray-900">Email</p>
-                    <p className="text-gray-600">{trainer.email}</p>
-                  </div>
-                </div>
-                {trainer.phone && (
-                  <div className="flex items-center space-x-3">
-                    <Phone className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <p className="font-medium text-gray-900">Phone</p>
-                      <p className="text-gray-600">{trainer.phone}</p>
+                  {trainer.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <span className="text-gray-700">{trainer.phone}</span>
                     </div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-700">{trainer.location}</span>
                   </div>
-                )}
+                </div>
               </div>
-            </CardContent>
+
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5" />
+                  Qualifications
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Experience Level</span>
+                    <p className="text-gray-700">{trainer.experience}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Certifications</span>
+                    <p className="text-gray-700">{formatCertifications(trainer.certifications)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-8" />
+
+            {/* Services */}
+            <div className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5" />
+                Services Offered
+              </h3>
+              <p className="text-gray-700">{formatServices(trainer.services)}</p>
+            </div>
+
+            <Separator className="my-8" />
+
+            {/* Activation Section */}
+            <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Clock className="w-6 h-6 text-orange-600" />
+                <span className="text-lg font-medium text-gray-900">24 Hour Preview Period</span>
+              </div>
+
+              <p className="text-gray-600 mb-6">
+                This preview will expire in 24 hours. Activate your website now for just €70 to make it live and start
+                attracting clients!
+              </p>
+
+              <div className="space-y-4">
+                <Button
+                  onClick={handleActivate}
+                  disabled={isActivating}
+                  className="w-full md:w-auto px-8 py-3 text-lg font-semibold bg-[#D2FF28] hover:bg-[#B8E625] text-black disabled:opacity-50"
+                >
+                  {isActivating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Activate Website - €70
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-sm text-gray-500">Secure payment • 30-day money-back guarantee • Cancel anytime</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="text-center p-6">
+            <div className="p-3 bg-blue-100 rounded-full w-fit mx-auto mb-4">
+              <Star className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Professional Design</h3>
+            <p className="text-sm text-gray-600">Modern, mobile-responsive design that looks great on all devices</p>
           </Card>
 
-          {/* Action Section */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-8 text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready to Activate Your Website?</h3>
-              <p className="text-gray-600 mb-6">
-                Your website preview looks great! Activate it now for just €70 and start attracting clients.
-              </p>
-              <div className="space-y-3">
-                <Button size="lg" className="w-full md:w-auto">
-                  Activate Website - €70
-                </Button>
-                <p className="text-sm text-gray-500">
-                  24-hour preview expires on{" "}
-                  {trainer.expiresAt ? new Date(trainer.expiresAt).toLocaleDateString() : "soon"}
-                </p>
-              </div>
-            </CardContent>
+          <Card className="text-center p-6">
+            <div className="p-3 bg-green-100 rounded-full w-fit mx-auto mb-4">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Easy to Update</h3>
+            <p className="text-sm text-gray-600">
+              Update your content, services, and pricing anytime through our dashboard
+            </p>
+          </Card>
+
+          <Card className="text-center p-6">
+            <div className="p-3 bg-purple-100 rounded-full w-fit mx-auto mb-4">
+              <Calendar className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Client Booking</h3>
+            <p className="text-sm text-gray-600">
+              Integrated booking system to help clients schedule sessions with you
+            </p>
           </Card>
         </div>
       </div>
