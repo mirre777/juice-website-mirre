@@ -1,53 +1,63 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-import { getAuth } from "firebase-admin/auth"
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app"
+import { getFirestore, type Firestore } from "firebase/firestore"
+import { getAuth, type Auth } from "firebase/auth"
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.FIREBASE_MEASUREMENT_ID,
+}
 
 // Check if we have real Firebase configuration
 export function hasRealFirebaseConfig(): boolean {
-  const requiredVars = [
-    process.env.FIREBASE_PROJECT_ID,
-    process.env.FIREBASE_CLIENT_EMAIL,
-    process.env.FIREBASE_PRIVATE_KEY,
+  const requiredFields = [
+    firebaseConfig.apiKey,
+    firebaseConfig.authDomain,
+    firebaseConfig.projectId,
+    firebaseConfig.storageBucket,
+    firebaseConfig.messagingSenderId,
+    firebaseConfig.appId,
   ]
 
-  return requiredVars.every((variable) => variable && variable !== "your-value-here" && variable.trim().length > 0)
+  return requiredFields.every(
+    (field) =>
+      field &&
+      typeof field === "string" &&
+      field.trim() !== "" &&
+      !field.includes("your-") &&
+      !field.includes("example"),
+  )
 }
 
-// Initialize Firebase Admin
-let app
-if (!getApps().length) {
-  try {
-    if (hasRealFirebaseConfig()) {
-      // Use real Firebase configuration
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
+// Initialize Firebase
+let app: FirebaseApp
+let db: Firestore
+let auth: Auth
 
-      app = initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: privateKey,
-        }),
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      })
-    } else {
-      // Fallback for development/testing
-      console.warn("Using fallback Firebase configuration - some features may not work")
-      app = initializeApp({
-        projectId: "demo-project",
-      })
-    }
-  } catch (error) {
-    console.error("Firebase initialization error:", error)
-    // Create a minimal app for development
-    app = initializeApp({
-      projectId: "demo-project",
-    })
+try {
+  if (hasRealFirebaseConfig()) {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+    db = getFirestore(app)
+    auth = getAuth(app)
+  } else {
+    console.warn("Firebase configuration is incomplete or using placeholder values")
+    // Create mock objects to prevent crashes
+    app = {} as FirebaseApp
+    db = {} as Firestore
+    auth = {} as Auth
   }
-} else {
-  app = getApps()[0]
+} catch (error) {
+  console.error("Error initializing Firebase:", error)
+  // Create mock objects to prevent crashes
+  app = {} as FirebaseApp
+  db = {} as Firestore
+  auth = {} as Auth
 }
 
-// Export Firebase services
-export const db = getFirestore(app)
-export const auth = getAuth(app)
-export { app }
+export { app, db, auth }
+export default app
