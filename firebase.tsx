@@ -3,8 +3,8 @@
 import { initializeApp, getApps } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -15,12 +15,32 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
-// Initialize Firebase only if it hasn't been initialized already
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+// Initialize Firebase only if it hasn't been initialized yet
+let app
+if (!getApps().length) {
+  try {
+    app = initializeApp(firebaseConfig)
+    console.log("Firebase client initialized successfully (Google logging disabled)")
+  } catch (error) {
+    console.error("Firebase client initialization error:", error)
+  }
+} else {
+  app = getApps()[0]
+}
 
 // Initialize Firebase services
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const storage = getStorage(app)
+export const auth = app ? getAuth(app) : null
+export const db = app ? getFirestore(app) : null
+
+// Disable Firestore logging on client side
+if (db && typeof db._delegate?.settings === "function") {
+  try {
+    db._delegate.settings({
+      ignoreUndefinedProperties: true,
+    })
+  } catch (error) {
+    // Ignore settings errors
+  }
+}
 
 export default app

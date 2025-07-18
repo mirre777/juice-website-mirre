@@ -1,40 +1,59 @@
-import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import TempTrainerPage from "../TempTrainerPage"
-import { db } from "@/app/api/firebase-config"
 
 interface PageProps {
   params: { tempId: string }
   searchParams: { token?: string }
 }
 
-async function getTrainerData(tempId: string) {
+async function fetchTempTrainer(tempId: string, token?: string) {
+  console.log("fetchTempTrainer called with:", { tempId, hasToken: !!token })
+
   try {
-    if (!db) {
-      console.error("Database not available")
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const url = new URL(`/api/trainer/temp/${tempId}`, baseUrl)
+
+    if (token) {
+      url.searchParams.set("token", token)
+    }
+
+    console.log("Fetching from URL:", url.toString())
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+
+    console.log("Response status:", response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("API response error:", { status: response.status, error: errorText })
+
+      if (response.status === 404) {
+        return null
+      }
+      throw new Error(`HTTP ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log("API response data:", { success: data.success, hasTrainer: !!data.trainer })
+
+    if (!data.success || !data.trainer) {
+      console.error("Invalid API response:", data)
       return null
     }
 
-    const docRef = db.collection("trainers").doc(tempId)
-    const docSnap = await docRef.get()
-
-    if (!docSnap.exists) {
-      return null
-    }
-
-    const data = docSnap.data()
-    if (!data) {
-      return null
-    }
-
-    return {
-      ...data,
-      id: docSnap.id,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
-    }
+    return data.trainer
   } catch (error) {
-    console.error("Error fetching trainer data:", error)
+    console.error("Error in fetchTempTrainer:", {
+      tempId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return null
   }
 }
@@ -43,26 +62,21 @@ export default async function TempTrainerPageWrapper({ params, searchParams }: P
   const { tempId } = params
   const { token } = searchParams
 
-  // Try to fetch trainer data server-side
-  const trainer = await getTrainerData(tempId)
+  console.log("TempTrainerPageWrapper called with:", { tempId, token })
 
-  // If no trainer found, show not found
-  if (!trainer) {
+  try {
+    const trainer = await fetchTempTrainer(tempId, token)
+
+    if (!trainer) {
+      console.error("Trainer not found, calling notFound()")
+      notFound()
+    }
+
+    console.log("Rendering TempTrainerPage with trainer:", { id: trainer.id, name: trainer.name })
+
+    return <TempTrainerPage trainer={trainer} token={token} />
+  } catch (error) {
+    console.error("Error in TempTrainerPageWrapper:", error)
     notFound()
   }
-
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading trainer preview...</p>
-          </div>
-        </div>
-      }
-    >
-      <TempTrainerPage trainer={trainer} tempId={tempId} token={token} />
-    </Suspense>
-  )
 }
