@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
   try {
     logger.info("Trainer creation request started", { requestId })
 
+    // Check if Firebase is properly configured
+    if (!db) {
+      logger.error("Firebase database not initialized", { requestId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database configuration error",
+          details: "Firebase database not properly initialized",
+          requestId,
+        },
+        { status: 500 },
+      )
+    }
+
     const formData: TrainerFormData = await request.json()
 
     // Validate required fields
@@ -59,7 +73,7 @@ export async function POST(request: NextRequest) {
     const sessionToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-    // Create structured content object with NEW SCHEMA
+    // Create structured content object
     const content = {
       hero: {
         title: `Transform Your Fitness with ${formData.fullName}`,
@@ -69,7 +83,6 @@ export async function POST(request: NextRequest) {
       about: {
         title: `About ${formData.fullName}`,
         content: formData.bio,
-        specialty: formData.specialty, // MOVED HERE from root level
       },
       services: formData.services.map((service, index) => ({
         id: String(index + 1),
@@ -83,9 +96,8 @@ export async function POST(request: NextRequest) {
         title: "Let's Start Your Fitness Journey",
         description:
           "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-        fullName: formData.fullName, // MOVED HERE from root level
         email: formData.email,
-        phone: formData.phone || "", // MOVED HERE from root level
+        phone: formData.phone || "Contact for details",
         location: formData.location,
       },
       seo: {
@@ -99,15 +111,18 @@ export async function POST(request: NextRequest) {
       },
     }
 
-    // Create temporary trainer document with UPDATED SCHEMA
+    // Create temporary trainer document with new schema
     const tempTrainerData = {
-      // Keep only essential info at root level
+      // Basic trainer info
+      fullName: formData.fullName,
       email: formData.email,
+      phone: formData.phone,
       location: formData.location,
+      specialty: formData.specialty,
       experience: formData.experience,
       certifications: formData.certifications,
 
-      // All personal/contact info now under content
+      // All content organized under content object
       content: content,
 
       // Status and metadata
@@ -121,44 +136,55 @@ export async function POST(request: NextRequest) {
       userAgent: request.headers.get("user-agent") || "unknown",
     }
 
-    logger.info("Creating trainer document with updated schema", {
+    logger.info("Creating trainer document with new schema", {
       requestId,
       email: formData.email,
       expiresAt: expiresAt.toISOString(),
       servicesCount: formData.services?.length || 0,
       hasContent: !!content,
-      contentStructure: {
-        hasHero: !!content.hero,
-        hasAbout: !!content.about,
-        hasContact: !!content.contact,
-        servicesCount: content.services.length,
-      },
     })
 
-    // Use Firebase Admin SDK syntax
-    const trainersCollection = db.collection("trainers")
-    const docRef = await trainersCollection.add(tempTrainerData)
+    // Use Firebase Admin SDK syntax with error handling
+    try {
+      const trainersCollection = db.collection("trainers")
+      const docRef = await trainersCollection.add(tempTrainerData)
+      const tempId = docRef.id
 
-    const tempId = docRef.id
+      logger.info("Trainer document created successfully with new schema", {
+        requestId,
+        tempId,
+        email: formData.email,
+        sessionToken: sessionToken.substring(0, 8) + "...", // Log partial token for security
+      })
 
-    logger.info("Trainer document created successfully with updated schema", {
-      requestId,
-      tempId,
-      email: formData.email,
-      sessionToken: sessionToken.substring(0, 8) + "...", // Log partial token for security
-    })
+      // Return the response with tempId and token
+      return NextResponse.json({
+        success: true,
+        tempId: tempId,
+        token: sessionToken,
+        expiresAt: expiresAt.toISOString(),
+        message: "Trainer profile created successfully",
+        redirectUrl: `/marketplace/trainer/temp/${tempId}?token=${sessionToken}`,
+      })
+    } catch (firestoreError) {
+      logger.error("Firestore operation failed", {
+        requestId,
+        error: firestoreError instanceof Error ? firestoreError.message : "Unknown Firestore error",
+        stack: firestoreError instanceof Error ? firestoreError.stack : undefined,
+      })
 
-    // Return the response with tempId and token
-    return NextResponse.json({
-      success: true,
-      tempId: tempId,
-      token: sessionToken,
-      expiresAt: expiresAt.toISOString(),
-      message: "Trainer profile created successfully",
-      redirectUrl: `/marketplace/trainer/temp/${tempId}?token=${sessionToken}`,
-    })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database operation failed",
+          details: firestoreError instanceof Error ? firestoreError.message : "Unknown database error",
+          requestId,
+        },
+        { status: 500 },
+      )
+    }
   } catch (error) {
-    logger.error("Firebase write failed", {
+    logger.error("Trainer creation failed", {
       requestId,
       error: error instanceof Error ? error.message : "Unknown error",
       code: error instanceof Error && "code" in error ? error.code : "unknown",
