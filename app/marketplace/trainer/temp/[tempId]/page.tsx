@@ -72,7 +72,7 @@ export default async function TempTrainerPageWrapper({ params, searchParams }: P
       notFound()
     }
 
-    console.log("Rendering TempTrainerPage with trainer:", { id: trainer.id, name: trainer.name })
+    console.log("Rendering TempTrainerPage with trainer:", { id: trainer.id, fullName: trainer.fullName })
 
     return <TempTrainerPage trainer={trainer} token={token} />
   } catch (error) {

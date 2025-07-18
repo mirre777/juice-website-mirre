@@ -28,27 +28,16 @@ try {
   if (!getApps().length && hasRealFirebaseConfig()) {
     const privateKey = getEnvString("FIREBASE_PRIVATE_KEY").replace(/\\n/g, "\n")
 
-    // Initialize Firebase Admin with logging disabled
     initializeApp({
       credential: cert({
         projectId: getEnvString("FIREBASE_PROJECT_ID"),
         clientEmail: getEnvString("FIREBASE_CLIENT_EMAIL"),
         privateKey: privateKey,
       }),
-      // Disable Google logging utilities
-      projectId: getEnvString("FIREBASE_PROJECT_ID"),
     })
 
     db = getFirestore()
-
-    // Disable Firestore logging
-    if (db && typeof db.settings === "function") {
-      db.settings({
-        ignoreUndefinedProperties: true,
-      })
-    }
-
-    console.log("Firebase Admin initialized successfully (Google logging disabled)")
+    console.log("Firebase Admin initialized successfully")
   } else if (!hasRealFirebaseConfig()) {
     console.warn("Firebase configuration incomplete - using mock mode")
   }
@@ -65,6 +54,5 @@ export function getFirebaseDebugInfo() {
     clientEmail: getEnvString("FIREBASE_CLIENT_EMAIL") ? "✓ Set" : "✗ Missing",
     privateKey: getEnvString("FIREBASE_PRIVATE_KEY") ? "✓ Set" : "✗ Missing",
     isInitialized: Boolean(db),
-    googleLogging: "Disabled",
   }
 }

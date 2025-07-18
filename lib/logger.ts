@@ -18,7 +18,6 @@ interface LogEntry {
 
 class Logger {
   private isDevelopment = process.env.NODE_ENV === "development"
-  private isLoggingDisabled = process.env.DISABLE_FIREBASE_LOGGING === "true"
 
   private formatMessage(level: string, message: string, data?: LogData): string {
     const timestamp = new Date().toISOString()
@@ -42,28 +41,6 @@ class Logger {
   }
 
   private output(logEntry: LogEntry) {
-    // Skip Google logging utilities entirely
-    if (this.isLoggingDisabled) {
-      const simpleLog = `[${logEntry.timestamp}] ${logEntry.level.toUpperCase()}: ${logEntry.message}`
-
-      switch (logEntry.level) {
-        case "error":
-          console.error(simpleLog, logEntry.context || "")
-          break
-        case "warn":
-          console.warn(simpleLog, logEntry.context || "")
-          break
-        case "debug":
-          if (this.isDevelopment) {
-            console.debug(simpleLog, logEntry.context || "")
-          }
-          break
-        default:
-          console.log(simpleLog, logEntry.context || "")
-      }
-      return
-    }
-
     const logString = JSON.stringify(logEntry, null, this.isDevelopment ? 2 : 0)
 
     switch (logEntry.level) {
@@ -84,35 +61,19 @@ class Logger {
   }
 
   info(message: string, data?: LogData): void {
-    if (this.isLoggingDisabled) {
-      console.log(this.formatMessage("info", message, data))
-      return
-    }
     console.log(this.formatMessage("info", message, data))
   }
 
   warn(message: string, data?: LogData): void {
-    if (this.isLoggingDisabled) {
-      console.warn(this.formatMessage("warn", message, data))
-      return
-    }
     console.warn(this.formatMessage("warn", message, data))
   }
 
   error(message: string, data?: LogData): void {
-    if (this.isLoggingDisabled) {
-      console.error(this.formatMessage("error", message, data))
-      return
-    }
     console.error(this.formatMessage("error", message, data))
   }
 
   debug(message: string, data?: LogData): void {
     if (process.env.NODE_ENV === "development") {
-      if (this.isLoggingDisabled) {
-        console.debug(this.formatMessage("debug", message, data))
-        return
-      }
       console.debug(this.formatMessage("debug", message, data))
     }
   }
