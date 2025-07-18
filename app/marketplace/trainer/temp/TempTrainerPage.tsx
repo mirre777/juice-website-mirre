@@ -60,7 +60,6 @@ interface TempTrainerPageProps {
   token?: string
 }
 
-// Countdown timer hook
 function useCountdown(expiresAt: string) {
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [isExpired, setIsExpired] = useState(false)
@@ -93,13 +92,8 @@ function useCountdown(expiresAt: string) {
       }
     }
 
-    // Update immediately
     updateCountdown()
-
-    // Update every second
     const interval = setInterval(updateCountdown, 1000)
-
-    // Cleanup interval on unmount
     return () => clearInterval(interval)
   }, [expiresAt])
 
@@ -110,7 +104,10 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
   const { timeLeft, isExpired } = useCountdown(trainer.expiresAt)
 
   const handleActivate = () => {
-    console.log("Activate button clicked:", { trainerId: trainer?.id, hasToken: !!token })
+    console.log("=== ACTIVATE BUTTON CLICKED ===")
+    console.log("Trainer ID:", trainer?.id)
+    console.log("Has token:", !!token)
+    console.log("Token value:", token?.substring(0, 10) + "...")
 
     if (!trainer?.id) {
       console.error("No trainer ID available")
@@ -125,27 +122,26 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
     }
 
     const paymentUrl = `/payment?tempId=${trainer.id}&token=${encodeURIComponent(token)}`
-    console.log("Redirecting to payment URL:", paymentUrl)
+    console.log("Redirecting to:", paymentUrl)
 
     window.location.href = paymentUrl
   }
 
   const handleBookConsultation = () => {
-    console.log("Book consultation clicked - showing preview alert")
+    console.log("Book consultation clicked")
     alert("This is a preview. Activate your website to enable booking functionality!")
   }
 
   const handleContactNow = () => {
-    console.log("Contact now clicked - showing preview alert")
+    console.log("Contact now clicked")
     alert("This is a preview. Activate your website to enable contact functionality!")
   }
 
   const handleGetStarted = () => {
-    console.log("Get started clicked - showing preview alert")
+    console.log("Get started clicked")
     alert("This is a preview. Activate your website to enable this functionality!")
   }
 
-  // Use content if available, otherwise fall back to original trainer data
   const content = trainer.content || {
     hero: {
       title: `Transform Your Fitness with ${trainer.name}`,
@@ -198,17 +194,8 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
     },
   }
 
-  console.log("TempTrainerPage rendering:", {
-    trainerId: trainer.id,
-    trainerName: trainer.name,
-    hasToken: !!token,
-    timeLeft,
-    isExpired,
-  })
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with countdown */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -230,7 +217,6 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
         </div>
       </div>
 
-      {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 break-words">{content.hero.title}</h1>
@@ -257,9 +243,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -276,7 +260,6 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               </CardContent>
             </Card>
 
-            {/* Services Section */}
             <Card>
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-6">Services</h2>
@@ -308,9 +291,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Get In Touch</h3>
@@ -336,7 +317,6 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               </CardContent>
             </Card>
 
-            {/* CTA Card */}
             <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
               <CardContent className="p-6 text-center">
                 <h3 className="font-bold mb-2">{content.contact.title}</h3>
