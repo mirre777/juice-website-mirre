@@ -23,12 +23,19 @@ export interface TrainerData {
 export class TrainerService {
   static async createTempTrainer(data: TrainerData): Promise<string> {
     try {
+      logger.info("=== TrainerService.createTempTrainer CALLED ===", {
+        email: data.email,
+        fullName: data.fullName,
+      })
+
       // Check Firebase configuration
       if (!hasRealFirebaseConfig()) {
+        logger.error("Firebase configuration is incomplete")
         throw new Error("Firebase configuration is incomplete")
       }
 
       if (!db) {
+        logger.error("Database not initialized")
         throw new Error("Database not initialized")
       }
 
@@ -40,24 +47,42 @@ export class TrainerService {
         updatedAt: new Date().toISOString(),
       }
 
-      logger.info("Creating temp trainer with data", {
+      logger.info("Prepared trainer data", {
+        email: data.email,
+        fullName: data.fullName,
+        hasServices: !!data.services,
+        servicesCount: data.services?.length || 0,
+      })
+
+      // Create document in temp_trainers collection
+      logger.info("Adding document to temp_trainers collection")
+      const docRef = await db.collection("temp_trainers").add(trainerData)
+      logger.info("Document added successfully", { docId: docRef.id })
+
+      // Verify the document was created
+      const verifyDoc = await db.collection("temp_trainers").doc(docRef.id).get()
+      if (!verifyDoc.exists) {
+        logger.error("Document verification failed - document does not exist", { docId: docRef.id })
+        throw new Error("Failed to verify document creation")
+      }
+
+      logger.info("Document verified successfully", {
+        docId: docRef.id,
         email: data.email,
         fullName: data.fullName,
       })
 
-      // Create document in temp_trainers collection
-      const docRef = await db.collection("temp_trainers").add(trainerData)
-
-      logger.info("Successfully created temp trainer", {
+      logger.info("=== TrainerService.createTempTrainer SUCCESS ===", {
         tempId: docRef.id,
         email: data.email,
       })
 
       return docRef.id
     } catch (error) {
-      logger.error("Error in createTempTrainer", {
+      logger.error("=== TrainerService.createTempTrainer ERROR ===", {
         error: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
+        email: data.email,
       })
       throw error
     }
@@ -65,11 +90,15 @@ export class TrainerService {
 
   static async getTempTrainer(tempId: string): Promise<TrainerData | null> {
     try {
+      logger.info("=== TrainerService.getTempTrainer CALLED ===", { tempId })
+
       if (!hasRealFirebaseConfig()) {
+        logger.error("Firebase configuration is incomplete")
         throw new Error("Firebase configuration is incomplete")
       }
 
       if (!db) {
+        logger.error("Database not initialized")
         throw new Error("Database not initialized")
       }
 
@@ -81,9 +110,17 @@ export class TrainerService {
       }
 
       const data = doc.data()
-      return { id: doc.id, ...data } as TrainerData
+      const result = { id: doc.id, ...data } as TrainerData
+
+      logger.info("=== TrainerService.getTempTrainer SUCCESS ===", {
+        tempId,
+        email: result.email,
+        fullName: result.fullName,
+      })
+
+      return result
     } catch (error) {
-      logger.error("Error in getTempTrainer", {
+      logger.error("=== TrainerService.getTempTrainer ERROR ===", {
         tempId,
         error: error instanceof Error ? error.message : "Unknown error",
       })
@@ -93,6 +130,8 @@ export class TrainerService {
 
   static async activateTrainer(tempId: string): Promise<string> {
     try {
+      logger.info("=== TrainerService.activateTrainer CALLED ===", { tempId })
+
       if (!hasRealFirebaseConfig()) {
         throw new Error("Firebase configuration is incomplete")
       }
@@ -120,7 +159,7 @@ export class TrainerService {
       // Delete temp trainer
       await db.collection("temp_trainers").doc(tempId).delete()
 
-      logger.info("Successfully activated trainer", {
+      logger.info("=== TrainerService.activateTrainer SUCCESS ===", {
         tempId,
         activeId: activeDocRef.id,
         email: tempTrainer.email,
@@ -128,7 +167,7 @@ export class TrainerService {
 
       return activeDocRef.id
     } catch (error) {
-      logger.error("Error in activateTrainer", {
+      logger.error("=== TrainerService.activateTrainer ERROR ===", {
         tempId,
         error: error instanceof Error ? error.message : "Unknown error",
       })

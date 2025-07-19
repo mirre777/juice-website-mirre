@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
   const requestId = Math.random().toString(36).substring(2, 15)
 
   try {
+    logger.info("=== TRAINER CREATE API CALLED ===", { requestId })
+
     // Check if Firebase is properly configured
     if (!hasRealFirebaseConfig()) {
       logger.error("Firebase configuration incomplete", { requestId })
@@ -38,6 +40,8 @@ export async function POST(request: NextRequest) {
       requestId,
       email: formData.email,
       fullName: formData.fullName,
+      hasServices: !!formData.services,
+      servicesCount: formData.services?.length || 0,
     })
 
     // Validate required fields
@@ -58,7 +62,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create temporary trainer
+    logger.info("Calling TrainerService.createTempTrainer", { requestId })
     const tempId = await TrainerService.createTempTrainer(formData)
+    logger.info("TrainerService.createTempTrainer returned", { requestId, tempId })
 
     // Construct the redirect URL
     const redirectUrl = `/marketplace/trainer/temp/${tempId}`
@@ -70,13 +76,17 @@ export async function POST(request: NextRequest) {
       redirectUrl,
     })
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       tempId,
       redirectUrl,
       message: "Trainer profile created successfully",
       requestId,
-    })
+    }
+
+    logger.info("Sending success response", { requestId, responseData })
+
+    return NextResponse.json(responseData)
   } catch (error) {
     logger.error("Error creating trainer", {
       requestId,
