@@ -1,58 +1,49 @@
 import { notFound } from "next/navigation"
+import { TrainerService } from "@/lib/firebase-trainer"
 import TempTrainerPage from "../TempTrainerPage"
+import { logger } from "@/lib/logger"
 
 interface PageProps {
-  params: { tempId: string }
-  searchParams: { token?: string }
-}
-
-async function getTrainerData(tempId: string) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    const response = await fetch(`${baseUrl}/api/trainer/temp/${tempId}`, {
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
-    const data = await response.json()
-    return data.success ? data.trainer : null
-  } catch (error) {
-    console.error("Error fetching trainer data:", error)
-    return null
+  params: {
+    tempId: string
+  }
+  searchParams: {
+    token?: string
   }
 }
 
-export default async function TempTrainerPageWrapper({ params, searchParams }: PageProps) {
+export default async function TempTrainerPageRoute({ params, searchParams }: PageProps) {
   const { tempId } = params
   const { token } = searchParams
 
-  if (!tempId) {
-    notFound()
-  }
+  try {
+    logger.info("Loading temp trainer page", {
+      tempId,
+      hasToken: !!token,
+      token: token ? `${token.substring(0, 8)}...` : undefined,
+    })
 
-  const trainer = await getTrainerData(tempId)
+    // Fetch trainer data
+    const trainerData = await TrainerService.getTempTrainer(tempId)
 
-  if (!trainer) {
-    notFound()
-  }
-
-  return <TempTrainerPage trainer={trainer} token={token} />
-}
-
-export async function generateMetadata({ params }: { params: { tempId: string } }) {
-  const trainer = await getTrainerData(params.tempId)
-
-  if (!trainer) {
-    return {
-      title: "Trainer Not Found",
+    if (!trainerData) {
+      logger.warn("Temp trainer not found", { tempId, token })
+      notFound()
     }
-  }
 
-  return {
-    title: `${trainer.fullName} - Trainer Preview`,
-    description: `Preview of ${trainer.fullName}'s trainer website - ${trainer.specialty} specialist in ${trainer.location}`,
+    logger.info("Successfully loaded temp trainer", {
+      tempId,
+      email: trainerData.email,
+      fullName: trainerData.fullName,
+    })
+
+    return <TempTrainerPage trainer={trainerData} tempId={tempId} token={token} />
+  } catch (error) {
+    logger.error("Error loading temp trainer page", {
+      tempId,
+      token,
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
+    notFound()
   }
 }

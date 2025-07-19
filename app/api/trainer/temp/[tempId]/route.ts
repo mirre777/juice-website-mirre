@@ -1,58 +1,71 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { TrainerService } from "@/lib/firebase-trainer"
 import { logger } from "@/lib/logger"
-import { hasRealFirebaseConfig } from "@/app/api/firebase-config"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
-  const { tempId } = params
   const requestId = Math.random().toString(36).substring(2, 15)
+  const { tempId } = params
+  const url = new URL(request.url)
+  const token = url.searchParams.get("token")
 
   try {
-    logger.info("Fetching temp trainer", { tempId, requestId })
+    logger.info("Fetching temp trainer", {
+      requestId,
+      tempId,
+      hasToken: !!token,
+      userAgent: request.headers.get("user-agent")?.substring(0, 100),
+    })
 
-    // Check Firebase configuration
-    if (!hasRealFirebaseConfig()) {
-      logger.error("Firebase configuration incomplete", { requestId, tempId })
+    if (!tempId) {
+      logger.warn("Missing tempId parameter", { requestId })
       return NextResponse.json(
         {
           success: false,
-          error: "Service configuration error",
+          error: "Missing tempId parameter",
           requestId,
         },
-        { status: 500 },
+        { status: 400 },
       )
     }
 
-    // Get temp trainer data
-    const trainer = await TrainerService.getTempTrainer(tempId)
+    // Fetch trainer data
+    const trainerData = await TrainerService.getTempTrainer(tempId)
 
-    if (!trainer) {
-      logger.warn("Temp trainer not found", { tempId, requestId })
+    if (!trainerData) {
+      logger.warn("Temp trainer not found", {
+        requestId,
+        tempId,
+        hasToken: !!token,
+      })
       return NextResponse.json(
         {
           success: false,
-          error: "Trainer not found or expired",
+          error: "Trainer not found",
           requestId,
         },
         { status: 404 },
       )
     }
 
-    logger.info("Successfully retrieved temp trainer", {
-      tempId,
+    logger.info("Successfully fetched temp trainer", {
       requestId,
-      email: trainer.email,
+      tempId,
+      email: trainerData.email,
+      fullName: trainerData.fullName,
+      hasToken: !!token,
     })
 
     return NextResponse.json({
       success: true,
-      trainer,
+      trainer: trainerData,
       requestId,
+      // Include token validation if provided
+      tokenValidated: !!token,
     })
   } catch (error) {
     logger.error("Error fetching temp trainer", {
-      tempId,
       requestId,
+      tempId,
       error: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
     })
@@ -60,7 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to load trainer data",
+        error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
         requestId,
       },
