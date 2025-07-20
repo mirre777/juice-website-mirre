@@ -10,21 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import {
-  MapPin,
-  Star,
-  Users,
-  Dumbbell,
-  Award,
-  Phone,
-  Mail,
-  Edit,
-  ExternalLink,
-  Save,
-  X,
-  Plus,
-  Trash2,
-} from "lucide-react"
+import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, Save, X, Plus, Trash2 } from "lucide-react"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -40,21 +26,18 @@ interface Service {
 }
 
 interface TrainerContent {
-  hero: {
-    title: string
-    subtitle: string
-    description: string
-  }
   about: {
     title: string
-    content: string
+    bio: string // Changed from 'content' to 'bio'
   }
-  services: Service[]
   contact: {
     title: string
     description: string
     phone: string
+    email: string
+    location: string
   }
+  services: Service[]
   seo: {
     title: string
     description: string
@@ -65,11 +48,8 @@ interface TrainerData {
   id: string
   fullName: string
   email: string
-  phone?: string
-  location: string
-  specialty: string
   experience: string
-  bio: string
+  specialty: string
   certifications?: string
   services: string[]
   status: string
@@ -122,7 +102,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
           console.log("Setting trainer data:", data.trainer)
           setTrainer(data.trainer)
 
-          // Initialize editing content
+          // Initialize editing content with safe property access
           const content = data.content || generateDefaultContent(data.trainer)
           setEditingContent(content)
         } else {
@@ -143,15 +123,33 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }, [trainerId, mounted])
 
   const generateDefaultContent = (trainer: TrainerData): TrainerContent => {
+    // Safe property access with fallbacks
+    const fullName = trainer.fullName || "Trainer"
+    const specialty = trainer.specialty || "Fitness"
+    const experience = trainer.experience || "experience"
+    const email = trainer.email || ""
+
+    // Get bio from content.about.bio or fallback
+    const bio =
+      trainer.content?.about?.bio ||
+      `Passionate ${specialty} trainer with ${experience} helping clients achieve their health and fitness goals.`
+
+    // Get contact info from content.contact or fallback
+    const phone = trainer.content?.contact?.phone || ""
+    const location = trainer.content?.contact?.location || ""
+
     return {
-      hero: {
-        title: `Transform Your Fitness with ${trainer.fullName}`,
-        subtitle: `Professional ${trainer.specialty} trainer in ${trainer.location}`,
-        description: `Welcome! I'm ${trainer.fullName}, a certified personal trainer specializing in ${trainer.specialty}. With ${trainer.experience} of experience, I'm here to help you achieve your fitness goals through personalized training programs.`,
-      },
       about: {
         title: "About Me",
-        content: `I'm ${trainer.fullName}, a passionate fitness professional with ${trainer.experience} of experience in ${trainer.specialty}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+        bio: bio, // Use 'bio' instead of 'content'
+      },
+      contact: {
+        title: "Let's Start Your Fitness Journey",
+        description:
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        phone: phone,
+        email: email,
+        location: location,
       },
       services: [
         {
@@ -171,15 +169,9 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
           featured: false,
         },
       ],
-      contact: {
-        title: "Let's Start Your Fitness Journey",
-        description:
-          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-        phone: trainer.phone || "",
-      },
       seo: {
-        title: `${trainer.fullName} - Personal Trainer in ${trainer.location}`,
-        description: `Professional ${trainer.specialty} training with ${trainer.fullName}. Transform your fitness with personalized programs in ${trainer.location}.`,
+        title: `${fullName} - Personal Trainer`,
+        description: `Professional ${specialty} training with ${fullName}. Transform your fitness with personalized programs.`,
       },
     }
   }
@@ -417,47 +409,14 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Editable */}
+        {/* Hero Section */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
           <div className="max-w-4xl mx-auto text-center">
-            {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-white/80 text-sm">Hero Title</Label>
-                  <Input
-                    value={displayContent.hero.title}
-                    onChange={(e) => updateContent("hero.title", e.target.value)}
-                    className="text-center text-4xl md:text-5xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Your main headline"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-sm">Subtitle</Label>
-                  <Input
-                    value={displayContent.hero.subtitle}
-                    onChange={(e) => updateContent("hero.subtitle", e.target.value)}
-                    className="text-center text-xl bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Supporting headline"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-sm">Description</Label>
-                  <Textarea
-                    value={displayContent.hero.description}
-                    onChange={(e) => updateContent("hero.description", e.target.value)}
-                    className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Brief introduction"
-                    rows={3}
-                  />
-                </div>
-              </div>
-            ) : (
-              <>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">{displayContent.hero.title}</h1>
-                <p className="text-xl mb-6 opacity-90">{displayContent.hero.subtitle}</p>
-                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{displayContent.hero.description}</p>
-              </>
-            )}
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Fitness with {trainer.fullName}</h1>
+            <p className="text-xl mb-6 opacity-90">
+              Professional {trainer.specialty} trainer with {trainer.experience} of experience
+            </p>
+            <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{displayContent.about.bio}</p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <Badge variant="secondary" className="text-blue-600">
@@ -466,7 +425,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <MapPin className="h-4 w-4 mr-1" />
-                {trainer.location}
+                {displayContent.contact.location}
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <Dumbbell className="h-4 w-4 mr-1" />
@@ -481,34 +440,25 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            {/* About Section - Editable */}
+            {/* About Section */}
             <Card className="relative group">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2" />
-                  {isEditing ? (
-                    <Input
-                      value={displayContent.about.title}
-                      onChange={(e) => updateContent("about.title", e.target.value)}
-                      className="font-semibold"
-                      placeholder="About section title"
-                    />
-                  ) : (
-                    displayContent.about.title
-                  )}
+                  {displayContent.about.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {isEditing ? (
                   <Textarea
-                    value={displayContent.about.content}
-                    onChange={(e) => updateContent("about.content", e.target.value)}
+                    value={displayContent.about.bio}
+                    onChange={(e) => updateContent("about.bio", e.target.value)}
                     placeholder="Tell your story..."
                     rows={8}
                     className="w-full"
                   />
                 ) : (
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{displayContent.about.content}</p>
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{displayContent.about.bio}</p>
                 )}
                 {trainer.certifications && (
                   <div className="mt-4">
@@ -519,7 +469,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardContent>
             </Card>
 
-            {/* Services Section - Editable */}
+            {/* Services Section */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -622,101 +572,29 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
               </CardContent>
             </Card>
-
-            {/* Testimonials Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Star className="h-5 w-5 mr-2" />
-                  Client Testimonials
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 italic">
-                      "Working with {trainer.fullName} has completely transformed my fitness journey. Their expertise in{" "}
-                      {trainer.specialty.toLowerCase()} is unmatched!"
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">- Sarah M.</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 italic">
-                      "Professional, knowledgeable, and motivating. I've achieved results I never thought possible!"
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">- Mike R.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card - Editable */}
+            {/* Contact Card */}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {isEditing ? (
-                    <Input
-                      value={displayContent.contact.title}
-                      onChange={(e) => updateContent("contact.title", e.target.value)}
-                      placeholder="Contact section title"
-                    />
-                  ) : (
-                    displayContent.contact.title
-                  )}
-                </CardTitle>
+                <CardTitle>{displayContent.contact.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isEditing && (
-                  <div>
-                    <Label className="text-sm">Description</Label>
-                    <Textarea
-                      value={displayContent.contact.description}
-                      onChange={(e) => updateContent("contact.description", e.target.value)}
-                      placeholder="Contact description"
-                      rows={3}
-                    />
-                  </div>
-                )}
-
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{trainer.email}</span>
+                  <span className="text-sm">{displayContent.contact.email}</span>
                 </div>
 
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing ? (
-                    <Input
-                      value={displayContent.contact.phone}
-                      onChange={(e) => updateContent("contact.phone", e.target.value)}
-                      placeholder="Phone number"
-                      className="text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">{displayContent.contact.phone || trainer.phone}</span>
-                  )}
+                  <span className="text-sm">{displayContent.contact.phone}</span>
                 </div>
 
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{trainer.location}</span>
+                  <span className="text-sm">{displayContent.contact.location}</span>
                 </div>
 
                 <Separator />
@@ -740,61 +618,11 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{trainer.location}</span>
+                  <span className="font-semibold">{displayContent.contact.location}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
                   <span className="font-semibold">{displayContent.services.length}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Profile Management */}
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <h3 className="text-lg font-bold text-blue-900 mb-2">
-                    {isEditing ? "Editing Mode" : "Profile Management"}
-                  </h3>
-                  <p className="text-sm text-blue-700 mb-4">
-                    {isEditing ? "Make changes and save when ready!" : "Your profile is live and attracting clients!"}
-                  </p>
-                  <div className="space-y-2">
-                    {!isEditing ? (
-                      <>
-                        <Button
-                          onClick={handleStartEditing}
-                          className="w-full bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                          Edit Content
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                          className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
-                        >
-                          View Dashboard
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          onClick={handleSaveChanges}
-                          disabled={saving || !hasUnsavedChanges}
-                          className="w-full bg-green-600 text-white hover:bg-green-700"
-                        >
-                          {saving ? "Saving..." : "Save Changes"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancelEditing}
-                          className="w-full border-red-300 text-red-700 hover:bg-red-50 bg-transparent"
-                        >
-                          Cancel Editing
-                        </Button>
-                      </>
-                    )}
-                  </div>
                 </div>
               </CardContent>
             </Card>
