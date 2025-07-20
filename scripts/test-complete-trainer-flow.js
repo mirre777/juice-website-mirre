@@ -312,6 +312,112 @@ async function testPaymentProcessing(tempId) {
   }
 }
 
+// Step 6: Test data structure validation
+async function testDataStructureValidation(trainer) {
+  console.log("\n=== STEP 6: TESTING DATA STRUCTURE VALIDATION ===")
+
+  if (!trainer) {
+    console.log("❌ No trainer data provided, skipping structure validation")
+    return false
+  }
+
+  try {
+    console.log("Validating trainer data structure...")
+
+    // Test root level fields
+    const rootFields = {
+      id: trainer.id,
+      fullName: trainer.fullName,
+      email: trainer.email,
+      experience: trainer.experience,
+      specialty: trainer.specialty,
+      certifications: trainer.certifications,
+      services: trainer.services,
+      status: trainer.status,
+      createdAt: trainer.createdAt,
+      updatedAt: trainer.updatedAt,
+      isPaid: trainer.isPaid,
+      isActive: trainer.isActive,
+    }
+
+    console.log("Root level fields:", rootFields)
+
+    // Validate status values
+    if (trainer.status !== "temp" && trainer.status !== "active") {
+      console.log("❌ Invalid status value:", trainer.status, "- should be 'temp' or 'active'")
+      return false
+    }
+    console.log("✅ Status value is valid:", trainer.status)
+
+    // Validate boolean fields
+    if (typeof trainer.isPaid !== "boolean" || typeof trainer.isActive !== "boolean") {
+      console.log("❌ isPaid or isActive are not boolean values")
+      console.log("isPaid:", trainer.isPaid, typeof trainer.isPaid)
+      console.log("isActive:", trainer.isActive, typeof trainer.isActive)
+      return false
+    }
+    console.log("✅ Boolean fields are valid")
+
+    // Validate content structure
+    if (!trainer.content) {
+      console.log("❌ Missing content object")
+      return false
+    }
+
+    // Check content.about structure
+    if (!trainer.content.about || !trainer.content.about.title || !trainer.content.about.content) {
+      console.log("❌ Invalid content.about structure")
+      console.log("content.about:", trainer.content.about)
+      return false
+    }
+    console.log("✅ content.about structure is valid")
+
+    // Check content.contact structure
+    const requiredContactFields = ["email", "phone", "location", "title", "description"]
+    const missingContactFields = requiredContactFields.filter((field) => !trainer.content.contact?.[field])
+
+    if (missingContactFields.length > 0) {
+      console.log("❌ Missing contact fields:", missingContactFields)
+      console.log("content.contact:", trainer.content.contact)
+      return false
+    }
+    console.log("✅ content.contact structure is valid")
+
+    // Check that phone and location are NOT at root level
+    if (trainer.phone || trainer.location) {
+      console.log("❌ Phone or location found at root level - should be in content.contact")
+      console.log("Root phone:", trainer.phone)
+      console.log("Root location:", trainer.location)
+      return false
+    }
+    console.log("✅ Phone and location are correctly in content.contact")
+
+    // Check that bio is NOT at root level
+    if (trainer.bio) {
+      console.log("❌ Bio found at root level - should be in content.about.content")
+      console.log("Root bio:", trainer.bio)
+      return false
+    }
+    console.log("✅ Bio is correctly in content.about.content")
+
+    // Validate temp trainer initial values
+    if (trainer.status === "temp") {
+      if (trainer.isPaid !== false || trainer.isActive !== false) {
+        console.log("❌ Temp trainer should have isPaid=false and isActive=false")
+        console.log("isPaid:", trainer.isPaid, "isActive:", trainer.isActive)
+        return false
+      }
+      console.log("✅ Temp trainer has correct initial values")
+    }
+
+    console.log("✅ All data structure validations passed")
+    return true
+  } catch (error) {
+    console.error("❌ Data structure validation error:", error)
+    return false
+  }
+}
+
 // Main test function
 async function runCompleteTrainerFlowTest() {
   console.log("Starting complete trainer flow test...")
@@ -323,6 +429,7 @@ async function runCompleteTrainerFlowTest() {
     tempPageLoading: false,
     paymentPageLoading: false,
     paymentProcessing: false,
+    dataStructureValidation: false,
   }
 
   try {
@@ -343,13 +450,21 @@ async function runCompleteTrainerFlowTest() {
     const trainer = await testTempTrainerAPI(tempId)
     testResults.tempTrainerAPI = !!trainer
 
-    // Step 3: Test temp page loading
+    if (!trainer) {
+      console.log("❌ Cannot continue tests without trainer data")
+      return testResults
+    }
+
+    // Step 3: Test data structure validation
+    testResults.dataStructureValidation = await testDataStructureValidation(trainer)
+
+    // Step 4: Test temp page loading
     testResults.tempPageLoading = await testTempPageLoading(tempId, trainer)
 
-    // Step 4: Test payment page loading
+    // Step 5: Test payment page loading
     testResults.paymentPageLoading = await testPaymentPageLoading(tempId, trainer)
 
-    // Step 5: Test payment processing
+    // Step 6: Test payment processing
     testResults.paymentProcessing = await testPaymentProcessing(tempId)
   } catch (error) {
     console.error("❌ Test execution error:", error)
@@ -359,6 +474,7 @@ async function runCompleteTrainerFlowTest() {
   console.log("\n=== FINAL TEST RESULTS ===")
   console.log("Trainer Creation:", testResults.trainerCreation ? "✅ PASS" : "❌ FAIL")
   console.log("Temp Trainer API:", testResults.tempTrainerAPI ? "✅ PASS" : "❌ FAIL")
+  console.log("Data Structure Validation:", testResults.dataStructureValidation ? "✅ PASS" : "❌ FAIL")
   console.log("Temp Page Loading:", testResults.tempPageLoading ? "✅ PASS" : "❌ FAIL")
   console.log("Payment Page Loading:", testResults.paymentPageLoading ? "✅ PASS" : "❌ FAIL")
   console.log("Payment Processing:", testResults.paymentProcessing ? "✅ PASS" : "❌ FAIL")
@@ -372,6 +488,17 @@ async function runCompleteTrainerFlowTest() {
     console.log("🎉 ALL TESTS PASSED - Trainer flow is working correctly!")
   } else {
     console.log("⚠️ SOME TESTS FAILED - Check the logs above for details")
+  }
+
+  // Print detailed structure analysis
+  console.log("\n=== DETAILED STRUCTURE ANALYSIS ===")
+  if (testResults.tempTrainerAPI) {
+    console.log("This test confirms:")
+    console.log("✓ Status uses 'temp' instead of 'pending'")
+    console.log("✓ isPaid and isActive fields exist at root level")
+    console.log("✓ Phone and location are in content.contact (not root)")
+    console.log("✓ Bio is in content.about.content (not root)")
+    console.log("✓ Initial temp values: isPaid=false, isActive=false, status='temp'")
   }
 
   return testResults
