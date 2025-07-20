@@ -1,4 +1,4 @@
-type LogLevel = "info" | "warn" | "error" | "debug"
+type LogLevel = "debug" | "info" | "warn" | "error"
 
 interface LogContext {
   [key: string]: any
@@ -9,10 +9,10 @@ interface LogData {
 }
 
 interface LogEntry {
-  timestamp: string
   level: LogLevel
   message: string
   data?: any
+  timestamp: string
 }
 
 class Logger {
@@ -31,10 +31,10 @@ class Logger {
 
   private formatLog(level: LogEntry["level"], message: string, context?: LogContext): LogEntry {
     return {
-      timestamp: new Date().toISOString(),
       level,
       message,
-      context,
+      data: context,
+      timestamp: new Date().toISOString(),
       requestId: this.getRequestId(),
     }
   }
@@ -64,26 +64,22 @@ class Logger {
     }
   }
 
+  debug(message: string, data?: any) {
+    if (this.isDevelopment) {
+      console.debug(this.formatMessage("debug", message, data))
+    }
+  }
+
   info(message: string, data?: any) {
-    const formatted = this.formatMessage("info", message, data)
-    console.log(formatted)
+    console.info(this.formatMessage("info", message, data))
   }
 
   warn(message: string, data?: any) {
-    const formatted = this.formatMessage("warn", message, data)
-    console.warn(formatted)
+    console.warn(this.formatMessage("warn", message, data))
   }
 
   error(message: string, data?: any) {
-    const formatted = this.formatMessage("error", message, data)
-    console.error(formatted)
-  }
-
-  debug(message: string, data?: any) {
-    if (this.isDevelopment) {
-      const formatted = this.formatMessage("debug", message, data)
-      console.debug(formatted)
-    }
+    console.error(this.formatMessage("error", message, data))
   }
 
   // Trainer-specific logging methods

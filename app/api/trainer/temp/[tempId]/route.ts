@@ -5,9 +5,11 @@ import { logger } from "@/lib/logger"
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   const { tempId } = params
   const requestId = Math.random().toString(36).substring(2, 15)
+  const url = new URL(request.url)
+  const token = url.searchParams.get("token")
 
   try {
-    logger.info("=== TEMP TRAINER API GET CALLED ===", { tempId, requestId })
+    logger.info("=== TEMP TRAINER API GET CALLED ===", { tempId, requestId, hasToken: !!token })
 
     if (!tempId) {
       logger.warn("No tempId provided", { requestId })
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       )
     }
 
-    // Get temp trainer data
+    // Get trainer data (from trainers collection)
     const trainer = await TrainerService.getTempTrainer(tempId)
 
     if (!trainer) {
@@ -29,10 +31,23 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json(
         {
           success: false,
-          error: "Trainer not found",
+          error: "Trainer not found or expired",
           requestId,
         },
         { status: 404 },
+      )
+    }
+
+    // Validate session token if provided
+    if (token && trainer.sessionToken && token !== trainer.sessionToken) {
+      logger.warn("Invalid session token", { tempId, requestId })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid access token",
+          requestId,
+        },
+        { status: 403 },
       )
     }
 
@@ -41,6 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       requestId,
       email: trainer.email,
       fullName: trainer.fullName,
+      status: trainer.status,
     })
 
     return NextResponse.json({

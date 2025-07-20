@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create temporary trainer
+    // Create temporary trainer (stored in trainers collection with pending status)
     logger.info("Calling TrainerService.createTempTrainer", { requestId })
     const tempId = await TrainerService.createTempTrainer(formData)
     logger.info("TrainerService.createTempTrainer returned", { requestId, tempId })
