@@ -32,37 +32,33 @@ export interface TrainerData {
   id?: string
   fullName: string
   email: string
-  phone: string
-  location: string
   experience: string
   specialty: string
   certifications: string
-  bio: string
-  services: string[]
-  status: "pending" | "active" | "inactive"
+  status: "temp" | "active"
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
   expiresAt?: string
   sessionToken?: string
   requestId?: string
-  isPaid?: boolean
-  isActive?: boolean
-  content?: {
-    about?: {
+  isPaid: boolean
+  isActive: boolean
+  content: {
+    about: {
+      title: string
+      content: string
+    }
+    contact: {
       title: string
       description: string
-    }
-    services?: string[]
-    testimonials?: Array<{
-      name: string
-      text: string
-      rating: number
-    }>
-    gallery?: string[]
-    contact?: {
       email: string
       phone: string
       location: string
+    }
+    customization: {
+      isDraft: boolean
+      lastUpdated: string
+      version: number
     }
   }
 }
@@ -70,47 +66,56 @@ export interface TrainerData {
 export class TrainerService {
   private static COLLECTION_NAME = "trainers"
 
-  static async createTempTrainer(trainerData: Omit<TrainerData, "id" | "createdAt" | "updatedAt">): Promise<string> {
+  static async createTempTrainer(formData: {
+    fullName: string
+    email: string
+    phone: string
+    location: string
+    experience: string
+    specialty: string
+    certifications: string
+    bio: string
+    services: string[]
+  }): Promise<string> {
     try {
       const tempId = nanoid()
       const now = new Date().toISOString()
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
 
       const docData: TrainerData = {
-        ...trainerData,
         id: tempId,
-        status: "pending", // Use "pending" for temp trainers
+        fullName: formData.fullName,
+        email: formData.email,
+        experience: formData.experience,
+        specialty: formData.specialty,
+        certifications: formData.certifications || "",
+        status: "temp",
         createdAt: now,
         updatedAt: now,
         expiresAt,
         sessionToken: nanoid(),
         requestId: nanoid(),
-        // Generate initial content from form data
+        isPaid: false,
+        isActive: false,
         content: {
           about: {
-            title: `About ${trainerData.fullName}`,
-            description:
-              trainerData.bio ||
-              `Passionate ${trainerData.specialty} trainer with ${trainerData.experience} of experience helping clients achieve their health and fitness goals.`,
+            title: `About ${formData.fullName}`,
+            content:
+              formData.bio ||
+              `Passionate ${formData.specialty} trainer with ${formData.experience} of experience helping clients achieve their health and fitness goals.`,
           },
-          services: trainerData.services || ["Personal Training", "Nutrition Coaching", "Workout Plans"],
-          testimonials: [
-            {
-              name: "Sarah M.",
-              text: "Amazing trainer! Helped me reach my fitness goals.",
-              rating: 5,
-            },
-            {
-              name: "John D.",
-              text: "Professional and knowledgeable. Highly recommend!",
-              rating: 5,
-            },
-          ],
-          gallery: [],
           contact: {
-            email: trainerData.email,
-            phone: trainerData.phone,
-            location: trainerData.location,
+            title: "Let's Start Your Fitness Journey",
+            description:
+              "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+            email: formData.email,
+            phone: formData.phone,
+            location: formData.location,
+          },
+          customization: {
+            isDraft: false,
+            lastUpdated: now,
+            version: 1,
           },
         },
       }
@@ -135,10 +140,10 @@ export class TrainerService {
         const data = docSnap.data() as TrainerData
         console.log("Document exists, status:", data.status)
 
-        // Return both pending (temp) and active trainers for payment page
-        if (data.status === "pending" || data.status === "active") {
-          // Check if expired (only for pending trainers)
-          if (data.status === "pending" && data.expiresAt && new Date(data.expiresAt) < new Date()) {
+        // Return both temp and active trainers for payment page
+        if (data.status === "temp" || data.status === "active") {
+          // Check if expired (only for temp trainers)
+          if (data.status === "temp" && data.expiresAt && new Date(data.expiresAt) < new Date()) {
             console.log("❌ Trainer expired, deleting...")
             await this.deleteTempTrainer(tempId)
             return null
@@ -146,7 +151,7 @@ export class TrainerService {
           console.log("✅ Returning trainer data")
           return { id: tempId, ...data }
         } else {
-          console.log("❌ Trainer status not pending or active:", data.status)
+          console.log("❌ Trainer status not temp or active:", data.status)
         }
       } else {
         console.log("❌ Document does not exist")
@@ -167,7 +172,7 @@ export class TrainerService {
       if (docSnap.exists()) {
         const data = docSnap.data() as TrainerData
 
-        if (data.status === "pending") {
+        if (data.status === "temp") {
           await updateDoc(docRef, {
             status: "active",
             isActive: true,
@@ -222,7 +227,14 @@ export class TrainerService {
     try {
       const docRef = doc(db, this.COLLECTION_NAME, id)
       await updateDoc(docRef, {
-        content,
+        content: {
+          ...content,
+          customization: {
+            ...content.customization,
+            lastUpdated: new Date().toISOString(),
+            version: (content.customization?.version || 0) + 1,
+          },
+        },
         updatedAt: new Date().toISOString(),
       })
       return true

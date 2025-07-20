@@ -83,12 +83,52 @@ async function testTempTrainerAPI(tempId) {
           console.log("Trainer name:", data.trainer.fullName)
           console.log("Trainer status:", data.trainer.status)
           console.log("Trainer email:", data.trainer.email)
+          console.log("Trainer isPaid:", data.trainer.isPaid)
+          console.log("Trainer isActive:", data.trainer.isActive)
           console.log("Trainer content exists:", !!data.trainer.content)
 
           if (data.trainer.content) {
             console.log("Content about:", data.trainer.content.about)
-            console.log("Content services:", data.trainer.content.services)
-            console.log("Content testimonials:", data.trainer.content.testimonials?.length || 0)
+            console.log("Content contact:", data.trainer.content.contact)
+            console.log("Content customization:", data.trainer.content.customization)
+          }
+
+          // Validate structure matches expected format
+          const expectedFields = [
+            "fullName",
+            "email",
+            "experience",
+            "specialty",
+            "status",
+            "isPaid",
+            "isActive",
+            "content",
+          ]
+          const missingFields = expectedFields.filter((field) => !(field in data.trainer))
+
+          if (missingFields.length > 0) {
+            console.log("❌ Missing expected fields:", missingFields)
+          } else {
+            console.log("✅ All expected fields present")
+          }
+
+          // Validate status values
+          if (data.trainer.status === "temp" || data.trainer.status === "active") {
+            console.log("✅ Status field has correct value:", data.trainer.status)
+          } else {
+            console.log("❌ Status field has incorrect value:", data.trainer.status)
+          }
+
+          // Validate content structure
+          if (data.trainer.content && data.trainer.content.contact) {
+            const contactFields = ["email", "phone", "location"]
+            const missingContactFields = contactFields.filter((field) => !(field in data.trainer.content.contact))
+
+            if (missingContactFields.length === 0) {
+              console.log("✅ Contact fields properly nested in content")
+            } else {
+              console.log("❌ Missing contact fields in content:", missingContactFields)
+            }
           }
 
           return data.trainer
@@ -129,7 +169,7 @@ async function testTempPageLoading(tempId, trainer) {
     console.log("Temp page URL:", tempPageUrl)
 
     // Check if trainer data has required fields for temp page
-    const requiredFields = ["fullName", "email", "location", "specialty", "experience"]
+    const requiredFields = ["fullName", "email", "specialty", "experience"]
     const missingFields = requiredFields.filter((field) => !trainer[field])
 
     if (missingFields.length > 0) {
@@ -143,14 +183,19 @@ async function testTempPageLoading(tempId, trainer) {
     if (trainer.content) {
       console.log("✅ Content data available for temp page")
       console.log("About title:", trainer.content.about?.title)
-      console.log("Services count:", trainer.content.services?.length || 0)
-      console.log("Testimonials count:", trainer.content.testimonials?.length || 0)
+      console.log("About content:", trainer.content.about?.content?.substring(0, 50) + "...")
+      console.log("Contact info:", {
+        email: trainer.content.contact?.email,
+        phone: trainer.content.contact?.phone,
+        location: trainer.content.contact?.location,
+      })
     } else {
-      console.log("⚠️ No content data - temp page will use fallback content")
+      console.log("❌ No content data - temp page will fail")
+      return false
     }
 
-    // Check expiration logic
-    if (trainer.expiresAt) {
+    // Check expiration logic for temp trainers
+    if (trainer.status === "temp" && trainer.expiresAt) {
       const expiryTime = new Date(trainer.expiresAt).getTime()
       const now = new Date().getTime()
       const timeLeft = expiryTime - now
@@ -219,7 +264,7 @@ async function testPaymentPageLoading(tempId, trainer) {
       console.log("✅ Payment page would show payment form")
 
       // Check required fields for payment form
-      const paymentRequiredFields = ["fullName", "email", "location", "specialty"]
+      const paymentRequiredFields = ["fullName", "email", "specialty"]
       const missingPaymentFields = paymentRequiredFields.filter((field) => !mockApiResponse.trainer[field])
 
       if (missingPaymentFields.length > 0) {
@@ -230,6 +275,9 @@ async function testPaymentPageLoading(tempId, trainer) {
       console.log("✅ All required fields present for payment form")
       console.log("Payment form would display trainer:", mockApiResponse.trainer.fullName)
       console.log("Payment amount: €70")
+      console.log("Trainer status:", mockApiResponse.trainer.status)
+      console.log("Trainer isPaid:", mockApiResponse.trainer.isPaid)
+      console.log("Trainer isActive:", mockApiResponse.trainer.isActive)
 
       return true
     } else {
