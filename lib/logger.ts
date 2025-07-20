@@ -13,20 +13,16 @@ interface LogEntry {
   message: string
   data?: any
   timestamp: string
+  requestId?: string
 }
 
 class Logger {
   private isDevelopment = process.env.NODE_ENV === "development"
 
-  private formatMessage(level: LogLevel, message: string, data?: any): string {
+  private formatMessage(level: string, message: string, data?: LogData): string {
     const timestamp = new Date().toISOString()
-    const prefix = `[${timestamp}] [${level.toUpperCase()}]`
-
-    if (data) {
-      return `${prefix} ${message} ${JSON.stringify(data, null, 2)}`
-    }
-
-    return `${prefix} ${message}`
+    const dataStr = data ? ` ${JSON.stringify(data)}` : ""
+    return `[${timestamp}] ${level.toUpperCase()}: ${message}${dataStr}`
   }
 
   private formatLog(level: LogEntry["level"], message: string, context?: LogContext): LogEntry {
@@ -64,22 +60,22 @@ class Logger {
     }
   }
 
-  debug(message: string, data?: any) {
-    if (this.isDevelopment) {
-      console.debug(this.formatMessage("debug", message, data))
-    }
+  info(message: string, data?: LogData): void {
+    console.log(this.formatMessage("info", message, data))
   }
 
-  info(message: string, data?: any) {
-    console.info(this.formatMessage("info", message, data))
-  }
-
-  warn(message: string, data?: any) {
+  warn(message: string, data?: LogData): void {
     console.warn(this.formatMessage("warn", message, data))
   }
 
-  error(message: string, data?: any) {
+  error(message: string, data?: LogData): void {
     console.error(this.formatMessage("error", message, data))
+  }
+
+  debug(message: string, data?: LogData): void {
+    if (process.env.NODE_ENV === "development") {
+      console.debug(this.formatMessage("debug", message, data))
+    }
   }
 
   // Trainer-specific logging methods

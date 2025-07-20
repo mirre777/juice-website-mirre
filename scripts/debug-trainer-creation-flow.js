@@ -1,99 +1,66 @@
-import fetch from "node-fetch"
+console.log("=== TRAINER CREATION FLOW DEBUG ===")
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+// Test data
+const testTrainerData = {
+  fullName: "Test Trainer",
+  email: "test@example.com",
+  phone: "+1234567890",
+  location: "Test City",
+  experience: "5+ years",
+  specialty: "Weight Training",
+  certifications: "NASM, ACE",
+  bio: "Experienced trainer specializing in strength training",
+  services: ["Personal Training", "Group Classes"],
+}
 
-async function testTrainerCreationFlow() {
-  console.log("🔍 Testing Trainer Creation Flow")
-  console.log("================================")
-
-  // Test data
-  const testFormData = {
-    fullName: "Test Trainer",
-    email: "test@example.com",
-    phone: "+1234567890",
-    location: "New York, NY",
-    specialty: "Personal Training",
-    experience: "3-5 years",
-    bio: "I'm a certified personal trainer with experience helping clients achieve their fitness goals through personalized workout plans and nutrition guidance.",
-    certifications: "NASM-CPT, ACE Personal Trainer",
-    services: ["Personal Training", "Nutrition Coaching", "Weight Loss Programs"],
-  }
-
+async function testTrainerCreation() {
   try {
-    console.log("📤 Sending POST request to /api/trainer/create")
-    console.log("Request data:", JSON.stringify(testFormData, null, 2))
+    console.log("1. Testing trainer creation API...")
 
-    const response = await fetch(`${BASE_URL}/api/trainer/create`, {
+    const createResponse = await fetch("/api/trainer/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(testFormData),
+      body: JSON.stringify(testTrainerData),
     })
 
-    console.log("\n📥 Response Status:", response.status)
-    console.log("Response Headers:", Object.fromEntries(response.headers.entries()))
+    const createResult = await createResponse.json()
+    console.log("Create API Response:", createResult)
 
-    const responseText = await response.text()
-    console.log("\n📄 Raw Response:", responseText)
-
-    let responseData
-    try {
-      responseData = JSON.parse(responseText)
-      console.log("\n✅ Parsed Response:", JSON.stringify(responseData, null, 2))
-    } catch (parseError) {
-      console.log("\n❌ Failed to parse response as JSON:", parseError.message)
+    if (!createResult.success) {
+      console.error("❌ Create API failed:", createResult.error)
       return
     }
 
-    if (responseData.success && responseData.tempId) {
-      console.log("\n🎉 Creation successful!")
-      console.log("Temp ID:", responseData.tempId)
-      console.log("Redirect URL:", responseData.redirectUrl)
+    const tempId = createResult.tempId
+    console.log("✅ Trainer created with tempId:", tempId)
 
-      // Test if the temp trainer can be fetched
-      console.log("\n🔍 Testing temp trainer fetch...")
-      const fetchResponse = await fetch(`${BASE_URL}/api/trainer/temp/${responseData.tempId}`)
-      console.log("Fetch Status:", fetchResponse.status)
+    // Test fetching the temp trainer
+    console.log("2. Testing temp trainer fetch...")
 
-      const fetchData = await fetchResponse.json()
-      console.log("Fetch Response:", JSON.stringify(fetchData, null, 2))
+    const fetchResponse = await fetch(`/api/trainer/temp/${tempId}`)
+    const fetchResult = await fetchResponse.json()
 
-      if (fetchData.success) {
-        console.log("✅ Temp trainer can be fetched successfully")
-        console.log("Full URL that should work:", `${BASE_URL}/marketplace/trainer/temp/${responseData.tempId}`)
-      } else {
-        console.log("❌ Temp trainer fetch failed")
-      }
-    } else {
-      console.log("\n❌ Creation failed")
-      console.log("Error:", responseData.error)
-      console.log("Details:", responseData.details)
+    console.log("Fetch API Response:", fetchResult)
+
+    if (fetchResult.error) {
+      console.error("❌ Fetch API failed:", fetchResult.error)
+      return
     }
+
+    console.log("✅ Temp trainer fetched successfully")
+    console.log("Trainer data:", fetchResult.trainer)
+
+    // Test the redirect URL
+    const redirectUrl = createResult.redirectUrl
+    console.log("3. Testing redirect URL:", redirectUrl)
+
+    console.log("=== DEBUG COMPLETE ===")
   } catch (error) {
-    console.error("\n💥 Network Error:", error.message)
-    console.error("Stack:", error.stack)
+    console.error("❌ Test failed with error:", error)
   }
 }
 
-// Test Firebase connection
-async function testFirebaseConnection() {
-  console.log("\n🔥 Testing Firebase Connection")
-  console.log("==============================")
-
-  try {
-    const response = await fetch(`${BASE_URL}/api/debug-firestore`)
-    const data = await response.json()
-    console.log("Firebase Status:", JSON.stringify(data, null, 2))
-  } catch (error) {
-    console.error("Firebase test failed:", error.message)
-  }
-}
-
-// Run tests
-async function runAllTests() {
-  await testFirebaseConnection()
-  await testTrainerCreationFlow()
-}
-
-runAllTests().catch(console.error)
+// Run the test
+testTrainerCreation()
