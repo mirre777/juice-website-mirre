@@ -1,3 +1,5 @@
+type LogLevel = "info" | "warn" | "error" | "debug"
+
 interface LogContext {
   [key: string]: any
 }
@@ -8,21 +10,23 @@ interface LogData {
 
 interface LogEntry {
   timestamp: string
-  level: "info" | "warn" | "error" | "debug"
+  level: LogLevel
   message: string
-  context?: LogContext
-  requestId?: string
-  userId?: string
-  trainerId?: string
+  data?: any
 }
 
 class Logger {
   private isDevelopment = process.env.NODE_ENV === "development"
 
-  private formatMessage(level: string, message: string, data?: LogData): string {
+  private formatMessage(level: LogLevel, message: string, data?: any): string {
     const timestamp = new Date().toISOString()
-    const logData = data ? ` | ${JSON.stringify(data)}` : ""
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${logData}`
+    const prefix = `[${timestamp}] [${level.toUpperCase()}]`
+
+    if (data) {
+      return `${prefix} ${message} ${JSON.stringify(data, null, 2)}`
+    }
+
+    return `${prefix} ${message}`
   }
 
   private formatLog(level: LogEntry["level"], message: string, context?: LogContext): LogEntry {
@@ -60,21 +64,25 @@ class Logger {
     }
   }
 
-  info(message: string, data?: LogData): void {
-    console.log(`[INFO] ${message}`, data ? JSON.stringify(data, null, 2) : "")
+  info(message: string, data?: any) {
+    const formatted = this.formatMessage("info", message, data)
+    console.log(formatted)
   }
 
-  warn(message: string, data?: LogData): void {
-    console.warn(`[WARN] ${message}`, data ? JSON.stringify(data, null, 2) : "")
+  warn(message: string, data?: any) {
+    const formatted = this.formatMessage("warn", message, data)
+    console.warn(formatted)
   }
 
-  error(message: string, data?: LogData): void {
-    console.error(`[ERROR] ${message}`, data ? JSON.stringify(data, null, 2) : "")
+  error(message: string, data?: any) {
+    const formatted = this.formatMessage("error", message, data)
+    console.error(formatted)
   }
 
-  debug(message: string, data?: LogData): void {
-    if (process.env.NODE_ENV === "development") {
-      console.debug(`[DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : "")
+  debug(message: string, data?: any) {
+    if (this.isDevelopment) {
+      const formatted = this.formatMessage("debug", message, data)
+      console.debug(formatted)
     }
   }
 

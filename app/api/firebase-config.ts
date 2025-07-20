@@ -1,52 +1,71 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore, type FirebaseFirestore } from "firebase-admin/firestore"
+import { logger } from "@/lib/logger"
 
 let db: FirebaseFirestore.Firestore | null = null
 
 export function hasRealFirebaseConfig(): boolean {
-  return !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY)
-}
+  const requiredEnvVars = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"]
 
-export function hasFirebaseConfig(): boolean {
-  return hasRealFirebaseConfig()
+  const hasAllVars = requiredEnvVars.every((varName) => {
+    const value = process.env[varName]
+    return value && value.trim() !== ""
+  })
+
+  logger.debug("Firebase config check", {
+    hasAllVars,
+    projectId: process.env.FIREBASE_PROJECT_ID ? "present" : "missing",
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL ? "present" : "missing",
+    privateKey: process.env.FIREBASE_PRIVATE_KEY ? "present" : "missing",
+  })
+
+  return hasAllVars
 }
 
 function initializeFirebase() {
-  if (typeof window !== "undefined") {
-    // Client-side: return null, Firebase Admin is server-only
-    return null
-  }
-
-  if (!hasRealFirebaseConfig()) {
-    console.warn("Firebase configuration incomplete")
-    return null
-  }
-
   try {
-    // Check if Firebase app is already initialized
-    if (getApps().length === 0) {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
-
-      initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: privateKey,
-        }),
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      })
+    if (!hasRealFirebaseConfig()) {
+      logger.warn("Firebase configuration incomplete - using mock mode")
+      return null
     }
 
-    return getFirestore()
+    // Check if Firebase is already initialized
+    if (getApps().length > 0) {
+      logger.info("Firebase already initialized")
+      return getFirestore()
+    }
+
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
+
+    if (!privateKey) {
+      throw new Error("FIREBASE_PRIVATE_KEY is missing or invalid")
+    }
+
+    const app = initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID!,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+        privateKey: privateKey,
+      }),
+      projectId: process.env.FIREBASE_PROJECT_ID!,
+    })
+
+    const firestore = getFirestore(app)
+    logger.info("Firebase initialized successfully", {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+    })
+
+    return firestore
   } catch (error) {
-    console.error("Firebase initialization error:", error)
+    logger.error("Failed to initialize Firebase", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return null
   }
 }
 
-// Initialize Firebase and get Firestore instance
-if (!db && typeof window === "undefined") {
-  db = initializeFirebase()
-}
+// Initialize Firebase
+db = initializeFirebase()
 
 export { db }
