@@ -16,9 +16,9 @@ interface TrainerData {
   location: string
   specialty: string
   experience: string
-  bio?: string
+  bio: string
   certifications?: string
-  services?: string[]
+  services: string[]
   status: string
   createdAt: string
   expiresAt?: string
@@ -37,11 +37,13 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
   // Countdown timer
   useEffect(() => {
+    // Set expiry to 24 hours from creation if not set
+    const expiryTime = trainer?.expiresAt
+      ? new Date(trainer.expiresAt).getTime()
+      : new Date(trainer.createdAt).getTime() + 24 * 60 * 60 * 1000
+
     const updateCountdown = () => {
       try {
-        const expiryTime = trainer.expiresAt
-          ? new Date(trainer.expiresAt).getTime()
-          : new Date(Date.now() + 24 * 60 * 60 * 1000).getTime()
         const now = new Date().getTime()
         const difference = expiryTime - now
 
@@ -66,11 +68,11 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
     const interval = setInterval(updateCountdown, 1000)
 
     return () => clearInterval(interval)
-  }, [trainer])
+  }, [trainer?.expiresAt, trainer?.createdAt])
 
   const handleActivate = () => {
     if (trainer?.id) {
-      router.push(`/payment?tempId=${trainer.id}`)
+      router.push(`/payment?tempId=${trainer.id}${token ? `&token=${encodeURIComponent(token)}` : ""}`)
     }
   }
 

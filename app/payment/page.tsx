@@ -300,9 +300,14 @@ function PaymentPageContent() {
       try {
         console.log("=== FETCHING TEMP TRAINER FOR PAYMENT ===")
         console.log("Temp ID:", tempId)
-        console.log("API URL:", `/api/trainer/temp/${tempId}`)
 
-        const response = await fetch(`/api/trainer/temp/${tempId}`)
+        // Use absolute URL to avoid parsing issues
+        const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+        const apiUrl = `${baseUrl}/api/trainer/temp/${tempId}`
+
+        console.log("API URL:", apiUrl)
+
+        const response = await fetch(apiUrl)
 
         console.log("Response status:", response.status)
         console.log("Response ok:", response.ok)
