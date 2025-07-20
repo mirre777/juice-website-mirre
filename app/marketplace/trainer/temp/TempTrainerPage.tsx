@@ -37,10 +37,9 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
   // Countdown timer
   useEffect(() => {
-    // Set expiry to 24 hours from creation if not set
     const expiryTime = trainer?.expiresAt
       ? new Date(trainer.expiresAt).getTime()
-      : new Date(trainer.createdAt).getTime() + 24 * 60 * 60 * 1000
+      : new Date(Date.now() + 24 * 60 * 60 * 1000).getTime() // 24 hours from now if no expiry set
 
     const updateCountdown = () => {
       try {
@@ -68,7 +67,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
     const interval = setInterval(updateCountdown, 1000)
 
     return () => clearInterval(interval)
-  }, [trainer?.expiresAt, trainer?.createdAt])
+  }, [trainer?.expiresAt])
 
   const handleActivate = () => {
     if (trainer?.id) {
