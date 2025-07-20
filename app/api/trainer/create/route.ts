@@ -5,32 +5,28 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { fullName, email, phone, location, experience, certifications, specialty, bio, services } = body
+    const { fullName, email, phone, location, experience, specialty, certifications, bio, services } = body
 
     // Validate required fields
-    if (!fullName || !email || !phone || !location || !experience || !certifications || !specialty || !bio) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 })
+    if (!fullName || !email || !phone || !location || !experience || !specialty) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    console.log("Creating temp trainer for:", fullName)
-
+    // Create temp trainer
     const tempId = await TrainerService.createTempTrainer({
       fullName,
       email,
       phone,
       location,
       experience,
-      certifications,
       specialty,
-      bio,
+      certifications: certifications || "",
+      bio: bio || "",
       services: services || [],
       status: "pending",
     })
 
     const redirectUrl = `/marketplace/trainer/temp/${tempId}`
-
-    console.log("Created temp trainer with ID:", tempId)
-    console.log("Redirect URL:", redirectUrl)
 
     return NextResponse.json({
       success: true,

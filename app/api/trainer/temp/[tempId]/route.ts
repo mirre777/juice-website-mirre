@@ -9,23 +9,15 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
       return NextResponse.json({ error: "Temp ID is required" }, { status: 400 })
     }
 
-    console.log("Fetching temp trainer:", tempId)
-
     const trainer = await TrainerService.getTempTrainer(tempId)
 
     if (!trainer) {
-      console.log("Temp trainer not found:", tempId)
       return NextResponse.json({ error: "Trainer not found or expired" }, { status: 404 })
     }
 
-    console.log("Found temp trainer:", trainer.fullName)
-
-    return NextResponse.json({
-      success: true,
-      trainer,
-    })
+    return NextResponse.json({ trainer })
   } catch (error) {
     console.error("Error fetching temp trainer:", error)
-    return NextResponse.json({ error: "Failed to fetch trainer data" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
