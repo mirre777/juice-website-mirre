@@ -330,8 +330,7 @@ function PaymentPageContent() {
           return
         }
 
-        // Check for success field in response
-        if (data.success === true && data.trainer) {
+        if (data.success && data.trainer) {
           console.log("✅ Success and trainer data found")
           console.log("Setting temp trainer for payment:", data.trainer)
           setTempTrainer(data.trainer)

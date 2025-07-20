@@ -10,43 +10,24 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
 
     if (!tempId) {
       console.log("❌ No temp ID provided")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Temp ID is required",
-        },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
     }
 
     const trainer = await TrainerService.getTempTrainer(tempId)
 
-    console.log("Trainer from service:", trainer)
+    console.log("=== TRAINER SERVICE RESULT ===")
+    console.log("Trainer found:", !!trainer)
+    console.log("Trainer data:", trainer)
 
     if (!trainer) {
       console.log("❌ Trainer not found or expired")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer not found or expired",
-        },
-        { status: 404 },
-      )
+      return NextResponse.json({ success: false, error: "Trainer not found or expired" }, { status: 404 })
     }
 
-    console.log("✅ Trainer found, returning success response")
-    return NextResponse.json({
-      success: true,
-      trainer,
-    })
+    console.log("✅ Returning trainer data with success: true")
+    return NextResponse.json({ success: true, trainer })
   } catch (error) {
     console.error("❌ Error fetching temp trainer:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }

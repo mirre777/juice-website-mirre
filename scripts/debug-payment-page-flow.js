@@ -1,10 +1,10 @@
 console.log("=== DEBUGGING PAYMENT PAGE FLOW ===")
 
-// Test 1: Testing temp trainer API endpoint
+// Test temp trainer API endpoint
 async function testTempTrainerAPI() {
   console.log("1. Testing temp trainer API endpoint...")
 
-  const tempId = "a2hKORaVcPvJ5oXOj4Udg" // Use the actual temp ID from your test
+  const tempId = "a2hKORaVcPvJ5oXOj4Udg" // Use the actual temp ID from your URL
 
   try {
     const response = await fetch(`/api/trainer/temp/${tempId}`)
@@ -14,65 +14,79 @@ async function testTempTrainerAPI() {
     const data = await response.json()
     console.log("API Response Data:", data)
 
-    // Check if response has expected structure
-    if (data.success) {
-      console.log("✅ API returns success field")
+    // Check if response has success field
+    if (data.success !== undefined) {
+      console.log("✅ Response has success field:", data.success)
     } else {
-      console.log("❌ API missing success field")
+      console.log("❌ Response missing success field")
     }
 
+    // Check if trainer data exists
     if (data.trainer) {
-      console.log("✅ API returns trainer data")
-      console.log("Trainer Status:", data.trainer.status)
+      console.log("✅ Trainer data exists")
+      console.log("Trainer status:", data.trainer.status)
+      console.log("Trainer content:", data.trainer.content)
     } else {
-      console.log("❌ API missing trainer data")
+      console.log("❌ No trainer data in response")
     }
+
+    return data
   } catch (error) {
     console.error("❌ API Error:", error)
+    return null
   }
 }
 
-// Test 2: Testing payment page component logic
-function testPaymentPageLogic() {
-  console.log("2. Testing payment page component logic...")
+// Test payment page component logic
+async function testPaymentPageFlow() {
+  console.log("\n2. Testing payment page component logic...")
 
-  const urlParams = new URLSearchParams(window.location.search)
-  const tempId = urlParams.get("tempId")
-
+  const tempId = "a2hKORaVcPvJ5oXOj4Udg"
   console.log("TempId from URL params:", tempId)
 
-  if (tempId) {
-    console.log("✅ TempId found in URL parameters")
+  if (!tempId) {
+    console.log("❌ No tempId found in URL parameters")
+    return
   } else {
-    console.log("❌ TempId not found in URL parameters")
+    console.log("✅ TempId found in URL parameters")
   }
-}
 
-// Test 3: Testing absolute URL construction
-function testAbsoluteURL() {
-  console.log("3. Testing absolute URL construction...")
-
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
-  const tempId = "a2hKORaVcPvJ5oXOj4Udg"
-  const apiUrl = `${baseUrl}/api/trainer/temp/${tempId}`
-
-  console.log("Base URL:", baseUrl)
-  console.log("Constructed API URL:", apiUrl)
-
+  // Simulate the fetch logic from payment page
   try {
-    new URL(apiUrl)
-    console.log("✅ URL construction successful")
+    const baseUrl = window.location.origin
+    const apiUrl = `${baseUrl}/api/trainer/temp/${tempId}`
+    console.log("Constructed API URL:", apiUrl)
+
+    const response = await fetch(apiUrl)
+    const data = await response.json()
+
+    console.log("Payment page fetch result:", data)
+
+    // Simulate the component logic
+    if (!response.ok) {
+      console.log("❌ Response not ok - would show error")
+      return
+    }
+
+    if (data.success && data.trainer) {
+      console.log("✅ Would show payment form")
+    } else {
+      console.log("❌ Would show error - missing success or trainer")
+      console.log("Success:", data.success)
+      console.log("Trainer:", !!data.trainer)
+    }
   } catch (error) {
-    console.log("❌ URL construction failed:", error)
+    console.error("❌ Payment page fetch error:", error)
   }
 }
 
-// Run all tests
+// Run tests
 async function runAllTests() {
   await testTempTrainerAPI()
-  testPaymentPageLogic()
-  testAbsoluteURL()
-  console.log("=== DEBUGGING COMPLETE ===")
+  await testPaymentPageFlow()
+
+  console.log("\n=== SUMMARY ===")
+  console.log("Check the logs above to identify the exact issue.")
 }
 
 runAllTests()

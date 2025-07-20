@@ -16,29 +16,13 @@ interface TrainerData {
   location: string
   specialty: string
   experience: string
-  bio?: string
+  bio: string
   certifications?: string
-  services?: string[]
+  services: string[]
   status: string
   createdAt: string
   expiresAt?: string
   sessionToken?: string
-  content?: {
-    title: string
-    description: string
-    services: string[]
-    testimonials: Array<{
-      name: string
-      text: string
-      rating: number
-    }>
-    gallery: string[]
-    contact: {
-      email: string
-      phone: string
-      location: string
-    }
-  }
 }
 
 interface TempTrainerPageProps {
@@ -53,11 +37,12 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
   // Countdown timer
   useEffect(() => {
-    if (!trainer?.expiresAt) return
+    const expiryTime = trainer?.expiresAt
+      ? new Date(trainer.expiresAt).getTime()
+      : new Date(Date.now() + 24 * 60 * 60 * 1000).getTime() // 24 hours from now if no expiry set
 
     const updateCountdown = () => {
       try {
-        const expiryTime = new Date(trainer.expiresAt!).getTime()
         const now = new Date().getTime()
         const difference = expiryTime - now
 
@@ -86,22 +71,23 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
   const handleActivate = () => {
     if (trainer?.id) {
-      router.push(`/payment?tempId=${trainer.id}`)
+      router.push(`/payment?tempId=${trainer.id}${token ? `&token=${encodeURIComponent(token)}` : ""}`)
     }
   }
 
-  // Use content data if available, otherwise fallback to form data
-  const services = trainer?.content?.services ||
-    trainer?.services || [
-      "Personal Training Sessions",
-      "Nutrition Coaching",
-      "Workout Plan Design",
-      "Progress Tracking",
-    ]
+  const services = trainer?.services || [
+    "Personal Training Sessions",
+    "Nutrition Coaching",
+    "Workout Plan Design",
+    "Progress Tracking",
+  ]
 
   const specialties = [trainer?.specialty || "Fitness Training"]
+
   const certifications = trainer?.certifications
-    ? [trainer.certifications]
+    ? typeof trainer.certifications === "string"
+      ? [trainer.certifications]
+      : trainer.certifications
     : ["Certified Personal Trainer", "Nutrition Specialist"]
 
   return (
@@ -190,8 +176,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  {trainer?.content?.description ||
-                    trainer?.bio ||
+                  {trainer?.bio ||
                     `Passionate ${trainer?.specialty || "fitness"} trainer with ${trainer?.experience || "5+ years"} of experience helping clients achieve their health and fitness goals. I believe in creating personalized workout plans that fit your lifestyle and help you build sustainable healthy habits.`}
                 </p>
               </CardContent>

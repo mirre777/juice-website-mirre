@@ -39,7 +39,7 @@ export interface TrainerData {
   certifications: string
   bio: string
   services: string[]
-  status: "temp" | "active" | "inactive"
+  status: "pending" | "active" | "inactive"
   createdAt: string
   updatedAt: string
   expiresAt?: string
@@ -48,16 +48,18 @@ export interface TrainerData {
   isPaid?: boolean
   isActive?: boolean
   content?: {
-    title: string
-    description: string
-    services: string[]
-    testimonials: Array<{
+    about?: {
+      title: string
+      description: string
+    }
+    services?: string[]
+    testimonials?: Array<{
       name: string
       text: string
       rating: number
     }>
-    gallery: string[]
-    contact: {
+    gallery?: string[]
+    contact?: {
       email: string
       phone: string
       location: string
@@ -68,71 +70,50 @@ export interface TrainerData {
 export class TrainerService {
   private static COLLECTION_NAME = "trainers"
 
-  // Generate content from trainer data
-  private static generateTrainerContent(
-    trainerData: Omit<TrainerData, "id" | "createdAt" | "updatedAt">,
-  ): TrainerData["content"] {
-    return {
-      title: `${trainerData.fullName} - ${trainerData.specialty}`,
-      description:
-        trainerData.bio ||
-        `Professional ${trainerData.specialty} trainer with ${trainerData.experience} of experience. Located in ${trainerData.location}.`,
-      services:
-        trainerData.services.length > 0
-          ? trainerData.services
-          : ["Personal Training Sessions", "Nutrition Coaching", "Workout Plan Design", "Progress Tracking"],
-      testimonials: [
-        {
-          name: "Sarah M.",
-          text: `Working with ${trainerData.fullName.split(" ")[0]} has been amazing! Their expertise in ${trainerData.specialty} really shows.`,
-          rating: 5,
-        },
-        {
-          name: "Mike R.",
-          text: "Professional, knowledgeable, and gets results. Highly recommend!",
-          rating: 5,
-        },
-        {
-          name: "Lisa K.",
-          text: `Great trainer with ${trainerData.experience} of experience. Really helped me reach my goals.`,
-          rating: 5,
-        },
-      ],
-      gallery: [
-        "/placeholder.svg?height=300&width=400&text=Training+Session",
-        "/placeholder.svg?height=300&width=400&text=Gym+Equipment",
-        "/placeholder.svg?height=300&width=400&text=Success+Story",
-      ],
-      contact: {
-        email: trainerData.email,
-        phone: trainerData.phone,
-        location: trainerData.location,
-      },
-    }
-  }
-
   static async createTempTrainer(trainerData: Omit<TrainerData, "id" | "createdAt" | "updatedAt">): Promise<string> {
     try {
       const tempId = nanoid()
       const now = new Date().toISOString()
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
 
-      // Generate content from form data
-      const content = this.generateTrainerContent(trainerData)
-
       const docData: TrainerData = {
         ...trainerData,
         id: tempId,
-        status: "temp", // Use "temp" instead of "pending"
+        status: "pending", // Use "pending" for temp trainers
         createdAt: now,
         updatedAt: now,
         expiresAt,
         sessionToken: nanoid(),
         requestId: nanoid(),
-        content, // Add generated content
+        // Generate initial content from form data
+        content: {
+          about: {
+            title: `About ${trainerData.fullName}`,
+            description:
+              trainerData.bio ||
+              `Passionate ${trainerData.specialty} trainer with ${trainerData.experience} of experience helping clients achieve their health and fitness goals.`,
+          },
+          services: trainerData.services || ["Personal Training", "Nutrition Coaching", "Workout Plans"],
+          testimonials: [
+            {
+              name: "Sarah M.",
+              text: "Amazing trainer! Helped me reach my fitness goals.",
+              rating: 5,
+            },
+            {
+              name: "John D.",
+              text: "Professional and knowledgeable. Highly recommend!",
+              rating: 5,
+            },
+          ],
+          gallery: [],
+          contact: {
+            email: trainerData.email,
+            phone: trainerData.phone,
+            location: trainerData.location,
+          },
+        },
       }
-
-      console.log("Creating temp trainer with data:", docData)
 
       await setDoc(doc(db, this.COLLECTION_NAME, tempId), docData)
       return tempId
@@ -144,32 +125,31 @@ export class TrainerService {
 
   static async getTempTrainer(tempId: string): Promise<TrainerData | null> {
     try {
-      console.log("Getting temp trainer:", tempId)
+      console.log("=== GET TEMP TRAINER ===")
+      console.log("Fetching trainer with ID:", tempId)
 
       const docRef = doc(db, this.COLLECTION_NAME, tempId)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
         const data = docSnap.data() as TrainerData
+        console.log("Document exists, status:", data.status)
 
-        console.log("Document data:", data)
-        console.log("Document status:", data.status)
-
-        // Check if it's a temp trainer (status: "temp")
-        if (data.status === "temp") {
-          // Check if expired
-          if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
-            console.log("Trainer expired, deleting...")
+        // Return both pending (temp) and active trainers for payment page
+        if (data.status === "pending" || data.status === "active") {
+          // Check if expired (only for pending trainers)
+          if (data.status === "pending" && data.expiresAt && new Date(data.expiresAt) < new Date()) {
+            console.log("❌ Trainer expired, deleting...")
             await this.deleteTempTrainer(tempId)
             return null
           }
-          console.log("Returning temp trainer data")
+          console.log("✅ Returning trainer data")
           return { id: tempId, ...data }
         } else {
-          console.log("Document status is not 'temp':", data.status)
+          console.log("❌ Trainer status not pending or active:", data.status)
         }
       } else {
-        console.log("Document does not exist")
+        console.log("❌ Document does not exist")
       }
 
       return null
@@ -187,7 +167,7 @@ export class TrainerService {
       if (docSnap.exists()) {
         const data = docSnap.data() as TrainerData
 
-        if (data.status === "temp") {
+        if (data.status === "pending") {
           await updateDoc(docRef, {
             status: "active",
             isActive: true,
