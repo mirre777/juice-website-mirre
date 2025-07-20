@@ -47,7 +47,7 @@ export interface TrainerData {
   content: {
     about: {
       title: string
-      content: string
+      bio: string // Changed from 'content' to 'bio'
     }
     contact: {
       email: string
@@ -109,7 +109,7 @@ export class TrainerService {
         content: {
           about: {
             title: `About ${trainerData.fullName}`,
-            content:
+            bio: // Changed from 'content' to 'bio'
               trainerData.bio ||
               `Passionate ${trainerData.specialty} trainer with ${trainerData.experience} of experience helping clients achieve their health and fitness goals.`,
           },
