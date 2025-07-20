@@ -60,21 +60,25 @@ class Logger {
     }
   }
 
-  info(message: string, data?: LogData): void {
-    console.log(this.formatMessage("info", message, data))
+  info(message: string, data?: LogData) {
+    if (this.isDevelopment) {
+      console.log(`[INFO] ${message}`, data || "")
+    }
   }
 
-  warn(message: string, data?: LogData): void {
-    console.warn(this.formatMessage("warn", message, data))
+  warn(message: string, data?: LogData) {
+    if (this.isDevelopment) {
+      console.warn(`[WARN] ${message}`, data || "")
+    }
   }
 
-  error(message: string, data?: LogData): void {
-    console.error(this.formatMessage("error", message, data))
+  error(message: string, data?: LogData) {
+    console.error(`[ERROR] ${message}`, data || "")
   }
 
-  debug(message: string, data?: LogData): void {
-    if (process.env.NODE_ENV === "development") {
-      console.debug(this.formatMessage("debug", message, data))
+  debug(message: string, data?: LogData) {
+    if (this.isDevelopment) {
+      console.debug(`[DEBUG] ${message}`, data || "")
     }
   }
 
