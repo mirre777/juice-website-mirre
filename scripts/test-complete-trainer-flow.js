@@ -90,45 +90,8 @@ async function testTempTrainerAPI(tempId) {
           if (data.trainer.content) {
             console.log("Content about:", data.trainer.content.about)
             console.log("Content contact:", data.trainer.content.contact)
-            console.log("Content customization:", data.trainer.content.customization)
-          }
-
-          // Validate structure matches expected format
-          const expectedFields = [
-            "fullName",
-            "email",
-            "experience",
-            "specialty",
-            "status",
-            "isPaid",
-            "isActive",
-            "content",
-          ]
-          const missingFields = expectedFields.filter((field) => !(field in data.trainer))
-
-          if (missingFields.length > 0) {
-            console.log("❌ Missing expected fields:", missingFields)
-          } else {
-            console.log("✅ All expected fields present")
-          }
-
-          // Validate status values
-          if (data.trainer.status === "temp" || data.trainer.status === "active") {
-            console.log("✅ Status field has correct value:", data.trainer.status)
-          } else {
-            console.log("❌ Status field has incorrect value:", data.trainer.status)
-          }
-
-          // Validate content structure
-          if (data.trainer.content && data.trainer.content.contact) {
-            const contactFields = ["email", "phone", "location"]
-            const missingContactFields = contactFields.filter((field) => !(field in data.trainer.content.contact))
-
-            if (missingContactFields.length === 0) {
-              console.log("✅ Contact fields properly nested in content")
-            } else {
-              console.log("❌ Missing contact fields in content:", missingContactFields)
-            }
+            console.log("Content services:", data.trainer.content.services)
+            console.log("Content testimonials:", data.trainer.content.testimonials?.length || 0)
           }
 
           return data.trainer
@@ -183,19 +146,25 @@ async function testTempPageLoading(tempId, trainer) {
     if (trainer.content) {
       console.log("✅ Content data available for temp page")
       console.log("About title:", trainer.content.about?.title)
-      console.log("About content:", trainer.content.about?.content?.substring(0, 50) + "...")
-      console.log("Contact info:", {
-        email: trainer.content.contact?.email,
-        phone: trainer.content.contact?.phone,
-        location: trainer.content.contact?.location,
-      })
+      console.log("Contact info:", trainer.content.contact)
+      console.log("Services count:", trainer.content.services?.length || 0)
+      console.log("Testimonials count:", trainer.content.testimonials?.length || 0)
     } else {
       console.log("❌ No content data - temp page will fail")
       return false
     }
 
-    // Check expiration logic for temp trainers
-    if (trainer.status === "temp" && trainer.expiresAt) {
+    // Check status and payment fields
+    if (trainer.status === "temp" && !trainer.isPaid && !trainer.isActive) {
+      console.log("✅ Correct temp trainer status")
+    } else {
+      console.log("❌ Incorrect trainer status or payment fields")
+      console.log("Status:", trainer.status, "isPaid:", trainer.isPaid, "isActive:", trainer.isActive)
+      return false
+    }
+
+    // Check expiration logic
+    if (trainer.expiresAt) {
       const expiryTime = new Date(trainer.expiresAt).getTime()
       const now = new Date().getTime()
       const timeLeft = expiryTime - now
@@ -247,10 +216,6 @@ async function testPaymentPageLoading(tempId, trainer) {
     // Simulate the fetch call that payment page makes
     console.log("Simulating payment page API call...")
 
-    const mockBaseUrl = "https://example.com"
-    const apiUrl = `${mockBaseUrl}/api/trainer/temp/${tempIdFromParams}`
-    console.log("Payment page would fetch from:", apiUrl)
-
     // Use the trainer data we already have to simulate the response
     const mockApiResponse = {
       success: true,
@@ -275,9 +240,16 @@ async function testPaymentPageLoading(tempId, trainer) {
       console.log("✅ All required fields present for payment form")
       console.log("Payment form would display trainer:", mockApiResponse.trainer.fullName)
       console.log("Payment amount: €70")
-      console.log("Trainer status:", mockApiResponse.trainer.status)
-      console.log("Trainer isPaid:", mockApiResponse.trainer.isPaid)
-      console.log("Trainer isActive:", mockApiResponse.trainer.isActive)
+
+      // Check contact info from content
+      if (mockApiResponse.trainer.content?.contact) {
+        console.log("✅ Contact info available from content")
+        console.log("Contact location:", mockApiResponse.trainer.content.contact.location)
+        console.log("Contact phone:", mockApiResponse.trainer.content.contact.phone)
+      } else {
+        console.log("❌ Missing contact info in content")
+        return false
+      }
 
       return true
     } else {

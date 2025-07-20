@@ -35,9 +35,10 @@ export interface TrainerData {
   experience: string
   specialty: string
   certifications: string
+  services: string[]
   status: "temp" | "active"
   createdAt: string
-  updatedAt?: string
+  updatedAt: string
   expiresAt?: string
   sessionToken?: string
   requestId?: string
@@ -49,24 +50,31 @@ export interface TrainerData {
       content: string
     }
     contact: {
-      title: string
-      description: string
       email: string
       phone: string
       location: string
+      title: string
+      description: string
     }
     customization: {
       isDraft: boolean
       lastUpdated: string
       version: number
     }
+    services?: string[]
+    testimonials?: Array<{
+      name: string
+      text: string
+      rating: number
+    }>
+    gallery?: string[]
   }
 }
 
 export class TrainerService {
   private static COLLECTION_NAME = "trainers"
 
-  static async createTempTrainer(formData: {
+  static async createTempTrainer(trainerData: {
     fullName: string
     email: string
     phone: string
@@ -84,39 +92,54 @@ export class TrainerService {
 
       const docData: TrainerData = {
         id: tempId,
-        fullName: formData.fullName,
-        email: formData.email,
-        experience: formData.experience,
-        specialty: formData.specialty,
-        certifications: formData.certifications || "",
-        status: "temp",
+        fullName: trainerData.fullName,
+        email: trainerData.email,
+        experience: trainerData.experience,
+        specialty: trainerData.specialty,
+        certifications: trainerData.certifications,
+        services: trainerData.services,
+        status: "temp", // Use "temp" instead of "pending"
         createdAt: now,
         updatedAt: now,
         expiresAt,
         sessionToken: nanoid(),
         requestId: nanoid(),
-        isPaid: false,
-        isActive: false,
+        isPaid: false, // Initially false
+        isActive: false, // Initially false
         content: {
           about: {
-            title: `About ${formData.fullName}`,
+            title: `About ${trainerData.fullName}`,
             content:
-              formData.bio ||
-              `Passionate ${formData.specialty} trainer with ${formData.experience} of experience helping clients achieve their health and fitness goals.`,
+              trainerData.bio ||
+              `Passionate ${trainerData.specialty} trainer with ${trainerData.experience} of experience helping clients achieve their health and fitness goals.`,
           },
           contact: {
+            email: trainerData.email,
+            phone: trainerData.phone,
+            location: trainerData.location,
             title: "Let's Start Your Fitness Journey",
             description:
               "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-            email: formData.email,
-            phone: formData.phone,
-            location: formData.location,
           },
           customization: {
             isDraft: false,
             lastUpdated: now,
             version: 1,
           },
+          services: trainerData.services || ["Personal Training", "Nutrition Coaching", "Workout Plans"],
+          testimonials: [
+            {
+              name: "Sarah M.",
+              text: "Amazing trainer! Helped me reach my fitness goals.",
+              rating: 5,
+            },
+            {
+              name: "John D.",
+              text: "Professional and knowledgeable. Highly recommend!",
+              rating: 5,
+            },
+          ],
+          gallery: [],
         },
       }
 
@@ -227,14 +250,7 @@ export class TrainerService {
     try {
       const docRef = doc(db, this.COLLECTION_NAME, id)
       await updateDoc(docRef, {
-        content: {
-          ...content,
-          customization: {
-            ...content.customization,
-            lastUpdated: new Date().toISOString(),
-            version: (content.customization?.version || 0) + 1,
-          },
-        },
+        content,
         updatedAt: new Date().toISOString(),
       })
       return true
