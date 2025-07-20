@@ -281,8 +281,16 @@ function PaymentPageContent() {
 
   const tempId = searchParams.get("tempId")
 
+  console.log("=== PAYMENT PAGE CONTENT COMPONENT ===")
+  console.log("Search params:", searchParams.toString())
+  console.log("TempId from params:", tempId)
+
   useEffect(() => {
+    console.log("=== PAYMENT PAGE USEEFFECT ===")
+    console.log("TempId:", tempId)
+
     if (!tempId) {
+      console.log("❌ No tempId provided")
       setError("No trainer ID provided")
       setLoading(false)
       return
@@ -292,28 +300,45 @@ function PaymentPageContent() {
       try {
         console.log("=== FETCHING TEMP TRAINER FOR PAYMENT ===")
         console.log("Temp ID:", tempId)
+        console.log("API URL:", `/api/trainer/temp/${tempId}`)
 
         const response = await fetch(`/api/trainer/temp/${tempId}`)
+
+        console.log("Response status:", response.status)
+        console.log("Response ok:", response.ok)
+        console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+
         const data = await response.json()
 
-        console.log("API Response:", data)
+        console.log("=== API RESPONSE DATA ===")
+        console.log("Full response:", data)
+        console.log("Response success:", data.success)
+        console.log("Response error:", data.error)
+        console.log("Response trainer:", data.trainer)
 
         if (!response.ok) {
+          console.log("❌ Response not ok")
+          console.log("Status:", response.status)
+          console.log("Error:", data.error || "Unknown error")
           setError(data.error || "Failed to load trainer data")
           setLoading(false)
           return
         }
 
         if (data.success && data.trainer) {
+          console.log("✅ Success and trainer data found")
           console.log("Setting temp trainer for payment:", data.trainer)
           setTempTrainer(data.trainer)
         } else {
+          console.log("❌ No success or no trainer data")
+          console.log("Success:", data.success)
+          console.log("Trainer:", data.trainer)
           setError(data.error || "Failed to load trainer data")
         }
 
         setLoading(false)
       } catch (err) {
-        console.error("Error fetching temp trainer:", err)
+        console.error("❌ Error fetching temp trainer:", err)
         setError("Failed to load trainer data")
         setLoading(false)
       }
@@ -321,6 +346,11 @@ function PaymentPageContent() {
 
     fetchTempTrainer()
   }, [tempId])
+
+  console.log("=== PAYMENT PAGE RENDER STATE ===")
+  console.log("Loading:", loading)
+  console.log("Error:", error)
+  console.log("TempTrainer:", tempTrainer)
 
   if (loading) {
     return (
@@ -334,6 +364,10 @@ function PaymentPageContent() {
   }
 
   if (error || !tempTrainer) {
+    console.log("=== SHOWING ERROR STATE ===")
+    console.log("Error:", error)
+    console.log("TempTrainer:", tempTrainer)
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -357,6 +391,7 @@ function PaymentPageContent() {
     )
   }
 
+  console.log("=== SHOWING PAYMENT FORM ===")
   return <PaymentForm tempTrainer={tempTrainer} />
 }
 

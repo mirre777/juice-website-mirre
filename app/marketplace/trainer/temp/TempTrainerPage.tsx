@@ -10,21 +10,18 @@ import { useRouter } from "next/navigation"
 
 interface TrainerData {
   id: string
-  name: string
-  fullName?: string
+  fullName: string
   email: string
   phone?: string
   location: string
-  specialization: string
+  specialty: string
   experience: string
   bio?: string
-  certifications?: string[]
+  certifications?: string
   services?: string[]
-  specialties?: string[]
   status: string
   createdAt: string
-  expiresAt: string
-  hasSessionToken: boolean
+  expiresAt?: string
   sessionToken?: string
 }
 
@@ -40,11 +37,11 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
   // Countdown timer
   useEffect(() => {
-    if (!trainer?.expiresAt) return
-
     const updateCountdown = () => {
       try {
-        const expiryTime = new Date(trainer.expiresAt).getTime()
+        const expiryTime = trainer.expiresAt
+          ? new Date(trainer.expiresAt).getTime()
+          : new Date(Date.now() + 24 * 60 * 60 * 1000).getTime()
         const now = new Date().getTime()
         const difference = expiryTime - now
 
@@ -52,6 +49,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
           const hours = Math.floor(difference / (1000 * 60 * 60))
           const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
           const seconds = Math.floor((difference % (1000 * 60)) / 1000)
+
           setTimeLeft(`${hours}h ${minutes}m ${seconds}s`)
           setIsExpired(false)
         } else {
@@ -66,13 +64,12 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
     updateCountdown()
     const interval = setInterval(updateCountdown, 1000)
+
     return () => clearInterval(interval)
-  }, [trainer?.expiresAt])
+  }, [trainer])
 
   const handleActivate = () => {
-    if (trainer?.id && token) {
-      router.push(`/payment?tempId=${trainer.id}&token=${encodeURIComponent(token)}`)
-    } else if (trainer?.id) {
+    if (trainer?.id) {
       router.push(`/payment?tempId=${trainer.id}`)
     }
   }
@@ -84,11 +81,16 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
     "Progress Tracking",
   ]
 
-  const specialties = trainer?.specialties || [trainer?.specialization || "Fitness Training"]
-  const certifications = trainer?.certifications || ["Certified Personal Trainer", "Nutrition Specialist"]
+  const specialties = [trainer?.specialty || "Fitness Training"]
+
+  const certifications = trainer?.certifications
+    ? typeof trainer.certifications === "string"
+      ? [trainer.certifications]
+      : trainer.certifications
+    : ["Certified Personal Trainer", "Nutrition Specialist"]
 
   return (
-    <div className="min-h-screen py-8 px-4 bg-gray-50">
+    <div className="min-h-screen py-8 px-4 bg-white">
       <div className="max-w-4xl mx-auto">
         {/* Header with Timer */}
         <Card className="mb-6 bg-white border-gray-200">
@@ -108,10 +110,10 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                 {!isExpired && (
                   <Button
                     onClick={handleActivate}
-                    className="mt-2 bg-[#D2FF28] text-black hover:bg-[#B8E625] font-semibold"
+                    className="mt-2 bg-[#D2FF28] text-black hover:bg-[#c5f01f] font-semibold"
                   >
                     <Zap className="w-4 h-4 mr-2" />
-                    Activate Now - €69
+                    Activate Now - €70
                   </Button>
                 )}
               </div>
@@ -129,15 +131,13 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                 <div className="text-center mb-6">
                   <div className="w-24 h-24 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-3xl font-bold text-black">
-                      {(trainer?.fullName || trainer?.name || "T").charAt(0).toUpperCase()}
+                      {(trainer?.fullName || "T").charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <h1 className="text-3xl font-bold text-black mb-2">
-                    {trainer?.fullName || trainer?.name || "Personal Trainer"}
-                  </h1>
+                  <h1 className="text-3xl font-bold text-black mb-2">{trainer?.fullName || "Personal Trainer"}</h1>
                   <p className="text-lg text-gray-600 flex items-center justify-center gap-2">
                     <Award className="w-5 h-5" />
-                    {trainer?.specialization || "Fitness Specialist"} • {trainer?.experience || "5+ years"}
+                    {trainer?.specialty || "Fitness Specialist"} • {trainer?.experience || "5+ years"}
                   </p>
                   <p className="text-gray-600 flex items-center justify-center gap-2 mt-1">
                     <MapPin className="w-4 h-4" />
@@ -176,9 +176,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
                   {trainer?.bio ||
-                    `Passionate ${trainer?.specialization || "fitness"} trainer with ${
-                      trainer?.experience || "5+ years"
-                    } of experience helping clients achieve their health and fitness goals. I believe in creating personalized workout plans that fit your lifestyle and help you build sustainable healthy habits.`}
+                    `Passionate ${trainer?.specialty || "fitness"} trainer with ${trainer?.experience || "5+ years"} of experience helping clients achieve their health and fitness goals. I believe in creating personalized workout plans that fit your lifestyle and help you build sustainable healthy habits.`}
                 </p>
               </CardContent>
             </Card>
@@ -220,7 +218,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                   </div>
                 )}
                 <Separator />
-                <Button className="w-full bg-[#D2FF28] text-black hover:bg-[#B8E625]">
+                <Button className="w-full bg-[#D2FF28] text-black hover:bg-[#c5f01f]">
                   <Calendar className="w-4 h-4 mr-2" />
                   Book Consultation
                 </Button>
@@ -278,10 +276,10 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               <Button
                 onClick={handleActivate}
                 size="lg"
-                className="bg-[#D2FF28] text-black hover:bg-[#B8E625] font-semibold px-8"
+                className="bg-[#D2FF28] text-black hover:bg-[#c5f01f] font-semibold px-8"
               >
                 <Zap className="w-5 h-5 mr-2" />
-                Activate Website - €69
+                Activate Website - €70
               </Button>
             </CardContent>
           </Card>
