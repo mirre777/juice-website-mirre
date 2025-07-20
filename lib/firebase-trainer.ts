@@ -39,7 +39,7 @@ export interface TrainerData {
   certifications: string
   bio: string
   services: string[]
-  status: "pending" | "active" | "inactive"
+  status: "temp" | "active" | "inactive"
   createdAt: string
   updatedAt: string
   expiresAt?: string
@@ -68,22 +68,71 @@ export interface TrainerData {
 export class TrainerService {
   private static COLLECTION_NAME = "trainers"
 
+  // Generate content from trainer data
+  private static generateTrainerContent(
+    trainerData: Omit<TrainerData, "id" | "createdAt" | "updatedAt">,
+  ): TrainerData["content"] {
+    return {
+      title: `${trainerData.fullName} - ${trainerData.specialty}`,
+      description:
+        trainerData.bio ||
+        `Professional ${trainerData.specialty} trainer with ${trainerData.experience} of experience. Located in ${trainerData.location}.`,
+      services:
+        trainerData.services.length > 0
+          ? trainerData.services
+          : ["Personal Training Sessions", "Nutrition Coaching", "Workout Plan Design", "Progress Tracking"],
+      testimonials: [
+        {
+          name: "Sarah M.",
+          text: `Working with ${trainerData.fullName.split(" ")[0]} has been amazing! Their expertise in ${trainerData.specialty} really shows.`,
+          rating: 5,
+        },
+        {
+          name: "Mike R.",
+          text: "Professional, knowledgeable, and gets results. Highly recommend!",
+          rating: 5,
+        },
+        {
+          name: "Lisa K.",
+          text: `Great trainer with ${trainerData.experience} of experience. Really helped me reach my goals.`,
+          rating: 5,
+        },
+      ],
+      gallery: [
+        "/placeholder.svg?height=300&width=400&text=Training+Session",
+        "/placeholder.svg?height=300&width=400&text=Gym+Equipment",
+        "/placeholder.svg?height=300&width=400&text=Success+Story",
+      ],
+      contact: {
+        email: trainerData.email,
+        phone: trainerData.phone,
+        location: trainerData.location,
+      },
+    }
+  }
+
   static async createTempTrainer(trainerData: Omit<TrainerData, "id" | "createdAt" | "updatedAt">): Promise<string> {
     try {
       const tempId = nanoid()
       const now = new Date().toISOString()
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
 
+      // Generate content from form data
+      const content = this.generateTrainerContent(trainerData)
+
       const docData: TrainerData = {
         ...trainerData,
         id: tempId,
-        status: "pending",
+        status: "temp", // Use "temp" instead of "pending"
         createdAt: now,
         updatedAt: now,
         expiresAt,
         sessionToken: nanoid(),
         requestId: nanoid(),
+        content, // Add generated content
       }
+
+      console.log("Creating temp trainer with data:", docData)
 
       await setDoc(doc(db, this.COLLECTION_NAME, tempId), docData)
       return tempId
@@ -95,21 +144,32 @@ export class TrainerService {
 
   static async getTempTrainer(tempId: string): Promise<TrainerData | null> {
     try {
+      console.log("Getting temp trainer:", tempId)
+
       const docRef = doc(db, this.COLLECTION_NAME, tempId)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
         const data = docSnap.data() as TrainerData
 
-        // Check if it's a pending trainer (temp trainer)
-        if (data.status === "pending") {
+        console.log("Document data:", data)
+        console.log("Document status:", data.status)
+
+        // Check if it's a temp trainer (status: "temp")
+        if (data.status === "temp") {
           // Check if expired
           if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
+            console.log("Trainer expired, deleting...")
             await this.deleteTempTrainer(tempId)
             return null
           }
+          console.log("Returning temp trainer data")
           return { id: tempId, ...data }
+        } else {
+          console.log("Document status is not 'temp':", data.status)
         }
+      } else {
+        console.log("Document does not exist")
       }
 
       return null
@@ -127,7 +187,7 @@ export class TrainerService {
       if (docSnap.exists()) {
         const data = docSnap.data() as TrainerData
 
-        if (data.status === "pending") {
+        if (data.status === "temp") {
           await updateDoc(docRef, {
             status: "active",
             isActive: true,
