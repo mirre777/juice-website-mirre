@@ -10,18 +10,22 @@ import { useRouter } from "next/navigation"
 
 interface TrainerData {
   id: string
-  fullName: string
+  name: string
+  fullName?: string
   email: string
   phone?: string
   location: string
-  specialty: string
+  specialization: string
   experience: string
   bio?: string
-  certifications?: string
+  certifications?: string[]
   services?: string[]
+  specialties?: string[]
   status: string
   createdAt: string
-  expiresAt?: string
+  expiresAt: string
+  hasSessionToken: boolean
+  sessionToken?: string
 }
 
 interface TempTrainerPageProps {
@@ -36,15 +40,11 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
   // Countdown timer
   useEffect(() => {
-    if (!trainer.expiresAt) {
-      // If no expiry time, set to 24 hours from now
-      const expiryTime = new Date(Date.now() + 24 * 60 * 60 * 1000)
-      trainer.expiresAt = expiryTime.toISOString()
-    }
+    if (!trainer?.expiresAt) return
 
     const updateCountdown = () => {
       try {
-        const expiryTime = new Date(trainer.expiresAt!).getTime()
+        const expiryTime = new Date(trainer.expiresAt).getTime()
         const now = new Date().getTime()
         const difference = expiryTime - now
 
@@ -52,7 +52,6 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
           const hours = Math.floor(difference / (1000 * 60 * 60))
           const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
           const seconds = Math.floor((difference % (1000 * 60)) / 1000)
-
           setTimeLeft(`${hours}h ${minutes}m ${seconds}s`)
           setIsExpired(false)
         } else {
@@ -67,31 +66,29 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
 
     updateCountdown()
     const interval = setInterval(updateCountdown, 1000)
-
     return () => clearInterval(interval)
-  }, [trainer])
+  }, [trainer?.expiresAt])
 
   const handleActivate = () => {
-    if (trainer.id) {
-      router.push(`/payment?tempId=${trainer.id}${token ? `&token=${encodeURIComponent(token)}` : ""}`)
+    if (trainer?.id && token) {
+      router.push(`/payment?tempId=${trainer.id}&token=${encodeURIComponent(token)}`)
+    } else if (trainer?.id) {
+      router.push(`/payment?tempId=${trainer.id}`)
     }
   }
 
-  const services = trainer.services || [
+  const services = trainer?.services || [
     "Personal Training Sessions",
     "Nutrition Coaching",
     "Workout Plan Design",
     "Progress Tracking",
   ]
 
-  const specialties = [trainer.specialty || "Fitness Training"]
-
-  const certifications = trainer.certifications
-    ? trainer.certifications.split(",").map((c) => c.trim())
-    : ["Certified Personal Trainer", "Nutrition Specialist"]
+  const specialties = trainer?.specialties || [trainer?.specialization || "Fitness Training"]
+  const certifications = trainer?.certifications || ["Certified Personal Trainer", "Nutrition Specialist"]
 
   return (
-    <div className="min-h-screen py-8 px-4 bg-white">
+    <div className="min-h-screen py-8 px-4 bg-gray-50">
       <div className="max-w-4xl mx-auto">
         {/* Header with Timer */}
         <Card className="mb-6 bg-white border-gray-200">
@@ -114,7 +111,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                     className="mt-2 bg-[#D2FF28] text-black hover:bg-[#B8E625] font-semibold"
                   >
                     <Zap className="w-4 h-4 mr-2" />
-                    Activate Now - €70
+                    Activate Now - €69
                   </Button>
                 )}
               </div>
@@ -132,17 +129,19 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                 <div className="text-center mb-6">
                   <div className="w-24 h-24 bg-[#D2FF28] rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-3xl font-bold text-black">
-                      {(trainer.fullName || "T").charAt(0).toUpperCase()}
+                      {(trainer?.fullName || trainer?.name || "T").charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <h1 className="text-3xl font-bold text-black mb-2">{trainer.fullName || "Personal Trainer"}</h1>
+                  <h1 className="text-3xl font-bold text-black mb-2">
+                    {trainer?.fullName || trainer?.name || "Personal Trainer"}
+                  </h1>
                   <p className="text-lg text-gray-600 flex items-center justify-center gap-2">
                     <Award className="w-5 h-5" />
-                    {trainer.specialty || "Fitness Specialist"} • {trainer.experience || "5+ years"}
+                    {trainer?.specialization || "Fitness Specialist"} • {trainer?.experience || "5+ years"}
                   </p>
                   <p className="text-gray-600 flex items-center justify-center gap-2 mt-1">
                     <MapPin className="w-4 h-4" />
-                    {trainer.location || "Available Online"}
+                    {trainer?.location || "Available Online"}
                   </p>
                 </div>
 
@@ -176,8 +175,10 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  {trainer.bio ||
-                    `Passionate ${trainer.specialty || "fitness"} trainer with ${trainer.experience || "5+ years"} of experience helping clients achieve their health and fitness goals. I believe in creating personalized workout plans that fit your lifestyle and help you build sustainable healthy habits.`}
+                  {trainer?.bio ||
+                    `Passionate ${trainer?.specialization || "fitness"} trainer with ${
+                      trainer?.experience || "5+ years"
+                    } of experience helping clients achieve their health and fitness goals. I believe in creating personalized workout plans that fit your lifestyle and help you build sustainable healthy habits.`}
                 </p>
               </CardContent>
             </Card>
@@ -210,9 +211,9 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-[#D2FF28]" />
-                  <span className="text-gray-700">{trainer.email || "contact@trainer.com"}</span>
+                  <span className="text-gray-700">{trainer?.email || "contact@trainer.com"}</span>
                 </div>
-                {trainer.phone && (
+                {trainer?.phone && (
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-[#D2FF28]" />
                     <span className="text-gray-700">{trainer.phone}</span>
@@ -280,7 +281,7 @@ export default function TempTrainerPage({ trainer, token }: TempTrainerPageProps
                 className="bg-[#D2FF28] text-black hover:bg-[#B8E625] font-semibold px-8"
               >
                 <Zap className="w-5 h-5 mr-2" />
-                Activate Website - €70
+                Activate Website - €69
               </Button>
             </CardContent>
           </Card>
