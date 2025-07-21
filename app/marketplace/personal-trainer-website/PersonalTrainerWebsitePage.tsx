@@ -1,419 +1,90 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, Zap } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Badge } from "@/components/ui/badge"
+import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
 
-interface FormData {
-  fullName: string
-  email: string
-  phone: string
-  city: string
-  district: string
-  specialty: string
-  bio: string
-  certifications: string
-  services: string[]
-}
-
-interface FormErrors {
-  fullName?: string
-  email?: string
-  city?: string
-  district?: string
-  specialty?: string
-  bio?: string
-}
-
-const specialties = [
-  "Weight Loss",
-  "Strength Training",
-  "Sports Performance",
-  "Rehabilitation",
-  "Nutrition Coaching",
-  "Group Fitness",
-  "Yoga & Mindfulness",
-  "Senior Fitness",
-  "Youth Training",
-  "Bodybuilding",
-]
-
-const serviceOptions = [
-  "Personal Training",
-  "Weight Loss Programs",
-  "Flexibility & Mobility",
-  "Online Coaching",
-  "Group Fitness",
-  "Strength Training",
-  "Sports-Specific Training",
-  "Nutrition Coaching",
-  "Cardio Training",
-  "Rehabilitation",
-]
-
-export default function PersonalTrainerWebsitePage() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState<FormData>({
-    fullName: "",
-    email: "",
-    phone: "",
-    city: "",
-    district: "",
-    specialty: "",
-    bio: "",
-    certifications: "",
-    services: [],
-  })
-  const [errors, setErrors] = useState<FormErrors>({})
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    // Required field validations
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required"
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = "City is required"
-    }
-
-    if (!formData.district.trim()) {
-      newErrors.district = "District is required"
-    }
-
-    if (!formData.specialty) {
-      newErrors.specialty = "Please select your primary specialty"
-    }
-
-    // Optional bio validation - only validate if provided
-    if (formData.bio.trim() && formData.bio.trim().length < 20) {
-      newErrors.bio = "Bio must be at least 20 characters if provided"
-    }
-
-    if (formData.bio.trim() && formData.bio.trim().length > 500) {
-      newErrors.bio = "Bio must be less than 500 characters"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const isFormValid = (): boolean => {
-    return (
-      formData.fullName.trim() !== "" &&
-      formData.email.trim() !== "" &&
-      formData.city.trim() !== "" &&
-      formData.district.trim() !== "" &&
-      formData.specialty !== "" &&
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
-      (formData.bio.trim() === "" || formData.bio.trim().length >= 20)
-    )
-  }
-
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
-    }
-  }
-
-  const handleServiceToggle = (service: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      services: prev.services.includes(service)
-        ? prev.services.filter((s) => s !== service)
-        : [...prev.services, service],
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      const response = await fetch("/api/trainer/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        // Redirect to temp trainer page
-        router.push(data.redirectUrl)
-      } else {
-        console.error("Form submission failed:", data.error)
-        // Handle error - could show toast or error message
-        alert(data.error || "Failed to create trainer profile. Please try again.")
-      }
-    } catch (error) {
-      console.error("Form submission error:", error)
-      alert("An unexpected error occurred. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+const PersonalTrainerWebsitePage = () => {
+  const [open, setOpen] = useState(false)
+  const { toast } = useToast()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            <Zap className="w-4 h-4" />
-            Super fast
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Get Your Professional Trainer Website in Minutes</h1>
-          <p className="text-xl mb-8 text-blue-100">
-            Juice creates a stunning, professional website tailored to your training expertise. No coding required -
-            just fill out the form and watch your online presence come to life.
-          </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              Superfast design
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-300" />
-              Ready in 5 Minutes
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-400" />
-              Professional Design
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="container mx-auto py-10">
+      <section className="text-center mb-12">
+        <Badge className="bg-green-500 border-none text-white">Stand out. Book clients.</Badge>
+        <h1 className="text-4xl font-bold mt-4">Get Your Professional Trainer Website in 10 Minutes</h1>
+        <p className="text-gray-500 mt-2">Launch your online presence and attract more clients.</p>
+        <Button className="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Get Started Now
+        </Button>
+      </section>
 
-      {/* Stats Section */}
-      <div className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">👥</span>
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">500+</div>
-              <div className="text-gray-600">Trainers Trust Us</div>
-            </div>
-            <div>
-              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📈</span>
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">95%</div>
-              <div className="text-gray-600">Client Satisfaction</div>
-            </div>
-            <div>
-              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">⚡</span>
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">24/7</div>
-              <div className="text-gray-600">Website Availability</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <Card>
+          <CardHeader>
+            <CardTitle>Increase visibility</CardTitle>
+            <CardDescription>Attract more clients with a professional online presence.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>A well-designed website helps you stand out from the competition and reach a wider audience.</p>
+          </CardContent>
+        </Card>
 
-      {/* Form Section */}
-      <div className="py-16">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Create Your Trainer Profile</h2>
-            <p className="text-gray-600">
-              Fill out this form and our AI will generate your professional website instantly
-            </p>
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Ready in 5 minutes</CardTitle>
+            <CardDescription>Quickly launch your website and start attracting clients.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Our easy-to-use platform allows you to create a stunning website in just a few minutes.</p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Trainer Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="fullName">
-                      Full Name <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="fullName"
-                      placeholder="John Smith"
-                      value={formData.fullName}
-                      onChange={(e) => handleInputChange("fullName", e.target.value)}
-                      className={errors.fullName ? "border-red-500" : ""}
-                    />
-                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-                  </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Professional design</CardTitle>
+            <CardDescription>Impress potential clients with a sleek and modern website.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>We offer a range of professionally designed templates to suit your brand and style.</p>
+          </CardContent>
+        </Card>
+      </section>
 
-                  <div>
-                    <Label htmlFor="email">
-                      Email Address <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      className={errors.email ? "border-red-500" : ""}
-                    />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                  </div>
-                </div>
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
+        <Accordion type="single" collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger>Do I need any technical skills?</AccordionTrigger>
+            <AccordionContent>
+              No, our platform is designed to be user-friendly and requires no technical skills.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-2">
+            <AccordionTrigger>Can I customize the design of my website?</AccordionTrigger>
+            <AccordionContent>
+              Yes, you can easily customize the design of your website to match your brand.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-3">
+            <AccordionTrigger>Is there a free trial available?</AccordionTrigger>
+            <AccordionContent>
+              Yes, we offer a free trial so you can try our platform before committing to a subscription.
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </section>
 
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    placeholder="+1 (555) 123-4567"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                  />
-                </div>
-
-                {/* Location Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city">
-                      City <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="city"
-                      placeholder="Vienna"
-                      value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      className={errors.city ? "border-red-500" : ""}
-                    />
-                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="district">
-                      District <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="district"
-                      placeholder="Innere Stadt"
-                      value={formData.district}
-                      onChange={(e) => handleInputChange("district", e.target.value)}
-                      className={errors.district ? "border-red-500" : ""}
-                    />
-                    {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="specialty">
-                    Primary Specialty <span className="text-red-500">*</span>
-                  </Label>
-                  <Select value={formData.specialty} onValueChange={(value) => handleInputChange("specialty", value)}>
-                    <SelectTrigger className={errors.specialty ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Select your specialty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {specialties.map((specialty) => (
-                        <SelectItem key={specialty} value={specialty}>
-                          {specialty}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
-                </div>
-
-                <div>
-                  <Label htmlFor="bio">Professional Bio (Optional)</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    Tell potential clients about your background, training philosophy, and what makes you unique.
-                  </p>
-                  <Textarea
-                    id="bio"
-                    placeholder="I am a certified personal trainer with over 5 years of experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans that fit your schedule and preferences."
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange("bio", e.target.value)}
-                    className={`min-h-[100px] ${errors.bio ? "border-red-500" : ""}`}
-                  />
-                  <div className="flex justify-between items-center mt-1">
-                    {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
-                    <p className="text-sm text-gray-400 ml-auto">{formData.bio.length}/500 characters</p>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="certifications">Certifications & Qualifications</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    List your certifications, degrees, or other qualifications (comma-separated).
-                  </p>
-                  <Input
-                    id="certifications"
-                    placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
-                    value={formData.certifications}
-                    onChange={(e) => handleInputChange("certifications", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label>Services Offered (Optional)</Label>
-                  <p className="text-sm text-gray-500 mb-4">Select all services you provide to your clients.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {serviceOptions.map((service) => (
-                      <div key={service} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={service}
-                          checked={formData.services.includes(service)}
-                          onCheckedChange={() => handleServiceToggle(service)}
-                        />
-                        <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
-                          {service}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 text-lg"
-                  disabled={!isFormValid() || isSubmitting}
-                >
-                  {isSubmitting ? "Generating Your Website..." : "Generate My Website →"}
-                </Button>
-
-                <p className="text-center text-sm text-gray-500">
-                  Your website will be generated instantly. You'll have 24 hours to review and activate it for €70.
-                </p>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <section className="text-center">
+        <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+        <p className="text-gray-500 mb-6">Create your professional trainer website today!</p>
+        <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Sign Up Now</Button>
+      </section>
     </div>
   )
 }
+
+export default PersonalTrainerWebsitePage
