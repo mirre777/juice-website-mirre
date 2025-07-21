@@ -254,6 +254,39 @@ export default function PersonalTrainerWebsitePage() {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center font-bold text-black text-lg">
+                  L
+                </div>
+                <div>
+                  <p className="text-gray-800 font-medium mb-2">"Super smooth, I had my website in 3 minutes."</p>
+                  <p className="text-gray-600 text-sm">- Laner</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center font-bold text-black text-lg">
+                  R
+                </div>
+                <div>
+                  <p className="text-gray-800 font-medium mb-2">
+                    "I never knew a website could be made this fast and good"
+                  </p>
+                  <p className="text-gray-600 text-sm">- Rici</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -493,7 +526,7 @@ export default function PersonalTrainerWebsitePage() {
                       </>
                     ) : (
                       <>
-                        Generate My Website
+                        Create My Website
                         <ArrowDown className="w-5 h-5 ml-2 rotate-[-90deg]" />
                       </>
                     )}
