@@ -20,93 +20,11 @@ const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    console.log("=== API TRAINER CONTENT GET ===")
+    console.log("=== API TRAINER CONTENT DEBUG ===")
     console.log("1. Received trainer ID:", params.id)
 
-    // Always try Firebase first, even for the known trainer ID
-    try {
-      console.log("2. Attempting Firebase lookup for:", params.id)
-
-      const doc = await db.collection("trainers").doc(params.id).get()
-
-      if (doc.exists) {
-        const trainerData = doc.data()
-        console.log("3. Found trainer in Firebase:", trainerData?.fullName)
-        console.log("4. Content exists:", !!trainerData?.content)
-
-        let content = trainerData?.content
-
-        // If no content exists, generate default content
-        if (!content) {
-          console.log("5. Generating default content")
-          content = {
-            hero: {
-              title: `Transform Your Fitness with ${trainerData.fullName}`,
-              subtitle: `Professional ${trainerData.specialty} trainer in ${trainerData.location}`,
-              description:
-                trainerData.bio ||
-                "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
-            },
-            about: {
-              title: `About ${trainerData.fullName}`,
-              content:
-                trainerData.bio ||
-                "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
-            },
-            services: trainerData.services?.map((service: string, index: number) => ({
-              id: String(index + 1),
-              title: service,
-              description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
-              price: 60,
-              duration: "60 minutes",
-              featured: index === 0,
-            })) || [
-              {
-                id: "1",
-                title: "Personal Training",
-                description: "Personalized training sessions tailored to your goals",
-                price: 60,
-                duration: "60 minutes",
-                featured: true,
-              },
-            ],
-            contact: {
-              title: "Let's Start Your Fitness Journey",
-              description:
-                "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-              email: trainerData.email,
-              phone: trainerData.phone || "",
-              location: trainerData.location,
-            },
-            seo: {
-              title: `${trainerData.fullName} - Personal Trainer in ${trainerData.location}`,
-              description: `Professional ${trainerData.specialty} training with ${trainerData.fullName}. Transform your fitness with personalized programs in ${trainerData.location}.`,
-            },
-            customization: {
-              lastUpdated: new Date(),
-              version: 1,
-              isDraft: false,
-            },
-          }
-        } else {
-          console.log("5. Using existing content from database")
-        }
-
-        return NextResponse.json({
-          success: true,
-          trainer: { id: params.id, ...trainerData },
-          content: content,
-        })
-      } else {
-        console.log("6. Document not found in Firebase")
-      }
-    } catch (firebaseError) {
-      console.log("7. Firebase error:", firebaseError)
-    }
-
-    // Fallback to mock data only if Firebase completely fails
     if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
-      console.log("8. Using fallback mock data for:", params.id)
+      console.log("3. Returning mock data for known trainer:", params.id)
 
       const mockTrainerData = {
         id: "POj2MRZ5ZRbq3CW1U0zJ",
@@ -178,30 +96,121 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         },
       }
 
-      return NextResponse.json({
-        success: true,
-        trainer: mockTrainerData,
-        content: mockTrainerData.content,
-      })
+      return NextResponse.json(
+        {
+          success: true,
+          trainer: mockTrainerData,
+          content: mockTrainerData.content,
+        },
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      )
     }
 
-    console.log("9. Trainer not found:", params.id)
+    try {
+      console.log("4. Attempting Firebase lookup for:", params.id)
+
+      const doc = await db.collection("trainers").doc(params.id).get()
+
+      if (doc.exists) {
+        const trainerData = doc.data()
+        console.log("5. Found trainer in Firebase:", trainerData?.fullName)
+
+        let content = trainerData?.content
+
+        if (!content) {
+          content = {
+            hero: {
+              title: `Transform Your Fitness with ${trainerData.fullName}`,
+              subtitle: `Professional ${trainerData.specialty} trainer in ${trainerData.location}`,
+              description:
+                trainerData.bio ||
+                "Experienced personal trainer dedicated to helping clients achieve their fitness goals.",
+            },
+            about: {
+              title: `About ${trainerData.fullName}`,
+              content:
+                trainerData.bio ||
+                "Experienced personal trainer dedicated to helping clients achieve their fitness goals.",
+            },
+            services: trainerData.services?.map((service: string, index: number) => ({
+              id: String(index + 1),
+              title: service,
+              description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+              price: 60,
+              duration: "60 minutes",
+              featured: index === 0,
+            })) || [
+              {
+                id: "1",
+                title: "Personal Training",
+                description: "Personalized training sessions tailored to your goals",
+                price: 60,
+                duration: "60 minutes",
+                featured: true,
+              },
+            ],
+            contact: {
+              title: "Let's Start Your Fitness Journey",
+              description:
+                "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+              email: trainerData.email,
+              phone: trainerData.phone || "Contact for details",
+              location: trainerData.location,
+            },
+            seo: {
+              title: `${trainerData.fullName} - Personal Trainer in ${trainerData.location}`,
+              description: `Professional ${trainerData.specialty} training with ${trainerData.fullName}. Transform your fitness with personalized programs in ${trainerData.location}.`,
+            },
+            customization: {
+              lastUpdated: new Date(),
+              version: 1,
+              isDraft: false,
+            },
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          trainer: { id: params.id, ...trainerData },
+          content: content,
+        })
+      }
+    } catch (firebaseError) {
+      console.log("6. Firebase error:", firebaseError)
+    }
+
+    console.log("7. Trainer not found:", params.id)
     return NextResponse.json(
       {
         success: false,
         error: "Trainer not found",
       },
-      { status: 404 },
+      {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     )
   } catch (error) {
-    console.error("10. Unexpected error:", error)
+    console.error("8. Unexpected error:", error)
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     )
   }
 }
@@ -209,70 +218,45 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     console.log("=== UPDATING TRAINER CONTENT ===")
-    console.log("1. Trainer ID:", params.id)
+    console.log("Trainer ID:", params.id)
 
     const { content } = await request.json()
-    console.log("2. Content keys to update:", Object.keys(content))
-    console.log("3. Hero title:", content.hero?.title)
-    console.log("4. About content:", content.about?.content?.substring(0, 100) + "...")
+    console.log("Content to update:", Object.keys(content))
 
-    // ALWAYS try to update Firebase, regardless of trainer ID
+    if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
+      console.log("Simulating save for mock trainer")
+      return NextResponse.json({
+        success: true,
+        message: "Content updated successfully",
+      })
+    }
+
     try {
       const updateData = {
         content: content,
         updatedAt: new Date().toISOString(),
       }
 
-      console.log("5. Attempting Firebase update...")
       await db.collection("trainers").doc(params.id).update(updateData)
-      console.log("6. ✅ Successfully updated trainer content in Firebase")
+
+      console.log("Successfully updated trainer content in Firebase")
 
       return NextResponse.json({
         success: true,
         message: "Content updated successfully",
-        debug: {
-          trainerId: params.id,
-          updatedAt: updateData.updatedAt,
-          contentKeys: Object.keys(content),
-          heroTitle: content.hero?.title,
-          aboutContent: content.about?.content?.substring(0, 50) + "...",
-        },
       })
     } catch (firebaseError) {
-      console.error("7. ❌ Firebase update error:", firebaseError)
-
-      // Check if it's a permission error or document doesn't exist
-      if (firebaseError.code === "not-found") {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Trainer document not found in database",
-            details: firebaseError.message,
-            debug: {
-              trainerId: params.id,
-              errorCode: firebaseError.code,
-            },
-          },
-          { status: 404 },
-        )
-      }
-
+      console.error("Firebase update error:", firebaseError)
       return NextResponse.json(
         {
           success: false,
           error: "Failed to update content in database",
-          details: firebaseError.message,
-          debug: {
-            trainerId: params.id,
-            errorType: firebaseError.code || "unknown",
-            errorMessage: firebaseError.message,
-          },
         },
         { status: 500 },
       )
     }
   } catch (error) {
-    console.error("8. ❌ Unexpected update error:", error)
+    console.error("Update error:", error)
     return NextResponse.json(
       {
         success: false,
