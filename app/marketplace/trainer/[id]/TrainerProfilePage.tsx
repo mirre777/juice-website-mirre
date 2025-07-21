@@ -99,26 +99,41 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   useEffect(() => {
     if (!mounted) return
 
-    // Check if user has owner token
+    // Check if user has owner token with detailed logging
     const token = searchParams.get("token")
     const debugToken = searchParams.get("debug_token")
 
+    console.log("=== TOKEN DETECTION ===")
+    console.log("Raw token param:", token)
+    console.log("Raw debug_token param:", debugToken)
+    console.log("Has any token:", !!(token || debugToken))
+
     // Set owner status based on token presence
-    setIsOwner(!!(token || debugToken))
+    const hasToken = !!(token || debugToken)
+    setIsOwner(hasToken)
+
+    console.log("=== OWNER STATUS ===")
+    console.log("isOwner set to:", hasToken)
 
     const fetchTrainer = async () => {
       try {
         console.log("=== FETCHING TRAINER PROFILE ===")
         console.log("Trainer ID:", trainerId)
-        console.log("Has Token:", !!(token || debugToken))
+        console.log("Has Token:", hasToken)
 
         // Build URL with token if available
         let url = `/api/trainer/content/${trainerId}`
         if (token) {
           url += `?token=${token}`
+          console.log("Using token in API call")
         } else if (debugToken) {
           url += `?debug_token=${debugToken}`
+          console.log("Using debug_token in API call")
+        } else {
+          console.log("No token - making public API call")
         }
+
+        console.log("API URL:", url)
 
         const response = await fetch(url)
         const data = await response.json()
@@ -160,6 +175,16 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       fetchTrainer()
     }
   }, [trainerId, mounted, searchParams])
+
+  // Add logging for header visibility logic
+  useEffect(() => {
+    console.log("=== HEADER VISIBILITY LOGIC ===")
+    console.log("isOwner:", isOwner)
+    console.log("isLivePreview:", isLivePreview)
+    console.log("isEditing:", isEditing)
+    console.log("showOwnerControls (isOwner && !isLivePreview):", isOwner && !isLivePreview)
+    console.log("showLivePreviewHeader (isOwner && isLivePreview):", isOwner && isLivePreview)
+  }, [isOwner, isLivePreview, isEditing])
 
   const generateDefaultContent = (trainer: TrainerData, existingContent?: any): TrainerContent => {
     // Safe property access with fallbacks
@@ -232,13 +257,18 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const handleStartEditing = () => {
+    console.log("=== STARTING EDIT MODE ===")
     setIsEditing(true)
     setHasUnsavedChanges(false)
     // Exit live preview when starting to edit
-    setIsLivePreview(false)
+    if (isLivePreview) {
+      console.log("Exiting live preview to start editing")
+      setIsLivePreview(false)
+    }
   }
 
   const handleCancelEditing = () => {
+    console.log("=== CANCELING EDIT MODE ===")
     if (hasUnsavedChanges) {
       if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
         setIsEditing(false)
@@ -257,6 +287,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const handleSaveChanges = async () => {
     if (!editingContent) return
 
+    console.log("=== SAVING CHANGES ===")
     setSaving(true)
     try {
       const token = searchParams.get("token")
@@ -268,6 +299,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       } else if (debugToken) {
         url += `?debug_token=${debugToken}`
       }
+
+      console.log("Save API URL:", url)
 
       const response = await fetch(url, {
         method: "PUT",
@@ -306,7 +339,12 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const handleToggleLivePreview = () => {
+    console.log("=== TOGGLING LIVE PREVIEW ===")
+    console.log("Current isLivePreview:", isLivePreview)
+    console.log("Has unsaved changes:", hasUnsavedChanges)
+
     if (hasUnsavedChanges) {
+      console.log("Blocking live preview due to unsaved changes")
       toast({
         title: "Unsaved Changes",
         description: "Please save your changes before viewing live preview",
@@ -315,9 +353,13 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       return
     }
 
-    setIsLivePreview(!isLivePreview)
+    const newLivePreviewState = !isLivePreview
+    console.log("Setting isLivePreview to:", newLivePreviewState)
+    setIsLivePreview(newLivePreviewState)
+
     // Exit editing mode when entering live preview
-    if (!isLivePreview) {
+    if (newLivePreviewState && isEditing) {
+      console.log("Exiting editing mode for live preview")
       setIsEditing(false)
     }
   }
@@ -454,105 +496,124 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   // Determine if we should show owner controls
   const showOwnerControls = isOwner && !isLivePreview
+  const showLivePreviewHeader = isOwner && isLivePreview
+
+  console.log("=== RENDER DECISIONS ===")
+  console.log("showOwnerControls:", showOwnerControls)
+  console.log("showLivePreviewHeader:", showLivePreviewHeader)
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Owner Header - Only visible to trainer owner and not in live preview */}
       {showOwnerControls && (
-        <div className="bg-white border-b sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                {/* Status Badges */}
-                <Badge variant="default" className="bg-green-500">
-                  {trainer.isActive ? "Live" : "Draft"}
-                </Badge>
-                <Badge variant="secondary">{isEditing ? "Editing Mode" : "Owner View"}</Badge>
-                {hasUnsavedChanges && (
-                  <Badge variant="outline" className="border-orange-500 text-orange-600">
-                    Unsaved Changes
+        <>
+          {console.log("=== RENDERING OWNER HEADER ===")}
+          <div className="bg-white border-b sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center py-4">
+                <div className="flex items-center space-x-4">
+                  {/* Status Badges */}
+                  <Badge variant="default" className="bg-green-500">
+                    {trainer.isActive ? "Live" : "Draft"}
                   </Badge>
-                )}
-              </div>
+                  <Badge variant="secondary">{isEditing ? "Editing Mode" : "Owner View"}</Badge>
+                  {hasUnsavedChanges && (
+                    <Badge variant="outline" className="border-orange-500 text-orange-600">
+                      Unsaved Changes
+                    </Badge>
+                  )}
+                </div>
 
-              <div className="flex items-center space-x-2">
-                {!isEditing ? (
-                  // View Mode Actions
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={handleToggleLivePreview}
-                      className="flex items-center space-x-2 bg-transparent"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>View Live</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleStartEditing}
-                      className="flex items-center space-x-2 bg-transparent"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span>Edit Profile</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                      className="flex items-center space-x-2"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Button>
-                  </>
-                ) : (
-                  // Edit Mode Actions
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelEditing}
-                      className="flex items-center space-x-2 bg-transparent"
-                    >
-                      <X className="h-4 w-4" />
-                      <span>Cancel</span>
-                    </Button>
-                    <Button
-                      onClick={handleSaveChanges}
-                      disabled={saving || !hasUnsavedChanges}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <Save className="h-4 w-4" />
-                      <span>{saving ? "Saving..." : "Save Changes"}</span>
-                    </Button>
-                  </>
-                )}
+                <div className="flex items-center space-x-2">
+                  {!isEditing ? (
+                    // View Mode Actions
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={handleToggleLivePreview}
+                        className="flex items-center space-x-2 bg-transparent"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View Live</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleStartEditing}
+                        className="flex items-center space-x-2 bg-transparent"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span>Edit Profile</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+                        className="flex items-center space-x-2"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Button>
+                    </>
+                  ) : (
+                    // Edit Mode Actions
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEditing}
+                        className="flex items-center space-x-2 bg-transparent"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Cancel</span>
+                      </Button>
+                      <Button
+                        onClick={handleSaveChanges}
+                        disabled={saving || !hasUnsavedChanges}
+                        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                      >
+                        <Save className="h-4 w-4" />
+                        <span>{saving ? "Saving..." : "Save Changes"}</span>
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Live Preview Header - Only visible when in live preview mode */}
-      {isOwner && isLivePreview && (
-        <div className="bg-blue-600 text-white sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-3">
-              <div className="flex items-center space-x-3">
-                <Badge variant="secondary" className="bg-blue-500 text-white">
-                  Live Preview
-                </Badge>
-                <span className="text-sm opacity-90">This is how visitors see your profile</span>
+      {showLivePreviewHeader && (
+        <>
+          {console.log("=== RENDERING LIVE PREVIEW HEADER ===")}
+          <div className="bg-blue-600 text-white sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center py-3">
+                <div className="flex items-center space-x-3">
+                  <Badge variant="secondary" className="bg-blue-500 text-white">
+                    Live Preview
+                  </Badge>
+                  <span className="text-sm opacity-90">This is how visitors see your profile</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleLivePreview}
+                  className="flex items-center space-x-2 bg-white text-blue-600 hover:bg-gray-100"
+                >
+                  <EyeOff className="h-4 w-4" />
+                  <span>Exit Preview</span>
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleLivePreview}
-                className="flex items-center space-x-2 bg-white text-blue-600 hover:bg-gray-100"
-              >
-                <EyeOff className="h-4 w-4" />
-                <span>Exit Preview</span>
-              </Button>
             </div>
           </div>
+        </>
+      )}
+
+      {/* Debug Info - Remove in production */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 text-sm">
+          <strong>Debug Info:</strong> isOwner: {isOwner.toString()}, isLivePreview: {isLivePreview.toString()},
+          showOwnerControls: {showOwnerControls.toString()}, showLivePreviewHeader: {showLivePreviewHeader.toString()}
         </div>
       )}
 
