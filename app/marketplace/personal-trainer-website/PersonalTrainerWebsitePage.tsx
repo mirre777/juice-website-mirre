@@ -273,22 +273,20 @@ export default function PersonalTrainerWebsitePage() {
               <div className="p-3 bg-[#D2FF28] rounded-full">
                 <Zap className="w-8 h-8 text-black" />
               </div>
-              <Badge className="bg-[#D2FF28] text-black px-4 py-2 text-lg font-medium">
-                AI-Powered Website Generation
-              </Badge>
+              <Badge className="bg-[#D2FF28] text-black px-4 py-2 text-lg font-medium">Super fast</Badge>
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Get Your Professional{" "}
-              <span className="text-[#D2FF28] relative">
+              <span className="text-black relative">
                 Trainer Website
-                <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-30 rounded"></div>
+                <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
               </span>{" "}
               in Minutes
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
-              Our AI creates a stunning, professional website tailored to your training expertise. No coding required -
+              Juice creates a stunning, professional website tailored to your training expertise. No coding required -
               just fill out the form and watch your online presence come to life.
             </p>
 
@@ -297,7 +295,7 @@ export default function PersonalTrainerWebsitePage() {
                 <div className="p-2 bg-green-100 rounded-full">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
-                <span className="text-gray-700 font-medium">AI-Generated Content</span>
+                <span className="text-gray-700 font-medium">Superfast design</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 rounded-full">
@@ -581,7 +579,7 @@ export default function PersonalTrainerWebsitePage() {
                   </Button>
 
                   <p className="text-center text-sm text-gray-600 mt-4">
-                    Your website will be generated instantly. You'll have 24 hours to review and activate it for €29.
+                    Your website will be generated instantly. You'll have 24 hours to review and activate it for €70.
                   </p>
                 </div>
               </form>

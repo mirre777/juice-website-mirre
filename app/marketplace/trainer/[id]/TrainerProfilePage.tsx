@@ -1,51 +1,418 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Mail, Phone, Clock, Euro, Edit, ExternalLink, Award, Target } from "lucide-react"
-import type { TrainerProfile } from "@/types/trainer"
+import {
+  MapPin,
+  Users,
+  Dumbbell,
+  Award,
+  Phone,
+  Mail,
+  Edit,
+  ExternalLink,
+  Save,
+  X,
+  Plus,
+  Trash2,
+  Eye,
+  EyeOff,
+} from "lucide-react"
+import { isOwnerAuthenticated, getOwnerTokenFromUrl } from "@/lib/auth-utils"
 
 interface TrainerProfilePageProps {
   trainerId: string
 }
 
+interface Service {
+  id: string
+  title: string
+  description: string
+  price: number
+  duration: string
+  featured: boolean
+}
+
+interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    bio: string
+  }
+  contact: {
+    title: string
+    description: string
+    phone: string
+    email: string
+    location: string
+  }
+  services: Service[]
+  seo: {
+    title: string
+    description: string
+  }
+}
+
+interface TrainerData {
+  id: string
+  fullName: string
+  email: string
+  experience: string
+  specialty: string
+  certifications?: string
+  services: string[]
+  status: string
+  isActive: boolean
+  isPaid: boolean
+  content?: TrainerContent
+}
+
 export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
-  const router = useRouter()
-  const [trainer, setTrainer] = useState<TrainerProfile | null>(null)
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    fetchTrainer()
-  }, [trainerId])
+    setMounted(true)
+  }, [])
 
-  const fetchTrainer = async () => {
-    try {
-      const response = await fetch(`/api/trainer/content/${trainerId}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch trainer")
+  useEffect(() => {
+    if (!mounted) return
+
+    // Check if user is the owner
+    const ownerStatus = isOwnerAuthenticated(trainerId)
+    setIsOwner(ownerStatus)
+
+    // Check if we're in preview mode
+    const previewParam = searchParams.get("preview")
+    setIsPreviewMode(previewParam === "true")
+
+    const fetchTrainer = async () => {
+      try {
+        console.log("=== FETCHING TRAINER PROFILE ===")
+        console.log("Trainer ID:", trainerId)
+        console.log("Is Owner:", ownerStatus)
+        console.log("Preview Mode:", previewParam === "true")
+
+        // Build the API URL with authentication if owner
+        let apiUrl = `/api/trainer/content/${trainerId}`
+        if (ownerStatus) {
+          const token = getOwnerTokenFromUrl()
+          if (token) {
+            apiUrl += `?token=${encodeURIComponent(token)}`
+          }
+        }
+
+        const response = await fetch(apiUrl)
+        const data = await response.json()
+
+        console.log("API Response:", data)
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("Trainer profile not found")
+          } else if (response.status === 403) {
+            setError("This trainer profile is not active")
+          } else {
+            setError(data.error || "Failed to load trainer profile")
+          }
+          setLoading(false)
+          return
+        }
+
+        if (data.success && data.trainer) {
+          console.log("Setting trainer data:", data.trainer)
+          setTrainer(data.trainer)
+
+          // Initialize editing content with safe property access
+          const content = generateDefaultContent(data.trainer, data.content)
+          setEditingContent(content)
+        } else {
+          setError(data.error || "Failed to load trainer data")
+        }
+
+        setLoading(false)
+      } catch (err) {
+        console.error("Error fetching trainer:", err)
+        setError("Failed to load trainer profile")
+        setLoading(false)
       }
-      const data = await response.json()
-      setTrainer(data.trainer)
+    }
+
+    if (trainerId) {
+      fetchTrainer()
+    }
+  }, [trainerId, mounted, searchParams])
+
+  const generateDefaultContent = (trainer: TrainerData, existingContent?: any): TrainerContent => {
+    // Safe property access with fallbacks
+    const fullName = trainer?.fullName || "Trainer"
+    const specialty = trainer?.specialty || "Fitness"
+    const experience = trainer?.experience || "experience"
+    const email = trainer?.email || ""
+
+    // Safely extract existing content or use fallbacks
+    const existingHero = existingContent?.hero || trainer?.content?.hero || {}
+    const existingAbout = existingContent?.about || trainer?.content?.about || {}
+    const existingContact = existingContent?.contact || trainer?.content?.contact || {}
+    const existingServices = existingContent?.services || trainer?.content?.services || []
+
+    // Generate bio from existing content or fallback
+    const bio =
+      existingAbout.bio ||
+      existingAbout.content ||
+      `Passionate ${specialty} trainer with ${experience} helping clients achieve their health and fitness goals.`
+
+    // Get contact info with fallbacks
+    const phone = existingContact.phone || ""
+    const location = existingContact.location || ""
+
+    // Ensure services is always an array
+    let servicesArray: Service[] = []
+
+    if (Array.isArray(existingServices)) {
+      servicesArray = existingServices
+    } else if (Array.isArray(trainer?.services)) {
+      // Convert string array to Service objects
+      servicesArray = trainer.services.map((service, index) => ({
+        id: (index + 1).toString(),
+        title: service,
+        description: `Professional ${service.toLowerCase()} service`,
+        price: 60,
+        duration: "60 minutes",
+        featured: index === 0,
+      }))
+    }
+
+    // If still no services, provide defaults
+    if (servicesArray.length === 0) {
+      servicesArray = [
+        {
+          id: "1",
+          title: "Personal Training Session",
+          description: "One-on-one personalized training session focused on your specific goals",
+          price: 60,
+          duration: "60 minutes",
+          featured: true,
+        },
+        {
+          id: "2",
+          title: "Fitness Assessment",
+          description: "Comprehensive fitness evaluation and goal-setting session",
+          price: 40,
+          duration: "45 minutes",
+          featured: false,
+        },
+      ]
+    }
+
+    return {
+      hero: {
+        title: existingHero.title || `Transform Your Fitness with ${fullName}`,
+        subtitle: existingHero.subtitle || `Professional ${specialty} trainer with ${experience} of experience`,
+        description: existingHero.description || bio,
+      },
+      about: {
+        title: existingAbout.title || "About Me",
+        bio: bio,
+      },
+      contact: {
+        title: existingContact.title || "Let's Start Your Fitness Journey",
+        description:
+          existingContact.description ||
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        phone: phone,
+        email: email,
+        location: location,
+      },
+      services: servicesArray,
+      seo: {
+        title: `${fullName} - Personal Trainer`,
+        description: `Professional ${specialty} training with ${fullName}. Transform your fitness with personalized programs.`,
+      },
+    }
+  }
+
+  const handleStartEditing = () => {
+    if (!isOwner) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to edit this profile",
+        variant: "destructive",
+      })
+      return
+    }
+    setIsEditing(true)
+    setHasUnsavedChanges(false)
+    setIsPreviewMode(false) // Exit preview mode when editing
+  }
+
+  const handleCancelEditing = () => {
+    if (hasUnsavedChanges) {
+      if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+        setIsEditing(false)
+        setHasUnsavedChanges(false)
+        // Reset editing content to original
+        if (trainer) {
+          const content = generateDefaultContent(trainer, trainer.content)
+          setEditingContent(content)
+        }
+      }
+    } else {
+      setIsEditing(false)
+    }
+  }
+
+  const handleSaveChanges = async () => {
+    if (!editingContent || !isOwner) return
+
+    setSaving(true)
+    try {
+      const token = getOwnerTokenFromUrl()
+      const response = await fetch(`/api/trainer/content/${trainerId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ content: editingContent }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save content")
+      }
+
+      // Update trainer data with new content
+      if (trainer) {
+        setTrainer({ ...trainer, content: editingContent })
+      }
+
+      setIsEditing(false)
+      setHasUnsavedChanges(false)
+
+      toast({
+        title: "Success",
+        description: "Content saved successfully!",
+      })
     } catch (error) {
-      console.error("Error fetching trainer:", error)
+      console.error("Error saving content:", error)
       toast({
         title: "Error",
-        description: "Failed to load trainer profile",
+        description: "Failed to save content",
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
+  }
+
+  const togglePreviewMode = () => {
+    if (!isOwner) return
+
+    const newPreviewMode = !isPreviewMode
+    setIsPreviewMode(newPreviewMode)
+
+    // Update URL to reflect preview mode
+    const currentUrl = new URL(window.location.href)
+    if (newPreviewMode) {
+      currentUrl.searchParams.set("preview", "true")
+    } else {
+      currentUrl.searchParams.delete("preview")
+    }
+
+    // Update URL without page reload
+    window.history.replaceState({}, "", currentUrl.toString())
+
+    // Exit editing mode if entering preview
+    if (newPreviewMode && isEditing) {
+      setIsEditing(false)
+    }
+
+    toast({
+      title: newPreviewMode ? "Preview Mode" : "Edit Mode",
+      description: newPreviewMode ? "Viewing as a visitor would see it" : "Back to owner view with editing controls",
+    })
+  }
+
+  const updateContent = (path: string, value: any) => {
+    if (!editingContent || !isOwner) return
+
+    const keys = path.split(".")
+    const newContent = { ...editingContent }
+    let current: any = newContent
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!current[keys[i]]) {
+        current[keys[i]] = {}
+      }
+      current = current[keys[i]]
+    }
+    current[keys[keys.length - 1]] = value
+
+    setEditingContent(newContent)
+    setHasUnsavedChanges(true)
+  }
+
+  const addService = () => {
+    if (!editingContent || !isOwner) return
+
+    const newService: Service = {
+      id: Date.now().toString(),
+      title: "New Service",
+      description: "Service description",
+      price: 50,
+      duration: "60 minutes",
+      featured: false,
+    }
+
+    const currentServices = Array.isArray(editingContent.services) ? editingContent.services : []
+    updateContent("services", [...currentServices, newService])
+  }
+
+  const updateService = (serviceId: string, updates: Partial<Service>) => {
+    if (!editingContent || !Array.isArray(editingContent.services) || !isOwner) return
+
+    const updatedServices = editingContent.services.map((service) =>
+      service.id === serviceId ? { ...service, ...updates } : service,
+    )
+    updateContent("services", updatedServices)
+  }
+
+  const removeService = (serviceId: string) => {
+    if (!editingContent || !Array.isArray(editingContent.services) || !isOwner) return
+
+    const updatedServices = editingContent.services.filter((service) => service.id !== serviceId)
+    updateContent("services", updatedServices)
+  }
+
+  if (!mounted) {
+    return null
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading trainer profile...</p>
@@ -54,193 +421,478 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
-  if (!trainer) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Trainer Not Found</h1>
-          <p className="text-gray-600 mb-4">The trainer profile you're looking for doesn't exist.</p>
-          <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-red-500 text-5xl mb-4">⚠️</div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <div className="space-y-2">
+                <Button onClick={() => window.location.reload()} className="w-full">
+                  Try Again
+                </Button>
+                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
+                  Back to Marketplace
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Use edited content if available, otherwise fall back to original data
-  const content = trainer.content
-  const heroTitle = content?.hero?.title || `Professional Training with ${trainer.name}`
-  const heroSubtitle = content?.hero?.subtitle || `${trainer.specialization} • ${trainer.experience} Experience`
-  const heroDescription =
-    content?.hero?.description ||
-    `Get personalized fitness training with ${trainer.name} in ${trainer.location}. Specializing in ${trainer.specialization} with ${trainer.experience} of experience.`
+  if (!trainer || !editingContent) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
+              <p className="text-gray-600 mb-4">The trainer profile could not be loaded.</p>
+              <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
-  const aboutTitle = content?.about?.title || "About Me"
-  const aboutContent =
-    content?.about?.content ||
-    `I'm ${trainer.name}, a certified personal trainer with ${trainer.experience} of experience in ${trainer.specialization}. I'm passionate about helping clients achieve their fitness goals through personalized training programs.`
+  // Safe access to display content with fallbacks
+  const displayContent = isEditing ? editingContent : trainer.content || editingContent
 
-  const services = content?.services || [
-    {
-      id: "1",
-      title: "Personal Training Session",
-      description: "One-on-one personalized training session",
-      price: 60,
-      duration: "60 minutes",
-      featured: true,
-    },
-  ]
+  // Additional safety checks for nested properties
+  const heroContent = displayContent?.hero || {
+    title: `Transform Your Fitness with ${trainer.fullName}`,
+    subtitle: `Professional ${trainer.specialty} trainer`,
+    description: "Professional fitness training services",
+  }
 
-  const contactTitle = content?.contact?.title || "Get Started Today"
-  const contactDescription =
-    content?.contact?.description || "Ready to begin your fitness journey? Contact me to schedule your first session."
-  const contactPhone = content?.contact?.phone || trainer.phone
+  const aboutContent = displayContent?.about || {
+    title: "About Me",
+    bio: "Professional trainer dedicated to helping clients achieve their fitness goals.",
+  }
 
-  const seoTitle = content?.seo?.title || `${trainer.name} - Personal Trainer`
+  const contactContent = displayContent?.contact || {
+    title: "Let's Start Your Fitness Journey",
+    description: "Get in touch to schedule your consultation",
+    phone: "",
+    email: trainer.email,
+    location: "",
+  }
+
+  // CRITICAL FIX: Ensure services is always an array
+  const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
+
+  // Determine if we should show the header (only for owners and not in preview mode)
+  const showHeader = isOwner && !isPreviewMode
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Floating Profile Card */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <Card className="overflow-hidden shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            {/* Header with Edit Button */}
-            {trainer.status === "active" && (
-              <div className="absolute top-4 right-4 z-10">
-                <Button
-                  onClick={() => router.push(`/marketplace/trainer/${trainerId}/edit`)}
-                  size="sm"
-                  className="bg-white/90 text-gray-700 hover:bg-white border shadow-sm"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Content
-                </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Enhanced Header with Editing States - Only show to owners not in preview mode */}
+      {showHeader && (
+        <div className="bg-white border-b sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-4">
+                {/* Status Badges */}
+                <Badge variant="default" className="bg-green-500">
+                  {trainer.isActive ? "Live" : "Draft"}
+                </Badge>
+                <Badge variant="secondary">{isEditing ? "Editing Mode" : "Owner View"}</Badge>
+                {hasUnsavedChanges && (
+                  <Badge variant="outline" className="border-orange-500 text-orange-600">
+                    Unsaved Changes
+                  </Badge>
+                )}
               </div>
+
+              <div className="flex items-center space-x-2">
+                {!isEditing ? (
+                  // View Mode Actions
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={togglePreviewMode}
+                      className="flex items-center space-x-2 bg-transparent"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span>View Live</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleStartEditing}
+                      className="flex items-center space-x-2 bg-transparent"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Edit Profile</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+                      className="flex items-center space-x-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Button>
+                  </>
+                ) : (
+                  // Edit Mode Actions
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEditing}
+                      className="flex items-center space-x-2 bg-transparent"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Cancel</span>
+                    </Button>
+                    <Button
+                      onClick={handleSaveChanges}
+                      disabled={saving || !hasUnsavedChanges}
+                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>{saving ? "Saving..." : "Save Changes"}</span>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Mode Banner - Only show to owners in preview mode */}
+      {isOwner && isPreviewMode && (
+        <div className="bg-blue-600 text-white py-2 px-4 text-center">
+          <div className="flex items-center justify-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <EyeOff className="h-4 w-4" />
+              <span className="text-sm font-medium">Preview Mode - This is how visitors see your profile</span>
+            </div>
+            <Button size="sm" variant="secondary" onClick={togglePreviewMode} className="text-blue-600">
+              Exit Preview
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section - Now Editable */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
+          <div className="max-w-4xl mx-auto text-center">
+            {isEditing && isOwner ? (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-white/80 text-sm">Hero Title</Label>
+                  <Input
+                    value={heroContent.title}
+                    onChange={(e) => updateContent("hero.title", e.target.value)}
+                    className="text-center text-4xl md:text-5xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
+                    placeholder="Your main headline"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-sm">Subtitle</Label>
+                  <Input
+                    value={heroContent.subtitle}
+                    onChange={(e) => updateContent("hero.subtitle", e.target.value)}
+                    className="text-center text-xl bg-white/10 border-white/20 text-white placeholder-white/60"
+                    placeholder="Supporting headline"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-sm">Description</Label>
+                  <Textarea
+                    value={heroContent.description}
+                    onChange={(e) => updateContent("hero.description", e.target.value)}
+                    className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
+                    placeholder="Brief introduction"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
+                <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
+                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
+              </>
             )}
 
-            {/* Hero Section */}
-            <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8">
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold">
-                    {trainer.name.charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">{heroTitle}</h1>
-                    <p className="text-xl text-blue-100 mb-3">{heroSubtitle}</p>
-                    <p className="text-blue-50 leading-relaxed max-w-2xl">{heroDescription}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-black/10"></div>
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
+              <Badge variant="secondary" className="text-blue-600">
+                <Award className="h-4 w-4 mr-1" />
+                {trainer.experience} Experience
+              </Badge>
+              <Badge variant="secondary" className="text-blue-600">
+                <MapPin className="h-4 w-4 mr-1" />
+                {contactContent.location || "Location"}
+              </Badge>
+              <Badge variant="secondary" className="text-blue-600">
+                <Dumbbell className="h-4 w-4 mr-1" />
+                {trainer.specialty}
+              </Badge>
             </div>
+            <Button size="lg" variant="secondary" className="text-blue-600">
+              Book Free Consultation
+            </Button>
+          </div>
+        </div>
 
-            <CardContent className="p-8">
-              {/* Trainer Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-blue-600" />
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-8">
+            {/* About Section */}
+            <Card className="relative group">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  {isEditing && isOwner ? (
+                    <Input
+                      value={aboutContent.title}
+                      onChange={(e) => updateContent("about.title", e.target.value)}
+                      className="font-semibold"
+                      placeholder="About section title"
+                    />
+                  ) : (
+                    aboutContent.title
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing && isOwner ? (
+                  <Textarea
+                    value={aboutContent.bio}
+                    onChange={(e) => updateContent("about.bio", e.target.value)}
+                    placeholder="Tell your story..."
+                    rows={8}
+                    className="w-full"
+                  />
+                ) : (
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+                )}
+                {trainer.certifications && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold mb-2">Certifications</h4>
+                    <p className="text-gray-600">{trainer.certifications}</p>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{trainer.location}</p>
-                    <p className="text-sm text-gray-600">Location</p>
-                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Services Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Dumbbell className="h-5 w-5 mr-2" />
+                    Services Offered
+                  </CardTitle>
+                  {isEditing && isOwner && (
+                    <Button onClick={addService} size="sm" variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Service
+                    </Button>
+                  )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Award className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{trainer.specialization}</p>
-                    <p className="text-sm text-gray-600">Specialization</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Target className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{trainer.experience}</p>
-                    <p className="text-sm text-gray-600">Experience</p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* About Section */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{aboutTitle}</h2>
-                <div className="prose prose-gray max-w-none">
-                  {aboutContent.split("\n").map((paragraph, index) => (
-                    <p key={index} className="text-gray-700 leading-relaxed mb-4">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Services Section */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Services</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {services.map((service) => (
-                    <Card key={service.id} className={`relative ${service.featured ? "ring-2 ring-blue-500" : ""}`}>
-                      <CardContent className="p-6">
-                        {service.featured && <Badge className="absolute -top-2 left-4 bg-blue-500">Featured</Badge>}
-                        <h3 className="font-bold text-lg text-gray-900 mb-2">{service.title}</h3>
-                        <p className="text-gray-600 mb-4 text-sm leading-relaxed">{service.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-2xl font-bold text-blue-600">
-                            <Euro className="h-5 w-5" />
-                            {service.price}
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {servicesContent.length > 0 ? (
+                    servicesContent.map((service, index) => (
+                      <div key={service.id || index} className="border border-gray-200 rounded-lg p-4 relative">
+                        {isEditing && isOwner ? (
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1 space-y-2">
+                                <Input
+                                  value={service.title || ""}
+                                  onChange={(e) => updateService(service.id, { title: e.target.value })}
+                                  placeholder="Service title"
+                                  className="font-semibold"
+                                />
+                                <Textarea
+                                  value={service.description || ""}
+                                  onChange={(e) => updateService(service.id, { description: e.target.value })}
+                                  placeholder="Service description"
+                                  rows={2}
+                                />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeService(service.id)}
+                                className="text-red-500 hover:text-red-700 ml-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <Label className="text-xs">Price (€)</Label>
+                                <Input
+                                  type="number"
+                                  value={service.price || 0}
+                                  onChange={(e) =>
+                                    updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
+                                  }
+                                  placeholder="Price"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Duration</Label>
+                                <Input
+                                  value={service.duration || ""}
+                                  onChange={(e) => updateService(service.id, { duration: e.target.value })}
+                                  placeholder="Duration"
+                                />
+                              </div>
+                              <div className="flex items-end">
+                                <label className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={service.featured || false}
+                                    onChange={(e) => updateService(service.id, { featured: e.target.checked })}
+                                    className="rounded"
+                                  />
+                                  <span className="text-xs">Featured</span>
+                                </label>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Clock className="h-4 w-4" />
-                            {service.duration}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              {/* Contact Section */}
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{contactTitle}</h2>
-                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">{contactDescription}</p>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                    <span>{trainer.email}</span>
-                  </div>
-                  {contactPhone && (
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Phone className="h-5 w-5 text-green-600" />
-                      <span>{contactPhone}</span>
+                        ) : (
+                          <>
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold">{service.title || "Service"}</h3>
+                                {service.featured && (
+                                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                    Featured
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold">€{service.price || 0}</div>
+                                <div className="text-sm text-gray-500">{service.duration || "Duration"}</div>
+                              </div>
+                            </div>
+                            <p className="text-gray-600 text-sm">{service.description || "Service description"}</p>
+                          </>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No services available</p>
+                      {isEditing && isOwner && (
+                        <Button onClick={addService} className="mt-4">
+                          Add Your First Service
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                    <Mail className="h-5 w-5 mr-2" />
-                    Contact {trainer.name}
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    <ExternalLink className="h-5 w-5 mr-2" />
-                    View Full Profile
-                  </Button>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {isEditing && isOwner ? (
+                    <Input
+                      value={contactContent.title}
+                      onChange={(e) => updateContent("contact.title", e.target.value)}
+                      placeholder="Contact section title"
+                    />
+                  ) : (
+                    contactContent.title
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isEditing && isOwner && (
+                  <div>
+                    <Label className="text-sm">Description</Label>
+                    <Textarea
+                      value={contactContent.description}
+                      onChange={(e) => updateContent("contact.description", e.target.value)}
+                      placeholder="Contact description"
+                      rows={3}
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                  <span className="text-sm">{contactContent.email}</span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                  {isEditing && isOwner ? (
+                    <Input
+                      value={contactContent.phone}
+                      onChange={(e) => updateContent("contact.phone", e.target.value)}
+                      placeholder="Phone number"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <span className="text-sm">{contactContent.phone}</span>
+                  )}
+                </div>
+
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-3 text-gray-400" />
+                  {isEditing && isOwner ? (
+                    <Input
+                      value={contactContent.location}
+                      onChange={(e) => updateContent("contact.location", e.target.value)}
+                      placeholder="Location"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <span className="text-sm">{contactContent.location}</span>
+                  )}
+                </div>
+
+                <Separator />
+                <Button className="w-full">Schedule Consultation</Button>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Experience</span>
+                  <span className="font-semibold">{trainer.experience}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Specialty</span>
+                  <span className="font-semibold">{trainer.specialty}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Location</span>
+                  <span className="font-semibold">{contactContent.location || "Not specified"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Services</span>
+                  <span className="font-semibold">{servicesContent.length}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

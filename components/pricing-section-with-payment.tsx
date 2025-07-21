@@ -24,9 +24,14 @@ export function PricingSectionWithPayment() {
     const preloadStripe = async () => {
       if (!stripePreloaded) {
         try {
-          await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "")
-          console.log("Stripe.js preloaded successfully")
-          setStripePreloaded(true)
+          const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+          if (publishableKey && publishableKey.trim() !== "") {
+            await loadStripe(publishableKey)
+            console.log("Stripe.js preloaded successfully")
+            setStripePreloaded(true)
+          } else {
+            console.warn("Stripe publishable key not found or empty")
+          }
         } catch (error) {
           console.error("Failed to preload Stripe.js:", error)
         }
