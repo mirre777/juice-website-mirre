@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,23 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import {
-  MapPin,
-  Users,
-  Dumbbell,
-  Award,
-  Phone,
-  Mail,
-  Edit,
-  ExternalLink,
-  Save,
-  X,
-  Plus,
-  Trash2,
-  Eye,
-  EyeOff,
-} from "lucide-react"
-import { isOwnerAuthenticated, getOwnerTokenFromUrl } from "@/lib/auth-utils"
+import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, Save, X, Plus, Trash2 } from "lucide-react"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -88,10 +72,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
-  const [isOwner, setIsOwner] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     setMounted(true)
@@ -100,31 +81,12 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   useEffect(() => {
     if (!mounted) return
 
-    // Check if user is the owner
-    const ownerStatus = isOwnerAuthenticated(trainerId)
-    setIsOwner(ownerStatus)
-
-    // Check if we're in preview mode
-    const previewParam = searchParams.get("preview")
-    setIsPreviewMode(previewParam === "true")
-
     const fetchTrainer = async () => {
       try {
         console.log("=== FETCHING TRAINER PROFILE ===")
         console.log("Trainer ID:", trainerId)
-        console.log("Is Owner:", ownerStatus)
-        console.log("Preview Mode:", previewParam === "true")
 
-        // Build the API URL with authentication if owner
-        let apiUrl = `/api/trainer/content/${trainerId}`
-        if (ownerStatus) {
-          const token = getOwnerTokenFromUrl()
-          if (token) {
-            apiUrl += `?token=${encodeURIComponent(token)}`
-          }
-        }
-
-        const response = await fetch(apiUrl)
+        const response = await fetch(`/api/trainer/content/${trainerId}`)
         const data = await response.json()
 
         console.log("API Response:", data)
@@ -163,7 +125,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     if (trainerId) {
       fetchTrainer()
     }
-  }, [trainerId, mounted, searchParams])
+  }, [trainerId, mounted])
 
   const generateDefaultContent = (trainer: TrainerData, existingContent?: any): TrainerContent => {
     // Safe property access with fallbacks
@@ -255,17 +217,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const handleStartEditing = () => {
-    if (!isOwner) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to edit this profile",
-        variant: "destructive",
-      })
-      return
-    }
     setIsEditing(true)
     setHasUnsavedChanges(false)
-    setIsPreviewMode(false) // Exit preview mode when editing
   }
 
   const handleCancelEditing = () => {
@@ -285,16 +238,14 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const handleSaveChanges = async () => {
-    if (!editingContent || !isOwner) return
+    if (!editingContent) return
 
     setSaving(true)
     try {
-      const token = getOwnerTokenFromUrl()
       const response = await fetch(`/api/trainer/content/${trainerId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({ content: editingContent }),
       })
@@ -327,36 +278,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     }
   }
 
-  const togglePreviewMode = () => {
-    if (!isOwner) return
-
-    const newPreviewMode = !isPreviewMode
-    setIsPreviewMode(newPreviewMode)
-
-    // Update URL to reflect preview mode
-    const currentUrl = new URL(window.location.href)
-    if (newPreviewMode) {
-      currentUrl.searchParams.set("preview", "true")
-    } else {
-      currentUrl.searchParams.delete("preview")
-    }
-
-    // Update URL without page reload
-    window.history.replaceState({}, "", currentUrl.toString())
-
-    // Exit editing mode if entering preview
-    if (newPreviewMode && isEditing) {
-      setIsEditing(false)
-    }
-
-    toast({
-      title: newPreviewMode ? "Preview Mode" : "Edit Mode",
-      description: newPreviewMode ? "Viewing as a visitor would see it" : "Back to owner view with editing controls",
-    })
-  }
-
   const updateContent = (path: string, value: any) => {
-    if (!editingContent || !isOwner) return
+    if (!editingContent) return
 
     const keys = path.split(".")
     const newContent = { ...editingContent }
@@ -375,7 +298,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const addService = () => {
-    if (!editingContent || !isOwner) return
+    if (!editingContent) return
 
     const newService: Service = {
       id: Date.now().toString(),
@@ -391,7 +314,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const updateService = (serviceId: string, updates: Partial<Service>) => {
-    if (!editingContent || !Array.isArray(editingContent.services) || !isOwner) return
+    if (!editingContent || !Array.isArray(editingContent.services)) return
 
     const updatedServices = editingContent.services.map((service) =>
       service.id === serviceId ? { ...service, ...updates } : service,
@@ -400,7 +323,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const removeService = (serviceId: string) => {
-    if (!editingContent || !Array.isArray(editingContent.services) || !isOwner) return
+    if (!editingContent || !Array.isArray(editingContent.services)) return
 
     const updatedServices = editingContent.services.filter((service) => service.id !== serviceId)
     updateContent("services", updatedServices)
@@ -487,105 +410,77 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   // CRITICAL FIX: Ensure services is always an array
   const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
 
-  // Determine if we should show the header (only for owners and not in preview mode)
-  const showHeader = isOwner && !isPreviewMode
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Header with Editing States - Only show to owners not in preview mode */}
-      {showHeader && (
-        <div className="bg-white border-b sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                {/* Status Badges */}
-                <Badge variant="default" className="bg-green-500">
-                  {trainer.isActive ? "Live" : "Draft"}
+      {/* Enhanced Header with Editing States */}
+      <div className="bg-white border-b sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+              {/* Status Badges */}
+              <Badge variant="default" className="bg-green-500">
+                {trainer.isActive ? "Live" : "Draft"}
+              </Badge>
+              <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
+              {hasUnsavedChanges && (
+                <Badge variant="outline" className="border-orange-500 text-orange-600">
+                  Unsaved Changes
                 </Badge>
-                <Badge variant="secondary">{isEditing ? "Editing Mode" : "Owner View"}</Badge>
-                {hasUnsavedChanges && (
-                  <Badge variant="outline" className="border-orange-500 text-orange-600">
-                    Unsaved Changes
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-2">
-                {!isEditing ? (
-                  // View Mode Actions
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={togglePreviewMode}
-                      className="flex items-center space-x-2 bg-transparent"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>View Live</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleStartEditing}
-                      className="flex items-center space-x-2 bg-transparent"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span>Edit Profile</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                      className="flex items-center space-x-2"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Button>
-                  </>
-                ) : (
-                  // Edit Mode Actions
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelEditing}
-                      className="flex items-center space-x-2 bg-transparent"
-                    >
-                      <X className="h-4 w-4" />
-                      <span>Cancel</span>
-                    </Button>
-                    <Button
-                      onClick={handleSaveChanges}
-                      disabled={saving || !hasUnsavedChanges}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <Save className="h-4 w-4" />
-                      <span>{saving ? "Saving..." : "Save Changes"}</span>
-                    </Button>
-                  </>
-                )}
-              </div>
+              )}
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Preview Mode Banner - Only show to owners in preview mode */}
-      {isOwner && isPreviewMode && (
-        <div className="bg-blue-600 text-white py-2 px-4 text-center">
-          <div className="flex items-center justify-center space-x-4">
             <div className="flex items-center space-x-2">
-              <EyeOff className="h-4 w-4" />
-              <span className="text-sm font-medium">Preview Mode - This is how visitors see your profile</span>
+              {!isEditing ? (
+                // View Mode Actions
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleStartEditing}
+                    className="flex items-center space-x-2 bg-transparent"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+                    className="flex items-center space-x-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Button>
+                </>
+              ) : (
+                // Edit Mode Actions
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEditing}
+                    className="flex items-center space-x-2 bg-transparent"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Cancel</span>
+                  </Button>
+                  <Button
+                    onClick={handleSaveChanges}
+                    disabled={saving || !hasUnsavedChanges}
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>{saving ? "Saving..." : "Save Changes"}</span>
+                  </Button>
+                </>
+              )}
             </div>
-            <Button size="sm" variant="secondary" onClick={togglePreviewMode} className="text-blue-600">
-              Exit Preview
-            </Button>
           </div>
         </div>
-      )}
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section - Now Editable */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
           <div className="max-w-4xl mx-auto text-center">
-            {isEditing && isOwner ? (
+            {isEditing ? (
               <div className="space-y-4">
                 <div>
                   <Label className="text-white/80 text-sm">Hero Title</Label>
@@ -651,7 +546,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2" />
-                  {isEditing && isOwner ? (
+                  {isEditing ? (
                     <Input
                       value={aboutContent.title}
                       onChange={(e) => updateContent("about.title", e.target.value)}
@@ -664,7 +559,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isEditing && isOwner ? (
+                {isEditing ? (
                   <Textarea
                     value={aboutContent.bio}
                     onChange={(e) => updateContent("about.bio", e.target.value)}
@@ -692,7 +587,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                     <Dumbbell className="h-5 w-5 mr-2" />
                     Services Offered
                   </CardTitle>
-                  {isEditing && isOwner && (
+                  {isEditing && (
                     <Button onClick={addService} size="sm" variant="outline">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Service
@@ -705,7 +600,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                   {servicesContent.length > 0 ? (
                     servicesContent.map((service, index) => (
                       <div key={service.id || index} className="border border-gray-200 rounded-lg p-4 relative">
-                        {isEditing && isOwner ? (
+                        {isEditing ? (
                           <div className="space-y-3">
                             <div className="flex justify-between items-start">
                               <div className="flex-1 space-y-2">
@@ -788,7 +683,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <p>No services available</p>
-                      {isEditing && isOwner && (
+                      {isEditing && (
                         <Button onClick={addService} className="mt-4">
                           Add Your First Service
                         </Button>
@@ -806,7 +701,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {isEditing && isOwner ? (
+                  {isEditing ? (
                     <Input
                       value={contactContent.title}
                       onChange={(e) => updateContent("contact.title", e.target.value)}
@@ -818,7 +713,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isEditing && isOwner && (
+                {isEditing && (
                   <div>
                     <Label className="text-sm">Description</Label>
                     <Textarea
@@ -837,7 +732,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing && isOwner ? (
+                  {isEditing ? (
                     <Input
                       value={contactContent.phone}
                       onChange={(e) => updateContent("contact.phone", e.target.value)}
@@ -851,7 +746,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing && isOwner ? (
+                  {isEditing ? (
                     <Input
                       value={contactContent.location}
                       onChange={(e) => updateContent("contact.location", e.target.value)}

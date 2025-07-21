@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
-import { validateOwnerToken } from "@/lib/auth-utils"
 
 if (!getApps().length) {
   try {
@@ -23,13 +22,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     console.log("=== API TRAINER CONTENT DEBUG ===")
     console.log("1. Received trainer ID:", params.id)
-
-    // Check if user is authenticated as owner
-    const url = new URL(request.url)
-    const token = url.searchParams.get("token")
-    const isOwner = token ? validateOwnerToken(token, params.id) : false
-
-    console.log("2. Authentication check - Is Owner:", isOwner)
 
     if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
       console.log("3. Returning mock data for known trainer:", params.id)
@@ -54,7 +46,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           },
           about: {
             title: "About Mirre Snelting",
-            bio: "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
+            content:
+              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
           },
           services: [
             {
@@ -108,7 +101,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           success: true,
           trainer: mockTrainerData,
           content: mockTrainerData.content,
-          isOwner: isOwner,
         },
         {
           status: 200,
@@ -128,17 +120,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         const trainerData = doc.data()
         console.log("5. Found trainer in Firebase:", trainerData?.fullName)
 
-        // Check if trainer is active (visible to public)
-        if (!trainerData?.isActive && !isOwner) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: "This trainer profile is not active",
-            },
-            { status: 403 },
-          )
-        }
-
         let content = trainerData?.content
 
         if (!content) {
@@ -152,7 +133,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             },
             about: {
               title: `About ${trainerData.fullName}`,
-              bio:
+              content:
                 trainerData.bio ||
                 "Experienced personal trainer dedicated to helping clients achieve their fitness goals.",
             },
@@ -197,7 +178,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           success: true,
           trainer: { id: params.id, ...trainerData },
           content: content,
-          isOwner: isOwner,
         })
       }
     } catch (firebaseError) {
@@ -239,20 +219,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     console.log("=== UPDATING TRAINER CONTENT ===")
     console.log("Trainer ID:", params.id)
-
-    // Check authentication
-    const authHeader = request.headers.get("authorization")
-    const token = authHeader?.replace("Bearer ", "")
-
-    if (!token || !validateOwnerToken(token, params.id)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Unauthorized - Invalid or missing token",
-        },
-        { status: 401 },
-      )
-    }
 
     const { content } = await request.json()
     console.log("Content to update:", Object.keys(content))
