@@ -326,13 +326,13 @@ export default function PersonalTrainerWebsitePage() {
       <section id="trainer-form" className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Create Your Trainer Profile</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">No Coding Required</h2>
             <p className="text-xl text-gray-600">Fill out this form to get your own page. No coding required.</p>
           </div>
 
           <Card className="shadow-xl border-0">
             <CardHeader className="bg-gray-50 rounded-t-lg">
-              <CardTitle className="text-2xl text-center">Trainer Information</CardTitle>
+              <CardTitle className="text-2xl text-center">Create Your Trainer Profile</CardTitle>
             </CardHeader>
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
