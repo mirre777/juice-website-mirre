@@ -101,36 +101,36 @@ function validateFormData(data) {
   const errors = []
 
   // Required field validations
-  if (!data.fullName?.trim()) {
-    errors.push("Full name is required")
+  if (!data.fullName || data.fullName.length < 2) {
+    errors.push("Name must be at least 2 characters")
   }
 
-  if (!data.email?.trim()) {
+  if (!data.email) {
     errors.push("Email is required")
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.push("Invalid email format")
+    errors.push("Please enter a valid email address")
   }
 
-  if (!data.city?.trim()) {
-    errors.push("City is required")
+  if (!data.city || data.city.length < 2) {
+    errors.push("City must be at least 2 characters")
   }
 
-  if (!data.district?.trim()) {
-    errors.push("District is required")
+  if (!data.district || data.district.length < 2) {
+    errors.push("District must be at least 2 characters")
   }
 
   if (!data.specialty) {
-    errors.push("Primary specialty is required")
+    errors.push("Please select your specialty")
   }
 
-  // Optional bio validation - only validate if provided
-  if (data.bio?.trim() && data.bio.trim().length < 20) {
+  // Bio is optional, but if provided, it should meet minimum requirements
+  if (data.bio && data.bio.length > 0 && data.bio.length < 20) {
     errors.push("Bio must be at least 20 characters if provided")
-  }
-
-  if (data.bio?.trim() && data.bio.trim().length > 500) {
+  } else if (data.bio && data.bio.length > 500) {
     errors.push("Bio must be less than 500 characters")
   }
+
+  // Services are now optional - no validation required
 
   return errors
 }
@@ -260,7 +260,7 @@ function testFieldStructureValidation() {
         city: "Vienna",
         district: "Innere Stadt",
         specialty: "Weight Loss",
-        bio: "This is a valid bio that meets the minimum character requirements.",
+        bio: "This is a valid bio that meets the minimum character requirements for validation.",
       },
       shouldPass: true,
     },
