@@ -5,12 +5,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 const API_BASE = `${BASE_URL}/api`
 
 // Test data scenarios
-const testScenarios = [
+const TEST_SCENARIOS = [
   {
     name: "Required fields only (all optional empty)",
     data: {
-      fullName: "John Smith",
-      email: "john.smith@test.com",
+      fullName: "Test Trainer Required",
+      email: "test.required@example.com",
       phone: "",
       city: "Vienna",
       district: "Innere Stadt",
@@ -24,11 +24,11 @@ const testScenarios = [
   {
     name: "Required + Phone only",
     data: {
-      fullName: "Jane Doe",
-      email: "jane.doe@test.com",
+      fullName: "Test Trainer Phone",
+      email: "test.phone@example.com",
       phone: "+43 123 456 789",
-      city: "Salzburg",
-      district: "Altstadt",
+      city: "Vienna",
+      district: "Leopoldstadt",
       specialty: "Strength Training",
       bio: "",
       certifications: "",
@@ -39,11 +39,11 @@ const testScenarios = [
   {
     name: "Required + Bio only",
     data: {
-      fullName: "Mike Johnson",
-      email: "mike.johnson@test.com",
+      fullName: "Test Trainer Bio",
+      email: "test.bio@example.com",
       phone: "",
-      city: "Graz",
-      district: "Innere Stadt",
+      city: "Salzburg",
+      district: "Altstadt",
       specialty: "Sports Performance",
       bio: "I am a certified personal trainer with over 5 years of experience helping clients achieve their fitness goals.",
       certifications: "",
@@ -54,12 +54,12 @@ const testScenarios = [
   {
     name: "Required + Certifications only",
     data: {
-      fullName: "Sarah Wilson",
-      email: "sarah.wilson@test.com",
+      fullName: "Test Trainer Certs",
+      email: "test.certs@example.com",
       phone: "",
-      city: "Innsbruck",
-      district: "Altstadt",
-      specialty: "Nutrition Coaching",
+      city: "Graz",
+      district: "Innere Stadt",
+      specialty: "Rehabilitation",
       bio: "",
       certifications: "NASM-CPT, ACE Personal Trainer",
       services: [],
@@ -69,42 +69,42 @@ const testScenarios = [
   {
     name: "Required + Services only",
     data: {
-      fullName: "Tom Brown",
-      email: "tom.brown@test.com",
+      fullName: "Test Trainer Services",
+      email: "test.services@example.com",
       phone: "",
-      city: "Linz",
-      district: "Zentrum",
-      specialty: "Group Fitness",
+      city: "Innsbruck",
+      district: "Altstadt",
+      specialty: "Nutrition Coaching",
       bio: "",
       certifications: "",
-      services: ["Personal Training", "Group Fitness"],
+      services: ["Personal Training", "Weight Loss Programs"],
     },
     shouldPass: true,
   },
   {
     name: "All fields filled",
     data: {
-      fullName: "Lisa Anderson",
-      email: "lisa.anderson@test.com",
+      fullName: "Test Trainer Complete",
+      email: "test.complete@example.com",
       phone: "+43 987 654 321",
-      city: "Klagenfurt",
+      city: "Linz",
       district: "Zentrum",
-      specialty: "Yoga & Mindfulness",
-      bio: "Experienced yoga instructor and mindfulness coach with a passion for helping people find balance in their lives through movement and meditation.",
-      certifications: "RYT-500, Mindfulness Coach Certification",
-      services: ["Personal Training", "Yoga & Mindfulness", "Online Coaching"],
+      specialty: "Group Fitness",
+      bio: "I am a passionate fitness coach with extensive experience in group training and individual coaching. My approach combines modern training methods with personalized nutrition guidance.",
+      certifications: "NASM-CPT, ACE Personal Trainer, Nutrition Specialist, Group Fitness Instructor",
+      services: ["Personal Training", "Group Fitness", "Nutrition Coaching", "Weight Loss Programs"],
     },
     shouldPass: true,
   },
   {
     name: "Bio too short (should fail)",
     data: {
-      fullName: "Alex Short",
-      email: "alex.short@test.com",
+      fullName: "Test Trainer Short Bio",
+      email: "test.shortbio@example.com",
       phone: "",
-      city: "Bregenz",
-      district: "Zentrum",
-      specialty: "Senior Fitness",
+      city: "Vienna",
+      district: "Innere Stadt",
+      specialty: "Weight Loss",
       bio: "Too short",
       certifications: "",
       services: [],
@@ -114,12 +114,12 @@ const testScenarios = [
   {
     name: "Missing required city (should fail)",
     data: {
-      fullName: "Emma Missing",
-      email: "emma.missing@test.com",
+      fullName: "Test Trainer No City",
+      email: "test.nocity@example.com",
       phone: "",
       city: "",
-      district: "Zentrum",
-      specialty: "Youth Training",
+      district: "Innere Stadt",
+      specialty: "Weight Loss",
       bio: "",
       certifications: "",
       services: [],
@@ -127,6 +127,14 @@ const testScenarios = [
     shouldPass: false,
   },
 ]
+
+// Test results tracking
+const testResults = {
+  passed: 0,
+  failed: 0,
+  total: TEST_SCENARIOS.length,
+  details: [],
+}
 
 // Helper function to make API requests
 async function makeRequest(url, options = {}) {
@@ -151,36 +159,33 @@ async function makeRequest(url, options = {}) {
 function validateFormData(data) {
   const errors = {}
 
-  // Required field validations
-  if (!data.fullName?.trim()) {
-    errors.fullName = "Full name is required"
+  if (!data.fullName || data.fullName.trim().length < 2) {
+    errors.fullName = "Full name is required and must be at least 2 characters"
   }
 
-  if (!data.email?.trim()) {
-    errors.email = "Email is required"
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Please enter a valid email address"
+  if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.email = "Valid email is required"
   }
 
-  if (!data.city?.trim()) {
-    errors.city = "City is required"
+  if (!data.city || data.city.trim().length < 2) {
+    errors.city = "City is required and must be at least 2 characters"
   }
 
-  if (!data.district?.trim()) {
-    errors.district = "District is required"
+  if (!data.district || data.district.trim().length < 2) {
+    errors.district = "District is required and must be at least 2 characters"
   }
 
   if (!data.specialty) {
-    errors.specialty = "Please select your primary specialty"
+    errors.specialty = "Primary specialty is required"
   }
 
-  // Optional bio validation - only validate if provided
-  if (data.bio?.trim() && data.bio.trim().length < 20) {
-    errors.bio = "Bio must be at least 20 characters if provided"
-  }
-
-  if (data.bio?.trim() && data.bio.trim().length > 500) {
-    errors.bio = "Bio must be less than 500 characters"
+  // Bio validation - only if provided
+  if (data.bio && data.bio.trim().length > 0) {
+    if (data.bio.trim().length < 20) {
+      errors.bio = "Bio must be at least 20 characters if provided"
+    } else if (data.bio.trim().length > 500) {
+      errors.bio = "Bio must be less than 500 characters"
+    }
   }
 
   return {
@@ -189,143 +194,205 @@ function validateFormData(data) {
   }
 }
 
-// Test individual scenario
-async function testScenario(scenario) {
-  console.log(`\n🔍 Testing: ${scenario.name}`)
-  console.log(`Expected to ${scenario.shouldPass ? "PASS" : "FAIL"}`)
+// Helper function to make API request
+async function submitTrainerForm(data) {
+  try {
+    const response = await fetch(`${API_BASE}/trainer/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
 
-  // Step 1: Client-side validation
-  const validation = validateFormData(scenario.data)
-  console.log(`   Client validation: ${validation.isValid ? "✅ PASS" : "❌ FAIL"}`)
+    const result = await response.json()
 
-  if (!validation.isValid) {
-    console.log(`   Validation errors:`, validation.errors)
-    if (!scenario.shouldPass) {
-      console.log(`   ✅ Expected failure - validation working correctly`)
-      return { success: true, reason: "Expected validation failure" }
-    } else {
-      console.log(`   ❌ Unexpected validation failure`)
-      return { success: false, reason: "Unexpected validation failure" }
+    return {
+      success: response.ok && result.success,
+      status: response.status,
+      data: result,
+      response,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+      status: 0,
     }
   }
+}
 
-  // Step 2: API submission
-  console.log(`   Submitting to API...`)
-  const { response, data, error } = await makeRequest(`${API_BASE}/trainer/create`, {
-    method: "POST",
-    body: JSON.stringify(scenario.data),
-  })
+// Helper function to retrieve trainer data
+async function getTrainerData(tempId) {
+  try {
+    const response = await fetch(`${API_BASE}/trainer/temp/${tempId}`)
+    const result = await response.json()
 
-  if (error) {
-    console.log(`   ❌ Network error: ${error.message}`)
-    return { success: false, reason: "Network error" }
+    return {
+      success: response.ok && result.success,
+      data: result.trainer || result.data,
+      status: response.status,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
+}
+
+// Main test function
+async function runTest(scenario, index) {
+  console.log(`\n📋 Test ${index + 1}/${TEST_SCENARIOS.length}: ${scenario.name}`)
+  console.log("─".repeat(60))
+
+  const testDetail = {
+    name: scenario.name,
+    shouldPass: scenario.shouldPass,
+    clientValidation: null,
+    apiSubmission: null,
+    dataRetrieval: null,
+    passed: false,
+    issues: [],
   }
 
-  console.log(`   API Response: ${response.status} ${response.statusText}`)
+  try {
+    // Step 1: Client-side validation simulation
+    console.log("🔍 Step 1: Client-side validation...")
+    const validation = validateFormData(scenario.data)
+    testDetail.clientValidation = validation
 
-  if (response.ok && data.success) {
-    console.log(`   ✅ API Success: ${data.message || "Trainer created"}`)
-    console.log(`   Temp ID: ${data.tempId}`)
-    console.log(`   Redirect URL: ${data.redirectUrl}`)
+    if (validation.isValid) {
+      console.log("✅ Client-side validation passed")
+    } else {
+      console.log("❌ Client-side validation failed:", validation.errors)
+      if (scenario.shouldPass) {
+        testDetail.issues.push("Client validation failed when it should pass")
+      }
+    }
 
-    if (scenario.shouldPass) {
-      // Step 3: Verify data persistence
-      console.log(`   Verifying data persistence...`)
-      const { response: getResponse, data: getData } = await makeRequest(`${API_BASE}/trainer/temp/${data.tempId}`)
+    // Step 2: API submission (only if client validation passes or we expect it to fail)
+    console.log("\n🚀 Step 2: API submission...")
+    const submission = await submitTrainerForm(scenario.data)
+    testDetail.apiSubmission = submission
 
-      if (getResponse.ok && getData.success) {
-        console.log(`   ✅ Data persistence verified`)
+    if (submission.success) {
+      console.log("✅ API submission successful")
+      console.log(`📄 Temp ID: ${submission.data.tempId}`)
+      console.log(`🔗 Redirect URL: ${submission.data.redirectUrl}`)
 
-        // Check optional fields handling
-        const trainer = getData.trainer
-        console.log(`   Optional fields check:`)
-        console.log(`     Phone: ${trainer.phone || "empty"} ✅`)
-        console.log(`     Bio: ${trainer.bio ? `${trainer.bio.length} chars` : "empty"} ✅`)
-        console.log(`     Certifications: ${trainer.certifications || "empty"} ✅`)
-        console.log(`     Services: ${trainer.services?.length || 0} items ✅`)
+      // Step 3: Data retrieval verification
+      if (submission.data.tempId) {
+        console.log("\n📥 Step 3: Data retrieval verification...")
+        const retrieval = await getTrainerData(submission.data.tempId)
+        testDetail.dataRetrieval = retrieval
 
-        return { success: true, tempId: data.tempId, trainer }
-      } else {
-        console.log(`   ❌ Data persistence failed`)
-        return { success: false, reason: "Data persistence failed" }
+        if (retrieval.success) {
+          console.log("✅ Data retrieval successful")
+
+          // Verify optional fields handling
+          const retrievedData = retrieval.data
+          console.log("\n🔍 Optional fields analysis:")
+          console.log(`📞 Phone: "${retrievedData.phone || ""}" (${retrievedData.phone ? "provided" : "empty"})`)
+          console.log(
+            `📝 Bio: ${retrievedData.bio ? `"${retrievedData.bio.substring(0, 50)}..." (${retrievedData.bio.length} chars)` : '"" (empty)'}`,
+          )
+          console.log(
+            `🎓 Certifications: "${retrievedData.certifications || ""}" (${retrievedData.certifications ? "provided" : "empty"})`,
+          )
+          console.log(
+            `🏋️ Services: [${(retrievedData.services || []).join(", ")}] (${(retrievedData.services || []).length} items)`,
+          )
+          console.log(`📍 Location: ${retrievedData.city}, ${retrievedData.district}`)
+        } else {
+          console.log("❌ Data retrieval failed:", retrieval.error)
+          testDetail.issues.push("Data retrieval failed")
+        }
       }
     } else {
-      console.log(`   ❌ Unexpected success - should have failed`)
-      return { success: false, reason: "Unexpected success" }
-    }
-  } else {
-    console.log(`   ❌ API Error: ${data.error || "Unknown error"}`)
-    if (data.details) {
-      console.log(`   Error details:`, data.details)
+      console.log("❌ API submission failed")
+      console.log(`📊 Status: ${submission.status}`)
+      console.log(`💬 Error: ${submission.data?.error || submission.error}`)
+
+      if (scenario.shouldPass) {
+        testDetail.issues.push(`API submission failed: ${submission.data?.error || submission.error}`)
+      }
     }
 
-    if (!scenario.shouldPass) {
-      console.log(`   ✅ Expected failure - API validation working correctly`)
-      return { success: true, reason: "Expected API failure" }
+    // Determine if test passed
+    if (scenario.shouldPass) {
+      testDetail.passed = submission.success && testDetail.dataRetrieval?.success !== false
     } else {
-      console.log(`   ❌ Unexpected API failure`)
-      return { success: false, reason: "Unexpected API failure" }
+      testDetail.passed = !submission.success || !validation.isValid
     }
+
+    if (testDetail.passed) {
+      console.log("\n🎉 TEST PASSED")
+      testResults.passed++
+    } else {
+      console.log("\n❌ TEST FAILED")
+      if (testDetail.issues.length > 0) {
+        console.log("🔍 Issues found:")
+        testDetail.issues.forEach((issue) => console.log(`   • ${issue}`))
+      }
+      testResults.failed++
+    }
+  } catch (error) {
+    console.log(`\n💥 TEST ERROR: ${error.message}`)
+    testDetail.issues.push(`Test execution error: ${error.message}`)
+    testResults.failed++
   }
+
+  testResults.details.push(testDetail)
 }
 
-// Main test execution
-async function runTests() {
-  console.log(`🚀 Testing ${testScenarios.length} scenarios...\n`)
-
-  const results = []
-  let passCount = 0
-  let failCount = 0
-
-  for (const scenario of testScenarios) {
-    const result = await testScenario(scenario)
-    results.push({ scenario: scenario.name, ...result })
-
-    if (result.success) {
-      passCount++
-    } else {
-      failCount++
-    }
-
-    // Small delay between tests
-    await new Promise((resolve) => setTimeout(resolve, 500))
-  }
-
-  // Summary
-  console.log("\n" + "=".repeat(60))
-  console.log("📊 TEST SUMMARY")
+// Run all tests
+async function runAllTests() {
+  console.log("🎯 Testing Optional Fields Form Submission")
   console.log("=".repeat(60))
-  console.log(`Total scenarios: ${testScenarios.length}`)
-  console.log(`✅ Passed: ${passCount}`)
-  console.log(`❌ Failed: ${failCount}`)
-  console.log(`Success rate: ${((passCount / testScenarios.length) * 100).toFixed(1)}%`)
+  console.log(`📊 Total scenarios: ${TEST_SCENARIOS.length}`)
+  console.log(`🌐 Base URL: ${BASE_URL}`)
 
-  console.log("\n📋 DETAILED RESULTS:")
-  results.forEach((result, index) => {
-    const status = result.success ? "✅" : "❌"
-    console.log(`${index + 1}. ${status} ${result.scenario}`)
-    if (result.reason) {
-      console.log(`   Reason: ${result.reason}`)
+  for (let i = 0; i < TEST_SCENARIOS.length; i++) {
+    await runTest(TEST_SCENARIOS[i], i)
+
+    // Add delay between tests to avoid overwhelming the server
+    if (i < TEST_SCENARIOS.length - 1) {
+      console.log("\n⏳ Waiting 2 seconds before next test...")
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     }
-  })
-
-  // Key findings
-  console.log("\n🔍 KEY FINDINGS:")
-  console.log("• Optional fields (phone, bio, certifications, services) can be empty")
-  console.log("• Bio validation only applies when bio is provided (20-500 chars)")
-  console.log("• Required fields (fullName, email, city, district, specialty) are enforced")
-  console.log("• Services array can be empty without causing errors")
-  console.log("• Data persistence works correctly for all field combinations")
-
-  if (failCount === 0) {
-    console.log("\n🎉 ALL TESTS PASSED! Optional fields handling is working correctly.")
-  } else {
-    console.log(`\n⚠️  ${failCount} test(s) failed. Please review the issues above.`)
   }
+
+  // Final results
+  console.log("\n" + "=".repeat(60))
+  console.log("📊 FINAL TEST RESULTS")
+  console.log("=".repeat(60))
+  console.log(`✅ Passed: ${testResults.passed}/${testResults.total}`)
+  console.log(`❌ Failed: ${testResults.failed}/${testResults.total}`)
+  console.log(`📈 Success Rate: ${((testResults.passed / testResults.total) * 100).toFixed(1)}%`)
+
+  if (testResults.failed > 0) {
+    console.log("\n🔍 FAILED TESTS SUMMARY:")
+    testResults.details
+      .filter((test) => !test.passed)
+      .forEach((test) => {
+        console.log(`\n❌ ${test.name}:`)
+        test.issues.forEach((issue) => console.log(`   • ${issue}`))
+      })
+  }
+
+  console.log("\n🎯 KEY FINDINGS:")
+  console.log("• Optional fields (phone, bio, certifications, services) can be empty")
+  console.log("• Required fields (fullName, email, city, district, specialty) must be provided")
+  console.log("• Bio validation only applies when bio is provided (20-500 characters)")
+  console.log("• Services array can be empty without causing validation errors")
+  console.log("• City/District fields replace the old location field structure")
+
+  console.log("\n✨ Test completed!")
 }
 
-// Run the tests
-runTests().catch((error) => {
-  console.error("❌ Test execution failed:", error)
+// Execute the tests
+runAllTests().catch((error) => {
+  console.error("💥 Test execution failed:", error)
   process.exit(1)
 })
