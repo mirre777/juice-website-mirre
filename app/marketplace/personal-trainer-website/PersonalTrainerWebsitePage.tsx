@@ -225,7 +225,7 @@ export default function PersonalTrainerWebsitePage() {
                 onClick={scrollToForm}
                 className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Generate for free
+                Create for free
                 <ArrowDown className="w-5 h-5 ml-2" />
               </Button>
             </div>
