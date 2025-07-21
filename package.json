@@ -58,7 +58,7 @@
     "https": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "nanoid": "^5.0.9",
+    "nanoid": "latest",
     "next": "15.2.4",
     "next-mdx-remote": "latest",
     "next-themes": "latest",
