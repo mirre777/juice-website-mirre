@@ -197,7 +197,7 @@ export default function PersonalTrainerWebsitePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-left max-w-4xl">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-[#D2FF28] rounded-full">
+              <div className="p-3 bg-white border border-black rounded-full">
                 <Zap className="w-8 h-8 text-black" />
               </div>
               <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
