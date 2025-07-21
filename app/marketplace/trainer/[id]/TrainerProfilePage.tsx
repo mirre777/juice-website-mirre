@@ -331,6 +331,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     updateContent("services", updatedServices)
   }
 
+  const handleExitPublicView = () => {
+    setIsPublicView(false)
+  }
+
   if (!mounted) {
     return null
   }
@@ -412,35 +416,9 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   // CRITICAL FIX: Ensure services is always an array
   const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
 
-  // If in public view mode, render the clean public component
+  // If in public view mode, render the clean public component without header
   if (isPublicView) {
-    return (
-      <div>
-        {/* Header for public view */}
-        <div className="bg-white border-b sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <Badge variant="default" className="bg-blue-500">
-                  Public View
-                </Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPublicView(false)}
-                  className="flex items-center space-x-2"
-                >
-                  <X className="h-4 w-4" />
-                  <span>Exit Public View</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <PublicTrainerView trainer={trainer} content={displayContent} />
-      </div>
-    )
+    return <PublicTrainerView trainer={trainer} content={displayContent} onExitPublicView={handleExitPublicView} />
   }
 
   // Otherwise render the existing editable view
@@ -451,38 +429,28 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              {/* Status Badges - Hide in public view */}
-              {!isPublicView && (
-                <>
-                  <Badge variant="default" className="bg-green-500">
-                    {trainer.isActive ? "Live" : "Draft"}
-                  </Badge>
-                  <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
-                  {hasUnsavedChanges && (
-                    <Badge variant="outline" className="border-orange-500 text-orange-600">
-                      Unsaved Changes
-                    </Badge>
-                  )}
-                </>
-              )}
-              {isPublicView && (
-                <Badge variant="default" className="bg-blue-500">
-                  Public View
+              <Badge variant="default" className="bg-green-500">
+                {trainer.isActive ? "Live" : "Draft"}
+              </Badge>
+              <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
+              {hasUnsavedChanges && (
+                <Badge variant="outline" className="border-orange-500 text-orange-600">
+                  Unsaved Changes
                 </Badge>
               )}
             </div>
 
             <div className="flex items-center space-x-2">
-              {/* Hide all edit controls in public view */}
-              {!isPublicView && (
+              {!isEditing ? (
+                // View Mode Actions
                 <>
                   <Button
                     variant="outline"
-                    onClick={() => setIsPublicView(!isPublicView)}
+                    onClick={() => setIsPublicView(true)}
                     className="flex items-center space-x-2 bg-transparent"
                   >
                     <Eye className="h-4 w-4" />
-                    <span>{isPublicView ? "Exit Public View" : "View Live"}</span>
+                    <span>View Live</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -501,16 +469,25 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                     <span>Dashboard</span>
                   </Button>
                 </>
-              )}
-              {isPublicView && (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPublicView(false)}
-                  className="flex items-center space-x-2"
-                >
-                  <X className="h-4 w-4" />
-                  <span>Exit Public View</span>
-                </Button>
+              ) : (
+                // Edit Mode Actions
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEditing}
+                    className="flex items-center space-x-2 bg-transparent"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Cancel</span>
+                  </Button>
+                  <Button
+                    onClick={handleSaveChanges}
+                    disabled={saving || !hasUnsavedChanges}
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <span>{saving ? "Saving..." : "Save Changes"}</span>
+                  </Button>
+                </>
               )}
             </div>
           </div>

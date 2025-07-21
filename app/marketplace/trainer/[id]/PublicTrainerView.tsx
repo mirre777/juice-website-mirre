@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Users, Dumbbell, Award, Phone, Mail } from "lucide-react"
+import { MapPin, Users, Dumbbell, Award, Phone, Mail, X } from "lucide-react"
 
 interface Service {
   id: string
@@ -52,9 +52,10 @@ interface TrainerData {
 interface PublicTrainerViewProps {
   trainer: TrainerData
   content: TrainerContent
+  onExitPublicView: () => void
 }
 
-export default function PublicTrainerView({ trainer, content }: PublicTrainerViewProps) {
+export default function PublicTrainerView({ trainer, content, onExitPublicView }: PublicTrainerViewProps) {
   const heroContent = content?.hero || {
     title: `Transform Your Fitness with ${trainer.fullName}`,
     subtitle: `Professional ${trainer.specialty} trainer`,
@@ -77,7 +78,17 @@ export default function PublicTrainerView({ trainer, content }: PublicTrainerVie
   const servicesContent = Array.isArray(content?.services) ? content.services : []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Floating Exit Button */}
+      <Button
+        onClick={onExitPublicView}
+        className="fixed top-4 right-4 z-50 bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
+        size="sm"
+      >
+        <X className="h-4 w-4 mr-2" />
+        Exit Live View
+      </Button>
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section - Clean Public View */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
