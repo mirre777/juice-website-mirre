@@ -4,8 +4,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { initializeFirebase } from "@/firebase"
-import { getFirestore, collection, getDocs, doc, updateDoc } from "firebase/firestore"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
@@ -16,7 +14,7 @@ interface PotentialUser {
   user_type: string
   status: string
   created_at: string
-  numClients?: number // Optional field for number of clients
+  numClients?: number
 }
 
 export default function UserManagementPage() {
@@ -36,19 +34,12 @@ export default function UserManagementPage() {
     setLoading(true)
     setError(null)
     try {
-      const app = initializeFirebase()
-      const db = getFirestore(app)
-      const usersCollection = collection(db, "potential_users")
-      const userSnapshot = await getDocs(usersCollection)
-      const userList = userSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        email: doc.data().email,
-        user_type: doc.data().user_type,
-        status: doc.data().status,
-        created_at: doc.data().created_at.toDate().toLocaleString(), // Convert Firebase Timestamp to readable string
-        numClients: doc.data().numClients || "N/A", // Get numClients, default to N/A
-      })) as PotentialUser[]
-      setUsers(userList)
+      const response = await fetch("/api/admin/users")
+      if (!response.ok) {
+        throw new Error("Failed to fetch users")
+      }
+      const data = await response.json()
+      setUsers(data.users || [])
     } catch (err) {
       console.error("Error fetching users:", err)
       setError("Failed to fetch users. Check console for details.")
@@ -59,12 +50,18 @@ export default function UserManagementPage() {
 
   const handleAccept = async (userId: string) => {
     try {
-      const app = initializeFirebase()
-      const db = getFirestore(app)
-      const userRef = doc(db, "potential_users", userId)
-      await updateDoc(userRef, {
-        status: "pending",
+      const response = await fetch("/api/admin/users/accept", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
       })
+
+      if (!response.ok) {
+        throw new Error("Failed to update user status")
+      }
+
       fetchUsers() // Refresh the list
     } catch (err) {
       console.error("Error updating user status:", err)
@@ -111,14 +108,12 @@ export default function UserManagementPage() {
             {error && <div className="mb-4 text-red-500">{error}</div>}
 
             <div className="overflow-x-auto">
-              {" "}
-              {/* Added for horizontal scrolling on small screens */}
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Email</TableHead>
                     <TableHead>User Type</TableHead>
-                    <TableHead>Clients</TableHead> {/* New column header */}
+                    <TableHead>Clients</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -136,7 +131,7 @@ export default function UserManagementPage() {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.email}</TableCell>
                       <TableCell>{user.user_type}</TableCell>
-                      <TableCell>{user.numClients}</TableCell> {/* Display numClients */}
+                      <TableCell>{user.numClients || "N/A"}</TableCell>
                       <TableCell>
                         <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                           {user.status} ({user.status === "waitlist" ? "potential_users" : user.status})
