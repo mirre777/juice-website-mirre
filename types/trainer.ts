@@ -2,15 +2,16 @@ export interface TrainerFormData {
   fullName: string
   email: string
   phone: string
-  location: string
+  city: string // NEW: Replace location with city
+  district: string // NEW: Add district field
   specialty: string
-  experience: string
-  certifications: string[]
-  bio: string
+  // experience: string // REMOVED: Experience level field
+  bio: string // Now optional
+  certifications: string
   services: string[]
-  pricing: string
-  availability: string
-  socialMedia: {
+  pricing?: string
+  availability?: string
+  socialMedia?: {
     instagram?: string
     facebook?: string
     website?: string
@@ -134,9 +135,10 @@ export interface TrainerProfile {
   name: string
   email: string
   phone?: string
-  location: string
+  city: string // Updated from location
+  district: string // NEW field
   specialization: string
-  experience: string
+  // experience: string // REMOVED
   bio: string
   certifications: string[]
   status: "pending" | "active" | "inactive"
@@ -164,7 +166,8 @@ export interface TrainerContent {
     description: string
     email: string
     phone: string
-    location: string
+    city: string // Updated from location
+    district: string // NEW field
   }
   seo: {
     title: string
@@ -190,9 +193,10 @@ export interface TempTrainerData {
   name: string
   email: string
   phone?: string
-  location: string
+  city: string // Updated from location
+  district: string // NEW field
   specialization: string
-  experience: string
+  // experience: string // REMOVED
   bio: string
   certifications: string[]
   createdAt: string

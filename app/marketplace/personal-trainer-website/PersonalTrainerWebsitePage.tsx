@@ -53,17 +53,15 @@ const specialties = [
   "Group Fitness Instructor",
 ]
 
-const experienceLevels = ["Less than 1 year", "1-2 years", "3-5 years", "5-10 years", "10+ years"]
-
 export default function PersonalTrainerWebsitePage() {
   const [formData, setFormData] = useState<TrainerFormData>({
     fullName: "",
     email: "",
     phone: "",
-    location: "",
+    city: "", // NEW: City field
+    district: "", // NEW: District field
     specialty: "",
-    experience: "",
-    bio: "",
+    bio: "", // Now optional
     certifications: "",
     services: [],
   })
@@ -121,21 +119,22 @@ export default function PersonalTrainerWebsitePage() {
       errors.email = "Please enter a valid email address"
     }
 
-    if (!formData.location || formData.location.length < 5) {
-      errors.location = "Location must be at least 5 characters"
+    if (!formData.city || formData.city.length < 2) {
+      errors.city = "City must be at least 2 characters"
+    }
+
+    if (!formData.district || formData.district.length < 2) {
+      errors.district = "District must be at least 2 characters"
     }
 
     if (!formData.specialty) {
       errors.specialty = "Please select your specialty"
     }
 
-    if (!formData.experience) {
-      errors.experience = "Please select your experience level"
-    }
-
-    if (!formData.bio || formData.bio.length < 50) {
-      errors.bio = "Bio must be at least 50 characters"
-    } else if (formData.bio.length > 500) {
+    // Bio is now optional, but if provided, it should meet minimum requirements
+    if (formData.bio && formData.bio.length > 0 && formData.bio.length < 20) {
+      errors.bio = "Bio must be at least 20 characters if provided"
+    } else if (formData.bio && formData.bio.length > 500) {
       errors.bio = "Bio must be less than 500 characters"
     }
 
@@ -162,7 +161,8 @@ export default function PersonalTrainerWebsitePage() {
     logger.info("Form submission started", {
       email: formData.email,
       specialty: formData.specialty,
-      location: formData.location,
+      city: formData.city,
+      district: formData.district,
       servicesCount: formData.services?.length || 0,
       hasPhone: !!formData.phone,
       hasCertifications: !!formData.certifications,
@@ -240,10 +240,9 @@ export default function PersonalTrainerWebsitePage() {
     return (
       formData.fullName &&
       formData.email &&
-      formData.location &&
+      formData.city &&
+      formData.district &&
       formData.specialty &&
-      formData.experience &&
-      formData.bio &&
       formData.services &&
       formData.services.length > 0
     )
@@ -424,26 +423,6 @@ export default function PersonalTrainerWebsitePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="location" className="text-base font-medium">
-                      Location *
-                    </Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange("location", e.target.value)}
-                      placeholder="New York, NY"
-                      className={`mt-2 h-12 ${validationErrors.location ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
-                    />
-                    {validationErrors.location && (
-                      <p className="text-red-500 text-sm mt-1">{validationErrors.location}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Professional Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
                     <Label htmlFor="specialty" className="text-base font-medium">
                       Primary Specialty *
                     </Label>
@@ -467,46 +446,57 @@ export default function PersonalTrainerWebsitePage() {
                       <p className="text-red-500 text-sm mt-1">{validationErrors.specialty}</p>
                     )}
                   </div>
+                </div>
+
+                {/* Location Information - NEW: City and District */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="city" className="text-base font-medium">
+                      City *
+                    </Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      placeholder="Vienna"
+                      className={`mt-2 h-12 ${validationErrors.city ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
+                    />
+                    {validationErrors.city && <p className="text-red-500 text-sm mt-1">{validationErrors.city}</p>}
+                  </div>
 
                   <div>
-                    <Label htmlFor="experience" className="text-base font-medium">
-                      Experience Level *
+                    <Label htmlFor="district" className="text-base font-medium">
+                      District *
                     </Label>
-                    <Select
-                      value={formData.experience}
-                      onValueChange={(value) => handleInputChange("experience", value)}
+                    <Input
+                      id="district"
+                      value={formData.district}
+                      onChange={(e) => handleInputChange("district", e.target.value)}
+                      placeholder="Innere Stadt"
+                      className={`mt-2 h-12 ${validationErrors.district ? "border-red-500" : ""}`}
                       disabled={isSubmitting}
-                    >
-                      <SelectTrigger className={`mt-2 h-12 ${validationErrors.experience ? "border-red-500" : ""}`}>
-                        <SelectValue placeholder="Select experience level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {experienceLevels.map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {validationErrors.experience && (
-                      <p className="text-red-500 text-sm mt-1">{validationErrors.experience}</p>
+                    />
+                    {validationErrors.district && (
+                      <p className="text-red-500 text-sm mt-1">{validationErrors.district}</p>
                     )}
                   </div>
                 </div>
 
-                {/* Bio */}
+                {/* Bio - NOW OPTIONAL */}
                 <div>
                   <Label htmlFor="bio" className="text-base font-medium">
-                    Professional Bio *
+                    Professional Bio
                   </Label>
                   <p className="text-sm text-gray-600 mt-1 mb-2">
                     Tell potential clients about your background, training philosophy, and what makes you unique.
+                    (Optional)
                   </p>
                   <Textarea
                     id="bio"
                     value={formData.bio}
                     onChange={(e) => handleInputChange("bio", e.target.value)}
-                    placeholder="I'm a certified personal trainer with over 5 years of experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans that fit your schedule and preferences..."
+                    placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
                     className={`mt-2 min-h-32 ${validationErrors.bio ? "border-red-500" : ""}`}
                     disabled={isSubmitting}
                   />
