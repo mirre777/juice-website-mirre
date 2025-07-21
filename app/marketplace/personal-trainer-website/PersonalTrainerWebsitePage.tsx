@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, Zap } from "lucide-react"
+import { CheckCircle, Clock, Star, Zap, ArrowDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface FormData {
@@ -75,6 +75,16 @@ export default function PersonalTrainerWebsitePage() {
     services: [],
   })
   const [errors, setErrors] = useState<FormErrors>({})
+
+  const scrollToForm = () => {
+    const formElement = document.getElementById("trainer-form")
+    if (formElement) {
+      formElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    }
+  }
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -194,6 +204,19 @@ export default function PersonalTrainerWebsitePage() {
             Launch a high-converting one-page site that captures leads and books sessions for you. Just complete a short
             form and your personal-training brand goes live – with SEO and client-ready.
           </p>
+
+          {/* CTA Button */}
+          <div className="mb-8">
+            <Button
+              onClick={scrollToForm}
+              size="lg"
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Generate for free
+              <ArrowDown className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-400" />
@@ -241,7 +264,7 @@ export default function PersonalTrainerWebsitePage() {
       </div>
 
       {/* Form Section */}
-      <div className="py-16">
+      <div id="trainer-form" className="py-16">
         <div className="max-w-2xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Create Your Trainer Profile</h2>
