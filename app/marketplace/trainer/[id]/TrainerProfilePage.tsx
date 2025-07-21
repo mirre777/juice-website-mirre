@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,22 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, Save, X, Plus, Trash2 } from "lucide-react"
+import {
+  MapPin,
+  Users,
+  Dumbbell,
+  Award,
+  Phone,
+  Mail,
+  Edit,
+  ExternalLink,
+  Save,
+  X,
+  Plus,
+  Trash2,
+  Eye,
+  EyeOff,
+} from "lucide-react"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -72,7 +87,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
+  const [isLivePreview, setIsLivePreview] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     setMounted(true)
@@ -81,12 +99,28 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   useEffect(() => {
     if (!mounted) return
 
+    // Check if user has owner token
+    const token = searchParams.get("token")
+    const debugToken = searchParams.get("debug_token")
+
+    // Set owner status based on token presence
+    setIsOwner(!!(token || debugToken))
+
     const fetchTrainer = async () => {
       try {
         console.log("=== FETCHING TRAINER PROFILE ===")
         console.log("Trainer ID:", trainerId)
+        console.log("Has Token:", !!(token || debugToken))
 
-        const response = await fetch(`/api/trainer/content/${trainerId}`)
+        // Build URL with token if available
+        let url = `/api/trainer/content/${trainerId}`
+        if (token) {
+          url += `?token=${token}`
+        } else if (debugToken) {
+          url += `?debug_token=${debugToken}`
+        }
+
+        const response = await fetch(url)
         const data = await response.json()
 
         console.log("API Response:", data)
@@ -125,7 +159,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     if (trainerId) {
       fetchTrainer()
     }
-  }, [trainerId, mounted])
+  }, [trainerId, mounted, searchParams])
 
   const generateDefaultContent = (trainer: TrainerData, existingContent?: any): TrainerContent => {
     // Safe property access with fallbacks
@@ -200,6 +234,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const handleStartEditing = () => {
     setIsEditing(true)
     setHasUnsavedChanges(false)
+    // Exit live preview when starting to edit
+    setIsLivePreview(false)
   }
 
   const handleCancelEditing = () => {
@@ -223,7 +259,17 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
     setSaving(true)
     try {
-      const response = await fetch(`/api/trainer/content/${trainerId}`, {
+      const token = searchParams.get("token")
+      const debugToken = searchParams.get("debug_token")
+
+      let url = `/api/trainer/content/${trainerId}`
+      if (token) {
+        url += `?token=${token}`
+      } else if (debugToken) {
+        url += `?debug_token=${debugToken}`
+      }
+
+      const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -256,6 +302,23 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleToggleLivePreview = () => {
+    if (hasUnsavedChanges) {
+      toast({
+        title: "Unsaved Changes",
+        description: "Please save your changes before viewing live preview",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLivePreview(!isLivePreview)
+    // Exit editing mode when entering live preview
+    if (!isLivePreview) {
+      setIsEditing(false)
     }
   }
 
@@ -389,74 +452,112 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
   const servicesContent = displayContent?.services || []
 
+  // Determine if we should show owner controls
+  const showOwnerControls = isOwner && !isLivePreview
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Header with Editing States */}
-      <div className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              {/* Status Badges */}
-              <Badge variant="default" className="bg-green-500">
-                {trainer.isActive ? "Live" : "Draft"}
-              </Badge>
-              <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
-              {hasUnsavedChanges && (
-                <Badge variant="outline" className="border-orange-500 text-orange-600">
-                  Unsaved Changes
+      {/* Owner Header - Only visible to trainer owner and not in live preview */}
+      {showOwnerControls && (
+        <div className="bg-white border-b sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-4">
+                {/* Status Badges */}
+                <Badge variant="default" className="bg-green-500">
+                  {trainer.isActive ? "Live" : "Draft"}
                 </Badge>
-              )}
-            </div>
+                <Badge variant="secondary">{isEditing ? "Editing Mode" : "Owner View"}</Badge>
+                {hasUnsavedChanges && (
+                  <Badge variant="outline" className="border-orange-500 text-orange-600">
+                    Unsaved Changes
+                  </Badge>
+                )}
+              </div>
 
-            <div className="flex items-center space-x-2">
-              {!isEditing ? (
-                // View Mode Actions
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={handleStartEditing}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit Profile</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                    className="flex items-center space-x-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Button>
-                </>
-              ) : (
-                // Edit Mode Actions
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={handleCancelEditing}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <X className="h-4 w-4" />
-                    <span>Cancel</span>
-                  </Button>
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={saving || !hasUnsavedChanges}
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <Save className="h-4 w-4" />
-                    <span>{saving ? "Saving..." : "Save Changes"}</span>
-                  </Button>
-                </>
-              )}
+              <div className="flex items-center space-x-2">
+                {!isEditing ? (
+                  // View Mode Actions
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleToggleLivePreview}
+                      className="flex items-center space-x-2 bg-transparent"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span>View Live</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleStartEditing}
+                      className="flex items-center space-x-2 bg-transparent"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Edit Profile</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+                      className="flex items-center space-x-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Button>
+                  </>
+                ) : (
+                  // Edit Mode Actions
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEditing}
+                      className="flex items-center space-x-2 bg-transparent"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Cancel</span>
+                    </Button>
+                    <Button
+                      onClick={handleSaveChanges}
+                      disabled={saving || !hasUnsavedChanges}
+                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>{saving ? "Saving..." : "Save Changes"}</span>
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Live Preview Header - Only visible when in live preview mode */}
+      {isOwner && isLivePreview && (
+        <div className="bg-blue-600 text-white sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-3">
+              <div className="flex items-center space-x-3">
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  Live Preview
+                </Badge>
+                <span className="text-sm opacity-90">This is how visitors see your profile</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleToggleLivePreview}
+                className="flex items-center space-x-2 bg-white text-blue-600 hover:bg-gray-100"
+              >
+                <EyeOff className="h-4 w-4" />
+                <span>Exit Preview</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Now Editable */}
+        {/* Hero Section */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
           <div className="max-w-4xl mx-auto text-center">
             {isEditing ? (
