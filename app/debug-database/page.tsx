@@ -22,7 +22,7 @@ export default function DatabaseDebugPage() {
   const testRead = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/trainer/content/${trainerId}`)
+      const response = await fetch(`/api/trainer/content/${trainerId}?t=${Date.now()}`)
       const data = await response.json()
 
       addResult({
@@ -31,7 +31,7 @@ export default function DatabaseDebugPage() {
         status: response.status,
         data: data,
         heroTitle: data.content?.hero?.title,
-        aboutBio: data.content?.about?.bio,
+        aboutContent: data.content?.about?.content,
       })
     } catch (error) {
       addResult({
@@ -61,6 +61,7 @@ export default function DatabaseDebugPage() {
       }
 
       // Update with test data
+      const timestamp = new Date().toISOString()
       const updatedContent = {
         ...currentData.content,
         hero: {
@@ -69,7 +70,12 @@ export default function DatabaseDebugPage() {
         },
         about: {
           ...currentData.content?.about,
-          bio: testBio || currentData.content?.about?.bio,
+          content: testBio || currentData.content?.about?.content,
+        },
+        customization: {
+          ...currentData.content?.customization,
+          lastUpdated: timestamp,
+          version: (currentData.content?.customization?.version || 0) + 1,
         },
       }
 
@@ -90,6 +96,10 @@ export default function DatabaseDebugPage() {
         data: writeData,
         testTitle,
         testBio,
+        sentContent: {
+          heroTitle: updatedContent.hero?.title,
+          aboutContent: updatedContent.about?.content?.substring(0, 100) + "...",
+        },
       })
 
       // Clear test fields on success
@@ -112,7 +122,7 @@ export default function DatabaseDebugPage() {
     setLoading(true)
     try {
       // Small delay to ensure write is complete
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
       const response = await fetch(`/api/trainer/content/${trainerId}?t=${Date.now()}`) // Cache bust
       const data = await response.json()
@@ -123,7 +133,8 @@ export default function DatabaseDebugPage() {
         status: response.status,
         data: data,
         heroTitle: data.content?.hero?.title,
-        aboutBio: data.content?.about?.bio,
+        aboutContent: data.content?.about?.content,
+        lastUpdated: data.content?.customization?.lastUpdated,
       })
     } catch (error) {
       addResult({
@@ -153,21 +164,21 @@ export default function DatabaseDebugPage() {
               <Input value={trainerId} onChange={(e) => setTrainerId(e.target.value)} placeholder="Enter trainer ID" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label>Test Title</Label>
                 <Input
                   value={testTitle}
                   onChange={(e) => setTestTitle(e.target.value)}
-                  placeholder="Enter test title"
+                  placeholder={`Test Title - ${new Date().toLocaleTimeString()}`}
                 />
               </div>
               <div>
-                <Label>Test Bio</Label>
+                <Label>Test Bio/Content</Label>
                 <Textarea
                   value={testBio}
                   onChange={(e) => setTestBio(e.target.value)}
-                  placeholder="Enter test bio"
+                  placeholder={`Test bio content - ${new Date().toLocaleTimeString()}`}
                   rows={3}
                 />
               </div>
@@ -175,13 +186,13 @@ export default function DatabaseDebugPage() {
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={testRead} disabled={loading}>
-                Test Read
+                1. Test Read
               </Button>
               <Button onClick={testWrite} disabled={loading}>
-                Test Write
+                2. Test Write
               </Button>
               <Button onClick={testReadAfterWrite} disabled={loading}>
-                Read After Write
+                3. Read After Write
               </Button>
               <Button onClick={clearResults} variant="outline">
                 Clear Results
@@ -197,7 +208,9 @@ export default function DatabaseDebugPage() {
           <CardContent>
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {results.length === 0 ? (
-                <p className="text-gray-500">No test results yet</p>
+                <p className="text-gray-500">
+                  No test results yet. Run the tests in order: Read → Write → Read After Write
+                </p>
               ) : (
                 results.map((result, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-2">
@@ -215,9 +228,15 @@ export default function DatabaseDebugPage() {
                       </div>
                     )}
 
-                    {result.aboutBio && (
+                    {result.aboutContent && (
                       <div>
-                        <strong>About Bio:</strong> {result.aboutBio.substring(0, 100)}...
+                        <strong>About Content:</strong> {result.aboutContent.substring(0, 100)}...
+                      </div>
+                    )}
+
+                    {result.lastUpdated && (
+                      <div>
+                        <strong>Last Updated:</strong> {result.lastUpdated}
                       </div>
                     )}
 
