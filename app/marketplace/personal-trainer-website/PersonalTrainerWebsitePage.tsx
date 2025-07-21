@@ -58,10 +58,10 @@ export default function PersonalTrainerWebsitePage() {
     fullName: "",
     email: "",
     phone: "",
-    city: "", // NEW: City field
-    district: "", // NEW: District field
+    city: "",
+    district: "",
     specialty: "",
-    bio: "", // Now optional
+    bio: "",
     certifications: "",
     services: [],
   })
@@ -131,16 +131,14 @@ export default function PersonalTrainerWebsitePage() {
       errors.specialty = "Please select your specialty"
     }
 
-    // Bio is now optional, but if provided, it should meet minimum requirements
+    // Bio is optional, but if provided, it should meet minimum requirements
     if (formData.bio && formData.bio.length > 0 && formData.bio.length < 20) {
       errors.bio = "Bio must be at least 20 characters if provided"
     } else if (formData.bio && formData.bio.length > 500) {
       errors.bio = "Bio must be less than 500 characters"
     }
 
-    if (!formData.services || formData.services.length === 0) {
-      errors.services = "Please select at least one service"
-    }
+    // Services are now optional - no validation required
 
     setValidationErrors(errors)
 
@@ -238,13 +236,8 @@ export default function PersonalTrainerWebsitePage() {
 
   const isFormValid = () => {
     return (
-      formData.fullName &&
-      formData.email &&
-      formData.city &&
-      formData.district &&
-      formData.specialty &&
-      formData.services &&
-      formData.services.length > 0
+      formData.fullName && formData.email && formData.city && formData.district && formData.specialty
+      // Removed services requirement
     )
   }
 
@@ -448,7 +441,7 @@ export default function PersonalTrainerWebsitePage() {
                   </div>
                 </div>
 
-                {/* Location Information - NEW: City and District */}
+                {/* Location Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="city" className="text-base font-medium">
@@ -483,7 +476,7 @@ export default function PersonalTrainerWebsitePage() {
                   </div>
                 </div>
 
-                {/* Bio - NOW OPTIONAL */}
+                {/* Bio - Optional */}
                 <div>
                   <Label htmlFor="bio" className="text-base font-medium">
                     Professional Bio
@@ -524,10 +517,12 @@ export default function PersonalTrainerWebsitePage() {
                   />
                 </div>
 
-                {/* Services */}
+                {/* Services - NOW OPTIONAL */}
                 <div>
-                  <Label className="text-base font-medium">Services Offered *</Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-4">Select all services you provide to your clients.</p>
+                  <Label className="text-base font-medium">Services Offered</Label>
+                  <p className="text-sm text-gray-600 mt-1 mb-4">
+                    Select the services you provide to your clients. (Optional)
+                  </p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {services.map((service) => (
                       <div key={service} className="flex items-center space-x-3">
@@ -543,9 +538,7 @@ export default function PersonalTrainerWebsitePage() {
                       </div>
                     ))}
                   </div>
-                  {validationErrors.services && (
-                    <p className="text-red-500 text-sm mt-2">{validationErrors.services}</p>
-                  )}
+                  {/* Removed validation error display for services */}
                 </div>
 
                 {/* Submit Button */}
