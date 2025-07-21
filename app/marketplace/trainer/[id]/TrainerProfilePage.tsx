@@ -108,7 +108,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
           setTrainer(data.trainer)
 
           // Initialize editing content with safe property access
-          const content = data.content || generateDefaultContent(data.trainer)
+          const content = generateDefaultContent(data.trainer, data.content)
           setEditingContent(content)
         } else {
           setError(data.error || "Failed to load trainer data")
@@ -127,58 +127,69 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     }
   }, [trainerId, mounted])
 
-  const generateDefaultContent = (trainer: TrainerData): TrainerContent => {
+  const generateDefaultContent = (trainer: TrainerData, existingContent?: any): TrainerContent => {
     // Safe property access with fallbacks
-    const fullName = trainer.fullName || "Trainer"
-    const specialty = trainer.specialty || "Fitness"
-    const experience = trainer.experience || "experience"
-    const email = trainer.email || ""
+    const fullName = trainer?.fullName || "Trainer"
+    const specialty = trainer?.specialty || "Fitness"
+    const experience = trainer?.experience || "experience"
+    const email = trainer?.email || ""
 
-    // Get bio from content.about.bio or fallback
+    // Safely extract existing content or use fallbacks
+    const existingHero = existingContent?.hero || trainer?.content?.hero || {}
+    const existingAbout = existingContent?.about || trainer?.content?.about || {}
+    const existingContact = existingContent?.contact || trainer?.content?.contact || {}
+    const existingServices = existingContent?.services || trainer?.content?.services || []
+
+    // Generate bio from existing content or fallback
     const bio =
-      trainer.content?.about?.bio ||
+      existingAbout.bio ||
+      existingAbout.content ||
       `Passionate ${specialty} trainer with ${experience} helping clients achieve their health and fitness goals.`
 
-    // Get contact info from content.contact or fallback
-    const phone = trainer.content?.contact?.phone || ""
-    const location = trainer.content?.contact?.location || ""
+    // Get contact info with fallbacks
+    const phone = existingContact.phone || ""
+    const location = existingContact.location || ""
 
     return {
       hero: {
-        title: `Transform Your Fitness with ${fullName}`,
-        subtitle: `Professional ${specialty} trainer with ${experience} of experience`,
-        description: bio,
+        title: existingHero.title || `Transform Your Fitness with ${fullName}`,
+        subtitle: existingHero.subtitle || `Professional ${specialty} trainer with ${experience} of experience`,
+        description: existingHero.description || bio,
       },
       about: {
-        title: "About Me",
+        title: existingAbout.title || "About Me",
         bio: bio,
       },
       contact: {
-        title: "Let's Start Your Fitness Journey",
+        title: existingContact.title || "Let's Start Your Fitness Journey",
         description:
+          existingContact.description ||
           "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
         phone: phone,
         email: email,
         location: location,
       },
-      services: [
-        {
-          id: "1",
-          title: "Personal Training Session",
-          description: "One-on-one personalized training session focused on your specific goals",
-          price: 60,
-          duration: "60 minutes",
-          featured: true,
-        },
-        {
-          id: "2",
-          title: "Fitness Assessment",
-          description: "Comprehensive fitness evaluation and goal-setting session",
-          price: 40,
-          duration: "45 minutes",
-          featured: false,
-        },
-      ],
+      services:
+        existingServices.length > 0
+          ? existingServices
+          : [
+              {
+                id: "1",
+                title: "Personal Training Session",
+                description: "One-on-one personalized training session focused on your specific goals",
+                price: 60,
+                duration: "60 minutes",
+                featured: true,
+              },
+              {
+                id: "2",
+                title: "Fitness Assessment",
+                description: "Comprehensive fitness evaluation and goal-setting session",
+                price: 40,
+                duration: "45 minutes",
+                featured: false,
+              },
+            ],
       seo: {
         title: `${fullName} - Personal Trainer`,
         description: `Professional ${specialty} training with ${fullName}. Transform your fitness with personalized programs.`,
@@ -198,7 +209,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         setHasUnsavedChanges(false)
         // Reset editing content to original
         if (trainer) {
-          const content = trainer.content || generateDefaultContent(trainer)
+          const content = generateDefaultContent(trainer, trainer.content)
           setEditingContent(content)
         }
       }
@@ -256,6 +267,9 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     let current: any = newContent
 
     for (let i = 0; i < keys.length - 1; i++) {
+      if (!current[keys[i]]) {
+        current[keys[i]] = {}
+      }
       current = current[keys[i]]
     }
     current[keys[keys.length - 1]] = value
@@ -276,11 +290,11 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       featured: false,
     }
 
-    updateContent("services", [...editingContent.services, newService])
+    updateContent("services", [...(editingContent.services || []), newService])
   }
 
   const updateService = (serviceId: string, updates: Partial<Service>) => {
-    if (!editingContent) return
+    if (!editingContent || !editingContent.services) return
 
     const updatedServices = editingContent.services.map((service) =>
       service.id === serviceId ? { ...service, ...updates } : service,
@@ -289,7 +303,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const removeService = (serviceId: string) => {
-    if (!editingContent) return
+    if (!editingContent || !editingContent.services) return
 
     const updatedServices = editingContent.services.filter((service) => service.id !== serviceId)
     updateContent("services", updatedServices)
@@ -350,7 +364,30 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
+  // Safe access to display content with fallbacks
   const displayContent = isEditing ? editingContent : trainer.content || editingContent
+
+  // Additional safety checks for nested properties
+  const heroContent = displayContent?.hero || {
+    title: `Transform Your Fitness with ${trainer.fullName}`,
+    subtitle: `Professional ${trainer.specialty} trainer`,
+    description: "Professional fitness training services",
+  }
+
+  const aboutContent = displayContent?.about || {
+    title: "About Me",
+    bio: "Professional trainer dedicated to helping clients achieve their fitness goals.",
+  }
+
+  const contactContent = displayContent?.contact || {
+    title: "Let's Start Your Fitness Journey",
+    description: "Get in touch to schedule your consultation",
+    phone: "",
+    email: trainer.email,
+    location: "",
+  }
+
+  const servicesContent = displayContent?.services || []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -427,7 +464,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 <div>
                   <Label className="text-white/80 text-sm">Hero Title</Label>
                   <Input
-                    value={displayContent.hero.title}
+                    value={heroContent.title}
                     onChange={(e) => updateContent("hero.title", e.target.value)}
                     className="text-center text-4xl md:text-5xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
                     placeholder="Your main headline"
@@ -436,7 +473,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 <div>
                   <Label className="text-white/80 text-sm">Subtitle</Label>
                   <Input
-                    value={displayContent.hero.subtitle}
+                    value={heroContent.subtitle}
                     onChange={(e) => updateContent("hero.subtitle", e.target.value)}
                     className="text-center text-xl bg-white/10 border-white/20 text-white placeholder-white/60"
                     placeholder="Supporting headline"
@@ -445,7 +482,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 <div>
                   <Label className="text-white/80 text-sm">Description</Label>
                   <Textarea
-                    value={displayContent.hero.description}
+                    value={heroContent.description}
                     onChange={(e) => updateContent("hero.description", e.target.value)}
                     className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
                     placeholder="Brief introduction"
@@ -455,9 +492,9 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </div>
             ) : (
               <>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">{displayContent.hero.title}</h1>
-                <p className="text-xl mb-6 opacity-90">{displayContent.hero.subtitle}</p>
-                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{displayContent.hero.description}</p>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
+                <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
+                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
               </>
             )}
 
@@ -468,7 +505,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <MapPin className="h-4 w-4 mr-1" />
-                {displayContent.contact.location}
+                {contactContent.location || "Location"}
               </Badge>
               <Badge variant="secondary" className="text-blue-600">
                 <Dumbbell className="h-4 w-4 mr-1" />
@@ -490,27 +527,27 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                   <Users className="h-5 w-5 mr-2" />
                   {isEditing ? (
                     <Input
-                      value={displayContent.about.title}
+                      value={aboutContent.title}
                       onChange={(e) => updateContent("about.title", e.target.value)}
                       className="font-semibold"
                       placeholder="About section title"
                     />
                   ) : (
-                    displayContent.about.title
+                    aboutContent.title
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {isEditing ? (
                   <Textarea
-                    value={displayContent.about.bio}
+                    value={aboutContent.bio}
                     onChange={(e) => updateContent("about.bio", e.target.value)}
                     placeholder="Tell your story..."
                     rows={8}
                     className="w-full"
                   />
                 ) : (
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{displayContent.about.bio}</p>
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
                 )}
                 {trainer.certifications && (
                   <div className="mt-4">
@@ -539,7 +576,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {displayContent.services.map((service, index) => (
+                  {servicesContent.map((service, index) => (
                     <div key={service.id} className="border border-gray-200 rounded-lg p-4 relative">
                       {isEditing ? (
                         <div className="space-y-3">
@@ -634,12 +671,12 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 <CardTitle>
                   {isEditing ? (
                     <Input
-                      value={displayContent.contact.title}
+                      value={contactContent.title}
                       onChange={(e) => updateContent("contact.title", e.target.value)}
                       placeholder="Contact section title"
                     />
                   ) : (
-                    displayContent.contact.title
+                    contactContent.title
                   )}
                 </CardTitle>
               </CardHeader>
@@ -648,7 +685,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                   <div>
                     <Label className="text-sm">Description</Label>
                     <Textarea
-                      value={displayContent.contact.description}
+                      value={contactContent.description}
                       onChange={(e) => updateContent("contact.description", e.target.value)}
                       placeholder="Contact description"
                       rows={3}
@@ -658,20 +695,20 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
 
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{displayContent.contact.email}</span>
+                  <span className="text-sm">{contactContent.email}</span>
                 </div>
 
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-3 text-gray-400" />
                   {isEditing ? (
                     <Input
-                      value={displayContent.contact.phone}
+                      value={contactContent.phone}
                       onChange={(e) => updateContent("contact.phone", e.target.value)}
                       placeholder="Phone number"
                       className="text-sm"
                     />
                   ) : (
-                    <span className="text-sm">{displayContent.contact.phone}</span>
+                    <span className="text-sm">{contactContent.phone}</span>
                   )}
                 </div>
 
@@ -679,13 +716,13 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
                   {isEditing ? (
                     <Input
-                      value={displayContent.contact.location}
+                      value={contactContent.location}
                       onChange={(e) => updateContent("contact.location", e.target.value)}
                       placeholder="Location"
                       className="text-sm"
                     />
                   ) : (
-                    <span className="text-sm">{displayContent.contact.location}</span>
+                    <span className="text-sm">{contactContent.location}</span>
                   )}
                 </div>
 
@@ -710,11 +747,11 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{displayContent.contact.location}</span>
+                  <span className="font-semibold">{contactContent.location || "Not specified"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{displayContent.services.length}</span>
+                  <span className="font-semibold">{servicesContent.length}</span>
                 </div>
               </CardContent>
             </Card>
