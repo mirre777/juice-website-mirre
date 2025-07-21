@@ -46,8 +46,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           },
           about: {
             title: "About Mirre Snelting",
-            content:
-              "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
+            bio: "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance. With 5-10 years of experience in Sports Performance, I help clients transform their bodies and lives through sustainable fitness practices.",
           },
           services: [
             {
@@ -133,7 +132,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             },
             about: {
               title: `About ${trainerData.fullName}`,
-              content:
+              bio:
                 trainerData.bio ||
                 "Experienced personal trainer dedicated to helping clients achieve their fitness goals.",
             },
@@ -221,14 +220,45 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     console.log("Trainer ID:", params.id)
 
     const { content } = await request.json()
-    console.log("Content to update:", Object.keys(content))
+    console.log("Content to update:", JSON.stringify(content, null, 2))
 
+    // For the mock trainer, we'll simulate the save but also try to save to Firebase
     if (params.id === "POj2MRZ5ZRbq3CW1U0zJ") {
-      console.log("Simulating save for mock trainer")
-      return NextResponse.json({
-        success: true,
-        message: "Content updated successfully",
-      })
+      console.log("Processing update for mock trainer")
+
+      try {
+        // Try to save to Firebase even for mock trainer
+        const updateData = {
+          content: content,
+          updatedAt: new Date().toISOString(),
+        }
+
+        await db.collection("trainers").doc(params.id).update(updateData)
+        console.log("✅ Successfully updated mock trainer in Firebase")
+
+        return NextResponse.json({
+          success: true,
+          message: "Content updated successfully",
+          debug: {
+            trainerId: params.id,
+            updatedAt: updateData.updatedAt,
+            contentKeys: Object.keys(content),
+          },
+        })
+      } catch (firebaseError) {
+        console.error("❌ Firebase update error for mock trainer:", firebaseError)
+
+        // Still return success for mock trainer even if Firebase fails
+        return NextResponse.json({
+          success: true,
+          message: "Content updated successfully (mock mode)",
+          debug: {
+            trainerId: params.id,
+            mockMode: true,
+            firebaseError: firebaseError.message,
+          },
+        })
+      }
     }
 
     try {
@@ -237,26 +267,38 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         updatedAt: new Date().toISOString(),
       }
 
+      console.log("Updating Firebase document with:", JSON.stringify(updateData, null, 2))
+
       await db.collection("trainers").doc(params.id).update(updateData)
 
-      console.log("Successfully updated trainer content in Firebase")
+      console.log("✅ Successfully updated trainer content in Firebase")
 
       return NextResponse.json({
         success: true,
         message: "Content updated successfully",
+        debug: {
+          trainerId: params.id,
+          updatedAt: updateData.updatedAt,
+          contentKeys: Object.keys(content),
+        },
       })
     } catch (firebaseError) {
-      console.error("Firebase update error:", firebaseError)
+      console.error("❌ Firebase update error:", firebaseError)
       return NextResponse.json(
         {
           success: false,
           error: "Failed to update content in database",
+          details: firebaseError.message,
+          debug: {
+            trainerId: params.id,
+            errorType: firebaseError.code || "unknown",
+          },
         },
         { status: 500 },
       )
     }
   } catch (error) {
-    console.error("Update error:", error)
+    console.error("❌ Update error:", error)
     return NextResponse.json(
       {
         success: false,

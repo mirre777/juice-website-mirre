@@ -33,6 +33,10 @@ interface TrainerContent {
     location: string
   }
   services: Service[]
+  seo: {
+    title: string
+    description: string
+  }
 }
 
 interface TrainerData {
@@ -56,6 +60,7 @@ interface PublicTrainerViewProps {
 }
 
 export default function PublicTrainerView({ trainer, content, onExitPublicView }: PublicTrainerViewProps) {
+  // Safe access to content with fallbacks
   const heroContent = content?.hero || {
     title: `Transform Your Fitness with ${trainer.fullName}`,
     subtitle: `Professional ${trainer.specialty} trainer`,
@@ -82,7 +87,7 @@ export default function PublicTrainerView({ trainer, content, onExitPublicView }
       {/* Floating Exit Button */}
       <Button
         onClick={onExitPublicView}
-        className="fixed top-4 right-4 z-50 bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
+        className="fixed top-4 right-4 z-50 bg-gray-800 hover:bg-gray-900 text-white shadow-lg"
         size="sm"
       >
         <X className="h-4 w-4 mr-2" />
@@ -90,7 +95,7 @@ export default function PublicTrainerView({ trainer, content, onExitPublicView }
       </Button>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Clean Public View */}
+        {/* Hero Section */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
@@ -166,14 +171,11 @@ export default function PublicTrainerView({ trainer, content, onExitPublicView }
                           </div>
                         </div>
                         <p className="text-gray-600 text-sm">{service.description || "Service description"}</p>
-                        <Button className="mt-3 w-full bg-transparent" variant="outline">
-                          Book This Service
-                        </Button>
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <p>Services coming soon!</p>
+                      <p>Services information coming soon</p>
                     </div>
                   )}
                 </div>
@@ -203,16 +205,15 @@ export default function PublicTrainerView({ trainer, content, onExitPublicView }
                   </div>
                 )}
 
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{contactContent.location}</span>
-                </div>
+                {contactContent.location && (
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-3 text-gray-400" />
+                    <span className="text-sm">{contactContent.location}</span>
+                  </div>
+                )}
 
                 <Separator />
                 <Button className="w-full">Schedule Consultation</Button>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Send Message
-                </Button>
               </CardContent>
             </Card>
 
@@ -237,21 +238,6 @@ export default function PublicTrainerView({ trainer, content, onExitPublicView }
                 <div className="flex justify-between">
                   <span className="text-gray-600">Services</span>
                   <span className="font-semibold">{servicesContent.length}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Call to Action */}
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <h3 className="font-semibold text-gray-900 mb-2">Ready to Get Started?</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Book your free consultation today and take the first step towards your fitness goals.
-                  </p>
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-                    Book Free Consultation
-                  </Button>
                 </div>
               </CardContent>
             </Card>
