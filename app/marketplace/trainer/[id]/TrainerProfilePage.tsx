@@ -150,6 +150,45 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     const phone = existingContact.phone || ""
     const location = existingContact.location || ""
 
+    // Ensure services is always an array
+    let servicesArray: Service[] = []
+
+    if (Array.isArray(existingServices)) {
+      servicesArray = existingServices
+    } else if (Array.isArray(trainer?.services)) {
+      // Convert string array to Service objects
+      servicesArray = trainer.services.map((service, index) => ({
+        id: (index + 1).toString(),
+        title: service,
+        description: `Professional ${service.toLowerCase()} service`,
+        price: 60,
+        duration: "60 minutes",
+        featured: index === 0,
+      }))
+    }
+
+    // If still no services, provide defaults
+    if (servicesArray.length === 0) {
+      servicesArray = [
+        {
+          id: "1",
+          title: "Personal Training Session",
+          description: "One-on-one personalized training session focused on your specific goals",
+          price: 60,
+          duration: "60 minutes",
+          featured: true,
+        },
+        {
+          id: "2",
+          title: "Fitness Assessment",
+          description: "Comprehensive fitness evaluation and goal-setting session",
+          price: 40,
+          duration: "45 minutes",
+          featured: false,
+        },
+      ]
+    }
+
     return {
       hero: {
         title: existingHero.title || `Transform Your Fitness with ${fullName}`,
@@ -169,27 +208,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         email: email,
         location: location,
       },
-      services:
-        existingServices.length > 0
-          ? existingServices
-          : [
-              {
-                id: "1",
-                title: "Personal Training Session",
-                description: "One-on-one personalized training session focused on your specific goals",
-                price: 60,
-                duration: "60 minutes",
-                featured: true,
-              },
-              {
-                id: "2",
-                title: "Fitness Assessment",
-                description: "Comprehensive fitness evaluation and goal-setting session",
-                price: 40,
-                duration: "45 minutes",
-                featured: false,
-              },
-            ],
+      services: servicesArray,
       seo: {
         title: `${fullName} - Personal Trainer`,
         description: `Professional ${specialty} training with ${fullName}. Transform your fitness with personalized programs.`,
@@ -290,11 +309,12 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
       featured: false,
     }
 
-    updateContent("services", [...(editingContent.services || []), newService])
+    const currentServices = Array.isArray(editingContent.services) ? editingContent.services : []
+    updateContent("services", [...currentServices, newService])
   }
 
   const updateService = (serviceId: string, updates: Partial<Service>) => {
-    if (!editingContent || !editingContent.services) return
+    if (!editingContent || !Array.isArray(editingContent.services)) return
 
     const updatedServices = editingContent.services.map((service) =>
       service.id === serviceId ? { ...service, ...updates } : service,
@@ -303,7 +323,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   }
 
   const removeService = (serviceId: string) => {
-    if (!editingContent || !editingContent.services) return
+    if (!editingContent || !Array.isArray(editingContent.services)) return
 
     const updatedServices = editingContent.services.filter((service) => service.id !== serviceId)
     updateContent("services", updatedServices)
@@ -387,7 +407,8 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     location: "",
   }
 
-  const servicesContent = displayContent?.services || []
+  // CRITICAL FIX: Ensure services is always an array
+  const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -576,88 +597,99 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {servicesContent.map((service, index) => (
-                    <div key={service.id} className="border border-gray-200 rounded-lg p-4 relative">
-                      {isEditing ? (
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1 space-y-2">
-                              <Input
-                                value={service.title}
-                                onChange={(e) => updateService(service.id, { title: e.target.value })}
-                                placeholder="Service title"
-                                className="font-semibold"
-                              />
-                              <Textarea
-                                value={service.description}
-                                onChange={(e) => updateService(service.id, { description: e.target.value })}
-                                placeholder="Service description"
-                                rows={2}
-                              />
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeService(service.id)}
-                              className="text-red-500 hover:text-red-700 ml-2"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <Label className="text-xs">Price (€)</Label>
-                              <Input
-                                type="number"
-                                value={service.price}
-                                onChange={(e) =>
-                                  updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
-                                }
-                                placeholder="Price"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs">Duration</Label>
-                              <Input
-                                value={service.duration}
-                                onChange={(e) => updateService(service.id, { duration: e.target.value })}
-                                placeholder="Duration"
-                              />
-                            </div>
-                            <div className="flex items-end">
-                              <label className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  checked={service.featured}
-                                  onChange={(e) => updateService(service.id, { featured: e.target.checked })}
-                                  className="rounded"
+                  {servicesContent.length > 0 ? (
+                    servicesContent.map((service, index) => (
+                      <div key={service.id || index} className="border border-gray-200 rounded-lg p-4 relative">
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1 space-y-2">
+                                <Input
+                                  value={service.title || ""}
+                                  onChange={(e) => updateService(service.id, { title: e.target.value })}
+                                  placeholder="Service title"
+                                  className="font-semibold"
                                 />
-                                <span className="text-xs">Featured</span>
-                              </label>
+                                <Textarea
+                                  value={service.description || ""}
+                                  onChange={(e) => updateService(service.id, { description: e.target.value })}
+                                  placeholder="Service description"
+                                  rows={2}
+                                />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeService(service.id)}
+                                className="text-red-500 hover:text-red-700 ml-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <Label className="text-xs">Price (€)</Label>
+                                <Input
+                                  type="number"
+                                  value={service.price || 0}
+                                  onChange={(e) =>
+                                    updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
+                                  }
+                                  placeholder="Price"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Duration</Label>
+                                <Input
+                                  value={service.duration || ""}
+                                  onChange={(e) => updateService(service.id, { duration: e.target.value })}
+                                  placeholder="Duration"
+                                />
+                              </div>
+                              <div className="flex items-end">
+                                <label className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={service.featured || false}
+                                    onChange={(e) => updateService(service.id, { featured: e.target.checked })}
+                                    className="rounded"
+                                  />
+                                  <span className="text-xs">Featured</span>
+                                </label>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{service.title}</h3>
-                              {service.featured && (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                                  Featured
-                                </Badge>
-                              )}
+                        ) : (
+                          <>
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold">{service.title || "Service"}</h3>
+                                {service.featured && (
+                                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                    Featured
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold">€{service.price || 0}</div>
+                                <div className="text-sm text-gray-500">{service.duration || "Duration"}</div>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold">€{service.price}</div>
-                              <div className="text-sm text-gray-500">{service.duration}</div>
-                            </div>
-                          </div>
-                          <p className="text-gray-600 text-sm">{service.description}</p>
-                        </>
+                            <p className="text-gray-600 text-sm">{service.description || "Service description"}</p>
+                          </>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No services available</p>
+                      {isEditing && (
+                        <Button onClick={addService} className="mt-4">
+                          Add Your First Service
+                        </Button>
                       )}
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>

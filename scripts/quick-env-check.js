@@ -1,39 +1,42 @@
-// Quick Environment Check - Just shows missing vars
-console.log("🔍 QUICK ENVIRONMENT CHECK\n")
+#!/usr/bin/env node
 
-const critical = [
-  "STRIPE_SECRET_KEY",
-  "STRIPE_WEBHOOK_SECRET",
-  "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+console.log("⚡ Quick Environment Check\n")
+
+// Critical environment variables only
+const CRITICAL_VARS = [
+  "NEXT_PUBLIC_FIREBASE_API_KEY",
+  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
   "FIREBASE_PROJECT_ID",
   "FIREBASE_CLIENT_EMAIL",
   "FIREBASE_PRIVATE_KEY",
-  "NEXT_PUBLIC_FIREBASE_API_KEY",
-  "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
 ]
 
+let allPresent = true
 const missing = []
-const present = []
 
-critical.forEach((key) => {
-  const value = process.env[key]
-  if (!value || value.trim() === "") {
-    missing.push(key)
-    console.log(`❌ ${key}`)
-  } else {
-    present.push(key)
-    console.log(`✅ ${key}`)
+CRITICAL_VARS.forEach((varName) => {
+  const value = process.env[varName]
+  const status = value ? "✅" : "❌"
+
+  console.log(`${status} ${varName}`)
+
+  if (!value) {
+    missing.push(varName)
+    allPresent = false
   }
 })
 
-console.log(`\n📊 Result: ${present.length}/${critical.length} critical variables present`)
+console.log("\n" + "=".repeat(50))
 
-if (missing.length > 0) {
-  console.log(`\n❌ Missing ${missing.length} variables:`)
-  missing.forEach((key) => console.log(`   - ${key}`))
-  process.exit(1)
+if (allPresent) {
+  console.log("🎉 All critical environment variables are present!")
 } else {
-  console.log("\n🎉 All critical environment variables are present!")
-  process.exit(0)
+  console.log(`❌ Missing ${missing.length} critical variables:`)
+  missing.forEach((name) => console.log(`   - ${name}`))
+  console.log("\nAdd these to Vercel Dashboard > Settings > Environment Variables")
 }
+
+process.exit(allPresent ? 0 : 1)
