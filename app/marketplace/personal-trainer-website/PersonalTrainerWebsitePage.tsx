@@ -533,9 +533,9 @@ export default function PersonalTrainerWebsitePage() {
                   </Button>
 
                   <p className="text-center text-sm text-gray-600 mt-4">
-                    Your website will be generated <strong>instantly</strong>. You'll have 24 hours to review and
-                    activate it for{" "}
-                    <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>
+                    Your website will be generated <strong>instantly</strong>. You can edit and activate it for{" "}
+                    <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span> No one's
+                    forcing you.
                   </p>
                 </div>
               </form>
