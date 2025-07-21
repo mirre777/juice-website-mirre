@@ -15,16 +15,14 @@ const requiredEnvVars = {
   // Stripe Configuration
   STRIPE_SECRET_KEY: "Stripe Secret Key",
   STRIPE_WEBHOOK_SECRET: "Stripe Webhook Secret",
-  STRIPE_PUBLISHABLE_KEY: "Stripe Publishable Key",
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "Stripe Publishable Key",
 
   // Firebase Configuration
   FIREBASE_PROJECT_ID: "Firebase Project ID",
   FIREBASE_CLIENT_EMAIL: "Firebase Client Email",
   FIREBASE_PRIVATE_KEY: "Firebase Private Key",
-
-  // Next.js Configuration
-  NEXTAUTH_SECRET: "NextAuth Secret",
-  NEXTAUTH_URL: "NextAuth URL",
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: "Firebase Project ID (Public)",
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "Firebase Auth Domain (Public)",
 
   // Optional but recommended
   VERCEL_URL: "Vercel URL (auto-generated)",
@@ -42,7 +40,7 @@ Object.entries(requiredEnvVars).forEach(([key, description]) => {
   const isPresent = value && value.trim() !== ""
   const status = isPresent ? "✅ SET" : "❌ MISSING"
 
-  console.log(`${key.padEnd(25)} | ${status} | ${description}`)
+  console.log(`${key.padEnd(35)} | ${status} | ${description}`)
 
   if (!isPresent) {
     allEnvVarsPresent = false
@@ -61,13 +59,20 @@ try {
     const stripeKeyFormat = process.env.STRIPE_SECRET_KEY.startsWith("sk_")
     console.log(`- Secret Key Format: ${stripeKeyFormat ? "✅ Valid" : "❌ Invalid"}`)
     console.log(`- Secret Key Length: ${process.env.STRIPE_SECRET_KEY.length} characters`)
+
+    // Check if it's test or live key
+    const isTestKey = process.env.STRIPE_SECRET_KEY.includes("_test_")
+    console.log(`- Key Type: ${isTestKey ? "🧪 Test Key" : "🔴 Live Key"}`)
   } else {
     console.log("- ❌ Stripe Secret Key not found")
   }
 
-  if (process.env.STRIPE_PUBLISHABLE_KEY) {
-    const pubKeyFormat = process.env.STRIPE_PUBLISHABLE_KEY.startsWith("pk_")
+  if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    const pubKeyFormat = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.startsWith("pk_")
     console.log(`- Publishable Key Format: ${pubKeyFormat ? "✅ Valid" : "❌ Invalid"}`)
+
+    const isTestPubKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.includes("_test_")
+    console.log(`- Publishable Key Type: ${isTestPubKey ? "🧪 Test Key" : "🔴 Live Key"}`)
   } else {
     console.log("- ❌ Stripe Publishable Key not found")
   }
@@ -86,7 +91,7 @@ try {
 console.log("\n🔥 Testing Firebase Configuration:")
 try {
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    console.log("- ✅ All Firebase credentials present")
+    console.log("- ✅ All Firebase server credentials present")
 
     // Check Firebase Private Key format
     const privateKey = process.env.FIREBASE_PRIVATE_KEY
@@ -99,8 +104,24 @@ try {
       process.env.FIREBASE_CLIENT_EMAIL.includes("@") &&
       process.env.FIREBASE_CLIENT_EMAIL.includes(".iam.gserviceaccount.com")
     console.log(`- Client Email Format: ${emailFormat ? "✅ Valid" : "❌ Invalid"}`)
+
+    // Check project ID consistency
+    const serverProjectId = process.env.FIREBASE_PROJECT_ID
+    const clientProjectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    const projectIdsMatch = serverProjectId === clientProjectId
+    console.log(`- Project ID Consistency: ${projectIdsMatch ? "✅ Match" : "⚠️ Mismatch"}`)
   } else {
-    console.log("- ❌ Missing Firebase credentials")
+    console.log("- ❌ Missing Firebase server credentials")
+  }
+
+  // Check client-side Firebase config
+  if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) {
+    console.log("- ✅ Firebase client credentials present")
+
+    const authDomainFormat = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN.includes(".firebaseapp.com")
+    console.log(`- Auth Domain Format: ${authDomainFormat ? "✅ Valid" : "❌ Invalid"}`)
+  } else {
+    console.log("- ❌ Missing Firebase client credentials")
   }
 } catch (error) {
   console.log(`- ❌ Error checking Firebase config: ${error.message}`)
@@ -110,14 +131,23 @@ try {
 console.log("\n⚡ Testing Next.js Configuration:")
 console.log(`- NODE_ENV: ${process.env.NODE_ENV || "not set"}`)
 console.log(`- VERCEL_URL: ${process.env.VERCEL_URL || "not set (normal for local dev)"}`)
-console.log(`- NEXTAUTH_URL: ${process.env.NEXTAUTH_URL || "not set"}`)
+
+// Check for other important environment variables
+console.log("\n🔧 Additional Configuration:")
+const additionalVars = ["NEXT_PUBLIC_APP_URL", "BLOB_READ_WRITE_TOKEN", "DEBUG_TOKEN"]
+
+additionalVars.forEach((varName) => {
+  const value = process.env[varName]
+  const status = value ? "✅ SET" : "❌ MISSING"
+  console.log(`- ${varName}: ${status}`)
+})
 
 // Summary
 console.log("\n📊 Summary:")
 console.log("=".repeat(50))
 
 if (allEnvVarsPresent) {
-  console.log("🎉 All environment variables are configured!")
+  console.log("🎉 All critical environment variables are configured!")
 } else {
   console.log(`⚠️  ${criticalMissing.length} critical environment variables missing:`)
   criticalMissing.forEach((key) => console.log(`   - ${key}`))
@@ -139,10 +169,29 @@ if (!process.env.FIREBASE_PRIVATE_KEY?.includes("-----BEGIN PRIVATE KEY-----")) 
   console.log("5. Ensure Firebase Private Key includes proper headers and newlines")
 }
 
+// Check for common issues
+console.log("\n🔍 Common Issues Check:")
+if (process.env.FIREBASE_PRIVATE_KEY && !process.env.FIREBASE_PRIVATE_KEY.includes("\\n")) {
+  console.log("⚠️  Firebase Private Key might need proper newline characters (\\n)")
+}
+
+if (process.env.STRIPE_SECRET_KEY?.includes("_test_") && process.env.NODE_ENV === "production") {
+  console.log("⚠️  Using test Stripe keys in production environment")
+}
+
 console.log("\n🔗 Next Steps:")
-console.log("- If all variables are set, test the trainer creation flow")
-console.log("- Check API routes are working: /api/stripe-test")
+console.log("- If all variables are set, test the API endpoints")
+console.log("- Check API routes are working: /api/debug-stripe")
 console.log("- Test Firebase connection: /api/debug-firestore")
 console.log("- Verify Stripe webhook endpoint is configured")
 
 console.log("\n✅ Environment check complete!")
+
+// Exit with appropriate code
+if (criticalMissing.length > 0) {
+  console.log("\n❌ Exiting with error due to missing critical variables")
+  process.exit(1)
+} else {
+  console.log("\n✅ All checks passed!")
+  process.exit(0)
+}
