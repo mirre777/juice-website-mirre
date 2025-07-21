@@ -200,8 +200,8 @@ export default function PersonalTrainerWebsitePage() {
               <div className="p-3 bg-[#D2FF28] rounded-full">
                 <Zap className="w-8 h-8 text-black" />
               </div>
-              <div className="bg-[#D2FF28] text-black px-4 py-2 text-lg font-medium rounded-full">
-                Stand out. Book clients.
+              <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
+                No coding required
               </div>
             </div>
 
