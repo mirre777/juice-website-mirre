@@ -1,182 +1,64 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "@/components/ui/use-toast"
-import {
-  MapPin,
-  Users,
-  Dumbbell,
-  Award,
-  Phone,
-  Mail,
-  Edit,
-  ExternalLink,
-  Save,
-  X,
-  Plus,
-  Trash2,
-  Eye,
-  EyeOff,
-} from "lucide-react"
-
-interface TrainerProfilePageProps {
-  trainerId: string
-}
-
-interface Service {
-  id: string
-  title: string
-  description: string
-  price: number
-  duration: string
-  featured: boolean
-}
+import { User, MapPin, Phone, Mail, Clock, Award, Edit3, Save, X, Eye, EyeOff, AlertCircle } from "lucide-react"
 
 interface TrainerContent {
   hero: {
     title: string
     subtitle: string
     description: string
+    experience: string
+    location: string
+    specialty: string
   }
   about: {
     title: string
     bio: string
+    certifications: string[]
   }
   contact: {
     title: string
     description: string
-    phone: string
     email: string
+    phone: string
     location: string
   }
-  services: Service[]
-  seo: {
-    title: string
+  services: Array<{
+    name: string
     description: string
-  }
+    price: string
+    duration: string
+  }>
 }
 
-interface TrainerData {
-  id: string
-  fullName: string
-  email: string
-  experience: string
-  specialty: string
-  certifications?: string
-  services: string[]
-  status: string
-  isActive: boolean
-  isPaid: boolean
-  content?: TrainerContent
+interface TrainerProfilePageProps {
+  trainerId: string
 }
 
 export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProps) {
-  const [trainer, setTrainer] = useState<TrainerData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [isOwner, setIsOwner] = useState(false)
-  const [isLivePreview, setIsLivePreview] = useState(false)
-  const router = useRouter()
   const searchParams = useSearchParams()
+  const [trainer, setTrainer] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isLivePreview, setIsLivePreview] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editContent, setEditContent] = useState<TrainerContent | null>(null)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Token detection with comprehensive logging
+  const token = searchParams?.get("token")
+  const debugToken = searchParams?.get("debug_token")
+  const isOwner = !!(token || debugToken)
 
-  useEffect(() => {
-    if (!mounted) return
-
-    // Check if user has owner token with detailed logging
-    const token = searchParams.get("token")
-    const debugToken = searchParams.get("debug_token")
-
-    console.log("=== TOKEN DETECTION ===")
-    console.log("Raw token param:", token)
-    console.log("Raw debug_token param:", debugToken)
-    console.log("Has any token:", !!(token || debugToken))
-
-    // Set owner status based on token presence
-    const hasToken = !!(token || debugToken)
-    setIsOwner(hasToken)
-
-    console.log("=== OWNER STATUS ===")
-    console.log("isOwner set to:", hasToken)
-
-    const fetchTrainer = async () => {
-      try {
-        console.log("=== FETCHING TRAINER PROFILE ===")
-        console.log("Trainer ID:", trainerId)
-        console.log("Has Token:", hasToken)
-
-        // Build URL with token if available
-        let url = `/api/trainer/content/${trainerId}`
-        if (token) {
-          url += `?token=${token}`
-          console.log("Using token in API call")
-        } else if (debugToken) {
-          url += `?debug_token=${debugToken}`
-          console.log("Using debug_token in API call")
-        } else {
-          console.log("No token - making public API call")
-        }
-
-        console.log("API URL:", url)
-
-        const response = await fetch(url)
-        const data = await response.json()
-
-        console.log("API Response:", data)
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("Trainer profile not found")
-          } else if (response.status === 403) {
-            setError("This trainer profile is not active")
-          } else {
-            setError(data.error || "Failed to load trainer profile")
-          }
-          setLoading(false)
-          return
-        }
-
-        if (data.success && data.trainer) {
-          console.log("Setting trainer data:", data.trainer)
-          setTrainer(data.trainer)
-
-          // Initialize editing content with safe property access
-          const content = generateDefaultContent(data.trainer, data.content)
-          setEditingContent(content)
-        } else {
-          setError(data.error || "Failed to load trainer data")
-        }
-
-        setLoading(false)
-      } catch (err) {
-        console.error("Error fetching trainer:", err)
-        setError("Failed to load trainer profile")
-        setLoading(false)
-      }
-    }
-
-    if (trainerId) {
-      fetchTrainer()
-    }
-  }, [trainerId, mounted, searchParams])
-
-  // Add logging for header visibility logic
+  // Enhanced logging for debugging
   useEffect(() => {
     console.log("=== HEADER VISIBILITY LOGIC ===")
     console.log("isOwner:", isOwner)
@@ -184,243 +66,222 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     console.log("isEditing:", isEditing)
     console.log("showOwnerControls (isOwner && !isLivePreview):", isOwner && !isLivePreview)
     console.log("showLivePreviewHeader (isOwner && isLivePreview):", isOwner && isLivePreview)
-  }, [isOwner, isLivePreview, isEditing])
 
-  const generateDefaultContent = (trainer: TrainerData, existingContent?: any): TrainerContent => {
-    // Safe property access with fallbacks
-    const fullName = trainer?.fullName || "Trainer"
-    const specialty = trainer?.specialty || "Fitness"
-    const experience = trainer?.experience || "experience"
-    const email = trainer?.email || ""
+    console.log("=== TOKEN DETECTION ===")
+    console.log("Raw token param:", token)
+    console.log("Raw debug_token param:", debugToken)
+    console.log("Has any token:", !!(token || debugToken))
 
-    // Safely extract existing content or use fallbacks
-    const existingHero = existingContent?.hero || trainer?.content?.hero || {}
-    const existingAbout = existingContent?.about || trainer?.content?.about || {}
-    const existingContact = existingContent?.contact || trainer?.content?.contact || {}
-    const existingServices = existingContent?.services || trainer?.content?.services || []
+    console.log("=== OWNER STATUS ===")
+    console.log("isOwner set to:", isOwner)
+  }, [token, debugToken, isOwner, isLivePreview, isEditing])
 
-    // Generate bio from existing content or fallback
-    const bio =
-      existingAbout.bio ||
-      existingAbout.content ||
-      `Passionate ${specialty} trainer with ${experience} helping clients achieve their health and fitness goals.`
-
-    // Get contact info with fallbacks
-    const phone = existingContact.phone || ""
-    const location = existingContact.location || ""
+  // Generate default content structure
+  const generateDefaultContent = (trainerData: any): TrainerContent => {
+    console.log("Generating default content for trainer:", trainerData)
 
     return {
       hero: {
-        title: existingHero.title || `Transform Your Fitness with ${fullName}`,
-        subtitle: existingHero.subtitle || `Professional ${specialty} trainer with ${experience} of experience`,
-        description: existingHero.description || bio,
+        title: trainerData?.content?.hero?.title || trainerData?.name || "Personal Trainer",
+        subtitle: trainerData?.content?.hero?.subtitle || trainerData?.subtitle || "Professional fitness coach",
+        description:
+          trainerData?.content?.hero?.description ||
+          trainerData?.bio ||
+          "Transform your fitness journey with personalized training",
+        experience: trainerData?.content?.hero?.experience || trainerData?.experience || "1-2 years",
+        location: trainerData?.content?.hero?.location || trainerData?.location || "Location",
+        specialty: trainerData?.content?.hero?.specialty || trainerData?.specialty || "General Fitness",
       },
       about: {
-        title: existingAbout.title || "About Me",
-        bio: bio,
+        title: trainerData?.content?.about?.title || "About Me",
+        bio:
+          trainerData?.content?.about?.bio ||
+          trainerData?.bio ||
+          "Professional trainer dedicated to helping you achieve your fitness goals.",
+        certifications: trainerData?.content?.about?.certifications || trainerData?.certifications || [],
       },
       contact: {
-        title: existingContact.title || "Let's Start Your Fitness Journey",
+        title: trainerData?.content?.contact?.title || "Let's Start Your Fitness Journey",
         description:
-          existingContact.description ||
-          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-        phone: phone,
-        email: email,
-        location: location,
+          trainerData?.content?.contact?.description || "Ready to transform your fitness? Get in touch today!",
+        email: trainerData?.content?.contact?.email || trainerData?.email || "trainer@example.com",
+        phone: trainerData?.content?.contact?.phone || trainerData?.phone || "+1234567890",
+        location: trainerData?.content?.contact?.location || trainerData?.location || "Location",
       },
-      services:
-        existingServices.length > 0
-          ? existingServices
-          : [
-              {
-                id: "1",
-                title: "Personal Training Session",
-                description: "One-on-one personalized training session focused on your specific goals",
-                price: 60,
-                duration: "60 minutes",
-                featured: true,
-              },
-              {
-                id: "2",
-                title: "Fitness Assessment",
-                description: "Comprehensive fitness evaluation and goal-setting session",
-                price: 40,
-                duration: "45 minutes",
-                featured: false,
-              },
-            ],
-      seo: {
-        title: `${fullName} - Personal Trainer`,
-        description: `Professional ${specialty} training with ${fullName}. Transform your fitness with personalized programs.`,
-      },
+      services: trainerData?.content?.services || trainerData?.services || [],
     }
   }
 
-  const handleStartEditing = () => {
-    console.log("=== STARTING EDIT MODE ===")
-    setIsEditing(true)
-    setHasUnsavedChanges(false)
-    // Exit live preview when starting to edit
-    if (isLivePreview) {
-      console.log("Exiting live preview to start editing")
+  // Fetch trainer data
+  useEffect(() => {
+    const fetchTrainer = async () => {
+      console.log("=== FETCHING TRAINER PROFILE ===")
+      console.log("Trainer ID:", trainerId)
+      console.log("Has Token:", !!(token || debugToken))
+
+      try {
+        const apiToken = token || debugToken
+        let apiUrl = `/api/trainer/content/${trainerId}`
+
+        if (apiToken) {
+          apiUrl += `?token=${apiToken}`
+          console.log("Using token for API call")
+        } else {
+          console.log("No token - making public API call")
+        }
+
+        console.log("API URL:", apiUrl)
+
+        const response = await fetch(apiUrl)
+        const data = await response.json()
+
+        console.log("API Response:", data)
+
+        if (data.success) {
+          setTrainer(data.trainer)
+          console.log("Setting trainer data:", data.trainer)
+        } else {
+          console.error("API Error:", data.error)
+        }
+      } catch (error) {
+        console.error("Error fetching trainer:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (trainerId) {
+      fetchTrainer()
+    }
+  }, [trainerId, token, debugToken])
+
+  // Generate display content
+  const displayContent = trainer ? generateDefaultContent(trainer) : null
+
+  // Render decisions logging
+  useEffect(() => {
+    console.log("=== RENDER DECISIONS ===")
+    console.log("showOwnerControls:", isOwner && !isLivePreview)
+    console.log("showLivePreviewHeader:", isOwner && isLivePreview)
+  }, [isOwner, isLivePreview])
+
+  // Initialize edit content when entering edit mode
+  useEffect(() => {
+    if (isEditing && displayContent && !editContent) {
+      setEditContent(displayContent)
+    }
+  }, [isEditing, displayContent, editContent])
+
+  // Handle edit mode toggle
+  const handleEditToggle = () => {
+    console.log("=== EDIT MODE TOGGLE ===")
+    console.log("Current isEditing:", isEditing)
+    console.log("Toggling to:", !isEditing)
+
+    if (isEditing) {
+      // Exiting edit mode
+      if (hasUnsavedChanges) {
+        const confirmExit = confirm("You have unsaved changes. Are you sure you want to exit without saving?")
+        if (!confirmExit) return
+      }
+      setIsEditing(false)
+      setEditContent(null)
+      setHasUnsavedChanges(false)
+    } else {
+      // Entering edit mode
+      if (isLivePreview) {
+        setIsLivePreview(false) // Exit live preview when starting to edit
+      }
+      setIsEditing(true)
+      setEditContent(displayContent)
+    }
+  }
+
+  // Handle live preview toggle
+  const handleLivePreviewToggle = () => {
+    console.log("=== LIVE PREVIEW TOGGLE ===")
+    console.log("Current isLivePreview:", isLivePreview)
+    console.log("Toggling to:", !isLivePreview)
+
+    if (!isLivePreview) {
+      // Entering live preview
+      if (hasUnsavedChanges) {
+        const confirmPreview = confirm("You have unsaved changes. Save them before viewing live preview?")
+        if (confirmPreview) {
+          handleSave()
+          return
+        }
+      }
+      if (isEditing) {
+        setIsEditing(false) // Exit edit mode when entering live preview
+      }
+      setIsLivePreview(true)
+    } else {
+      // Exiting live preview
       setIsLivePreview(false)
     }
   }
 
-  const handleCancelEditing = () => {
-    console.log("=== CANCELING EDIT MODE ===")
-    if (hasUnsavedChanges) {
-      if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-        setIsEditing(false)
-        setHasUnsavedChanges(false)
-        // Reset editing content to original
-        if (trainer) {
-          const content = generateDefaultContent(trainer, trainer.content)
-          setEditingContent(content)
-        }
-      }
-    } else {
-      setIsEditing(false)
+  // Handle content updates
+  const handleContentUpdate = (section: keyof TrainerContent, field: string, value: any) => {
+    if (!editContent) return
+
+    const updatedContent = {
+      ...editContent,
+      [section]: {
+        ...editContent[section],
+        [field]: value,
+      },
     }
+
+    setEditContent(updatedContent)
+    setHasUnsavedChanges(true)
   }
 
-  const handleSaveChanges = async () => {
-    if (!editingContent) return
+  // Handle save
+  const handleSave = async () => {
+    if (!editContent || !isOwner) return
 
-    console.log("=== SAVING CHANGES ===")
-    setSaving(true)
+    setIsSaving(true)
+    console.log("=== SAVING CONTENT ===")
+    console.log("Content to save:", editContent)
+
     try {
-      const token = searchParams.get("token")
-      const debugToken = searchParams.get("debug_token")
-
-      let url = `/api/trainer/content/${trainerId}`
-      if (token) {
-        url += `?token=${token}`
-      } else if (debugToken) {
-        url += `?debug_token=${debugToken}`
-      }
-
-      console.log("Save API URL:", url)
-
-      const response = await fetch(url, {
+      const apiToken = token || debugToken
+      const response = await fetch(`/api/trainer/content/${trainerId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content: editingContent }),
+        body: JSON.stringify({
+          content: editContent,
+          token: apiToken,
+        }),
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to save content")
+      const data = await response.json()
+      console.log("Save response:", data)
+
+      if (data.success) {
+        setTrainer(data.trainer)
+        setHasUnsavedChanges(false)
+        setIsEditing(false)
+        console.log("✅ Content saved successfully")
+      } else {
+        console.error("❌ Save failed:", data.error)
+        alert("Failed to save changes: " + data.error)
       }
-
-      // Update trainer data with new content
-      if (trainer) {
-        setTrainer({ ...trainer, content: editingContent })
-      }
-
-      setIsEditing(false)
-      setHasUnsavedChanges(false)
-
-      toast({
-        title: "Success",
-        description: "Content saved successfully!",
-      })
     } catch (error) {
       console.error("Error saving content:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save content",
-        variant: "destructive",
-      })
+      alert("Failed to save changes. Please try again.")
     } finally {
-      setSaving(false)
+      setIsSaving(false)
     }
-  }
-
-  const handleToggleLivePreview = () => {
-    console.log("=== TOGGLING LIVE PREVIEW ===")
-    console.log("Current isLivePreview:", isLivePreview)
-    console.log("Has unsaved changes:", hasUnsavedChanges)
-
-    if (hasUnsavedChanges) {
-      console.log("Blocking live preview due to unsaved changes")
-      toast({
-        title: "Unsaved Changes",
-        description: "Please save your changes before viewing live preview",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const newLivePreviewState = !isLivePreview
-    console.log("Setting isLivePreview to:", newLivePreviewState)
-    setIsLivePreview(newLivePreviewState)
-
-    // Exit editing mode when entering live preview
-    if (newLivePreviewState && isEditing) {
-      console.log("Exiting editing mode for live preview")
-      setIsEditing(false)
-    }
-  }
-
-  const updateContent = (path: string, value: any) => {
-    if (!editingContent) return
-
-    const keys = path.split(".")
-    const newContent = { ...editingContent }
-    let current: any = newContent
-
-    for (let i = 0; i < keys.length - 1; i++) {
-      if (!current[keys[i]]) {
-        current[keys[i]] = {}
-      }
-      current = current[keys[i]]
-    }
-    current[keys[keys.length - 1]] = value
-
-    setEditingContent(newContent)
-    setHasUnsavedChanges(true)
-  }
-
-  const addService = () => {
-    if (!editingContent) return
-
-    const newService: Service = {
-      id: Date.now().toString(),
-      title: "New Service",
-      description: "Service description",
-      price: 50,
-      duration: "60 minutes",
-      featured: false,
-    }
-
-    updateContent("services", [...(editingContent.services || []), newService])
-  }
-
-  const updateService = (serviceId: string, updates: Partial<Service>) => {
-    if (!editingContent || !editingContent.services) return
-
-    const updatedServices = editingContent.services.map((service) =>
-      service.id === serviceId ? { ...service, ...updates } : service,
-    )
-    updateContent("services", updatedServices)
-  }
-
-  const removeService = (serviceId: string) => {
-    if (!editingContent || !editingContent.services) return
-
-    const updatedServices = editingContent.services.filter((service) => service.id !== serviceId)
-    updateContent("services", updatedServices)
-  }
-
-  if (!mounted) {
-    return null
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading trainer profile...</p>
@@ -429,395 +290,267 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     )
   }
 
-  if (error) {
+  if (!trainer || !displayContent) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-red-500 text-5xl mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <div className="space-y-2">
-                <Button onClick={() => window.location.reload()} className="w-full">
-                  Try Again
-                </Button>
-                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
-                  Back to Marketplace
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Trainer Not Found</h1>
+          <p className="text-gray-600">The trainer profile you're looking for doesn't exist.</p>
+        </div>
       </div>
     )
   }
 
-  if (!trainer || !editingContent) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
-              <p className="text-gray-600 mb-4">The trainer profile could not be loaded.</p>
-              <Button onClick={() => router.push("/marketplace")}>Back to Marketplace</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  // Content to display (either edit content or display content)
+  const currentContent = editContent || displayContent
+  const heroContent = currentContent.hero || {}
+  const aboutContent = currentContent.about || {}
+  const contactContent = currentContent.contact || {}
+  const servicesContent = currentContent.services || []
 
-  // Safe access to display content with fallbacks
-  const displayContent = isEditing ? editingContent : trainer.content || editingContent
-
-  // Additional safety checks for nested properties
-  const heroContent = displayContent?.hero || {
-    title: `Transform Your Fitness with ${trainer.fullName}`,
-    subtitle: `Professional ${trainer.specialty} trainer`,
-    description: "Professional fitness training services",
-  }
-
-  const aboutContent = displayContent?.about || {
-    title: "About Me",
-    bio: "Professional trainer dedicated to helping clients achieve their fitness goals.",
-  }
-
-  const contactContent = displayContent?.contact || {
-    title: "Let's Start Your Fitness Journey",
-    description: "Get in touch to schedule your consultation",
-    phone: "",
-    email: trainer.email,
-    location: "",
-  }
-
-  const servicesContent = displayContent?.services || []
-
-  // Determine if we should show owner controls
+  // Header visibility logic
   const showOwnerControls = isOwner && !isLivePreview
   const showLivePreviewHeader = isOwner && isLivePreview
 
-  console.log("=== RENDER DECISIONS ===")
-  console.log("showOwnerControls:", showOwnerControls)
-  console.log("showLivePreviewHeader:", showLivePreviewHeader)
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Owner Header - Only visible to trainer owner and not in live preview */}
+      {/* Owner Controls Header */}
       {showOwnerControls && (
-        <>
-          {console.log("=== RENDERING OWNER HEADER ===")}
-          <div className="bg-white border-b sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center py-4">
-                <div className="flex items-center space-x-4">
-                  {/* Status Badges */}
-                  <Badge variant="default" className="bg-green-500">
-                    {trainer.isActive ? "Live" : "Draft"}
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <Badge variant={trainer.status === "live" ? "default" : "secondary"}>
+                  {trainer.status === "live" ? "Live" : "Draft"}
+                </Badge>
+                <Badge variant="outline">Owner View</Badge>
+                {isEditing && <Badge variant="outline">Editing Mode</Badge>}
+                {hasUnsavedChanges && (
+                  <Badge variant="destructive" className="flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Unsaved Changes
                   </Badge>
-                  <Badge variant="secondary">{isEditing ? "Editing Mode" : "Owner View"}</Badge>
-                  {hasUnsavedChanges && (
-                    <Badge variant="outline" className="border-orange-500 text-orange-600">
-                      Unsaved Changes
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  {!isEditing ? (
-                    // View Mode Actions
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={handleToggleLivePreview}
-                        className="flex items-center space-x-2 bg-transparent"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>View Live</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={handleStartEditing}
-                        className="flex items-center space-x-2 bg-transparent"
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span>Edit Profile</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                        className="flex items-center space-x-2"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        <span>Dashboard</span>
-                      </Button>
-                    </>
-                  ) : (
-                    // Edit Mode Actions
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={handleCancelEditing}
-                        className="flex items-center space-x-2 bg-transparent"
-                      >
-                        <X className="h-4 w-4" />
-                        <span>Cancel</span>
-                      </Button>
-                      <Button
-                        onClick={handleSaveChanges}
-                        disabled={saving || !hasUnsavedChanges}
-                        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                      >
-                        <Save className="h-4 w-4" />
-                        <span>{saving ? "Saving..." : "Save Changes"}</span>
-                      </Button>
-                    </>
-                  )}
-                </div>
+                )}
               </div>
-            </div>
-          </div>
-        </>
-      )}
 
-      {/* Live Preview Header - Only visible when in live preview mode */}
-      {showLivePreviewHeader && (
-        <>
-          {console.log("=== RENDERING LIVE PREVIEW HEADER ===")}
-          <div className="bg-blue-600 text-white sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center py-3">
-                <div className="flex items-center space-x-3">
-                  <Badge variant="secondary" className="bg-blue-500 text-white">
-                    Live Preview
-                  </Badge>
-                  <span className="text-sm opacity-90">This is how visitors see your profile</span>
-                </div>
+              <div className="flex items-center space-x-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleToggleLivePreview}
-                  className="flex items-center space-x-2 bg-white text-blue-600 hover:bg-gray-100"
+                  onClick={handleLivePreviewToggle}
+                  className="flex items-center gap-2 bg-transparent"
                 >
-                  <EyeOff className="h-4 w-4" />
-                  <span>Exit Preview</span>
+                  <Eye className="h-4 w-4" />
+                  View Live
                 </Button>
+
+                {isEditing ? (
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleEditToggle}
+                      className="flex items-center gap-2 bg-transparent"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSave}
+                      disabled={isSaving || !hasUnsavedChanges}
+                      className="flex items-center gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" onClick={handleEditToggle} className="flex items-center gap-2">
+                    <Edit3 className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                )}
               </div>
             </div>
           </div>
-        </>
-      )}
-
-      {/* Debug Info - Remove in production */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 text-sm">
-          <strong>Debug Info:</strong> isOwner: {isOwner.toString()}, isLivePreview: {isLivePreview.toString()},
-          showOwnerControls: {showOwnerControls.toString()}, showLivePreviewHeader: {showLivePreviewHeader.toString()}
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
-          <div className="max-w-4xl mx-auto text-center">
-            {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-white/80 text-sm">Hero Title</Label>
-                  <Input
-                    value={heroContent.title}
-                    onChange={(e) => updateContent("hero.title", e.target.value)}
-                    className="text-center text-4xl md:text-5xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Your main headline"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-sm">Subtitle</Label>
-                  <Input
-                    value={heroContent.subtitle}
-                    onChange={(e) => updateContent("hero.subtitle", e.target.value)}
-                    className="text-center text-xl bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Supporting headline"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-sm">Description</Label>
-                  <Textarea
-                    value={heroContent.description}
-                    onChange={(e) => updateContent("hero.description", e.target.value)}
-                    className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Brief introduction"
-                    rows={3}
-                  />
-                </div>
+      {/* Live Preview Header */}
+      {showLivePreviewHeader && (
+        <div className="sticky top-0 z-50 bg-blue-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-12">
+              <div className="flex items-center space-x-3">
+                <Eye className="h-4 w-4" />
+                <span className="text-sm font-medium">Live Preview - This is how visitors see your profile</span>
               </div>
-            ) : (
-              <>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
-                <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
-                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
-              </>
-            )}
-
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              <Badge variant="secondary" className="text-blue-600">
-                <Award className="h-4 w-4 mr-1" />
-                {trainer.experience} Experience
-              </Badge>
-              <Badge variant="secondary" className="text-blue-600">
-                <MapPin className="h-4 w-4 mr-1" />
-                {contactContent.location || "Location"}
-              </Badge>
-              <Badge variant="secondary" className="text-blue-600">
-                <Dumbbell className="h-4 w-4 mr-1" />
-                {trainer.specialty}
-              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLivePreviewToggle}
+                className="text-white hover:bg-blue-700 flex items-center gap-2"
+              >
+                <EyeOff className="h-4 w-4" />
+                Exit Preview
+              </Button>
             </div>
-            <Button size="lg" variant="secondary" className="text-blue-600">
-              Book Free Consultation
-            </Button>
           </div>
         </div>
+      )}
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Hero Section */}
+            <Card className="overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8">
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="hero-title" className="text-white text-sm font-medium">
+                        Hero Title
+                      </Label>
+                      <Input
+                        id="hero-title"
+                        value={heroContent.title || ""}
+                        onChange={(e) => handleContentUpdate("hero", "title", e.target.value)}
+                        className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/70"
+                        placeholder="Enter hero title"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hero-subtitle" className="text-white text-sm font-medium">
+                        Hero Subtitle
+                      </Label>
+                      <Input
+                        id="hero-subtitle"
+                        value={heroContent.subtitle || ""}
+                        onChange={(e) => handleContentUpdate("hero", "subtitle", e.target.value)}
+                        className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/70"
+                        placeholder="Enter hero subtitle"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hero-description" className="text-white text-sm font-medium">
+                        Hero Description
+                      </Label>
+                      <Textarea
+                        id="hero-description"
+                        value={heroContent.description || ""}
+                        onChange={(e) => handleContentUpdate("hero", "description", e.target.value)}
+                        className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/70"
+                        placeholder="Enter hero description"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <h1 className="text-4xl font-bold mb-4">{heroContent.title}</h1>
+                    <p className="text-xl mb-6 text-blue-100">{heroContent.subtitle}</p>
+                    <p className="text-lg mb-8 text-blue-50">{heroContent.description}</p>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap justify-center gap-3 mb-6">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    <Clock className="h-4 w-4 mr-1" />
+                    {heroContent.experience}
+                  </Badge>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {heroContent.location}
+                  </Badge>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    <Award className="h-4 w-4 mr-1" />
+                    {heroContent.specialty}
+                  </Badge>
+                </div>
+
+                <div className="text-center">
+                  <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+                    Book Free Consultation
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
             {/* About Section */}
-            <Card className="relative group">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <User className="h-5 w-5 mr-2 text-blue-600" />
                   {isEditing ? (
                     <Input
-                      value={aboutContent.title}
-                      onChange={(e) => updateContent("about.title", e.target.value)}
-                      className="font-semibold"
+                      value={aboutContent.title || ""}
+                      onChange={(e) => handleContentUpdate("about", "title", e.target.value)}
+                      className="text-xl font-semibold border-none p-0 h-auto"
                       placeholder="About section title"
                     />
                   ) : (
-                    aboutContent.title
+                    <h2 className="text-xl font-semibold">{aboutContent.title}</h2>
                   )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </div>
+
                 {isEditing ? (
                   <Textarea
-                    value={aboutContent.bio}
-                    onChange={(e) => updateContent("about.bio", e.target.value)}
-                    placeholder="Tell your story..."
-                    rows={8}
+                    value={aboutContent.bio || ""}
+                    onChange={(e) => handleContentUpdate("about", "bio", e.target.value)}
                     className="w-full"
+                    placeholder="Tell your story..."
+                    rows={4}
                   />
                 ) : (
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+                  <p className="text-gray-600 mb-6">{aboutContent.bio}</p>
                 )}
-                {trainer.certifications && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold mb-2">Certifications</h4>
-                    <p className="text-gray-600">{trainer.certifications}</p>
-                  </div>
-                )}
+
+                <div className="mt-6">
+                  <h3 className="font-semibold mb-3">Certifications</h3>
+                  {isEditing ? (
+                    <Input
+                      value={aboutContent.certifications?.join(", ") || ""}
+                      onChange={(e) =>
+                        handleContentUpdate("about", "certifications", e.target.value.split(", ").filter(Boolean))
+                      }
+                      placeholder="Enter certifications separated by commas"
+                    />
+                  ) : (
+                    <div className="space-y-2">
+                      {aboutContent.certifications?.map((cert: string, index: number) => (
+                        <div key={index} className="flex items-center">
+                          <Award className="h-4 w-4 mr-2 text-blue-600" />
+                          <span>{cert}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
             {/* Services Section */}
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center">
-                    <Dumbbell className="h-5 w-5 mr-2" />
-                    Services Offered
-                  </CardTitle>
-                  {isEditing && (
-                    <Button onClick={addService} size="sm" variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Service
-                    </Button>
-                  )}
+              <CardContent className="p-6">
+                <div className="flex items-center mb-6">
+                  <Award className="h-5 w-5 mr-2 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Services Offered</h2>
                 </div>
-              </CardHeader>
-              <CardContent>
+
                 <div className="space-y-4">
-                  {servicesContent.map((service, index) => (
-                    <div key={service.id} className="border border-gray-200 rounded-lg p-4 relative">
-                      {isEditing ? (
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1 space-y-2">
-                              <Input
-                                value={service.title}
-                                onChange={(e) => updateService(service.id, { title: e.target.value })}
-                                placeholder="Service title"
-                                className="font-semibold"
-                              />
-                              <Textarea
-                                value={service.description}
-                                onChange={(e) => updateService(service.id, { description: e.target.value })}
-                                placeholder="Service description"
-                                rows={2}
-                              />
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeService(service.id)}
-                              className="text-red-500 hover:text-red-700 ml-2"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <Label className="text-xs">Price (€)</Label>
-                              <Input
-                                type="number"
-                                value={service.price}
-                                onChange={(e) =>
-                                  updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
-                                }
-                                placeholder="Price"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs">Duration</Label>
-                              <Input
-                                value={service.duration}
-                                onChange={(e) => updateService(service.id, { duration: e.target.value })}
-                                placeholder="Duration"
-                              />
-                            </div>
-                            <div className="flex items-end">
-                              <label className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  checked={service.featured}
-                                  onChange={(e) => updateService(service.id, { featured: e.target.checked })}
-                                  className="rounded"
-                                />
-                                <span className="text-xs">Featured</span>
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{service.title}</h3>
-                              {service.featured && (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                                  Featured
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold">€{service.price}</div>
-                              <div className="text-sm text-gray-500">{service.duration}</div>
-                            </div>
-                          </div>
-                          <p className="text-gray-600 text-sm">{service.description}</p>
-                        </>
-                      )}
+                  {servicesContent.map((service: any, index: number) => (
+                    <div key={index} className="flex justify-between items-start p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{service.name}</h3>
+                        <p className="text-gray-600 text-sm mt-1">{service.description}</p>
+                      </div>
+                      <div className="text-right ml-4">
+                        <div className="font-bold text-lg">€{service.price}</div>
+                        <div className="text-sm text-gray-500">{service.duration}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -829,97 +562,114 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
           <div className="space-y-6">
             {/* Contact Card */}
             <Card>
-              <CardHeader>
-                <CardTitle>
-                  {isEditing ? (
+              <CardContent className="p-6">
+                {isEditing ? (
+                  <div className="space-y-4">
                     <Input
-                      value={contactContent.title}
-                      onChange={(e) => updateContent("contact.title", e.target.value)}
+                      value={contactContent.title || ""}
+                      onChange={(e) => handleContentUpdate("contact", "title", e.target.value)}
+                      className="text-lg font-semibold border-none p-0 h-auto"
                       placeholder="Contact section title"
                     />
-                  ) : (
-                    contactContent.title
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {isEditing && (
-                  <div>
-                    <Label className="text-sm">Description</Label>
                     <Textarea
-                      value={contactContent.description}
-                      onChange={(e) => updateContent("contact.description", e.target.value)}
+                      value={contactContent.description || ""}
+                      onChange={(e) => handleContentUpdate("contact", "description", e.target.value)}
                       placeholder="Contact description"
-                      rows={3}
+                      rows={2}
                     />
+                  </div>
+                ) : (
+                  <div className="mb-6">
+                    <h2 className="text-lg font-semibold mb-2">{contactContent.title}</h2>
+                    <p className="text-gray-600 text-sm">{contactContent.description}</p>
                   </div>
                 )}
 
-                <div className="flex items-center">
-                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{contactContent.email}</span>
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Mail className="h-4 w-4 mr-3 text-blue-600" />
+                    {isEditing ? (
+                      <Input
+                        value={contactContent.email || ""}
+                        onChange={(e) => handleContentUpdate("contact", "email", e.target.value)}
+                        placeholder="Email address"
+                        type="email"
+                      />
+                    ) : (
+                      <span className="text-sm">{contactContent.email}</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center">
+                    <Phone className="h-4 w-4 mr-3 text-blue-600" />
+                    {isEditing ? (
+                      <Input
+                        value={contactContent.phone || ""}
+                        onChange={(e) => handleContentUpdate("contact", "phone", e.target.value)}
+                        placeholder="Phone number"
+                        type="tel"
+                      />
+                    ) : (
+                      <span className="text-sm">{contactContent.phone}</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-3 text-blue-600" />
+                    {isEditing ? (
+                      <Input
+                        value={contactContent.location || ""}
+                        onChange={(e) => handleContentUpdate("contact", "location", e.target.value)}
+                        placeholder="Location"
+                      />
+                    ) : (
+                      <span className="text-sm">{contactContent.location}</span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center">
-                  <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing ? (
-                    <Input
-                      value={contactContent.phone}
-                      onChange={(e) => updateContent("contact.phone", e.target.value)}
-                      placeholder="Phone number"
-                      className="text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">{contactContent.phone}</span>
-                  )}
-                </div>
-
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing ? (
-                    <Input
-                      value={contactContent.location}
-                      onChange={(e) => updateContent("contact.location", e.target.value)}
-                      placeholder="Location"
-                      className="text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">{contactContent.location}</span>
-                  )}
-                </div>
-
-                <Separator />
-                <Button className="w-full">Schedule Consultation</Button>
+                {!isEditing && (
+                  <Button className="w-full mt-6 bg-black text-white hover:bg-gray-800">Schedule Consultation</Button>
+                )}
               </CardContent>
             </Card>
 
             {/* Quick Stats */}
             <Card>
-              <CardHeader>
-                <CardTitle>Quick Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Experience</span>
-                  <span className="font-semibold">{trainer.experience}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Specialty</span>
-                  <span className="font-semibold">{trainer.specialty}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{contactContent.location || "Not specified"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{servicesContent.length}</span>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-4">Quick Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Experience</span>
+                    <span className="font-medium">{heroContent.experience}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Specialty</span>
+                    <span className="font-medium">{heroContent.specialty}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Location</span>
+                    <span className="font-medium">{heroContent.location}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Development Debug Panel */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="fixed bottom-4 right-4 bg-yellow-100 border border-yellow-300 rounded-lg p-3 text-xs max-w-xs">
+          <div className="font-semibold mb-2">Debug Info:</div>
+          <div>isOwner: {isOwner.toString()}</div>
+          <div>isEditing: {isEditing.toString()}</div>
+          <div>isLivePreview: {isLivePreview.toString()}</div>
+          <div>hasToken: {!!(token || debugToken).toString()}</div>
+          <div>showOwnerControls: {showOwnerControls.toString()}</div>
+          <div>showLivePreviewHeader: {showLivePreviewHeader.toString()}</div>
+        </div>
+      )}
     </div>
   )
 }
