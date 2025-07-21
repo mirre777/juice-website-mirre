@@ -245,9 +245,7 @@ export default function PersonalTrainerWebsitePage() {
         <div className="max-w-2xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Create Your Trainer Profile</h2>
-            <p className="text-gray-600">
-              Fill out this form and our AI will generate your professional website instantly
-            </p>
+            <p className="text-gray-600">Fill out this form to get your own page. No coding required.</p>
           </div>
 
           <Card>
