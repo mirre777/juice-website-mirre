@@ -5,23 +5,50 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { fullName, email, phone, location, experience, specialty, certifications, bio, services } = body
+    const { fullName, email, phone, city, district, specialty, certifications, bio, services } = body
 
-    // Validate required fields
-    if (!fullName || !email || !phone || !location || !experience || !specialty) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    // Validate required fields (updated for new structure)
+    if (!fullName || !email || !city || !district || !specialty) {
+      return NextResponse.json(
+        {
+          error: "Missing required fields",
+          details: "Full name, email, city, district, and specialty are required",
+        },
+        { status: 400 },
+      )
     }
 
-    // Create temp trainer
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        {
+          error: "Invalid email format",
+        },
+        { status: 400 },
+      )
+    }
+
+    // Validate city and district are not empty strings
+    if (city.trim().length === 0 || district.trim().length === 0) {
+      return NextResponse.json(
+        {
+          error: "City and district cannot be empty",
+        },
+        { status: 400 },
+      )
+    }
+
+    // Create temp trainer with new field structure
     const tempId = await TrainerService.createTempTrainer({
-      fullName,
-      email,
-      phone,
-      location,
-      experience,
-      specialty,
-      certifications: certifications || "",
-      bio: bio || "",
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone?.trim() || "",
+      city: city.trim(),
+      district: district.trim(),
+      specialty: specialty.trim(),
+      certifications: certifications?.trim() || "",
+      bio: bio?.trim() || "",
       services: services || [],
       status: "pending",
     })
@@ -36,6 +63,12 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error creating trainer:", error)
-    return NextResponse.json({ error: "Failed to create trainer profile" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to create trainer profile",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }

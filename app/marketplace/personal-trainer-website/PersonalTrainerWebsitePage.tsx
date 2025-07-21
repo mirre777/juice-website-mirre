@@ -5,56 +5,65 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Zap,
-  Sparkles,
-  Clock,
-  CheckCircle,
-  ArrowRight,
-  Star,
-  Users,
-  TrendingUp,
-  Loader2,
-  AlertCircle,
-} from "lucide-react"
-import Navbar from "@/components/navbar"
-import type { TrainerFormData } from "@/types/trainer"
-import { logger } from "@/lib/logger"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, Clock, Star, Zap } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-const services = [
-  "Personal Training",
-  "Group Fitness",
-  "Nutrition Coaching",
-  "Weight Loss Programs",
-  "Strength Training",
-  "Cardio Training",
-  "Flexibility & Mobility",
-  "Sports-Specific Training",
-  "Rehabilitation",
-  "Online Coaching",
-]
+interface FormData {
+  fullName: string
+  email: string
+  phone: string
+  city: string
+  district: string
+  specialty: string
+  bio: string
+  certifications: string
+  services: string[]
+}
+
+interface FormErrors {
+  fullName?: string
+  email?: string
+  city?: string
+  district?: string
+  specialty?: string
+  bio?: string
+}
 
 const specialties = [
-  "Personal Training",
-  "Strength & Conditioning",
-  "Weight Loss Specialist",
-  "Nutrition Coach",
-  "Yoga Instructor",
-  "Pilates Instructor",
-  "CrossFit Coach",
+  "Weight Loss",
+  "Strength Training",
   "Sports Performance",
-  "Rehabilitation Specialist",
-  "Group Fitness Instructor",
+  "Rehabilitation",
+  "Nutrition Coaching",
+  "Group Fitness",
+  "Yoga & Mindfulness",
+  "Senior Fitness",
+  "Youth Training",
+  "Bodybuilding",
+]
+
+const serviceOptions = [
+  "Personal Training",
+  "Weight Loss Programs",
+  "Flexibility & Mobility",
+  "Online Coaching",
+  "Group Fitness",
+  "Strength Training",
+  "Sports-Specific Training",
+  "Nutrition Coaching",
+  "Cardio Training",
+  "Rehabilitation",
 ]
 
 export default function PersonalTrainerWebsitePage() {
-  const [formData, setFormData] = useState<TrainerFormData>({
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     phone: "",
@@ -65,125 +74,86 @@ export default function PersonalTrainerWebsitePage() {
     certifications: "",
     services: [],
   })
+  const [errors, setErrors] = useState<FormErrors>({})
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
 
-  const handleInputChange = (field: keyof TrainerFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-
-    // Clear validation error when user starts typing
-    if (validationErrors[field]) {
-      setValidationErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[field]
-        return newErrors
-      })
+    // Required field validations
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required"
     }
 
-    // Log form interaction for analytics
-    logger.debug("Form field updated", {
-      field,
-      hasValue: !!value,
-      valueLength: value.length,
-      timestamp: new Date().toISOString(),
-    })
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required"
+    }
+
+    if (!formData.district.trim()) {
+      newErrors.district = "District is required"
+    }
+
+    if (!formData.specialty) {
+      newErrors.specialty = "Please select your primary specialty"
+    }
+
+    // Optional bio validation - only validate if provided
+    if (formData.bio.trim() && formData.bio.trim().length < 20) {
+      newErrors.bio = "Bio must be at least 20 characters if provided"
+    }
+
+    if (formData.bio.trim() && formData.bio.trim().length > 500) {
+      newErrors.bio = "Bio must be less than 500 characters"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const isFormValid = (): boolean => {
+    return (
+      formData.fullName.trim() !== "" &&
+      formData.email.trim() !== "" &&
+      formData.city.trim() !== "" &&
+      formData.district.trim() !== "" &&
+      formData.specialty !== "" &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
+      (formData.bio.trim() === "" || formData.bio.trim().length >= 20)
+    )
+  }
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
   }
 
   const handleServiceToggle = (service: string) => {
     setFormData((prev) => ({
       ...prev,
-      services: prev.services?.includes(service)
+      services: prev.services.includes(service)
         ? prev.services.filter((s) => s !== service)
-        : [...(prev.services || []), service],
+        : [...prev.services, service],
     }))
-
-    logger.debug("Service selection changed", {
-      service,
-      action: formData.services?.includes(service) ? "removed" : "added",
-      totalServices: formData.services?.length || 0,
-    })
-  }
-
-  const validateForm = (): boolean => {
-    const errors: Record<string, string> = {}
-
-    if (!formData.fullName || formData.fullName.length < 2) {
-      errors.fullName = "Name must be at least 2 characters"
-    }
-
-    if (!formData.email) {
-      errors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Please enter a valid email address"
-    }
-
-    if (!formData.city || formData.city.length < 2) {
-      errors.city = "City must be at least 2 characters"
-    }
-
-    if (!formData.district || formData.district.length < 2) {
-      errors.district = "District must be at least 2 characters"
-    }
-
-    if (!formData.specialty) {
-      errors.specialty = "Please select your specialty"
-    }
-
-    // Bio is optional, but if provided, it should meet minimum requirements
-    if (formData.bio && formData.bio.length > 0 && formData.bio.length < 20) {
-      errors.bio = "Bio must be at least 20 characters if provided"
-    } else if (formData.bio && formData.bio.length > 500) {
-      errors.bio = "Bio must be less than 500 characters"
-    }
-
-    // Services are now optional - no validation required
-
-    setValidationErrors(errors)
-
-    if (Object.keys(errors).length > 0) {
-      logger.warn("Form validation failed", {
-        errors: Object.keys(errors),
-        email: formData.email,
-        specialty: formData.specialty,
-      })
-    }
-
-    return Object.keys(errors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    logger.info("Form submission started", {
-      email: formData.email,
-      specialty: formData.specialty,
-      city: formData.city,
-      district: formData.district,
-      servicesCount: formData.services?.length || 0,
-      hasPhone: !!formData.phone,
-      hasCertifications: !!formData.certifications,
-      bioLength: formData.bio.length,
-    })
-
     if (!validateForm()) {
-      logger.warn("Form submission blocked by validation", {
-        email: formData.email,
-        validationErrors: Object.keys(validationErrors),
-      })
       return
     }
 
     setIsSubmitting(true)
-    setError("")
 
     try {
-      logger.info("Sending trainer creation request", {
-        email: formData.email,
-        specialty: formData.specialty,
-      })
-
       const response = await fetch("/api/trainer/create", {
         method: "POST",
         headers: {
@@ -192,384 +162,258 @@ export default function PersonalTrainerWebsitePage() {
         body: JSON.stringify(formData),
       })
 
-      const result = await response.json()
+      const data = await response.json()
 
-      if (result.success) {
-        logger.info("Trainer creation successful, redirecting", {
-          email: formData.email,
-          tempId: result.tempId,
-          redirectUrl: result.redirectUrl,
-        })
-
-        // Redirect to temp page
-        window.location.href = result.redirectUrl
+      if (response.ok && data.success) {
+        // Redirect to temp trainer page
+        router.push(data.redirectUrl)
       } else {
-        logger.error("Trainer creation failed", {
-          email: formData.email,
-          error: result.error,
-          details: result.details,
-        })
-
-        if (result.details && Array.isArray(result.details)) {
-          // Handle Zod validation errors
-          const fieldErrors: Record<string, string> = {}
-          result.details.forEach((detail: any) => {
-            if (detail.path && detail.path.length > 0) {
-              fieldErrors[detail.path[0]] = detail.message
-            }
-          })
-          setValidationErrors(fieldErrors)
-        } else {
-          setError(result.error || "Failed to create trainer profile")
-        }
+        console.error("Form submission failed:", data.error)
+        // Handle error - could show toast or error message
+        alert(data.error || "Failed to create trainer profile. Please try again.")
       }
-    } catch (err) {
-      logger.error("Network error during trainer creation", {
-        email: formData.email,
-        error: err,
-      })
-      setError("Network error. Please check your connection and try again.")
+    } catch (error) {
+      console.error("Form submission error:", error)
+      alert("An unexpected error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const isFormValid = () => {
-    return (
-      formData.fullName && formData.email && formData.city && formData.district && formData.specialty
-      // Removed services requirement
-    )
-  }
-
-  const getCharacterCount = (text: string, max: number) => {
-    const remaining = max - text.length
-    const isNearLimit = remaining <= 50
-    const isOverLimit = remaining < 0
-
-    return (
-      <span className={`text-sm ${isOverLimit ? "text-red-500" : isNearLimit ? "text-yellow-600" : "text-gray-500"}`}>
-        {text.length}/{max} characters
-      </span>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Hero Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-left max-w-4xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-[#D2FF28] rounded-full">
-                <Zap className="w-8 h-8 text-black" />
-              </div>
-              <Badge className="bg-[#D2FF28] text-black px-4 py-2 text-lg font-medium">Super fast</Badge>
+      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            <Zap className="w-4 h-4" />
+            Super fast
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Get Your Professional Trainer Website in Minutes</h1>
+          <p className="text-xl mb-8 text-blue-100">
+            Juice creates a stunning, professional website tailored to your training expertise. No coding required -
+            just fill out the form and watch your online presence come to life.
+          </p>
+          <div className="flex flex-wrap justify-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-400" />
+              Superfast design
             </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Get Your Professional{" "}
-              <span className="text-black relative">
-                Trainer Website
-                <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
-              </span>{" "}
-              in Minutes
-            </h1>
-
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
-              Juice creates a stunning, professional website tailored to your training expertise. No coding required -
-              just fill out the form and watch your online presence come to life.
-            </p>
-
-            <div className="flex items-center gap-8 mb-12">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Superfast design</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Ready in 5 Minutes</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <Star className="w-5 h-5 text-purple-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Professional Design</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-300" />
+              Ready in 5 Minutes
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-400" />
+              Professional Design
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <Users className="w-8 h-8 text-black" />
-                </div>
+      <div className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">👥</span>
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">500+</div>
               <div className="text-gray-600">Trainers Trust Us</div>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <TrendingUp className="w-8 h-8 text-black" />
-                </div>
+            <div>
+              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📈</span>
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">95%</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">95%</div>
               <div className="text-gray-600">Client Satisfaction</div>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <Sparkles className="w-8 h-8 text-black" />
-                </div>
+            <div>
+              <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚡</span>
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">24/7</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">24/7</div>
               <div className="text-gray-600">Website Availability</div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Form Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-16">
+        <div className="max-w-2xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Create Your Trainer Profile</h2>
-            <p className="text-xl text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Create Your Trainer Profile</h2>
+            <p className="text-gray-600">
               Fill out this form and our AI will generate your professional website instantly
             </p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
-
-          <Card className="shadow-xl border-0">
-            <CardHeader className="bg-gray-50 rounded-t-lg">
-              <CardTitle className="text-2xl text-center">Trainer Information</CardTitle>
+          <Card>
+            <CardHeader>
+              <CardTitle>Trainer Information</CardTitle>
             </CardHeader>
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Personal Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="fullName" className="text-base font-medium">
-                      Full Name *
+                    <Label htmlFor="fullName">
+                      Full Name <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="fullName"
+                      placeholder="John Smith"
                       value={formData.fullName}
                       onChange={(e) => handleInputChange("fullName", e.target.value)}
-                      placeholder="John Smith"
-                      className={`mt-2 h-12 ${validationErrors.fullName ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
+                      className={errors.fullName ? "border-red-500" : ""}
                     />
-                    {validationErrors.fullName && (
-                      <p className="text-red-500 text-sm mt-1">{validationErrors.fullName}</p>
-                    )}
+                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
                   </div>
 
                   <div>
-                    <Label htmlFor="email" className="text-base font-medium">
-                      Email Address *
+                    <Label htmlFor="email">
+                      Email Address <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="email"
                       type="email"
+                      placeholder="john@example.com"
                       value={formData.email}
                       onChange={(e) => handleInputChange("email", e.target.value)}
-                      placeholder="john@example.com"
-                      className={`mt-2 h-12 ${validationErrors.email ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
+                      className={errors.email ? "border-red-500" : ""}
                     />
-                    {validationErrors.email && <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>}
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="phone" className="text-base font-medium">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange("phone", e.target.value)}
-                      placeholder="+1 (555) 123-4567"
-                      className="mt-2 h-12"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="specialty" className="text-base font-medium">
-                      Primary Specialty *
-                    </Label>
-                    <Select
-                      value={formData.specialty}
-                      onValueChange={(value) => handleInputChange("specialty", value)}
-                      disabled={isSubmitting}
-                    >
-                      <SelectTrigger className={`mt-2 h-12 ${validationErrors.specialty ? "border-red-500" : ""}`}>
-                        <SelectValue placeholder="Select your specialty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {specialties.map((specialty) => (
-                          <SelectItem key={specialty} value={specialty}>
-                            {specialty}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {validationErrors.specialty && (
-                      <p className="text-red-500 text-sm mt-1">{validationErrors.specialty}</p>
-                    )}
-                  </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    placeholder="+1 (555) 123-4567"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                  />
                 </div>
 
                 {/* Location Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="city" className="text-base font-medium">
-                      City *
+                    <Label htmlFor="city">
+                      City <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="city"
+                      placeholder="Vienna"
                       value={formData.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder="Vienna"
-                      className={`mt-2 h-12 ${validationErrors.city ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
+                      className={errors.city ? "border-red-500" : ""}
                     />
-                    {validationErrors.city && <p className="text-red-500 text-sm mt-1">{validationErrors.city}</p>}
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                   </div>
 
                   <div>
-                    <Label htmlFor="district" className="text-base font-medium">
-                      District *
+                    <Label htmlFor="district">
+                      District <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="district"
+                      placeholder="Innere Stadt"
                       value={formData.district}
                       onChange={(e) => handleInputChange("district", e.target.value)}
-                      placeholder="Innere Stadt"
-                      className={`mt-2 h-12 ${validationErrors.district ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
+                      className={errors.district ? "border-red-500" : ""}
                     />
-                    {validationErrors.district && (
-                      <p className="text-red-500 text-sm mt-1">{validationErrors.district}</p>
-                    )}
+                    {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
                   </div>
                 </div>
 
-                {/* Bio - Optional */}
                 <div>
-                  <Label htmlFor="bio" className="text-base font-medium">
-                    Professional Bio
+                  <Label htmlFor="specialty">
+                    Primary Specialty <span className="text-red-500">*</span>
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-2">
+                  <Select value={formData.specialty} onValueChange={(value) => handleInputChange("specialty", value)}>
+                    <SelectTrigger className={errors.specialty ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Select your specialty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specialties.map((specialty) => (
+                        <SelectItem key={specialty} value={specialty}>
+                          {specialty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="bio">Professional Bio (Optional)</Label>
+                  <p className="text-sm text-gray-500 mb-2">
                     Tell potential clients about your background, training philosophy, and what makes you unique.
-                    (Optional)
                   </p>
                   <Textarea
                     id="bio"
+                    placeholder="I am a certified personal trainer with over 5 years of experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans that fit your schedule and preferences."
                     value={formData.bio}
                     onChange={(e) => handleInputChange("bio", e.target.value)}
-                    placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
-                    className={`mt-2 min-h-32 ${validationErrors.bio ? "border-red-500" : ""}`}
-                    disabled={isSubmitting}
+                    className={`min-h-[100px] ${errors.bio ? "border-red-500" : ""}`}
                   />
-                  <div className="flex justify-between items-center mt-2">
-                    {validationErrors.bio && <p className="text-red-500 text-sm">{validationErrors.bio}</p>}
-                    <div className="ml-auto">{getCharacterCount(formData.bio, 500)}</div>
+                  <div className="flex justify-between items-center mt-1">
+                    {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
+                    <p className="text-sm text-gray-400 ml-auto">{formData.bio.length}/500 characters</p>
                   </div>
                 </div>
 
-                {/* Certifications */}
                 <div>
-                  <Label htmlFor="certifications" className="text-base font-medium">
-                    Certifications & Qualifications
-                  </Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-2">
+                  <Label htmlFor="certifications">Certifications & Qualifications</Label>
+                  <p className="text-sm text-gray-500 mb-2">
                     List your certifications, degrees, or other qualifications (comma-separated).
                   </p>
                   <Input
                     id="certifications"
+                    placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
                     value={formData.certifications}
                     onChange={(e) => handleInputChange("certifications", e.target.value)}
-                    placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
-                    className="mt-2 h-12"
-                    disabled={isSubmitting}
                   />
                 </div>
 
-                {/* Services - NOW OPTIONAL */}
                 <div>
-                  <Label className="text-base font-medium">Services Offered</Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-4">
-                    Select the services you provide to your clients. (Optional)
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {services.map((service) => (
-                      <div key={service} className="flex items-center space-x-3">
+                  <Label>Services Offered (Optional)</Label>
+                  <p className="text-sm text-gray-500 mb-4">Select all services you provide to your clients.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {serviceOptions.map((service) => (
+                      <div key={service} className="flex items-center space-x-2">
                         <Checkbox
                           id={service}
-                          checked={formData.services?.includes(service) || false}
+                          checked={formData.services.includes(service)}
                           onCheckedChange={() => handleServiceToggle(service)}
-                          disabled={isSubmitting}
                         />
-                        <Label htmlFor={service} className="text-sm font-medium cursor-pointer">
+                        <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
                           {service}
                         </Label>
                       </div>
                     ))}
                   </div>
-                  {/* Removed validation error display for services */}
                 </div>
 
-                {/* Submit Button */}
-                <div className="pt-6">
-                  <Button
-                    type="submit"
-                    disabled={!isFormValid() || isSubmitting}
-                    className="w-full h-14 text-lg font-semibold bg-[#D2FF28] hover:bg-[#B8E625] text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Creating Your Website...
-                      </>
-                    ) : (
-                      <>
-                        Generate My Website
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </>
-                    )}
-                  </Button>
+                <Button
+                  type="submit"
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 text-lg"
+                  disabled={!isFormValid() || isSubmitting}
+                >
+                  {isSubmitting ? "Generating Your Website..." : "Generate My Website →"}
+                </Button>
 
-                  <p className="text-center text-sm text-gray-600 mt-4">
-                    Your website will be generated instantly. You'll have 24 hours to review and activate it for €70.
-                  </p>
-                </div>
+                <p className="text-center text-sm text-gray-500">
+                  Your website will be generated instantly. You'll have 24 hours to review and activate it for €70.
+                </p>
               </form>
             </CardContent>
           </Card>
         </div>
-      </section>
+      </div>
     </div>
   )
 }
