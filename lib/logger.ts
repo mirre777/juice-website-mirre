@@ -1,5 +1,3 @@
-type LogLevel = "debug" | "info" | "warn" | "error"
-
 interface LogContext {
   [key: string]: any
 }
@@ -9,11 +7,13 @@ interface LogData {
 }
 
 interface LogEntry {
-  level: LogLevel
-  message: string
-  data?: any
   timestamp: string
+  level: "info" | "warn" | "error" | "debug"
+  message: string
+  context?: LogContext
   requestId?: string
+  userId?: string
+  trainerId?: string
 }
 
 class Logger {
@@ -21,16 +21,16 @@ class Logger {
 
   private formatMessage(level: string, message: string, data?: LogData): string {
     const timestamp = new Date().toISOString()
-    const dataStr = data ? ` ${JSON.stringify(data)}` : ""
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${dataStr}`
+    const logData = data ? ` | ${JSON.stringify(data)}` : ""
+    return `[${timestamp}] ${level.toUpperCase()}: ${message}${logData}`
   }
 
   private formatLog(level: LogEntry["level"], message: string, context?: LogContext): LogEntry {
     return {
+      timestamp: new Date().toISOString(),
       level,
       message,
-      data: context,
-      timestamp: new Date().toISOString(),
+      context,
       requestId: this.getRequestId(),
     }
   }
@@ -60,25 +60,21 @@ class Logger {
     }
   }
 
-  info(message: string, data?: LogData) {
-    if (this.isDevelopment) {
-      console.log(`[INFO] ${message}`, data || "")
-    }
+  info(message: string, data?: LogData): void {
+    console.log(this.formatMessage("info", message, data))
   }
 
-  warn(message: string, data?: LogData) {
-    if (this.isDevelopment) {
-      console.warn(`[WARN] ${message}`, data || "")
-    }
+  warn(message: string, data?: LogData): void {
+    console.warn(this.formatMessage("warn", message, data))
   }
 
-  error(message: string, data?: LogData) {
-    console.error(`[ERROR] ${message}`, data || "")
+  error(message: string, data?: LogData): void {
+    console.error(this.formatMessage("error", message, data))
   }
 
-  debug(message: string, data?: LogData) {
-    if (this.isDevelopment) {
-      console.debug(`[DEBUG] ${message}`, data || "")
+  debug(message: string, data?: LogData): void {
+    if (process.env.NODE_ENV === "development") {
+      console.debug(this.formatMessage("debug", message, data))
     }
   }
 

@@ -1,26 +1,22 @@
-import { TrainerService } from "@/lib/firebase-trainer"
-import { notFound } from "next/navigation"
-import TempTrainerPage from "../TempTrainerPage"
+import { TempTrainerPage } from "../TempTrainerPage"
 
 interface PageProps {
   params: {
     tempId: string
   }
+  searchParams: {
+    token?: string
+  }
 }
 
-export default async function TempTrainerPageWrapper({ params }: PageProps) {
-  const { tempId } = params
+export default function TempTrainerPageRoute({ params, searchParams }: PageProps) {
+  return <TempTrainerPage tempId={params.tempId} token={searchParams.token} />
+}
 
-  try {
-    const trainer = await TrainerService.getTempTrainer(tempId)
-
-    if (!trainer) {
-      notFound()
-    }
-
-    return <TempTrainerPage trainer={trainer} />
-  } catch (error) {
-    console.error("Error loading temp trainer:", error)
-    notFound()
+export async function generateMetadata({ params }: PageProps) {
+  return {
+    title: `Trainer Preview - ${params.tempId}`,
+    description: "Preview your trainer profile before activation",
+    robots: "noindex, nofollow",
   }
 }
