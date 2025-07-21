@@ -1,3 +1,5 @@
+type LogLevel = "debug" | "info" | "warn" | "error"
+
 interface LogContext {
   [key: string]: any
 }
@@ -7,13 +9,11 @@ interface LogData {
 }
 
 interface LogEntry {
-  timestamp: string
-  level: "info" | "warn" | "error" | "debug"
+  level: LogLevel
   message: string
-  context?: LogContext
+  data?: any
+  timestamp: string
   requestId?: string
-  userId?: string
-  trainerId?: string
 }
 
 class Logger {
@@ -21,16 +21,16 @@ class Logger {
 
   private formatMessage(level: string, message: string, data?: LogData): string {
     const timestamp = new Date().toISOString()
-    const logData = data ? ` | ${JSON.stringify(data)}` : ""
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${logData}`
+    const dataStr = data ? ` ${JSON.stringify(data)}` : ""
+    return `[${timestamp}] ${level.toUpperCase()}: ${message}${dataStr}`
   }
 
   private formatLog(level: LogEntry["level"], message: string, context?: LogContext): LogEntry {
     return {
-      timestamp: new Date().toISOString(),
       level,
       message,
-      context,
+      data: context,
+      timestamp: new Date().toISOString(),
       requestId: this.getRequestId(),
     }
   }
@@ -60,21 +60,25 @@ class Logger {
     }
   }
 
-  info(message: string, data?: LogData): void {
-    console.log(this.formatMessage("info", message, data))
+  info(message: string, data?: LogData) {
+    if (this.isDevelopment) {
+      console.log(`[INFO] ${message}`, data || "")
+    }
   }
 
-  warn(message: string, data?: LogData): void {
-    console.warn(this.formatMessage("warn", message, data))
+  warn(message: string, data?: LogData) {
+    if (this.isDevelopment) {
+      console.warn(`[WARN] ${message}`, data || "")
+    }
   }
 
-  error(message: string, data?: LogData): void {
-    console.error(this.formatMessage("error", message, data))
+  error(message: string, data?: LogData) {
+    console.error(`[ERROR] ${message}`, data || "")
   }
 
-  debug(message: string, data?: LogData): void {
-    if (process.env.NODE_ENV === "development") {
-      console.debug(this.formatMessage("debug", message, data))
+  debug(message: string, data?: LogData) {
+    if (this.isDevelopment) {
+      console.debug(`[DEBUG] ${message}`, data || "")
     }
   }
 

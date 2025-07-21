@@ -1,10 +1,10 @@
-import { initializeApp, getApps, getApp } from "firebase/app"
-import { getFirestore } from "firebase/firestore"
-import { getAuth } from "firebase/auth"
-import { logger } from "@/lib/logger"
-import { getFirebaseDebugInfo } from "@/app/api/firebase-config"
+"use client"
 
-// Firebase configuration
+import { initializeApp, getApps } from "firebase/app"
+import { getAuth } from "firebase/auth"
+import { getFirestore } from "firebase/firestore"
+import { getStorage } from "firebase/storage"
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -15,63 +15,12 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
-// Initialize Firebase app (singleton pattern)
-function initializeFirebaseApp() {
-  try {
-    // Check if app already exists
-    if (getApps().length > 0) {
-      logger.debug("Firebase app already initialized")
-      return getApp()
-    }
+// Initialize Firebase only if it hasn't been initialized already
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
-    logger.info("Initializing Firebase app", {
-      projectId: firebaseConfig.projectId,
-      authDomain: firebaseConfig.authDomain,
-    })
+// Initialize Firebase services
+export const auth = getAuth(app)
+export const db = getFirestore(app)
+export const storage = getStorage(app)
 
-    const app = initializeApp(firebaseConfig)
-    logger.info("Firebase app initialized successfully")
-    return app
-  } catch (error) {
-    logger.error("Failed to initialize Firebase app", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-    throw error
-  }
-}
-
-// Initialize Firestore
-export const db = getFirestore(initializeFirebaseApp())
-
-// Initialize Auth
-export const auth = getAuth(initializeFirebaseApp())
-
-// Helper function to check if Firestore is available
-export function isFirestoreAvailable() {
-  try {
-    const { hasDb, projectId } = getFirebaseDebugInfo()
-    return hasDb && !!projectId
-  } catch (error) {
-    console.error("Firestore availability check failed:", error)
-    return false
-  }
-}
-
-// Export configuration for debugging
-export function getFirebaseConfig() {
-  const debugInfo = getFirebaseDebugInfo()
-  return {
-    projectId: debugInfo.projectId,
-    authDomain: debugInfo.authDomain,
-    hasApiKey: debugInfo.envVars.NEXT_PUBLIC_FIREBASE_API_KEY,
-    hasAppId: debugInfo.envVars.NEXT_PUBLIC_FIREBASE_APP_ID,
-    hasApp: debugInfo.hasApp,
-    hasDb: debugInfo.hasDb,
-  }
-}
-
-// Export initialization function
-export function initializeFirebase() {
-  return initializeFirebaseApp()
-}
+export default app
