@@ -191,8 +191,8 @@ export default function PersonalTrainerWebsitePage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Get Your Professional Trainer Website in 10 minutes</h1>
           <p className="text-xl mb-8 text-blue-100">
-            Juice creates a stunning, professional website tailored to your training expertise. No coding required -
-            just fill out the form and watch your online presence come to life.
+            Launch a high-converting one-page site that captures leads and books sessions for you. Just complete a short
+            form and your personal-training brand goes live – with SEO and client-ready.
           </p>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <div className="flex items-center gap-2">
