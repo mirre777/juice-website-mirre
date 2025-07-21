@@ -1,280 +1,324 @@
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore"
-import { initializeApp, getApps } from "firebase/app"
-import { nanoid } from "nanoid"
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-}
-
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-const db = getFirestore(app)
-
-export interface TrainerData {
-  id?: string
-  fullName: string
-  email: string
-  experience: string
-  specialty: string
-  certifications: string
-  services: string[]
-  status: "temp" | "active"
-  createdAt: string
-  updatedAt: string
-  expiresAt?: string
-  sessionToken?: string
-  requestId?: string
-  isPaid: boolean
-  isActive: boolean
-  content: {
-    about: {
-      title: string
-      bio: string // Changed from 'content' to 'bio'
-    }
-    contact: {
-      email: string
-      phone: string
-      location: string
-      title: string
-      description: string
-    }
-    customization: {
-      isDraft: boolean
-      lastUpdated: string
-      version: number
-    }
-    services?: string[]
-    testimonials?: Array<{
-      name: string
-      text: string
-      rating: number
-    }>
-    gallery?: string[]
-  }
-}
+import { collection, doc, setDoc, getDoc, updateDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore"
+import { db } from "@/app/api/firebase-config"
+import type {
+  TrainerFormData,
+  TrainerDocument,
+  EditableTrainerContent,
+  TrainerProfile,
+  TrainerContent,
+} from "@/types/trainer"
+import { logger } from "@/lib/logger"
 
 export class TrainerService {
-  private static COLLECTION_NAME = "trainers"
+  private static readonly COLLECTION = "trainers"
 
-  static async createTempTrainer(trainerData: {
-    fullName: string
-    email: string
-    phone: string
-    location: string
-    experience: string
-    specialty: string
-    certifications: string
-    bio: string
-    services: string[]
-  }): Promise<string> {
+  static async createTempTrainer(formData: TrainerFormData): Promise<string> {
     try {
-      const tempId = nanoid()
-      const now = new Date().toISOString()
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-      const docData: TrainerData = {
+      const trainerDoc: Partial<TrainerDocument> = {
+        ...formData,
         id: tempId,
-        fullName: trainerData.fullName,
-        email: trainerData.email,
-        experience: trainerData.experience,
-        specialty: trainerData.specialty,
-        certifications: trainerData.certifications,
-        services: trainerData.services,
-        status: "temp", // Use "temp" instead of "pending"
-        createdAt: now,
-        updatedAt: now,
-        expiresAt,
-        sessionToken: nanoid(),
-        requestId: nanoid(),
-        isPaid: false, // Initially false
-        isActive: false, // Initially false
-        content: {
-          about: {
-            title: `About ${trainerData.fullName}`,
-            bio: // Changed from 'content' to 'bio'
-              trainerData.bio ||
-              `Passionate ${trainerData.specialty} trainer with ${trainerData.experience} of experience helping clients achieve their health and fitness goals.`,
-          },
-          contact: {
-            email: trainerData.email,
-            phone: trainerData.phone,
-            location: trainerData.location,
-            title: "Let's Start Your Fitness Journey",
-            description:
-              "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
-          },
-          customization: {
-            isDraft: false,
-            lastUpdated: now,
-            version: 1,
-          },
-          services: trainerData.services || ["Personal Training", "Nutrition Coaching", "Workout Plans"],
-          testimonials: [
-            {
-              name: "Sarah M.",
-              text: "Amazing trainer! Helped me reach my fitness goals.",
-              rating: 5,
-            },
-            {
-              name: "John D.",
-              text: "Professional and knowledgeable. Highly recommend!",
-              rating: 5,
-            },
-          ],
-          gallery: [],
+        tempId,
+        status: "temp",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+
+      await setDoc(doc(db, this.COLLECTION, tempId), {
+        ...trainerDoc,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+
+      logger.info("Created temporary trainer", { tempId, email: formData.email })
+      return tempId
+    } catch (error) {
+      logger.error("Error creating temporary trainer", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        formData: { email: formData.email, fullName: formData.fullName },
+      })
+      throw error
+    }
+  }
+
+  static async getTempTrainer(tempId: string): Promise<TrainerDocument | null> {
+    try {
+      const docRef = doc(db, this.COLLECTION, tempId)
+      const docSnap = await getDoc(docRef)
+
+      if (!docSnap.exists()) {
+        logger.warn("Temporary trainer not found", { tempId })
+        return null
+      }
+
+      const data = docSnap.data()
+      const trainer: TrainerDocument = {
+        ...data,
+        id: docSnap.id,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        activatedAt: data.activatedAt?.toDate(),
+      } as TrainerDocument
+
+      logger.info("Retrieved temporary trainer", { tempId, status: trainer.status })
+      return trainer
+    } catch (error) {
+      logger.error("Error getting temporary trainer", {
+        tempId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
+      throw error
+    }
+  }
+
+  static async activateTrainer(tempId: string, paymentIntentId: string): Promise<string> {
+    try {
+      const tempTrainer = await this.getTempTrainer(tempId)
+
+      if (!tempTrainer) {
+        throw new Error("Temporary trainer not found")
+      }
+
+      if (tempTrainer.status !== "temp") {
+        throw new Error("Trainer already processed")
+      }
+
+      // Generate permanent ID
+      const permanentId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // Generate default content from form data
+      const defaultContent = this.generateDefaultContent(tempTrainer)
+
+      // Create activated trainer document
+      const activatedTrainer: Partial<TrainerDocument> = {
+        ...tempTrainer,
+        id: permanentId,
+        status: "active",
+        paymentIntentId,
+        activatedAt: new Date(),
+        updatedAt: new Date(),
+        content: defaultContent,
+        customization: {
+          lastUpdated: new Date(),
+          version: 1,
+          isDraft: false,
+        },
+        settings: {
+          isPublished: true,
+          seoTitle: `${tempTrainer.fullName} - Personal Trainer`,
+          seoDescription: `Professional personal training services by ${tempTrainer.fullName}. ${tempTrainer.specialty} specialist with ${tempTrainer.experience} of experience.`,
         },
       }
 
-      await setDoc(doc(db, this.COLLECTION_NAME, tempId), docData)
-      return tempId
+      // Save activated trainer
+      await setDoc(doc(db, this.COLLECTION, permanentId), {
+        ...activatedTrainer,
+        activatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        "customization.lastUpdated": serverTimestamp(),
+      })
+
+      // Update temp trainer status
+      await updateDoc(doc(db, this.COLLECTION, tempId), {
+        status: "pending_payment",
+        paymentIntentId,
+        updatedAt: serverTimestamp(),
+      })
+
+      logger.info("Successfully activated trainer", {
+        tempId,
+        permanentId,
+        paymentIntentId,
+        email: tempTrainer.email,
+      })
+
+      return permanentId
     } catch (error) {
-      console.error("Error creating temp trainer:", error)
+      logger.error("Error activating trainer", {
+        tempId,
+        paymentIntentId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
       throw error
     }
   }
 
-  static async getTempTrainer(tempId: string): Promise<TrainerData | null> {
+  static async getTrainer(trainerId: string): Promise<TrainerDocument | null> {
     try {
-      console.log("=== GET TEMP TRAINER ===")
-      console.log("Fetching trainer with ID:", tempId)
-
-      const docRef = doc(db, this.COLLECTION_NAME, tempId)
+      const docRef = doc(db, this.COLLECTION, trainerId)
       const docSnap = await getDoc(docRef)
 
-      if (docSnap.exists()) {
-        const data = docSnap.data() as TrainerData
-        console.log("Document exists, status:", data.status)
-
-        // Return both temp and active trainers for payment page
-        if (data.status === "temp" || data.status === "active") {
-          // Check if expired (only for temp trainers)
-          if (data.status === "temp" && data.expiresAt && new Date(data.expiresAt) < new Date()) {
-            console.log("❌ Trainer expired, deleting...")
-            await this.deleteTempTrainer(tempId)
-            return null
-          }
-          console.log("✅ Returning trainer data")
-          return { id: tempId, ...data }
-        } else {
-          console.log("❌ Trainer status not temp or active:", data.status)
-        }
-      } else {
-        console.log("❌ Document does not exist")
+      if (!docSnap.exists()) {
+        logger.warn("Trainer not found", { trainerId })
+        return null
       }
 
-      return null
+      const data = docSnap.data()
+      const trainer: TrainerDocument = {
+        ...data,
+        id: docSnap.id,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+        activatedAt: data.activatedAt?.toDate(),
+        customization: data.customization
+          ? {
+              ...data.customization,
+              lastUpdated: data.customization.lastUpdated?.toDate() || new Date(),
+            }
+          : undefined,
+      } as TrainerDocument
+
+      logger.info("Retrieved trainer", { trainerId, status: trainer.status })
+      return trainer
     } catch (error) {
-      console.error("Error getting temp trainer:", error)
+      logger.error("Error getting trainer", {
+        trainerId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
       throw error
     }
   }
 
-  static async activateTrainer(tempId: string): Promise<boolean> {
+  static async updateTrainerContent(trainerId: string, content: EditableTrainerContent): Promise<boolean> {
     try {
-      const docRef = doc(db, this.COLLECTION_NAME, tempId)
-      const docSnap = await getDoc(docRef)
+      const docRef = doc(db, this.COLLECTION, trainerId)
 
-      if (docSnap.exists()) {
-        const data = docSnap.data() as TrainerData
-
-        if (data.status === "temp") {
-          await updateDoc(docRef, {
-            status: "active",
-            isActive: true,
-            isPaid: true,
-            updatedAt: new Date().toISOString(),
-            expiresAt: null, // Remove expiration
-            sessionToken: null, // Remove session token
-          })
-          return true
-        }
-      }
-
-      return false
-    } catch (error) {
-      console.error("Error activating trainer:", error)
-      throw error
-    }
-  }
-
-  static async deleteTempTrainer(tempId: string): Promise<boolean> {
-    try {
-      await deleteDoc(doc(db, this.COLLECTION_NAME, tempId))
-      return true
-    } catch (error) {
-      console.error("Error deleting temp trainer:", error)
-      throw error
-    }
-  }
-
-  static async getActiveTrainer(id: string): Promise<TrainerData | null> {
-    try {
-      const docRef = doc(db, this.COLLECTION_NAME, id)
-      const docSnap = await getDoc(docRef)
-
-      if (docSnap.exists()) {
-        const data = docSnap.data() as TrainerData
-
-        // Only return if it's an active trainer
-        if (data.status === "active") {
-          return { id, ...data }
-        }
-      }
-
-      return null
-    } catch (error) {
-      console.error("Error getting active trainer:", error)
-      throw error
-    }
-  }
-
-  static async updateTrainerContent(id: string, content: TrainerData["content"]): Promise<boolean> {
-    try {
-      const docRef = doc(db, this.COLLECTION_NAME, id)
       await updateDoc(docRef, {
         content,
-        updatedAt: new Date().toISOString(),
+        "customization.lastUpdated": serverTimestamp(),
+        "customization.version": (await this.getTrainer(trainerId))?.customization?.version
+          ? (await this.getTrainer(trainerId))!.customization!.version + 1
+          : 1,
+        updatedAt: serverTimestamp(),
       })
+
+      logger.info("Updated trainer content", {
+        trainerId,
+        contentKeys: Object.keys(content),
+      })
+
       return true
     } catch (error) {
-      console.error("Error updating trainer content:", error)
+      logger.error("Error updating trainer content", {
+        trainerId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
+      return false
+    }
+  }
+
+  private static generateDefaultContent(trainer: Partial<TrainerProfile>): TrainerContent {
+    return {
+      hero: {
+        title: `Transform Your Fitness with ${trainer.name}`,
+        subtitle: `Professional ${trainer.specialization} training tailored to your goals`,
+        description: `Welcome! I'm ${trainer.name}, a certified personal trainer specializing in ${trainer.specialization}. With ${trainer.experience} of experience, I'm here to help you achieve your fitness goals through personalized training programs.`,
+      },
+      about: {
+        title: "About Me",
+        content: `I'm ${trainer.name}, a passionate fitness professional with ${trainer.experience} of experience in ${trainer.specialization}. I believe that fitness is not just about physical transformation, but about building confidence, discipline, and a healthier lifestyle.\n\nMy approach is personalized and results-driven. Whether you're just starting your fitness journey or looking to break through plateaus, I'll work with you to create a program that fits your lifestyle and helps you achieve your goals.\n\nI'm certified and committed to staying up-to-date with the latest fitness trends and techniques to provide you with the best possible training experience.`,
+      },
+      services: [
+        {
+          id: "1",
+          title: "Personal Training Session",
+          description: "One-on-one personalized training session focused on your specific goals",
+          price: 60,
+          duration: "60 minutes",
+          featured: true,
+        },
+        {
+          id: "2",
+          title: "Fitness Assessment",
+          description: "Comprehensive fitness evaluation and goal-setting session",
+          price: 40,
+          duration: "45 minutes",
+          featured: false,
+        },
+        {
+          id: "3",
+          title: "Custom Workout Plan",
+          description: "Personalized workout program designed for your goals and schedule",
+          price: 80,
+          duration: "Digital delivery",
+          featured: false,
+        },
+      ],
+      contact: {
+        title: "Let's Start Your Fitness Journey",
+        description:
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        email: trainer.email || "",
+        phone: trainer.phone || "",
+        location: trainer.location || "",
+      },
+      seo: {
+        title: `${trainer.name} - Personal Trainer in ${trainer.location}`,
+        description: `Professional ${trainer.specialization} training with ${trainer.name}. Transform your fitness with personalized programs in ${trainer.location}.`,
+      },
+      version: 1,
+      lastModified: new Date().toISOString(),
+    }
+  }
+
+  static async getAllActiveTrainers(): Promise<TrainerDocument[]> {
+    try {
+      const q = query(collection(db, this.COLLECTION), where("status", "==", "active"))
+
+      const querySnapshot = await getDocs(q)
+      const trainers: TrainerDocument[] = []
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        trainers.push({
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          activatedAt: data.activatedAt?.toDate(),
+        } as TrainerDocument)
+      })
+
+      logger.info("Retrieved active trainers", { count: trainers.length })
+      return trainers
+    } catch (error) {
+      logger.error("Error getting active trainers", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
       throw error
     }
   }
 
-  static async getAllActiveTrainers(): Promise<TrainerData[]> {
+  static async createTrainer(
+    trainerData: Omit<TrainerProfile, "id" | "createdAt" | "updatedAt">,
+  ): Promise<TrainerProfile> {
     try {
-      const q = query(collection(db, this.COLLECTION_NAME), where("status", "==", "active"))
+      const now = new Date().toISOString()
+      const trainer: TrainerProfile = {
+        ...trainerData,
+        id: this.generateId(),
+        createdAt: now,
+        updatedAt: now,
+        status: "pending",
+      }
 
-      const querySnapshot = await getDocs(q)
-      const trainers: TrainerData[] = []
-
-      querySnapshot.forEach((doc) => {
-        trainers.push({ id: doc.id, ...doc.data() } as TrainerData)
+      // In a real implementation, this would save to Firestore
+      // For now, we'll simulate the operation
+      logger.info("Creating trainer profile", {
+        trainerId: trainer.id,
+        name: trainer.name,
+        email: trainer.email,
       })
 
-      return trainers
+      return trainer
     } catch (error) {
-      console.error("Error getting active trainers:", error)
-      throw error
+      logger.error("Error creating trainer", { error })
+      throw new Error("Failed to create trainer profile")
     }
+  }
+
+  private static generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36)
   }
 }

@@ -1,124 +1,196 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
+import { logger } from "@/lib/logger"
 import Stripe from "stripe"
+import { db } from "@/firebase"
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
-// Initialize Firebase Admin
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  })
-}
-
-const db = getFirestore()
-
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const requestId = Math.random().toString(36).substring(7)
+  const userAgent = request.headers.get("user-agent") || "unknown"
+  const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
+
+  logger.info("Trainer activation request started", {
+    requestId,
+    userAgent,
+    ipAddress,
+  })
+
   try {
-    const { tempId, paymentIntentId } = await request.json()
+    const body = await request.json()
+    const { tempId, paymentIntentId } = body
+
+    logger.info("Trainer activation initiated", {
+      tempId,
+      paymentIntentId,
+      timestamp: new Date().toISOString(),
+    })
 
     if (!tempId || !paymentIntentId) {
-      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
+      logger.warn("Missing required fields for activation", {
+        tempId: !!tempId,
+        paymentIntentId: !!paymentIntentId,
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required fields",
+        },
+        { status: 400 },
+      )
     }
 
-    console.log("Activating trainer:", { tempId, paymentIntentId })
-
-    // Verify payment intent
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-    if (paymentIntent.status !== "succeeded") {
-      return NextResponse.json({ error: "Payment not completed" }, { status: 400 })
-    }
-
-    // Get temp trainer data
-    const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
-    if (!tempDoc.exists) {
-      return NextResponse.json({ error: "Temp trainer not found" }, { status: 404 })
-    }
-
-    const tempData = tempDoc.data()!
-
-    // Generate final trainer ID
-    const finalId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-    // Generate AI content
-    const aiContent = await generateTrainerContent(tempData)
-
-    // Create final trainer document
-    const finalTrainerData = {
-      ...tempData,
-      id: finalId,
-      content: aiContent,
-      isActive: true,
-      activatedAt: new Date().toISOString(),
+    // Verify payment with Stripe
+    logger.info("Verifying payment with Stripe", {
       paymentIntentId,
-      status: "active",
+      tempId,
+    })
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+
+    if (paymentIntent.status !== "succeeded") {
+      logger.warn("Payment not successful", {
+        tempId,
+        paymentIntentId,
+        status: paymentIntent.status,
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Payment not completed",
+        },
+        { status: 400 },
+      )
     }
 
-    await db.collection("trainers").doc(finalId).set(finalTrainerData)
-    console.log("Trainer activated successfully:", finalId)
+    if (paymentIntent.amount !== 2900) {
+      // €29.00 in cents
+      logger.error("Payment amount mismatch", {
+        tempId,
+        paymentIntentId,
+        expectedAmount: 2900,
+        actualAmount: paymentIntent.amount,
+      })
 
-    // Clean up temp data
-    await db.collection("tempTrainers").doc(tempId).delete()
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Payment amount incorrect",
+        },
+        { status: 400 },
+      )
+    }
 
-    return NextResponse.json({ success: true, finalId })
+    logger.info("Payment verified successfully", {
+      tempId,
+      paymentIntentId,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+    })
+
+    // Get temp trainer document
+    const tempTrainerRef = doc(db, "trainers", tempId)
+    const tempTrainerSnap = await getDoc(tempTrainerRef)
+
+    if (!tempTrainerSnap.exists()) {
+      logger.error("Temp trainer not found during activation", {
+        tempId,
+        paymentIntentId,
+      })
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Trainer profile not found",
+        },
+        { status: 404 },
+      )
+    }
+
+    const tempTrainerData = tempTrainerSnap.data()
+
+    // Check if already activated
+    if (tempTrainerData.isActive && tempTrainerData.isPaid) {
+      logger.info("Trainer already activated", {
+        tempId,
+        finalId: tempTrainerData.finalId,
+      })
+
+      return NextResponse.json({
+        success: true,
+        finalId: tempTrainerData.finalId,
+        redirectUrl: `/marketplace/trainer/${tempTrainerData.finalId}`,
+      })
+    }
+
+    // Create final trainer profile
+    const finalTrainerData = {
+      ...tempTrainerData,
+      status: "active",
+      isActive: true,
+      isPaid: true,
+      paymentIntentId,
+      activatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }
+
+    // Remove temp-specific fields
+    delete finalTrainerData.sessionToken
+    delete finalTrainerData.expiresAt
+
+    logger.info("Creating final trainer profile", {
+      tempId,
+      email: tempTrainerData.email,
+      specialty: tempTrainerData.specialty,
+    })
+
+    // Add final trainer document
+    const finalTrainerRef = await addDoc(collection(db, "trainers"), finalTrainerData)
+    const finalId = finalTrainerRef.id
+
+    // Update temp document with final ID
+    await updateDoc(tempTrainerRef, {
+      finalId,
+      isActive: true,
+      isPaid: true,
+      paymentIntentId,
+      activatedAt: serverTimestamp(),
+    })
+
+    logger.info("Trainer activation completed successfully", {
+      tempId,
+      finalId,
+      email: tempTrainerData.email,
+      paymentIntentId,
+    })
+
+    return NextResponse.json({
+      success: true,
+      finalId,
+      redirectUrl: `/marketplace/trainer/${finalId}`,
+    })
   } catch (error) {
-    console.error("Activation error:", error)
-    return NextResponse.json({ error: "Activation failed" }, { status: 500 })
-  }
-}
+    const processingTime = Date.now() - startTime
 
-async function generateTrainerContent(trainerData: any) {
-  return {
-    hero: {
-      title: `Transform Your Fitness with ${trainerData.name}`,
-      subtitle: `Professional ${trainerData.specialization} in ${trainerData.location}`,
-      description: `With ${trainerData.experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
-    },
-    about: {
-      title: "About Me",
-      content: `I'm ${trainerData.name}, a certified ${trainerData.specialization} based in ${trainerData.location}. With ${trainerData.experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results.`,
-    },
-    services: [
+    logger.error("Trainer activation error", {
+      tempId: request.body?.tempId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    })
+
+    return NextResponse.json(
       {
-        title: "Personal Training",
-        description: "One-on-one sessions tailored to your specific goals",
-        price: "€80/session",
+        success: false,
+        error: "Activation failed. Please try again.",
       },
-      {
-        title: "Group Training",
-        description: "Small group sessions for motivation",
-        price: "€35/session",
-      },
-      {
-        title: "Online Coaching",
-        description: "Remote coaching with custom plans",
-        price: "€150/month",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Working with this trainer has completely transformed my approach to fitness!",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Professional, knowledgeable, and motivating. Incredible results!",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData.email,
-      phone: trainerData.phone || "+31 6 1234 5678",
-      location: trainerData.location,
-      availability: "Monday - Saturday, 6:00 AM - 8:00 PM",
-    },
+      { status: 500 },
+    )
   }
 }

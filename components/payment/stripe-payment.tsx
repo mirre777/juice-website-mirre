@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
@@ -25,13 +26,20 @@ const getApiUrl = () => {
 }
 
 interface StripePaymentProps {
-  tempId?: string
+  amount: string
+  description: string
   onPaymentComplete: () => void
   onPaymentError: (error: string) => void
   resetCounter?: number // Add a reset counter prop to force re-render
 }
 
-export function StripePayment({ tempId, onPaymentComplete, onPaymentError, resetCounter = 0 }: StripePaymentProps) {
+export function StripePayment({
+  amount,
+  description,
+  onPaymentComplete,
+  onPaymentError,
+  resetCounter = 0,
+}: StripePaymentProps) {
   const { isCoach } = useTheme()
   const [clientSecret, setClientSecret] = useState("")
   const [loading, setLoading] = useState(true)
@@ -68,8 +76,14 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              tempId: tempId,
-              email: "", // Will be collected in the form
+              amount,
+              description,
+              metadata: {
+                paymentReference: `payment_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
+                plan: description.includes("Premium") ? "premium" : description.includes("Elite") ? "elite" : "basic",
+                planType: description,
+                // We can't add email here because we don't have it yet at payment intent creation time
+              },
             }),
           })
 
@@ -117,7 +131,7 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
     }, 200) // 200ms delay before creating payment intent
 
     return () => clearTimeout(timer)
-  }, [tempId, onPaymentError, elementsKey, resetCounter])
+  }, [amount, description, onPaymentError, elementsKey, resetCounter])
 
   // Reset the payment intent creation flag when resetCounter changes
   useEffect(() => {
@@ -162,8 +176,11 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    tempId: tempId,
-                    email: "",
+                    amount,
+                    description,
+                    metadata: {
+                      paymentReference: `payment_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`,
+                    },
                   }),
                 })
 
@@ -225,14 +242,13 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
             colorPrimary: "#ffcc00",
             colorBackground: isCoach ? "#ffffff" : "#000000",
             colorText: isCoach ? "#000000" : "#ffffff",
-            borderRadius: "8px",
           },
         },
-        loader: "auto",
       }}
     >
       <CheckoutForm
-        tempId={tempId}
+        amount={amount}
+        description={description}
         onPaymentComplete={onPaymentComplete}
         onPaymentError={onPaymentError}
         paymentIntentId={paymentIntentId}
@@ -243,7 +259,8 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
 
 // Separate the checkout form into its own component
 function CheckoutForm({
-  tempId,
+  amount,
+  description,
   onPaymentComplete,
   onPaymentError,
   paymentIntentId,
@@ -254,43 +271,6 @@ function CheckoutForm({
   const [email, setEmail] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
-  const [elementsReady, setElementsReady] = useState(false)
-  const [paymentElementOptions, setPaymentElementOptions] = useState(null)
-
-  // Stable payment element options to prevent re-rendering
-  useEffect(() => {
-    const options = {
-      layout: "tabs" as const,
-      defaultValues: {
-        billingDetails: {
-          email: email,
-        },
-      },
-      fields: {
-        billingDetails: {
-          email: "auto" as const,
-          name: "auto" as const,
-          address: {
-            country: "auto" as const,
-            line1: "auto" as const,
-            line2: "auto" as const,
-            city: "auto" as const,
-            state: "auto" as const,
-            postalCode: "auto" as const,
-          },
-        },
-      },
-      // Enable promotion codes - this should be stable
-      promotionCodes: {
-        enabled: true,
-      },
-      wallets: {
-        applePay: "auto" as const,
-        googlePay: "auto" as const,
-      },
-    }
-    setPaymentElementOptions(options)
-  }, []) // Only set once, don't depend on email changes
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -313,7 +293,7 @@ function CheckoutForm({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment/success?payment_intent=${paymentIntentId || ""}&tempId=${tempId || ""}`,
+          return_url: `https://app.juice.fitness/payment-success?payment_intent=${paymentIntentId || ""}`,
           receipt_email: email,
         },
         redirect: "if_required",
@@ -348,7 +328,7 @@ function CheckoutForm({
         }
 
         onPaymentComplete()
-        window.location.href = `${window.location.origin}/payment/success?payment_intent=${result.paymentIntent.id}&tempId=${tempId || ""}`
+        window.location.href = `https://app.juice.fitness/payment-success?payment_intent=${result.paymentIntent.id}`
       } else {
         console.log("Payment requires additional action or is processing")
       }
@@ -379,17 +359,11 @@ function CheckoutForm({
         </div>
       )}
 
-      <div className="space-y-4">
-        {paymentElementOptions && (
-          <PaymentElement
-            onReady={() => {
-              console.log("PaymentElement is ready")
-              setElementsReady(true)
-            }}
-            options={paymentElementOptions}
-          />
-        )}
-      </div>
+      <PaymentElement
+        options={{
+          layout: "tabs",
+        }}
+      />
 
       <div className="space-y-2">
         <label htmlFor="email" className={`block text-sm font-medium ${isCoach ? "text-gray-700" : "text-gray-300"}`}>
@@ -406,18 +380,14 @@ function CheckoutForm({
         />
       </div>
 
-      <Button
-        type="submit"
-        disabled={!stripe || !elements || isProcessing || !elementsReady}
-        className="w-full bg-juice text-black hover:bg-juice/90"
-      >
+      <Button type="submit" disabled={!stripe || isProcessing} className="w-full bg-juice text-black hover:bg-juice/90">
         {isProcessing ? (
           <>
             <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
             Processing...
           </>
         ) : (
-          `Pay €69`
+          `Pay €${amount}`
         )}
       </Button>
     </form>
@@ -435,7 +405,7 @@ export function StripePaymentLink() {
         onClick={() => {
           window.open(
             "https://buy.stripe.com/6oE6qj189dmC9q0aEE?success_url=" +
-              encodeURIComponent(`${window.location.origin}/payment/success`) +
+              encodeURIComponent(`https://app.juice.fitness/payment-success`) +
               "&cancel_url=" +
               encodeURIComponent(`${window.location.origin}/payment?canceled=true`),
             "_blank",
