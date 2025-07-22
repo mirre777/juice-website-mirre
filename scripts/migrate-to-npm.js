@@ -1,49 +1,37 @@
-#!/usr/bin/env node
-
 const fs = require("fs")
-const { execSync } = require("child_process")
 const path = require("path")
+const { execSync } = require("child_process")
 
 console.log("🔄 Migrating from pnpm to npm...")
 
 try {
-  // Remove pnpm lockfile
-  if (fs.existsSync("pnpm-lock.yaml")) {
-    console.log("🗑️  Removing pnpm-lock.yaml...")
-    fs.unlinkSync("pnpm-lock.yaml") // Fixed typo: was "pnmp-lock.yaml"
+  // Remove pnpm lockfile if it exists
+  const pnpmLockPath = path.join(process.cwd(), "pnpm-lock.yaml")
+  if (fs.existsSync(pnpmLockPath)) {
+    fs.unlinkSync(pnpmLockPath)
+    console.log("✅ Removed pnpm-lock.yaml")
+  }
+
+  // Remove yarn lockfile if it exists
+  const yarnLockPath = path.join(process.cwd(), "yarn.lock")
+  if (fs.existsSync(yarnLockPath)) {
+    fs.unlinkSync(yarnLockPath)
+    console.log("✅ Removed yarn.lock")
   }
 
   // Remove node_modules
-  if (fs.existsSync("node_modules")) {
-    console.log("🗑️  Removing node_modules...")
+  const nodeModulesPath = path.join(process.cwd(), "node_modules")
+  if (fs.existsSync(nodeModulesPath)) {
     execSync("rm -rf node_modules", { stdio: "inherit" })
+    console.log("✅ Removed node_modules")
   }
 
   // Install with npm
   console.log("📦 Installing dependencies with npm...")
   execSync("npm install", { stdio: "inherit" })
+  console.log("✅ Dependencies installed with npm")
 
-  // Update package.json scripts if needed
-  const packageJsonPath = path.join(process.cwd(), "package.json")
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
-
-  // Ensure we have npm-friendly scripts
-  packageJson.scripts = {
-    ...packageJson.scripts,
-    build: "next build",
-    dev: "next dev",
-    start: "next start",
-    lint: "next lint",
-    postinstall: "echo 'Dependencies installed successfully'",
-  }
-
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
-  console.log("✅ Updated package.json scripts")
-
-  console.log("✅ Migration completed successfully!")
-  console.log("📝 Next steps:")
-  console.log('   1. Commit the changes: git add . && git commit -m "migrate: switch from pnpm to npm"')
-  console.log("   2. Push to trigger new deployment: git push")
+  console.log("🎉 Migration to npm completed successfully!")
 } catch (error) {
   console.error("❌ Migration failed:", error.message)
   process.exit(1)
