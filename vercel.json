@@ -1,11 +1,16 @@
 {
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci || npm install",
   "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 30
+      "runtime": "nodejs18.x"
     }
   },
-  "env": {
-    "NEXT_PUBLIC_APP_URL": "https://juice-website.vercel.app"
-  }
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
 }
