@@ -1,77 +1,116 @@
-import { CheckCircle, Clock, Code, Rocket } from "lucide-react"
+"use client"
+import { Box, Container, Typography, Grid, Button, styled, keyframes } from "@mui/material"
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import AccessTimeIcon from "@mui/icons-material/AccessTime"
+import DevicesIcon from "@mui/icons-material/Devices"
+import { useTheme } from "@mui/material/styles"
+import useMediaQuery from "@mui/material/useMediaQuery"
+
+const HeroContainer = styled(Box)(({ theme }) => ({
+  background: "linear-gradient(45deg, #2196F3 30%, #3F51B5 90%)",
+  color: theme.palette.common.white,
+  padding: theme.spacing(8, 0),
+  textAlign: "center",
+}))
+
+const FeatureGrid = styled(Grid)(({ theme }) => ({
+  padding: theme.spacing(4, 0),
+}))
+
+const FeatureItem = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[3],
+  height: "100%", // Ensure equal height for all feature items
+}))
+
+const pulse = keyframes`
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+`
+
+const AnimatedButton = styled(Button)(({ theme }) => ({
+  animation: `${pulse} 2s infinite`,
+}))
 
 const PersonalTrainerWebsitePage = () => {
+  const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"))
+
   return (
-    <div className="container mx-auto py-12">
-      {/* Hero Section */}
-      <section className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Build Your Personal Trainer Website in Minutes</h1>
-        <p className="text-gray-600 mb-8">Reach more clients and grow your business with a professional website.</p>
-        <div className="flex justify-center gap-8 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-blue-600" />
-            </div>
-            <span className="text-gray-700 font-medium">Easy to Use</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-            <span className="text-gray-700 font-medium">Super fast</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Rocket className="w-6 h-6 text-blue-600" />
-            </div>
-            <span className="text-gray-700 font-medium">Mobile Optimized</span>
-          </div>
-        </div>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          Get Started Now
-        </button>
-      </section>
+    <Box>
+      <HeroContainer>
+        <Container maxWidth="md">
+          <Typography variant="h2" component="h1" gutterBottom>
+            Launch Your Personal Trainer Website Today!
+          </Typography>
+          <Typography variant="h5" paragraph>
+            Attract more clients and grow your business with a professional online presence.
+          </Typography>
+          <AnimatedButton variant="contained" color="secondary" size="large">
+            Get Started Now
+          </AnimatedButton>
+        </Container>
+      </HeroContainer>
 
-      {/* Features Section */}
-      <section className="mt-16">
-        <h2 className="text-3xl font-bold mb-4 text-center">Key Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Feature 1 */}
-          <div className="p-6 border rounded-lg shadow-md">
-            <Code className="w-8 h-8 text-blue-600 mb-2" />
-            <h3 className="text-xl font-semibold mb-2">Customizable Templates</h3>
-            <p className="text-gray-600">
-              Choose from a variety of professionally designed templates to create a website that reflects your brand.
-            </p>
-          </div>
+      <Container maxWidth="lg">
+        <FeatureGrid container spacing={4}>
+          <Grid item xs={12} md={4}>
+            <FeatureItem>
+              <CheckCircleIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+              <Typography variant="h6" gutterBottom>
+                Easy Setup
+              </Typography>
+              <Typography variant="body2" align="center">
+                Get your website up and running in minutes with our intuitive platform.
+              </Typography>
+            </FeatureItem>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FeatureItem>
+              <AccessTimeIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+              <Typography variant="h6" gutterBottom>
+                Super fast
+              </Typography>
+              <Typography variant="body2" align="center">
+                Blazing fast loading times to keep your clients engaged.
+              </Typography>
+            </FeatureItem>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FeatureItem>
+              <DevicesIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+              <Typography variant="h6" gutterBottom>
+                Mobile Responsive
+              </Typography>
+              <Typography variant="body2" align="center">
+                Your website will look great on any device, from smartphones to desktops.
+              </Typography>
+            </FeatureItem>
+          </Grid>
+        </FeatureGrid>
 
-          {/* Feature 2 */}
-          <div className="p-6 border rounded-lg shadow-md">
-            <Clock className="w-8 h-8 text-blue-600 mb-2" />
-            <h3 className="text-xl font-semibent mb-2">Online Booking</h3>
-            <p className="text-gray-600">
-              Allow clients to easily book appointments and training sessions directly through your website.
-            </p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="p-6 border rounded-lg shadow-md">
-            <CheckCircle className="w-8 h-8 text-blue-600 mb-2" />
-            <h3 className="text-xl font-semibold mb-2">Payment Integration</h3>
-            <p className="text-gray-600">Securely accept payments online with integrated payment gateways.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action Section */}
-      <section className="mt-16 text-center">
-        <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-        <p className="text-gray-600 mb-8">
-          Create your personal trainer website today and start attracting more clients.
-        </p>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Sign Up Now</button>
-      </section>
-    </div>
+        <Box py={4} textAlign="center">
+          <Typography variant="h4" gutterBottom>
+            Ready to take your personal training business to the next level?
+          </Typography>
+          <Button variant="contained" color="primary" size="large">
+            Create Your Website
+          </Button>
+        </Box>
+      </Container>
+    </Box>
   )
 }
 
