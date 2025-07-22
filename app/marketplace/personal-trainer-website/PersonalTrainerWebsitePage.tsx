@@ -1,117 +1,129 @@
 "use client"
-import { Box, Container, Typography, Grid, Button, styled, keyframes } from "@mui/material"
-import CheckCircleIcon from "@mui/icons-material/CheckCircle"
-import AccessTimeIcon from "@mui/icons-material/AccessTime"
-import DevicesIcon from "@mui/icons-material/Devices"
-import { useTheme } from "@mui/material/styles"
-import useMediaQuery from "@mui/material/useMediaQuery"
 
-const HeroContainer = styled(Box)(({ theme }) => ({
-  background: "linear-gradient(45deg, #2196F3 30%, #3F51B5 90%)",
-  color: theme.palette.common.white,
-  padding: theme.spacing(8, 0),
-  textAlign: "center",
-}))
+import { Box, Button, Container, Flex, Heading, Icon, Image, Stack, Text, useColorModeValue } from "@chakra-ui/react"
+import { CheckIcon, ClockIcon } from "@chakra-ui/icons"
 
-const FeatureGrid = styled(Grid)(({ theme }) => ({
-  padding: theme.spacing(4, 0),
-}))
-
-const FeatureItem = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  padding: theme.spacing(2),
-  backgroundColor: theme.palette.background.paper,
-  borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[3],
-  height: "100%", // Ensure equal height for all feature items
-}))
-
-const pulse = keyframes`
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-`
-
-const AnimatedButton = styled(Button)(({ theme }) => ({
-  animation: `${pulse} 2s infinite`,
-}))
-
-const PersonalTrainerWebsitePage = () => {
-  const theme = useTheme()
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"))
-
+export default function PersonalTrainerWebsitePage() {
   return (
-    <Box>
-      <HeroContainer>
-        <Container maxWidth="md">
-          <Typography variant="h2" component="h1" gutterBottom>
-            Launch Your Personal Trainer Website Today!
-          </Typography>
-          <Typography variant="h5" paragraph>
-            Attract more clients and grow your business with a professional online presence.
-          </Typography>
-          <AnimatedButton variant="contained" color="secondary" size="large">
-            Get Started Now
-          </AnimatedButton>
-        </Container>
-      </HeroContainer>
+    <Container maxW={"7xl"}>
+      <Stack
+        align={"center"}
+        spacing={{ base: 8, md: 10 }}
+        py={{ base: 20, md: 28 }}
+        direction={{ base: "column", md: "row" }}
+      >
+        <Stack flex={1} spacing={{ base: 5, md: 10 }}>
+          <Heading lineHeight={1.1} fontWeight={600} fontSize={{ base: "3xl", sm: "4xl", lg: "6xl" }}>
+            <Text
+              as={"span"}
+              position={"relative"}
+              _after={{
+                content: "''",
+                width: "full",
+                height: "30%",
+                position: "absolute",
+                bottom: 1,
+                left: 0,
+                bg: useColorModeValue("green.500", "green.300"),
+                zIndex: -1,
+              }}
+            >
+              Grow Your Personal Training Business
+            </Text>
+            <br />
+            <Text as={"span"} color={"green.400"}>
+              With a Stunning Website
+            </Text>
+          </Heading>
+          <Text color={"gray.500"}>
+            Attract more clients and showcase your expertise with a professional website designed specifically for
+            personal trainers. Get online quickly and easily, without any technical hassle.
+          </Text>
+          <Stack spacing={{ base: 4, sm: 6 }} direction={{ base: "column", sm: "row" }}>
+            <Button
+              rounded={"full"}
+              size={"lg"}
+              fontWeight={"normal"}
+              px={6}
+              colorScheme={"green"}
+              bg={"green.400"}
+              _hover={{ bg: "green.500" }}
+            >
+              Get started
+            </Button>
+            <Button
+              rounded={"full"}
+              size={"lg"}
+              fontWeight={"normal"}
+              px={6}
+              colorScheme={"gray"}
+              bg={"gray.200"}
+              _hover={{ bg: "gray.300" }}
+            >
+              Learn more
+            </Button>
+          </Stack>
+        </Stack>
+        <Flex flex={1} justify={"center"} align={"center"} position={"relative"} w={"full"}>
+          <Box
+            position={"relative"}
+            height={"400px"}
+            rounded={"2xl"}
+            boxShadow={"2xl"}
+            width={"full"}
+            overflow={"hidden"}
+          >
+            <Image
+              alt={"Hero Image"}
+              fit={"cover"}
+              align={"center"}
+              w={"100%"}
+              h={"100%"}
+              src={
+                "https://images.unsplash.com/photo-1552674605-db6ffd5facb5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" ||
+                "/placeholder.svg"
+              }
+            />
+          </Box>
+        </Flex>
+      </Stack>
 
-      <Container maxWidth="lg">
-        <FeatureGrid container spacing={4}>
-          <Grid item xs={12} md={4}>
-            <FeatureItem>
-              <CheckCircleIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6" gutterBottom>
-                Easy Setup
-              </Typography>
-              <Typography variant="body2" align="center">
-                Get your website up and running in minutes with our intuitive platform.
-              </Typography>
-            </FeatureItem>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <FeatureItem>
-              <AccessTimeIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6" gutterBottom>
-                Super fast
-              </Typography>
-              <Typography variant="body2" align="center">
-                Blazing fast loading times to keep your clients engaged.
-              </Typography>
-            </FeatureItem>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <FeatureItem>
-              <DevicesIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6" gutterBottom>
-                Mobile Responsive
-              </Typography>
-              <Typography variant="body2" align="center">
-                Your website will look great on any device, from smartphones to desktops.
-              </Typography>
-            </FeatureItem>
-          </Grid>
-        </FeatureGrid>
+      <Stack align={"center"} spacing={{ base: 8, md: 10 }} py={{ base: 20, md: 28 }}>
+        <Heading
+          textAlign={"center"}
+          lineHeight={1.1}
+          fontWeight={600}
+          fontSize={{ base: "3xl", sm: "4xl", lg: "5xl" }}
+        >
+          Key Features
+        </Heading>
 
-        <Box py={4} textAlign="center">
-          <Typography variant="h4" gutterBottom>
-            Ready to take your personal training business to the next level?
-          </Typography>
-          <Button variant="contained" color="primary" size="large">
-            Create Your Website
-          </Button>
-        </Box>
-      </Container>
-    </Box>
+        <Flex direction={{ base: "column", md: "row" }} justify={"space-around"} align={"center"} w={"full"}>
+          <Stack align={"center"} spacing={2}>
+            <Icon as={CheckIcon} color={"green.500"} boxSize={8} />
+            <Text fontWeight={"bold"}>Easy to Use</Text>
+            <Text color={"gray.500"} textAlign={"center"}>
+              Simple and intuitive interface for effortless website management.
+            </Text>
+          </Stack>
+
+          <Stack align={"center"} spacing={2}>
+            <Icon as={ClockIcon} color={"green.500"} boxSize={8} />
+            <Text fontWeight={"bold"}>Super fast</Text>
+            <Text color={"gray.500"} textAlign={"center"}>
+              Launch your website in minutes with our streamlined setup process.
+            </Text>
+          </Stack>
+
+          <Stack align={"center"} spacing={2}>
+            <Icon as={CheckIcon} color={"green.500"} boxSize={8} />
+            <Text fontWeight={"bold"}>Mobile-Friendly</Text>
+            <Text color={"gray.500"} textAlign={"center"}>
+              Fully responsive design ensures your website looks great on any device.
+            </Text>
+          </Stack>
+        </Flex>
+      </Stack>
+    </Container>
   )
 }
-
-export default PersonalTrainerWebsitePage
