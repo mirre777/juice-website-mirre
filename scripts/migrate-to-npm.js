@@ -1,7 +1,7 @@
 const fs = require("fs")
 const { execSync } = require("child_process")
 
-console.log("🔄 Starting migration from pnpm to npm...")
+console.log("🚀 Starting migration from pnpm to npm...")
 
 try {
   // Step 1: Remove pnpm files
@@ -37,31 +37,35 @@ try {
 
   // Step 5: Update package.json scripts
   console.log("📝 Updating package.json scripts...")
-  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"))
+  const packageJsonPath = "package.json"
+  if (fs.existsSync(packageJsonPath)) {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
 
-  // Update scripts to use npm
-  if (packageJson.scripts) {
-    Object.keys(packageJson.scripts).forEach((script) => {
-      if (packageJson.scripts[script].includes("pnpm")) {
-        packageJson.scripts[script] = packageJson.scripts[script].replace(/pnpm/g, "npm")
-      }
-    })
+    // Update scripts to use npm
+    if (packageJson.scripts) {
+      Object.keys(packageJson.scripts).forEach((script) => {
+        if (packageJson.scripts[script].includes("pnpm")) {
+          packageJson.scripts[script] = packageJson.scripts[script].replace(/pnpm/g, "npm")
+        }
+      })
+    }
+
+    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+    console.log("✅ Updated package.json scripts")
   }
-
-  fs.writeFileSync("package.json", JSON.stringify(packageJson, null, 2))
-  console.log("✅ Updated package.json scripts")
 
   console.log("🎉 Migration completed successfully!")
   console.log("📋 Summary:")
   console.log("   - Removed pnpm-lock.yaml")
   console.log("   - Cleaned node_modules")
-  console.log("   - Generated package-lock.json")
-  console.log("   - Updated scripts to use npm")
+  console.log("   - Installed dependencies with npm")
+  console.log("   - Updated package.json scripts")
+  console.log("   - Created package-lock.json")
 } catch (error) {
   console.error("❌ Migration failed:", error.message)
   console.log("🔧 Manual steps required:")
-  console.log("   1. Delete pnpm-lock.yaml")
-  console.log("   2. Delete node_modules")
+  console.log("   1. Delete pnpm-lock.yaml manually")
+  console.log("   2. Delete node_modules folder")
   console.log("   3. Run: npm install")
   process.exit(1)
 }
