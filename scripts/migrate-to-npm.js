@@ -1,52 +1,67 @@
-#!/usr/bin/env node
-
 const fs = require("fs")
-const path = require("path")
 const { execSync } = require("child_process")
 
 console.log("🔄 Starting migration from pnpm to npm...")
 
-// Remove pnpm files
-const filesToRemove = ["pnpm-lock.yaml", ".pnpmfile.cjs", ".pnpm-debug.log"]
+try {
+  // Step 1: Remove pnpm files
+  console.log("🗑️  Removing pnpm files...")
 
-filesToRemove.forEach((file) => {
-  if (fs.existsSync(file)) {
-    fs.unlinkSync(file)
-    console.log(`✅ Removed ${file}`)
+  if (fs.existsSync("pnpm-lock.yaml")) {
+    fs.unlinkSync("pnpm-lock.yaml")
+    console.log("✅ Removed pnpm-lock.yaml")
   }
-})
 
-// Remove pnpm from package.json scripts
-const packageJsonPath = "package.json"
-if (fs.existsSync(packageJsonPath)) {
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
+  if (fs.existsSync(".pnpmfile.cjs")) {
+    fs.unlinkSync(".pnpmfile.cjs")
+    console.log("✅ Removed .pnpmfile.cjs")
+  }
 
-  // Update scripts to use npm instead of pnpm
+  // Step 2: Clean node_modules
+  console.log("🧹 Cleaning node_modules...")
+  if (fs.existsSync("node_modules")) {
+    execSync("rm -rf node_modules", { stdio: "inherit" })
+    console.log("✅ Cleaned node_modules")
+  }
+
+  // Step 3: Remove existing package-lock.json if it exists
+  if (fs.existsSync("package-lock.json")) {
+    fs.unlinkSync("package-lock.json")
+    console.log("✅ Removed existing package-lock.json")
+  }
+
+  // Step 4: Install with npm
+  console.log("📦 Installing dependencies with npm...")
+  execSync("npm install", { stdio: "inherit" })
+  console.log("✅ Dependencies installed with npm")
+
+  // Step 5: Update package.json scripts
+  console.log("📝 Updating package.json scripts...")
+  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"))
+
+  // Update scripts to use npm
   if (packageJson.scripts) {
-    Object.keys(packageJson.scripts).forEach((key) => {
-      if (packageJson.scripts[key].includes("pnpm")) {
-        packageJson.scripts[key] = packageJson.scripts[key].replace(/pnpm/g, "npm")
-        console.log(`✅ Updated script "${key}" to use npm`)
+    Object.keys(packageJson.scripts).forEach((script) => {
+      if (packageJson.scripts[script].includes("pnpm")) {
+        packageJson.scripts[script] = packageJson.scripts[script].replace(/pnpm/g, "npm")
       }
     })
   }
 
-  // Remove pnpm-specific fields
-  delete packageJson.pnpm
-  delete packageJson.packageManager
+  fs.writeFileSync("package.json", JSON.stringify(packageJson, null, 2))
+  console.log("✅ Updated package.json scripts")
 
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
-  console.log("✅ Updated package.json")
-}
-
-// Install dependencies with npm
-try {
-  console.log("📦 Installing dependencies with npm...")
-  execSync("npm install", { stdio: "inherit" })
-  console.log("✅ Dependencies installed successfully")
+  console.log("🎉 Migration completed successfully!")
+  console.log("📋 Summary:")
+  console.log("   - Removed pnpm-lock.yaml")
+  console.log("   - Cleaned node_modules")
+  console.log("   - Generated package-lock.json")
+  console.log("   - Updated scripts to use npm")
 } catch (error) {
-  console.error("❌ Failed to install dependencies:", error.message)
+  console.error("❌ Migration failed:", error.message)
+  console.log("🔧 Manual steps required:")
+  console.log("   1. Delete pnpm-lock.yaml")
+  console.log("   2. Delete node_modules")
+  console.log("   3. Run: npm install")
   process.exit(1)
 }
-
-console.log("🎉 Migration to npm completed successfully!")
