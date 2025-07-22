@@ -7,57 +7,160 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Star, Zap, Shield, Smartphone } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, Clock, Star, Zap, ArrowDown } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-interface TrainerFormData {
-  name: string
+interface FormData {
+  fullName: string
   email: string
   phone: string
   city: string
   district: string
-  specialties: string
-  certifications: string
+  specialty: string
   bio: string
-  services: string
-  pricing: string
-  availability: string
+  certifications: string
+  services: string[]
 }
 
+interface FormErrors {
+  fullName?: string
+  email?: string
+  city?: string
+  district?: string
+  specialty?: string
+  bio?: string
+}
+
+const specialties = [
+  "Weight Loss",
+  "Strength Training",
+  "Sports Performance",
+  "Rehabilitation",
+  "Nutrition Coaching",
+  "Group Fitness",
+  "Yoga & Mindfulness",
+  "Senior Fitness",
+  "Youth Training",
+  "Bodybuilding",
+]
+
+const serviceOptions = [
+  "Personal Training",
+  "Weight Loss Programs",
+  "Flexibility & Mobility",
+  "Online Coaching",
+  "Group Fitness",
+  "Strength Training",
+  "Sports-Specific Training",
+  "Nutrition Coaching",
+  "Cardio Training",
+  "Rehabilitation",
+]
+
 export default function PersonalTrainerWebsitePage() {
-  const [formData, setFormData] = useState<TrainerFormData>({
-    name: "",
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState<FormData>({
+    fullName: "",
     email: "",
     phone: "",
     city: "",
     district: "",
-    specialties: "",
-    certifications: "",
+    specialty: "",
     bio: "",
-    services: "",
-    pricing: "",
-    availability: "",
+    certifications: "",
+    services: [],
   })
-
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
+  const [errors, setErrors] = useState<FormErrors>({})
 
   const scrollToForm = () => {
     const formElement = document.getElementById("trainer-form")
     if (formElement) {
-      formElement.scrollIntoView({ behavior: "smooth" })
+      formElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
     }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
+
+    // Required field validations
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required"
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required"
+    }
+
+    if (!formData.district.trim()) {
+      newErrors.district = "District is required"
+    }
+
+    if (!formData.specialty) {
+      newErrors.specialty = "Please select your primary specialty"
+    }
+
+    // Optional bio validation - only validate if provided
+    if (formData.bio.trim() && formData.bio.trim().length < 20) {
+      newErrors.bio = "Bio must be at least 20 characters if provided"
+    }
+
+    if (formData.bio.trim() && formData.bio.trim().length > 500) {
+      newErrors.bio = "Bio must be less than 500 characters"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const isFormValid = (): boolean => {
+    return (
+      formData.fullName.trim() !== "" &&
+      formData.email.trim() !== "" &&
+      formData.city.trim() !== "" &&
+      formData.district.trim() !== "" &&
+      formData.specialty !== "" &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
+      (formData.bio.trim() === "" || formData.bio.trim().length >= 20)
+    )
+  }
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
+  }
+
+  const handleServiceToggle = (service: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      services: prev.services.includes(service)
+        ? prev.services.filter((s) => s !== service)
+        : [...prev.services, service],
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -69,268 +172,372 @@ export default function PersonalTrainerWebsitePage() {
         body: JSON.stringify(formData),
       })
 
-      if (response.ok) {
-        const result = await response.json()
-        if (result.tempUrl) {
-          window.location.href = result.tempUrl
-        }
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Redirect to temp trainer page
+        router.push(data.redirectUrl)
       } else {
-        console.error("Failed to create trainer profile")
+        console.error("Form submission failed:", data.error)
+        // Handle error - could show toast or error message
+        alert(data.error || "Failed to create trainer profile. Please try again.")
       }
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Form submission error:", error)
+      alert("An unexpected error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">No coding Required</h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Create your professional trainer website in minutes
+      <section className="pt-20 pb-[30px] bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-left max-w-4xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-white border border-black rounded-full">
+                <Zap className="w-8 h-8 text-black" />
+              </div>
+              <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
+                No coding required
+              </div>
+            </div>
+
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Get Your Professional{" "}
+              <span className="text-black relative">
+                Trainer Website
+                <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
+              </span>{" "}
+              in 10 minutes
+            </h1>
+
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
+              Launch a high-converting one-page site that captures leads and books sessions for you. Just complete a
+              short form and your personal-training brand goes live – with SEO and client-ready.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+            {/* CTA Button */}
+            <div className="mb-8">
               <Button
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-3"
                 onClick={scrollToForm}
+                className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Generate for free
+                Create for free
+                <ArrowDown className="w-5 h-5 ml-2" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3 bg-transparent"
-              >
-                View Examples
-              </Button>
+            </div>
+
+            <div className="flex items-center gap-8 mb-12">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <span className="text-gray-700 font-medium">Increase visibility</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                </div>
+                <span className="text-gray-700 font-medium">Super fast</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <Star className="w-5 h-5 text-purple-600" />
+                </div>
+                <span className="text-gray-700 font-medium">Professional design</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Trainers Say</h2>
-            <p className="text-lg text-gray-600">Join thousands of successful trainers</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="p-6">
-              <CardContent className="pt-0">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                  ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center font-bold text-black text-lg">
+                  L
                 </div>
-                <p className="text-gray-700 mb-4">
-                  "This platform helped me create a professional website in just 10 minutes. My client bookings
-                  increased by 300% in the first month!"
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                    SM
-                  </div>
-                  <div>
-                    <p className="font-semibold">Sarah Martinez</p>
-                    <p className="text-sm text-gray-600">Certified Personal Trainer</p>
-                  </div>
+                <div>
+                  <p className="text-gray-800 font-medium mb-2">"Super smooth, I had my website in 3 minutes."</p>
+                  <p className="text-gray-600 text-sm">- Laner</p>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="p-6">
-              <CardContent className="pt-0">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                  ))}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center font-bold text-black text-lg">
+                  R
                 </div>
-                <p className="text-gray-700 mb-4">
-                  "The best investment I've made for my fitness business. The website looks incredibly professional and
-                  my clients love the easy booking system."
-                </p>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                    MJ
-                  </div>
-                  <div>
-                    <p className="font-semibold">Mike Johnson</p>
-                    <p className="text-sm text-gray-600">Strength & Conditioning Coach</p>
-                  </div>
+                <div>
+                  <p className="text-gray-800 font-medium mb-2">
+                    "I never knew a website could be made this fast and good"
+                  </p>
+                  <p className="text-gray-600 text-sm">- Rici</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Stats Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Everything You Need</h2>
-            <p className="text-lg text-gray-600">Professional features built for fitness professionals</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-8 w-8 text-blue-600" />
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-[#D2FF28] rounded-full">
+                  <span className="text-2xl">👥</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Lightning Fast Setup</h3>
-              <p className="text-gray-600">Get your website live in under 10 minutes</p>
+              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
+              <div className="text-gray-600">Trainers Trust Us</div>
             </div>
             <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Smartphone className="h-8 w-8 text-green-600" />
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-[#D2FF28] rounded-full">
+                  <span className="text-2xl">📈</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Mobile Optimized</h3>
-              <p className="text-gray-600">Looks perfect on all devices</p>
+              <div className="text-4xl font-bold text-gray-900 mb-2">95%</div>
+              <div className="text-gray-600">Client Satisfaction</div>
             </div>
             <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-purple-600" />
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-[#D2FF28] rounded-full">
+                  <span className="text-2xl">⚡</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Secure & Reliable</h3>
-              <p className="text-gray-600">Bank-level security for your business</p>
+              <div className="text-4xl font-bold text-gray-900 mb-2">24/7</div>
+              <div className="text-gray-600">Website Availability</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Form Section */}
-      <section id="trainer-form" className="py-16 bg-white">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card>
-            <CardHeader>
+      <section id="trainer-form" className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Stand out. Book clients.</h2>
+            <p className="text-xl text-gray-600">Fill out this form to get your own page. No coding required.</p>
+          </div>
+
+          <Card className="shadow-xl border-0">
+            <CardHeader className="bg-gray-50 rounded-t-lg">
               <CardTitle className="text-2xl text-center">Create Your Trainer Profile</CardTitle>
-              <CardDescription className="text-center">
-                Fill out your information to generate your professional website
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
+            <CardContent className="p-8">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Personal Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
+                    <Label htmlFor="fullName" className="text-base font-medium">
+                      Full Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => handleInputChange("fullName", e.target.value)}
+                      placeholder="John Smith"
+                      className={`mt-2 h-12 ${errors.fullName ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
+                    />
+                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
                   </div>
+
                   <div>
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email" className="text-base font-medium">
+                      Email Address <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="email"
-                      name="email"
                       type="email"
                       value={formData.email}
-                      onChange={handleInputChange}
-                      required
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      placeholder="john@example.com"
+                      className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
+                    />
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="phone" className="text-base font-medium">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                      className="mt-2 h-12"
+                      disabled={isSubmitting}
                     />
                   </div>
-                </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input id="phone" name="phone" value={formData.phone} onChange={handleInputChange} required />
+                    <Label htmlFor="specialty" className="text-base font-medium">
+                      Primary Specialty <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={formData.specialty}
+                      onValueChange={(value) => handleInputChange("specialty", value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger className={`mt-2 h-12 ${errors.specialty ? "border-red-500" : ""}`}>
+                        <SelectValue placeholder="Select your specialty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specialties.map((specialty) => (
+                          <SelectItem key={specialty} value={specialty}>
+                            {specialty}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
                   </div>
+                </div>
+
+                {/* Location Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Input id="city" name="city" value={formData.city} onChange={handleInputChange} required />
+                    <Label htmlFor="city" className="text-base font-medium">
+                      City <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      placeholder="Vienna"
+                      className={`mt-2 h-12 ${errors.city ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
+                    />
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="district" className="text-base font-medium">
+                      District <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="district"
+                      value={formData.district}
+                      onChange={(e) => handleInputChange("district", e.target.value)}
+                      placeholder="Innere Stadt"
+                      className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
+                    />
+                    {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
                   </div>
                 </div>
 
+                {/* Bio - Optional */}
                 <div>
-                  <Label htmlFor="district">District *</Label>
-                  <Input
-                    id="district"
-                    name="district"
-                    value={formData.district}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="specialties">Specialties *</Label>
-                  <Input
-                    id="specialties"
-                    name="specialties"
-                    placeholder="e.g., Weight Loss, Strength Training, Yoga"
-                    value={formData.specialties}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="certifications">Certifications *</Label>
-                  <Input
-                    id="certifications"
-                    name="certifications"
-                    placeholder="e.g., NASM-CPT, ACE, ACSM"
-                    value={formData.certifications}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="bio">Professional Bio</Label>
+                  <Label htmlFor="bio" className="text-base font-medium">
+                    Professional Bio
+                  </Label>
+                  <p className="text-sm text-gray-600 mt-1 mb-2">
+                    Tell potential clients about your background, training philosophy, and what makes you unique.
+                    (Optional)
+                  </p>
                   <Textarea
                     id="bio"
-                    name="bio"
-                    placeholder="Tell potential clients about your experience and approach..."
                     value={formData.bio}
-                    onChange={handleInputChange}
-                    rows={4}
+                    onChange={(e) => handleInputChange("bio", e.target.value)}
+                    placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
+                    className={`mt-2 min-h-32 ${errors.bio ? "border-red-500" : ""}`}
+                    disabled={isSubmitting}
                   />
+                  <div className="flex justify-between items-center mt-2">
+                    {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
+                    <div className="ml-auto">
+                      <span
+                        className={`text-sm ${formData.bio.length > 450 ? "text-red-500" : formData.bio.length > 400 ? "text-yellow-600" : "text-gray-500"}`}
+                      >
+                        {formData.bio.length}/500 characters
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
+                {/* Certifications */}
                 <div>
-                  <Label htmlFor="services">Services Offered</Label>
-                  <Textarea
-                    id="services"
-                    name="services"
-                    placeholder="e.g., Personal Training, Group Classes, Nutrition Coaching"
-                    value={formData.services}
-                    onChange={handleInputChange}
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="pricing">Pricing *</Label>
+                  <Label htmlFor="certifications" className="text-base font-medium">
+                    Certifications & Qualifications
+                  </Label>
+                  <p className="text-sm text-gray-600 mt-1 mb-2">
+                    List your certifications, degrees, or other qualifications (comma-separated).
+                  </p>
                   <Input
-                    id="pricing"
-                    name="pricing"
-                    placeholder="e.g., $75/session, $300/month"
-                    value={formData.pricing}
-                    onChange={handleInputChange}
-                    required
+                    id="certifications"
+                    value={formData.certifications}
+                    onChange={(e) => handleInputChange("certifications", e.target.value)}
+                    placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
+                    className="mt-2 h-12"
+                    disabled={isSubmitting}
                   />
                 </div>
 
+                {/* Services - Optional */}
                 <div>
-                  <Label htmlFor="availability">Availability *</Label>
-                  <Input
-                    id="availability"
-                    name="availability"
-                    placeholder="e.g., Mon-Fri 6AM-8PM, Weekends by appointment"
-                    value={formData.availability}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <Label className="text-base font-medium">Services Offered</Label>
+                  <p className="text-sm text-gray-600 mt-1 mb-4">
+                    Select the services you provide to your clients. (Optional)
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {serviceOptions.map((service) => (
+                      <div key={service} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={service}
+                          checked={formData.services?.includes(service) || false}
+                          onCheckedChange={() => handleServiceToggle(service)}
+                          disabled={isSubmitting}
+                        />
+                        <Label htmlFor={service} className="text-sm font-medium cursor-pointer">
+                          {service}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating Your Website..." : "Create My Website"}
-                </Button>
+                {/* Submit Button */}
+                <div className="pt-6">
+                  <Button
+                    type="submit"
+                    disabled={!isFormValid() || isSubmitting}
+                    className="w-full h-14 text-lg font-semibold bg-[#D2FF28] hover:bg-[#B8E625] text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                        Creating Your Website...
+                      </>
+                    ) : (
+                      <>
+                        Create My Website
+                        <ArrowDown className="w-5 h-5 ml-2 rotate-[-90deg]" />
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-center text-sm text-gray-600 mt-4">
+                    Your website will be generated <strong>instantly</strong>. You can edit and activate it for{" "}
+                    <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span> No one's
+                    forcing you.
+                  </p>
+                </div>
               </form>
             </CardContent>
           </Card>
