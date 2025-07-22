@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, Save, X, Plus, Trash2 } from "lucide-react"
+import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, X, Plus, Trash2, Eye } from "lucide-react"
+import PublicTrainerView from "./PublicTrainerView"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -72,6 +73,7 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isPublicView, setIsPublicView] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -329,6 +331,10 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
     updateContent("services", updatedServices)
   }
 
+  const handleExitPublicView = () => {
+    setIsPublicView(false)
+  }
+
   if (!mounted) {
     return null
   }
@@ -410,6 +416,12 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   // CRITICAL FIX: Ensure services is always an array
   const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
 
+  // If in public view mode, render the clean public component without header
+  if (isPublicView) {
+    return <PublicTrainerView trainer={trainer} content={displayContent} onExitPublicView={handleExitPublicView} />
+  }
+
+  // Otherwise render the existing editable view
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Enhanced Header with Editing States */}
@@ -417,7 +429,6 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              {/* Status Badges */}
               <Badge variant="default" className="bg-green-500">
                 {trainer.isActive ? "Live" : "Draft"}
               </Badge>
@@ -433,6 +444,14 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
               {!isEditing ? (
                 // View Mode Actions
                 <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPublicView(true)}
+                    className="flex items-center space-x-2 bg-transparent"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View Live</span>
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={handleStartEditing}
@@ -466,7 +485,6 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                     disabled={saving || !hasUnsavedChanges}
                     className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
                   >
-                    <Save className="h-4 w-4" />
                     <span>{saving ? "Saving..." : "Save Changes"}</span>
                   </Button>
                 </>
