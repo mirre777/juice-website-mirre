@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prebuild": "rm -f pnpm-lock.yaml yarn.lock || true",
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
