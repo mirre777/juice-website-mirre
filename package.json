@@ -10,8 +10,7 @@
     "install:clean": "rm -rf node_modules package-lock.json pnpm-lock.yaml && npm install",
     "lint": "next lint",
     "migrate:npm": "node scripts/migrate-to-npm.js",
-    "start": "next start",
-    "vercel-build": "npm run build"
+    "start": "next start"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
