@@ -5,25 +5,31 @@ const path = require("path")
 
 console.log("🔍 Running prebuild checks...")
 
-// Remove pnmp-lock.yaml if it exists (typo version)
-const pnmpLockPath = path.join(process.cwd(), "pnmp-lock.yaml")
-if (fs.existsSync(pnmpLockPath)) {
-  console.log("🗑️  Removing pnmp-lock.yaml (typo version)")
-  fs.unlinkSync(pnmpLockPath)
-}
+try {
+  // Remove pnmp-lock.yaml if it exists (typo version)
+  const pnmpLockPath = path.join(process.cwd(), "pnmp-lock.yaml")
+  if (fs.existsSync(pnmpLockPath)) {
+    console.log("🗑️  Removing pnmp-lock.yaml (typo version)")
+    fs.unlinkSync(pnmpLockPath)
+  }
 
-// Remove pnpm-lock.yaml if it exists
-const pnpmLockPath = path.join(process.cwd(), "pnpm-lock.yaml")
-if (fs.existsSync(pnpmLockPath)) {
-  console.log("🗑️  Removing pnpm-lock.yaml")
-  fs.unlinkSync(pnpmLockPath)
-}
+  // Remove pnpm-lock.yaml if it exists
+  const pnpmLockPath = path.join(process.cwd(), "pnpm-lock.yaml")
+  if (fs.existsSync(pnpmLockPath)) {
+    console.log("🗑️  Removing pnpm-lock.yaml")
+    fs.unlinkSync(pnpmLockPath)
+  }
 
-// Remove yarn.lock if it exists
-const yarnLockPath = path.join(process.cwd(), "yarn.lock")
-if (fs.existsSync(yarnLockPath)) {
-  console.log("🗑️  Removing yarn.lock")
-  fs.unlinkSync(yarnLockPath)
-}
+  // Remove yarn.lock if it exists
+  const yarnLockPath = path.join(process.cwd(), "yarn.lock")
+  if (fs.existsSync(yarnLockPath)) {
+    console.log("🗑️  Removing yarn.lock")
+    fs.unlinkSync(yarnLockPath)
+  }
 
-console.log("✅ Prebuild checks complete - using npm only")
+  console.log("✅ Prebuild checks complete - using npm only")
+} catch (error) {
+  console.error("❌ Prebuild check failed:", error.message)
+  // Don't fail the build, just log the error
+  console.log("⚠️  Continuing with build despite prebuild check failure")
+}
