@@ -13,7 +13,7 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
+import Link from "next/link" // Import Link
 
 export default function HomePage() {
   const router = useRouter()
@@ -145,9 +145,9 @@ export default function HomePage() {
               Start now
             </button>
             <button
-              onClick={handleWaitlistClick}
+              onClick={handleWaitlistClick} // Changed to show waitlist
               className={`rounded-full px-6 py-3 ${isCoach ? "border border-gray-200 hover:bg-gray-50" : "border border-zinc-800 hover:bg-zinc-800"} transition-colors flex items-center justify-center gap-2`}
-              id={isCoach ? "get_updates_trainer" : "get_updates_client"}
+              id={isCoach ? "get_updates_trainer" : "get_updates_client"} // Updated ID
             >
               Get updates
             </button>
