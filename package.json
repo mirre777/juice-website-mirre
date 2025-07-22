@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "echo 'Cleaning lockfiles...' && rm -f pnmp-lock.yaml yarn.lock",
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
