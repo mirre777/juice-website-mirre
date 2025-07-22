@@ -1,38 +1,49 @@
+#!/usr/bin/env node
+
 const fs = require("fs")
-const path = require("path")
 const { execSync } = require("child_process")
+const path = require("path")
 
-console.log("🔄 Migrating project to npm...")
+console.log("🔄 Migrating from pnpm to npm...")
 
-const rootDir = process.cwd()
-
-// Remove pnpm and yarn lockfiles
-const lockfilesToRemove = [
-  "pnpm-lock.yaml",
-  "pnmp-lock.yaml", // Common typo
-  "yarn.lock",
-]
-
-lockfilesToRemove.forEach((lockfile) => {
-  const lockfilePath = path.join(rootDir, lockfile)
-  if (fs.existsSync(lockfilePath)) {
-    console.log(`🗑️  Removing ${lockfile}`)
-    fs.unlinkSync(lockfilePath)
-  }
-})
-
-// Clean node_modules
-const nodeModulesPath = path.join(rootDir, "node_modules")
-if (fs.existsSync(nodeModulesPath)) {
-  console.log("🧹 Cleaning node_modules directory...")
-  fs.rmSync(nodeModulesPath, { recursive: true, force: true })
-}
-
-// Install with npm
-console.log("📦 Installing dependencies with npm...")
 try {
+  // Remove pnpm lockfile
+  if (fs.existsSync("pnpm-lock.yaml")) {
+    console.log("🗑️  Removing pnpm-lock.yaml...")
+    fs.unlinkSync("pnpm-lock.yaml")
+  }
+
+  // Remove node_modules
+  if (fs.existsSync("node_modules")) {
+    console.log("🗑️  Removing node_modules...")
+    execSync("rm -rf node_modules", { stdio: "inherit" })
+  }
+
+  // Install with npm
+  console.log("📦 Installing dependencies with npm...")
   execSync("npm install", { stdio: "inherit" })
-  console.log("✅ Migration to npm completed successfully!")
+
+  // Update package.json scripts if needed
+  const packageJsonPath = path.join(process.cwd(), "package.json")
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
+
+  // Ensure we have npm-friendly scripts
+  packageJson.scripts = {
+    ...packageJson.scripts,
+    build: "next build",
+    dev: "next dev",
+    start: "next start",
+    lint: "next lint",
+    postinstall: "echo 'Dependencies installed successfully'",
+  }
+
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+  console.log("✅ Updated package.json scripts")
+
+  console.log("✅ Migration completed successfully!")
+  console.log("📝 Next steps:")
+  console.log('   1. Commit the changes: git add . && git commit -m "migrate: switch from pnpm to npm"')
+  console.log("   2. Push to trigger new deployment: git push")
 } catch (error) {
   console.error("❌ Migration failed:", error.message)
   process.exit(1)
