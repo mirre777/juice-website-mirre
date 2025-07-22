@@ -48,7 +48,7 @@ const PersonalTrainerWebsitePage = () => {
           {/* Feature 2 */}
           <div className="p-6 border rounded-lg shadow-md">
             <Clock className="w-8 h-8 text-blue-600 mb-2" />
-            <h3 className="text-xl font-semibold mb-2">Online Booking</h3>
+            <h3 className="text-xl font-semibent mb-2">Online Booking</h3>
             <p className="text-gray-600">
               Allow clients to easily book appointments and training sessions directly through your website.
             </p>
