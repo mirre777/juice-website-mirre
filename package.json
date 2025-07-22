@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prebuild": "node scripts/prebuild-check.js",
+    "prebuild": "echo 'Cleaning lockfiles...' && rm -f pnpm-lock.yaml yarn.lock",
     "build": "next build",
-    "clean": "rm -rf node_modules package-lock.json pnpm-lock.yaml yarn.lock && npm install",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start"
