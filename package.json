@@ -3,12 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prebuild": "node scripts/prebuild-check.js",
     "build": "next build",
     "dev": "next dev",
-    "fix:deployment": "node scripts/fix-deployment.js",
-    "postinstall": "echo 'Dependencies installed successfully'",
-    "install:clean": "rm -rf node_modules package-lock.json pnpm-lock.yaml && npm install",
     "lint": "next lint",
     "start": "next start"
   },
@@ -57,7 +53,6 @@
     "firebase": "latest",
     "firebase-admin": "latest",
     "framer-motion": "latest",
-    "fs": "latest",
     "gray-matter": "latest",
     "http": "latest",
     "https": "latest",
