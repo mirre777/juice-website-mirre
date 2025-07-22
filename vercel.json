@@ -1,6 +1,9 @@
 {
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "functions": {
-    "app/**/*.{js,ts,jsx,tsx}": {
+    "app/api/**/*.ts": {
       "maxDuration": 30
     }
   },
