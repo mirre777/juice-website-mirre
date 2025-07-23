@@ -68,4 +68,17 @@ export function CTASection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-gray-300 hover:bg-gray-100 text-lg px-8 \
+                className="border-gray-300 hover:bg-gray-100 text-lg px-8 py-3 rounded-full bg-transparent"
+                onClick={handleHowItWorksClick}
+              >
+                How it works
+              </Button>
+            </div>
+
+            <p className="text-sm text-gray-500 mt-4">No credit card required. No lock-in. Works with Google Sheets.</p>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
