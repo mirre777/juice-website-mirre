@@ -9,12 +9,12 @@ export function ReadingProgress() {
     const updateProgress = () => {
       const scrollTop = window.scrollY
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const progress = (scrollTop / docHeight) * 100
-      setProgress(Math.min(100, Math.max(0, progress)))
+      const scrollPercent = (scrollTop / docHeight) * 100
+      setProgress(Math.min(100, Math.max(0, scrollPercent)))
     }
 
     window.addEventListener("scroll", updateProgress)
-    updateProgress()
+    updateProgress() // Initial calculation
 
     return () => window.removeEventListener("scroll", updateProgress)
   }, [])

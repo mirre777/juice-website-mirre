@@ -8,44 +8,55 @@ interface CustomHeadingProps {
   level: 1 | 2 | 3 | 4 | 5 | 6
   children: ReactNode
   className?: string
+  id?: string
 }
 
-export function CustomHeading({ level, children, className }: CustomHeadingProps) {
+export function CustomHeading({ level, children, className, id, ...props }: CustomHeadingProps) {
   const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements
 
-  // Extract emojis and text for better styling
-  const childrenString = children?.toString() || ""
-  const emojiRegex =
-    /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu
-  const hasEmoji = emojiRegex.test(childrenString)
+  // Extract text content for ID generation
+  const textContent = typeof children === "string" ? children : ""
+  const headingId =
+    id ||
+    textContent
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
 
-  // Check if this is a TL;DR section
-  const isTLDR = childrenString.toLowerCase().includes("tl;dr")
+  // Check if this is a TL;DR heading
+  const isTldr = textContent.toLowerCase().includes("tl;dr")
 
-  const baseStyles = {
-    1: "text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight",
-    2: "text-2xl md:text-3xl font-bold mb-4 mt-8 text-gray-900 leading-tight",
-    3: "text-xl md:text-2xl font-semibold mb-3 mt-6 text-gray-800 leading-tight",
-    4: "text-lg md:text-xl font-semibold mb-2 mt-4 text-gray-800",
-    5: "text-base md:text-lg font-semibold mb-2 mt-4 text-gray-700",
-    6: "text-sm md:text-base font-semibold mb-2 mt-4 text-gray-700",
+  const baseClasses = {
+    1: "text-4xl md:text-5xl font-bold mb-6 mt-8",
+    2: "text-3xl md:text-4xl font-bold mb-4 mt-8 pb-2 border-b border-gray-200",
+    3: "text-2xl md:text-3xl font-semibold mb-3 mt-6",
+    4: "text-xl md:text-2xl font-semibold mb-3 mt-4",
+    5: "text-lg md:text-xl font-semibold mb-2 mt-4",
+    6: "text-base md:text-lg font-semibold mb-2 mt-3",
   }
 
-  const emojiStyles = hasEmoji ? "emoji-heading" : ""
-  const tldrStyles = isTLDR ? "tldr-heading" : ""
+  const emojiSpacingClass = "emoji-heading"
 
   return (
-    <>
-      <HeadingTag
-        className={cn(baseStyles[level], emojiStyles, tldrStyles, className)}
-        id={childrenString
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "")}
+    <HeadingTag
+      id={headingId}
+      className={cn(
+        baseClasses[level],
+        emojiSpacingClass,
+        isTldr && "text-juice",
+        "scroll-mt-20 group relative",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+      <a
+        href={`#${headingId}`}
+        className="absolute -left-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-juice"
+        aria-label="Link to this section"
       >
-        {children}
-      </HeadingTag>
-      {level === 2 && !isTLDR && <div className="w-16 h-1 bg-juice mb-6 rounded-full" />}
-    </>
+        #
+      </a>
+    </HeadingTag>
   )
 }

@@ -8,30 +8,32 @@ interface CustomParagraphProps {
   className?: string
 }
 
-export function CustomParagraph({ children, className }: CustomParagraphProps) {
-  const childrenString = children?.toString() || ""
+export function CustomParagraph({ children, className, ...props }: CustomParagraphProps) {
+  // Check if this paragraph contains TL;DR content
+  const textContent = typeof children === "string" ? children : ""
+  const isTldr = textContent.toLowerCase().startsWith("tl;dr")
 
-  // Check if this is a TL;DR paragraph
-  const isTLDR = childrenString.toLowerCase().startsWith("tl;dr")
-
-  if (isTLDR) {
+  if (isTldr) {
     return (
       <div
         className={cn(
           "bg-juice/10 border-l-4 border-juice p-4 my-6 rounded-r-lg",
-          "relative overflow-hidden",
+          "font-medium text-gray-800",
           className,
         )}
+        {...props}
       >
-        <div className="absolute top-2 right-2 text-juice opacity-20">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
+        <div className="flex items-start gap-2">
+          <span className="text-juice font-bold text-sm uppercase tracking-wide">TL;DR</span>
+          <div className="flex-1">{typeof children === "string" ? children.replace(/^tl;dr:?\s*/i, "") : children}</div>
         </div>
-        <p className="text-gray-800 font-medium leading-relaxed m-0">{children}</p>
       </div>
     )
   }
 
-  return <p className={cn("text-gray-700 leading-relaxed mb-4 text-base md:text-lg", className)}>{children}</p>
+  return (
+    <p className={cn("mb-4 leading-relaxed text-gray-700", className)} {...props}>
+      {children}
+    </p>
+  )
 }

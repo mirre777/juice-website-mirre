@@ -9,11 +9,11 @@ interface ReadingTimeProps {
 export function ReadingTime({ content }: ReadingTimeProps) {
   // Calculate reading time (average 200 words per minute)
   const wordsPerMinute = 200
-  const words = content.trim().split(/\s+/).length
-  const readingTime = Math.ceil(words / wordsPerMinute)
+  const wordCount = content ? content.split(/\s+/).length : 0
+  const readingTime = Math.ceil(wordCount / wordsPerMinute)
 
   return (
-    <div className="flex items-center gap-1 text-sm text-gray-500">
+    <div className="flex items-center gap-2 text-sm text-gray-500">
       <Clock className="w-4 h-4" />
       <span>{readingTime} min read</span>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Share2, Twitter, Linkedin, Link, Check } from "lucide-react"
+import { Twitter, Linkedin, Copy, Check } from "lucide-react"
 
 interface SocialShareProps {
   title: string
@@ -13,74 +13,53 @@ interface SocialShareProps {
 export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   const [copied, setCopied] = useState(false)
 
-  const shareData = {
-    title,
-    text: excerpt || title,
-    url,
+  const shareText = excerpt || title
+  const encodedTitle = encodeURIComponent(title)
+  const encodedUrl = encodeURIComponent(url)
+  const encodedText = encodeURIComponent(shareText)
+
+  const shareLinks = {
+    twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
   }
 
-  const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData)
-      } catch (err) {
-        console.log("Share cancelled")
-      }
-    }
-  }
-
-  const handleCopyLink = async () => {
+  const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error("Failed to copy link")
+      console.error("Failed to copy URL:", err)
     }
   }
 
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
-  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
-
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-sm text-gray-600 font-medium">Share:</span>
-
-      {navigator.share && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNativeShare}
-          className="flex items-center gap-2 bg-transparent"
-        >
-          <Share2 className="w-4 h-4" />
-          Share
-        </Button>
-      )}
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-gray-600 mr-2">Share:</span>
 
       <Button
         variant="outline"
         size="sm"
-        onClick={() => window.open(twitterUrl, "_blank")}
+        onClick={() => window.open(shareLinks.twitter, "_blank")}
         className="flex items-center gap-2"
       >
         <Twitter className="w-4 h-4" />
-        Twitter
+        <span className="hidden sm:inline">Twitter</span>
       </Button>
 
       <Button
         variant="outline"
         size="sm"
-        onClick={() => window.open(linkedinUrl, "_blank")}
+        onClick={() => window.open(shareLinks.linkedin, "_blank")}
         className="flex items-center gap-2"
       >
         <Linkedin className="w-4 h-4" />
-        LinkedIn
+        <span className="hidden sm:inline">LinkedIn</span>
       </Button>
 
-      <Button variant="outline" size="sm" onClick={handleCopyLink} className="flex items-center gap-2 bg-transparent">
-        {copied ? <Check className="w-4 h-4" /> : <Link className="w-4 h-4" />}
-        {copied ? "Copied!" : "Copy Link"}
+      <Button variant="outline" size="sm" onClick={copyToClipboard} className="flex items-center gap-2 bg-transparent">
+        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        <span className="hidden sm:inline">{copied ? "Copied!" : "Copy Link"}</span>
       </Button>
     </div>
   )

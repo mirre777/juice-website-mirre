@@ -56,7 +56,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
-  const fullUrl = `${baseUrl}/blog/${post.slug}`
+  const fullUrl = `${baseUrl}/blog/${params.slug}`
+
+  // Extract content for reading time calculation
+  const contentText =
+    typeof post.serializedContent === "object" && post.serializedContent.compiledSource
+      ? post.serializedContent.compiledSource
+      : post.frontmatter.excerpt || ""
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -119,7 +125,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </span>
               </div>
 
-              <ReadingTime content={post.content} />
+              <ReadingTime content={contentText} />
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">

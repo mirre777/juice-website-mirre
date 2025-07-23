@@ -8,7 +8,12 @@ interface CustomCodeProps {
   className?: string
 }
 
-export function CustomCode({ children, className }: CustomCodeProps) {
+interface CustomPreProps {
+  children: ReactNode
+  className?: string
+}
+
+export function CustomCode({ children, className, ...props }: CustomCodeProps) {
   return (
     <code
       className={cn(
@@ -16,18 +21,14 @@ export function CustomCode({ children, className }: CustomCodeProps) {
         "border border-gray-200",
         className,
       )}
+      {...props}
     >
       {children}
     </code>
   )
 }
 
-interface CustomPreProps {
-  children: ReactNode
-  className?: string
-}
-
-export function CustomPre({ children, className }: CustomPreProps) {
+export function CustomPre({ children, className, ...props }: CustomPreProps) {
   return (
     <pre
       className={cn(
@@ -35,6 +36,7 @@ export function CustomPre({ children, className }: CustomPreProps) {
         "border border-gray-700",
         className,
       )}
+      {...props}
     >
       {children}
     </pre>

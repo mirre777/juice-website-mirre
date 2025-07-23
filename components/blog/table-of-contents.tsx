@@ -3,40 +3,36 @@
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
-interface TOCItem {
+interface TocItem {
   id: string
   text: string
   level: number
 }
 
 export function TableOfContents() {
-  const [toc, setToc] = useState<TOCItem[]>([])
+  const [toc, setToc] = useState<TocItem[]>([])
   const [activeId, setActiveId] = useState<string>("")
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    // Generate table of contents from headings
     const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
-    const tocItems: TOCItem[] = []
+    const tocItems: TocItem[] = []
 
     headings.forEach((heading) => {
-      const id =
-        heading.id ||
-        heading.textContent
-          ?.toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "") ||
-        ""
-      if (!heading.id) heading.id = id
-
-      tocItems.push({
-        id,
-        text: heading.textContent || "",
-        level: Number.parseInt(heading.tagName.charAt(1)),
-      })
+      if (heading.id && heading.textContent) {
+        tocItems.push({
+          id: heading.id,
+          text: heading.textContent,
+          level: Number.parseInt(heading.tagName.charAt(1)),
+        })
+      }
     })
 
     setToc(tocItems)
+    setIsVisible(tocItems.length > 2) // Only show if there are more than 2 headings
 
-    // Intersection Observer for active section
+    // Set up intersection observer for active section
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -45,7 +41,7 @@ export function TableOfContents() {
           }
         })
       },
-      { rootMargin: "-20% 0% -35% 0%" },
+      { rootMargin: "-20% 0% -80% 0%" },
     )
 
     headings.forEach((heading) => observer.observe(heading))
@@ -53,36 +49,31 @@ export function TableOfContents() {
     return () => observer.disconnect()
   }, [])
 
-  if (toc.length === 0) return null
+  if (!isVisible) return null
 
   return (
-    <div className="hidden lg:block fixed right-8 top-1/2 transform -translate-y-1/2 w-64">
-      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-lg">
-        <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">Table of Contents</h4>
-        <nav className="space-y-1">
-          {toc.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={cn(
-                "block text-sm py-1 px-2 rounded transition-colors",
-                "hover:bg-gray-100 hover:text-juice",
-                activeId === item.id ? "bg-juice/10 text-juice font-medium border-l-2 border-juice" : "text-gray-600",
-                item.level === 1 && "font-medium",
-                item.level === 2 && "pl-4",
-                item.level === 3 && "pl-6",
-                item.level >= 4 && "pl-8",
-              )}
-              onClick={(e) => {
-                e.preventDefault()
-                document.getElementById(item.id)?.scrollIntoView({
-                  behavior: "smooth",
-                })
-              }}
-            >
-              {item.text}
-            </a>
-          ))}
+    <div className="fixed right-8 top-1/2 transform -translate-y-1/2 hidden xl:block">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-xs">
+        <h4 className="font-semibold text-sm text-gray-900 mb-3">Table of Contents</h4>
+        <nav>
+          <ul className="space-y-1">
+            {toc.map((item) => (
+              <li key={item.id}>
+                <a
+                  href={`#${item.id}`}
+                  className={cn(
+                    "block text-sm py-1 px-2 rounded transition-colors",
+                    "hover:bg-gray-100 hover:text-juice",
+                    activeId === item.id ? "bg-juice/10 text-juice font-medium" : "text-gray-600",
+                    item.level > 2 && "ml-4 text-xs",
+                  )}
+                  style={{ paddingLeft: `${(item.level - 1) * 0.5}rem` }}
+                >
+                  {item.text}
+                </a>
+              </li>
+            ))}
+          </ul>
         </nav>
       </div>
     </div>
