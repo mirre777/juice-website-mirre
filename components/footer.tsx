@@ -1,142 +1,129 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react"
-import { Logo } from "./logo"
+import { Logo } from "@/components/logo"
 import { useTheme } from "@/components/theme-provider"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 
 export function Footer() {
   const { isCoach } = useTheme()
-  const pathname = usePathname()
 
-  // Determine if the footer background should be dark
-  // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app
-  const isFooterDark =
-    pathname === "/marketplace" ||
-    pathname === "/100trainers" ||
-    pathname === "/findatrainer" ||
-    pathname.startsWith("/client") ||
-    (pathname !== "/download-juice-app" && !isCoach)
-
-  const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
-
-  const getTextColorClass = (isHeading = false) => {
-    if (isFooterDark) {
-      return isHeading ? "text-white" : "text-zinc-400 hover:text-white"
-    } else {
-      return isHeading ? "text-gray-900" : "text-gray-600 hover:text-gray-900"
-    }
+  const footerLinks = {
+    product: [
+      { name: "Features", href: "#features" },
+      { name: "Pricing", href: "#pricing" },
+      { name: "Blog", href: "/blog" },
+      { name: "About", href: "/about" },
+    ],
+    support: [
+      { name: "Help Center", href: "/help" },
+      { name: "Contact", href: "/contact" },
+      { name: "Status", href: "/status" },
+    ],
+    legal: [
+      { name: "Privacy", href: "/legal" },
+      { name: "Terms", href: "/legal" },
+      { name: "Cookies", href: "/legal" },
+    ],
   }
 
   return (
-    <footer className={cn("py-12", footerBgClass)}>
-      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div className="space-y-4">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo isDarkBackground={isFooterDark} className={getTextColorClass(true)} />
-          </Link>
-          <p className={cn("text-sm", getTextColorClass())}>Make every workout count.</p>
-          <div className="flex space-x-4">
-            <Link href="#" className={getTextColorClass()}>
-              <Facebook className="h-5 w-5" />
-            </Link>
-            <Link href="#" className={getTextColorClass()}>
-              <Twitter className="h-5 w-5" />
-            </Link>
-            <Link href="#" className={getTextColorClass()}>
-              <Instagram className="h-5 w-5" />
-            </Link>
-            <Link href="#" className={getTextColorClass()}>
-              <Linkedin className="h-5 w-5" />
-            </Link>
+    <footer
+      className={`${isCoach ? "bg-gray-50" : "bg-zinc-900"} border-t ${isCoach ? "border-gray-200" : "border-zinc-800"}`}
+    >
+      <div className="container mx-auto px-4 md:px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Logo and description */}
+          <div className="space-y-4">
+            <Logo isDark={!isCoach} />
+            <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+              {isCoach
+                ? "The complete platform for personal trainers to manage clients, workouts, and grow their business."
+                : "Simple, powerful fitness tracking for everyone."}
+            </p>
+          </div>
+
+          {/* Product links */}
+          <div>
+            <h3 className={`font-semibold mb-4 ${isCoach ? "text-gray-900" : "text-white"}`}>Product</h3>
+            <ul className="space-y-2">
+              {footerLinks.product.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className={`text-sm transition-colors ${
+                      isCoach ? "text-gray-600 hover:text-gray-900" : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support links */}
+          <div>
+            <h3 className={`font-semibold mb-4 ${isCoach ? "text-gray-900" : "text-white"}`}>Support</h3>
+            <ul className="space-y-2">
+              {footerLinks.support.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className={`text-sm transition-colors ${
+                      isCoach ? "text-gray-600 hover:text-gray-900" : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal links */}
+          <div>
+            <h3 className={`font-semibold mb-4 ${isCoach ? "text-gray-900" : "text-white"}`}>Legal</h3>
+            <ul className="space-y-2">
+              {footerLinks.legal.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className={`text-sm transition-colors ${
+                      isCoach ? "text-gray-600 hover:text-gray-900" : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        <div>
-          <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Product</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
-                Features
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
-                Pricing
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
-                Testimonials
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
-                FAQ
-              </Link>
-            </li>
-          </ul>
+        <div
+          className={`mt-8 pt-8 border-t ${isCoach ? "border-gray-200" : "border-zinc-800"} flex flex-col md:flex-row justify-between items-center`}
+        >
+          <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>© 2024 Juice. All rights reserved.</p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            <Link
+              href="https://twitter.com/juicefitness"
+              className={`text-sm transition-colors ${
+                isCoach ? "text-gray-600 hover:text-gray-900" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Twitter
+            </Link>
+            <Link
+              href="https://instagram.com/juicefitness"
+              className={`text-sm transition-colors ${
+                isCoach ? "text-gray-600 hover:text-gray-900" : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Instagram
+            </Link>
+          </div>
         </div>
-
-        <div>
-          <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Company</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="/about" className={cn("text-sm", getTextColorClass())}>
-                About Us
-              </Link>
-            </li>
-            <li>
-              <Link href="/blog" className={cn("text-sm", getTextColorClass())}>
-                Blog
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className={cn("text-sm", getTextColorClass())}>
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Legal</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link href="/legal" className={cn("text-sm", getTextColorClass())}>
-                Terms of Service
-              </Link>
-            </li>
-            <li>
-              <Link href="/legal" className={cn("text-sm", getTextColorClass())}>
-                Privacy Policy
-              </Link>
-            </li>
-            <li>
-              <Link href="/legal" className={cn("text-sm", getTextColorClass())}>
-                Cookie Policy
-              </Link>
-            </li>
-            <li>
-              <Link href="/legal" className={cn("text-sm", getTextColorClass())}>
-                GDPR
-              </Link>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 mt-8 border-t border-gray-700 pt-8 flex flex-col sm:flex-row items-center justify-between">
-        <p className={cn("text-sm", getTextColorClass())}>
-          &copy; {new Date().getFullYear()} Juice Fitness. All rights reserved.
-        </p>
-        <p className={cn("text-sm mt-2 sm:mt-0", getTextColorClass())}>Made with sweat in Vienna</p>
       </div>
     </footer>
   )
 }
-
-// Also export as default for compatibility
-export default Footer

@@ -1,158 +1,177 @@
 "use client"
 
-import type React from "react"
-import { motion } from "framer-motion"
-import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartphone, Users } from "lucide-react"
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
 import { useTheme } from "@/components/theme-provider"
-
-interface Feature {
-  icon: React.ReactNode
-  title: string
-  description: string
-}
+import {
+  Users,
+  Calendar,
+  BarChart3,
+  CreditCard,
+  MessageSquare,
+  Smartphone,
+  Dumbbell,
+  TrendingUp,
+  Share2,
+} from "lucide-react"
 
 export function FeaturesSection() {
-  const { isCoach, setIsCoach } = useTheme()
+  const { isCoach } = useTheme()
+  const [activeTab, setActiveTab] = useState("overview")
 
-  const clientFeatures: Feature[] = [
+  const coachFeatures = [
     {
-      icon: <Activity className="h-6 w-6 text-juice" />,
-      title: "Track your progress",
-      description:
-        "Monitor your fitness journey with detailed metrics and visualizations that show your improvement over time.",
+      icon: Users,
+      title: "Client Management",
+      description: "Effortlessly manage all your clients in one place with detailed profiles and progress tracking.",
     },
     {
-      icon: <Calendar className="h-6 w-6 text-juice" />,
-      title: "Workout schedule",
-      description:
-        "Access your personalized workout plans and schedule anytime, anywhere with clear instructions for each exercise.",
+      icon: Calendar,
+      title: "Workout Planning",
+      description: "Create and schedule personalized workout plans with our intuitive drag-and-drop builder.",
     },
     {
-      icon: <MessageSquare className="h-6 w-6 text-juice" />,
-      title: "Direct communication",
-      description: "Chat directly with your trainer for guidance, feedback, and motivation between sessions.",
+      icon: BarChart3,
+      title: "Progress Analytics",
+      description: "Track client progress with detailed analytics and visual progress reports.",
     },
     {
-      icon: <Share2 className="h-6 w-6 text-juice" />,
-      title: "Share achievements",
-      description: "Celebrate your wins by sharing your progress and achievements with your trainer and community.",
+      icon: CreditCard,
+      title: "Payment Processing",
+      description: "Handle payments, subscriptions, and billing automatically with integrated payment processing.",
+    },
+    {
+      icon: MessageSquare,
+      title: "Client Communication",
+      description: "Stay connected with built-in messaging and automated check-ins.",
+    },
+    {
+      icon: Smartphone,
+      title: "Mobile App",
+      description: "Manage your business on the go with our fully-featured mobile application.",
     },
   ]
 
-  const trainerFeatures: Feature[] = [
+  const clientFeatures = [
     {
-      icon: <Users className="h-6 w-6 text-juice" />,
-      title: "Client management",
-      description: "All your clients' details, goals, and progress in one fitness coaching app.",
+      icon: Dumbbell,
+      title: "Workout Logging",
+      description: "Log your workouts quickly and easily with our streamlined interface.",
     },
     {
-      icon: <BarChart3 className="h-6 w-6 text-juice" />,
-      title: "Instant performance insights",
-      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
+      icon: TrendingUp,
+      title: "Progress Tracking",
+      description: "See your fitness journey with detailed progress charts and milestone celebrations.",
     },
     {
-      icon: <Dumbbell className="h-6 w-6 text-juice" />,
-      title: "Workout builder app",
-      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
-    },
-    {
-      icon: <Smartphone className="h-6 w-6 text-juice" />,
-      title: "Easy workout logging for clients",
-      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+      icon: Share2,
+      title: "Social Sharing",
+      description: "Share your achievements and workouts with friends and the community.",
     },
   ]
+
+  const features = isCoach ? coachFeatures : clientFeatures
 
   return (
-    <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
-      <div className="container px-4 md:px-6 pb-4">
-        <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>FEATURES</span>
-          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Powerful tools for both sides of fitness
+    <section className="py-20">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="text-center mb-16">
+          <Badge variant="outline" className="mb-4">
+            Features
+          </Badge>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            {isCoach ? "Everything you need to grow your coaching business" : "Simple, powerful fitness tracking"}
           </h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional
-            results, Juice has you covered as the best personal training software.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            {isCoach
+              ? "From client management to payment processing, Juice provides all the tools you need to run a successful personal training business."
+              : "Track your workouts, monitor your progress, and stay motivated with our easy-to-use fitness app."}
           </p>
         </div>
 
-        <Tabs
-          defaultValue="client"
-          value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => setIsCoach(value === "trainer")}
-          className="w-full max-w-4xl mx-auto"
-        >
-          <div className="flex justify-center mb-8">
-            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
-              <TabsTrigger
-                value="client"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Client_Features"
-              >
-                For Clients
-              </TabsTrigger>
-              <TabsTrigger
-                value="trainer"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Trainer_Features"
-              >
-                For Trainers
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          </TabsList>
 
-          <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
-            <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
-              {clientFeatures.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <div className="feature-card">
-                    <div className="flex flex-col md:flex-row items-start">
-                      <div className="mr-4 mt-1">{feature.icon}</div>
-                      <div>
-                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                          {feature.title}
-                        </h3>
-                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+          <TabsContent value="overview" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {features.map((feature, index) => (
+                <Card key={index} className="border-2 hover:border-juice/50 transition-colors">
+                  <CardHeader>
+                    <feature.icon className="h-8 w-8 text-juice mb-2" />
+                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-base">{feature.description}</CardDescription>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
-            <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
-              {trainerFeatures.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <div className="feature-card">
-                    <div className="flex flex-col md:flex-row items-start">
-                      <div className="mr-4 mt-1">{feature.icon}</div>
-                      <div>
-                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                          {feature.title}
-                        </h3>
-                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+          <TabsContent value="details" className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold mb-4">
+                {isCoach ? "Detailed Coach Features" : "Detailed Client Features"}
+              </h3>
+              <p className="text-muted-foreground mb-8">
+                {isCoach
+                  ? "Comprehensive tools designed specifically for personal trainers"
+                  : "Everything you need for effective fitness tracking"}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Advanced Analytics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    {isCoach
+                      ? "Get detailed insights into client progress, retention rates, and business metrics."
+                      : "Track your personal records, workout frequency, and fitness improvements over time."}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Custom Workflows</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    {isCoach
+                      ? "Create automated workflows for client onboarding, check-ins, and program progressions."
+                      : "Set up personalized workout routines and automated progress tracking."}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold mb-4">Seamless Integrations</h3>
+              <p className="text-muted-foreground mb-8">Connect with your favorite tools and platforms</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {["Google Sheets", "Stripe", "Zoom", "Calendar", "Slack", "Zapier", "MyFitnessPal", "Strava"].map(
+                (integration) => (
+                  <Card key={integration} className="text-center p-4">
+                    <CardContent className="p-0">
+                      <p className="font-medium">{integration}</p>
+                    </CardContent>
+                  </Card>
+                ),
+              )}
             </div>
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </section>
   )
 }

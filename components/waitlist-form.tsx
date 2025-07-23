@@ -1,40 +1,39 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
 import { joinWaitlist } from "@/actions/waitlist-actions"
-import { Loader2, CheckCircle } from "lucide-react"
+import { CheckCircle } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { motion } from "framer-motion"
 import { successAnimations } from "@/utils/animations"
 
 interface WaitlistFormProps {
-  selectedPlan: string | null
-  showClientCounter?: boolean
+  selectedPlan?: string | null
 }
 
-export function WaitlistForm({ selectedPlan, showClientCounter = true }: WaitlistFormProps) {
+export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
   const { isCoach } = useTheme()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState("")
+  const [city, setCity] = useState("") // New state for city
+  const [clientCount, setClientCount] = useState(1) // New state for client count
+  const [buttonDisabled, setButtonDisabled] = useState(false)
   const [formStatus, setFormStatus] = useState<{
     success?: boolean
     message?: string
     error?: string
     alreadyExists?: boolean
   }>({})
-  const [email, setEmail] = useState("")
-  const [city, setCity] = useState("") // New state for city
-  const [clientCount, setClientCount] = useState(1) // New state for client count
-  const [buttonDisabled, setButtonDisabled] = useState(false)
+  const { toast } = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false) // Declare isSubmitting state
 
-  async function handleSubmit(formData: FormData) {
-    // Add clientCount to formData only if showClientCounter is true
-    if (showClientCounter) {
-      formData.append("numClients", clientCount.toString())
-    }
-    formData.append("city", city) // Add city to formData
-
-    // Provide immediate visual feedback
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setButtonDisabled(true)
 
     // Small delay before showing the spinner to ensure the button click is visually acknowledged
@@ -43,6 +42,15 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         setIsSubmitting(true)
       }
     }, 150)
+
+    const formData = new FormData()
+    formData.append("email", email)
+    formData.append("city", city) // Add city to formData
+    formData.append("plan", selectedPlan || "")
+    formData.append("user_type", isCoach ? "trainer" : "client")
+
+    // Add clientCount to formData only if showClientCounter is true
+    formData.append("numClients", clientCount.toString())
 
     try {
       console.log("Submitting form with plan:", selectedPlan)
@@ -69,15 +77,16 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         // Clear form if successful
         setEmail("")
         setCity("") // Clear city field
-        if (showClientCounter) {
-          setClientCount(1) // Reset client count only if counter is shown
-        }
+        setClientCount(1) // Reset client count
       }
 
-      // Re-enable the button after 2 seconds
-      setTimeout(() => {
-        setButtonDisabled(false)
-      }, 2000)
+      toast({
+        title: result.success ? "Success!" : "Error",
+        description: result.success
+          ? "You've been added to the waitlist. We'll be in touch soon!"
+          : "Something went wrong. Please try again.",
+        variant: result.success ? undefined : "destructive",
+      })
     } catch (error) {
       console.error("Form submission error:", error)
       setFormStatus({
@@ -86,12 +95,14 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         error: error instanceof Error ? error.message : String(error),
       })
 
-      // Re-enable the button after 2 seconds
-      setTimeout(() => {
-        setButtonDisabled(false)
-      }, 2000)
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
+      setButtonDisabled(false)
     }
   }
 
@@ -131,110 +142,80 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }
 
   return (
-    <form action={handleSubmit} className="space-y-3 max-w-sm mx-auto">
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Email Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="email" className={`text-sm font-medium text-left block text-white`}>
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
-          />
-        </div>
-
-        {/* City Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="city" className={`text-sm font-medium text-left block text-white`}>
-            City
-          </label>
-          <input
-            id="city"
-            name="city"
-            type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Your City"
-            required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
-          />
-        </div>
-
-        {/* Client Count Stepper */}
-        {showClientCounter && (
-          <div className="space-y-1 flex-1">
-            <label htmlFor="numClients" className={`text-sm font-medium text-left block text-white`}>
-              Get clients
-            </label>
-            <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-              >
-                -
-              </Button>
-              <input
-                id="numClients"
-                name="numClients"
-                type="number"
-                value={clientCount}
-                onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                min="1"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setClientCount((prev) => prev + 1)}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-              >
-                +
-              </Button>
-            </div>
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
+      <div>
+        <Label htmlFor="email" className="sr-only">
+          Email address
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full"
+        />
       </div>
-      <input type="hidden" name="plan" value={selectedPlan || ""} />
-      <input type="hidden" name="user_type" value={isCoach ? "trainer" : "client"} />
-      {/* Moved the paragraph here */}
-      <p className="text-xs text-zinc-400 text-center mt-2">
-        By joining, you agree to receive updates about our launch. 💪
-      </p>
-      <div className="flex justify-center mt-6">
+      <div>
+        <Label htmlFor="city" className="sr-only">
+          City
+        </Label>
+        <Input
+          id="city"
+          type="text"
+          placeholder="Your City"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          required
+          className="w-full"
+        />
+      </div>
+      <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
         <Button
-          type="submit"
-          className="bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300"
-          disabled={isSubmitting || buttonDisabled}
-          id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
-          data-plan={selectedPlan || ""}
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
+          className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
         >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Enter waitlist now"
-          )}
+          -
+        </Button>
+        <Input
+          id="numClients"
+          name="numClients"
+          type="number"
+          value={clientCount}
+          onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
+          className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          min="1"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setClientCount((prev) => prev + 1)}
+          className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
+        >
+          +
         </Button>
       </div>
+      <Button
+        type="submit"
+        disabled={isSubmitting || buttonDisabled}
+        className="w-full bg-juice text-black hover:bg-juice/90"
+      >
+        {isSubmitting ? "Joining..." : "Join Waitlist"}
+      </Button>
       {formStatus.success === false && (
         <div className="text-red-500 text-xs text-center mt-2">
           <p>{formStatus.message}</p>
           {formStatus.error && <p className="mt-1">Error details: {formStatus.error}</p>}
         </div>
       )}
+      <p className="text-xs text-zinc-400 text-center mt-2">
+        By joining, you agree to receive updates about our launch. 💪
+      </p>
     </form>
   )
 }

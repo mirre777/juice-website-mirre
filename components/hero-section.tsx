@@ -1,58 +1,141 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Play, Star } from "lucide-react"
-import { useTheme } from "@/contexts/theme-context"
+import { useState, useRef, useEffect } from "react"
+import Image from "next/image"
+import { WaitlistForm } from "@/components/waitlist-form"
+import { useTheme } from "@/components/theme-provider"
 
 export function HeroSection() {
-  const { theme } = useTheme()
+  const { isCoach } = useTheme()
+  const [showWaitlist, setShowWaitlist] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
+  const waitlistRef = useRef<HTMLDivElement>(null)
+
+  const handleWaitlistClick = () => {
+    setShowWaitlist(true)
+
+    // Wait for state to update and DOM to render before scrolling
+    setTimeout(() => {
+      if (waitlistRef.current) {
+        waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
+    }, 100)
+  }
+
+  useEffect(() => {
+    if (showWaitlist && waitlistRef.current) {
+      waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }, [showWaitlist])
 
   return (
-    <section className="container space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
-      <div className="mx-auto flex max-w-[64rem] flex-col items-center space-y-4 text-center">
-        <Badge variant="outline" className="rounded-2xl px-4 py-1.5">
-          <span className="mr-2 text-sm">🚀</span>
-          <span className="text-sm">New: AI-Powered Workout Plans</span>
-        </Badge>
-
-        <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
-          Transform Your{" "}
-          <span className={theme === "coach" ? "text-orange-500" : "text-blue-600"}>Fitness Journey</span>
+    <section className="pt-32 pb-10 md:pt-40 md:pb-10">
+      <div className="container mx-auto px-4 md:px-6 text-center">
+        <h1 className="mb-6 max-w-4xl mx-auto text-center">
+          {isCoach ? (
+            <div className="flex flex-col space-y-2">
+              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">Kill the hassle.</span>
+              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
+                Keep the gains.
+              </span>
+            </div>
+          ) : (
+            <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+              Simplify <span className="text-[#D2FF28]">Training.</span>
+            </span>
+          )}
         </h1>
 
-        <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-          Connect with certified personal trainers, track your progress, and achieve your fitness goals with our
-          comprehensive platform designed for both clients and coaches.
+        <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
+          {isCoach ? (
+            <>
+              Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate every
+              PR—all in one easy-to-use platform.
+            </>
+          ) : (
+            <>Super simple workout logging. Get insights into your training. Share your workouts.</>
+          )}
         </p>
 
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Button size="lg" className="gap-2">
-            Start Free Trial
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="lg" className="gap-2 bg-transparent">
-            <Play className="h-4 w-4" />
-            Watch Demo
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+          <button
+            onClick={() => (window.location.href = "https://app.juice.fitness/")}
+            className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+            id={isCoach ? "early_access_trainer_hero" : "early_access_client_hero"}
+          >
+            Start now
+          </button>
+          <button
+            onClick={handleWaitlistClick}
+            className={`rounded-full px-6 py-3 ${isCoach ? "border border-gray-200 hover:bg-gray-50" : "border border-zinc-800 hover:bg-zinc-800"} transition-colors flex items-center justify-center gap-2`}
+            id={isCoach ? "get_updates_trainer" : "get_updates_client"}
+          >
+            Get updates
+          </button>
         </div>
 
-        <div className="flex items-center space-x-8 pt-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold">10K+</div>
-            <div className="text-sm text-muted-foreground">Active Users</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">500+</div>
-            <div className="text-sm text-muted-foreground">Certified Trainers</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold flex items-center justify-center gap-1">
-              4.9
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+        {/* Only show this line for trainer view */}
+        {isCoach && (
+          <p className="text-sm text-gray-500 mt-2 mb-16">
+            No credit card required. No lock-in. Works with Google Sheets.
+          </p>
+        )}
+
+        {/* Waitlist Form */}
+        {showWaitlist && (
+          <div ref={waitlistRef} className="max-w-md mx-auto mb-16 animate-fadeIn">
+            <div
+              className={`${isCoach ? "bg-white" : "bg-zinc-900"} border-2 border-[#D2FF28] rounded-xl overflow-hidden shadow-lg`}
+            >
+              <div className={`${isCoach ? "bg-gray-100" : "bg-zinc-800"} py-3 px-4`}>
+                <div className="text-center">
+                  <h3 className={`text-xl font-bold ${isCoach ? "text-black" : "text-white"}`}>
+                    Get early access. Join the waitlist.
+                  </h3>
+                </div>
+              </div>
+              <div className="p-4">
+                <WaitlistForm selectedPlan={selectedPlan} />
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground">Rating</div>
           </div>
+        )}
+
+        <div className="max-w-6xl mx-auto">
+          <div className="relative w-full overflow-hidden">
+            {isCoach ? (
+              <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
+                <Image
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
+                  alt="Juice Dashboard Interface for Coaches"
+                  width={1200}
+                  height={675}
+                  className="w-full h-auto"
+                />
+                <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+              </div>
+            ) : (
+              <div className="flex justify-center py-8">
+                <div className="w-full max-w-md mx-auto">
+                  <Image
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/grouped2.png-5fgujVXCN7IjtalAMRb3UbRpx7bgEC.jpeg"
+                    alt="Juice App Interface for Clients"
+                    width={400}
+                    height={320}
+                    className="w-auto h-auto"
+                    priority
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Moved this line to underneath the dashboard image */}
+          {isCoach && (
+            <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mt-6 text-center`}>
+              Because trainers should train, not juggle admin.
+            </p>
+          )}
         </div>
       </div>
     </section>
