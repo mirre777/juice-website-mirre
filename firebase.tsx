@@ -1,6 +1,6 @@
 "use client"
 
-// Minimal Firebase setup without Analytics to prevent Google logging errors
+// Completely removed Firebase Analytics to prevent Google logging errors
 import { initializeApp, getApps } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
@@ -13,10 +13,10 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "demo.appspot.com",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:demo",
-  // Completely removed measurementId to prevent Google Analytics errors
+  // NO measurementId - completely removed to prevent Google Analytics errors
 }
 
-// Initialize Firebase only if it hasn't been initialized already
+// Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
 // Initialize Firebase services

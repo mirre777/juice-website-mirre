@@ -2,26 +2,27 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { useRouter, usePathname } from "next/navigation"
 import { Logo } from "@/components/logo"
 import { UserToggle } from "@/components/user-toggle"
 import { useTheme } from "@/components/theme-provider"
+import { Button } from "@/components/ui/button"
+import { Menu, X } from "lucide-react"
 
 interface NavbarProps {
   isHomePage?: boolean
 }
 
 export function Navbar({ isHomePage = false }: NavbarProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
+  const router = useRouter()
   const pathname = usePathname()
   const { isCoach } = useTheme()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      setScrolled(window.scrollY > 50)
     }
 
     window.addEventListener("scroll", handleScroll)
@@ -34,114 +35,93 @@ export function Navbar({ isHomePage = false }: NavbarProps) {
     { name: "About", href: "/about" },
   ]
 
-  const isNavbarDark = !isCoach
+  const handleNavClick = (href: string) => {
+    setMobileMenuOpen(false)
+    router.push(href)
+  }
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled || !isHomePage
-          ? isNavbarDark
-            ? "bg-black/95 backdrop-blur-sm border-b border-white/10"
-            : "bg-white/95 backdrop-blur-sm border-b border-gray-200"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled || !isHomePage
+            ? `${isCoach ? "bg-white/95 backdrop-blur-sm border-b border-gray-200" : "bg-black/95 backdrop-blur-sm border-b border-zinc-800"}`
+            : "bg-transparent"
+        }`}
+      >
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
             <Link href="/" className="flex items-center">
-              <Logo isDark={isNavbarDark} />
+              <Logo />
             </Link>
-          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? isNavbarDark
-                        ? "text-juice"
-                        : "text-juice"
-                      : isNavbarDark
-                        ? "text-white hover:text-juice"
-                        : "text-gray-700 hover:text-gray-900"
+                  className={`text-sm font-medium transition-colors hover:text-orange-500 ${
+                    pathname === item.href ? "text-orange-500" : isCoach ? "text-gray-700" : "text-gray-300"
                   }`}
                 >
                   {item.name}
                 </Link>
               ))}
             </div>
-          </div>
 
-          {/* Right side items */}
-          <div className="hidden md:flex items-center space-x-4">
-            <UserToggle />
-            <Button
-              asChild
-              className={`${
-                isNavbarDark ? "bg-juice text-black hover:bg-juice/90" : "bg-juice text-black hover:bg-juice/90"
+            {/* Right side items */}
+            <div className="hidden md:flex items-center space-x-4">
+              <UserToggle />
+              <Button
+                onClick={() => window.open("https://app.juice.fitness/", "_blank")}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium"
+              >
+                Get Started
+              </Button>
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`md:hidden p-2 rounded-md ${
+                isCoach ? "text-gray-700 hover:bg-gray-100" : "text-gray-300 hover:bg-zinc-800"
               }`}
             >
-              <Link href="https://app.juice.fitness/">Get Started</Link>
-            </Button>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className={isNavbarDark ? "text-white hover:text-juice" : "text-gray-700 hover:text-gray-900"}
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden">
-            <div
-              className={`px-2 pt-2 pb-3 space-y-1 sm:px-3 ${
-                isNavbarDark ? "bg-black/95" : "bg-white/95"
-              } backdrop-blur-sm border-t ${isNavbarDark ? "border-white/10" : "border-gray-200"}`}
-            >
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className={`md:hidden border-t ${isCoach ? "bg-white border-gray-200" : "bg-black border-zinc-800"}`}>
+            <div className="px-4 py-4 space-y-4">
               {navItems.map((item) => (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
-                  className={`block px-3 py-2 text-base font-medium transition-colors ${
-                    pathname === item.href
-                      ? isNavbarDark
-                        ? "text-juice"
-                        : "text-juice"
-                      : isNavbarDark
-                        ? "text-white hover:text-juice"
-                        : "text-gray-700 hover:text-gray-900"
+                  onClick={() => handleNavClick(item.href)}
+                  className={`block w-full text-left text-sm font-medium transition-colors hover:text-orange-500 ${
+                    pathname === item.href ? "text-orange-500" : isCoach ? "text-gray-700" : "text-gray-300"
                   }`}
-                  onClick={() => setIsOpen(false)}
                 >
                   {item.name}
-                </Link>
+                </button>
               ))}
-              <div className="px-3 py-2">
+              <div className="pt-4 border-t border-gray-200">
                 <UserToggle />
-              </div>
-              <div className="px-3 py-2">
-                <Button asChild className="w-full bg-juice text-black hover:bg-juice/90">
-                  <Link href="https://app.juice.fitness/">Get Started</Link>
+                <Button
+                  onClick={() => window.open("https://app.juice.fitness/", "_blank")}
+                  className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium"
+                >
+                  Get Started
                 </Button>
               </div>
             </div>
           </div>
         )}
-      </div>
-    </nav>
+      </nav>
+    </>
   )
 }

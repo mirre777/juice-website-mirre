@@ -14,7 +14,7 @@ import { motion } from "framer-motion"
 import { successAnimations } from "@/utils/animations"
 
 interface WaitlistFormProps {
-  selectedPlan?: string | null
+  selectedPlan: string | null
 }
 
 export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
@@ -34,25 +34,12 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setButtonDisabled(true)
-
-    // Small delay before showing the spinner to ensure the button click is visually acknowledged
-    setTimeout(() => {
-      if (buttonDisabled) {
-        setIsSubmitting(true)
-      }
-    }, 150)
-
-    const formData = new FormData()
-    formData.append("email", email)
-    formData.append("city", city) // Add city to formData
-    formData.append("plan", selectedPlan || "")
-    formData.append("user_type", isCoach ? "trainer" : "client")
-
-    // Add clientCount to formData only if showClientCounter is true
-    formData.append("numClients", clientCount.toString())
+    setIsSubmitting(true)
 
     try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
       console.log("Submitting form with plan:", selectedPlan)
 
       // Check if we're using mock Firebase configuration
@@ -64,10 +51,18 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
             message: "You've been added to our waitlist! (Preview Mode)",
           })
           setIsSubmitting(false)
-          setButtonDisabled(false)
         }, 1000)
         return
       }
+
+      const formData = new FormData()
+      formData.append("email", email)
+      formData.append("city", city) // Add city to formData
+      formData.append("plan", selectedPlan || "")
+      formData.append("user_type", isCoach ? "trainer" : "client")
+
+      // Add clientCount to formData only if showClientCounter is true
+      formData.append("numClients", clientCount.toString())
 
       const result = await joinWaitlist(formData)
       console.log("Form submission result:", result)
@@ -102,7 +97,6 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
       })
     } finally {
       setIsSubmitting(false)
-      setButtonDisabled(false)
     }
   }
 
@@ -200,11 +194,7 @@ export function WaitlistForm({ selectedPlan }: WaitlistFormProps) {
           +
         </Button>
       </div>
-      <Button
-        type="submit"
-        disabled={isSubmitting || buttonDisabled}
-        className="w-full bg-juice text-black hover:bg-juice/90"
-      >
+      <Button type="submit" disabled={isSubmitting} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
         {isSubmitting ? "Joining..." : "Join Waitlist"}
       </Button>
       {formStatus.success === false && (

@@ -1,175 +1,156 @@
 "use client"
-
-import { useState } from "react"
+import { useTheme } from "@/components/theme-provider"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { useTheme } from "@/components/theme-provider"
-import {
-  Users,
-  Calendar,
-  BarChart3,
-  CreditCard,
-  MessageSquare,
-  Smartphone,
-  Dumbbell,
-  TrendingUp,
-  Share2,
-} from "lucide-react"
+import { Users, Calendar, BarChart3, Smartphone, Zap, Target } from "lucide-react"
 
 export function FeaturesSection() {
   const { isCoach } = useTheme()
-  const [activeTab, setActiveTab] = useState("overview")
 
   const coachFeatures = [
     {
+      id: "clients",
+      label: "Client Management",
       icon: Users,
-      title: "Client Management",
-      description: "Effortlessly manage all your clients in one place with detailed profiles and progress tracking.",
+      title: "Manage All Your Clients",
+      description: "Keep track of client progress, workouts, and goals in one place.",
+      features: [
+        "Client profiles and progress tracking",
+        "Workout history and analytics",
+        "Goal setting and milestone tracking",
+        "Communication tools",
+      ],
     },
     {
+      id: "workouts",
+      label: "Workout Builder",
       icon: Calendar,
-      title: "Workout Planning",
-      description: "Create and schedule personalized workout plans with our intuitive drag-and-drop builder.",
+      title: "Create Custom Workouts",
+      description: "Build personalized workout plans with our intuitive drag-and-drop interface.",
+      features: [
+        "Exercise library with 1000+ exercises",
+        "Custom workout templates",
+        "Progressive overload tracking",
+        "Video demonstrations",
+      ],
     },
     {
+      id: "analytics",
+      label: "Analytics",
       icon: BarChart3,
-      title: "Progress Analytics",
-      description: "Track client progress with detailed analytics and visual progress reports.",
-    },
-    {
-      icon: CreditCard,
-      title: "Payment Processing",
-      description: "Handle payments, subscriptions, and billing automatically with integrated payment processing.",
-    },
-    {
-      icon: MessageSquare,
-      title: "Client Communication",
-      description: "Stay connected with built-in messaging and automated check-ins.",
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile App",
-      description: "Manage your business on the go with our fully-featured mobile application.",
+      title: "Track Performance",
+      description: "Get insights into client progress and business metrics.",
+      features: ["Client progress reports", "Business analytics dashboard", "Revenue tracking", "Performance insights"],
     },
   ]
 
   const clientFeatures = [
     {
-      icon: Dumbbell,
-      title: "Workout Logging",
-      description: "Log your workouts quickly and easily with our streamlined interface.",
+      id: "tracking",
+      label: "Workout Tracking",
+      icon: Smartphone,
+      title: "Log Your Workouts",
+      description: "Simple and intuitive workout logging with progress tracking.",
+      features: [
+        "Easy workout logging",
+        "Progress photos and measurements",
+        "Personal records tracking",
+        "Workout history",
+      ],
     },
     {
-      icon: TrendingUp,
-      title: "Progress Tracking",
-      description: "See your fitness journey with detailed progress charts and milestone celebrations.",
+      id: "plans",
+      label: "Training Plans",
+      icon: Target,
+      title: "Personalized Plans",
+      description: "Get custom workout plans tailored to your goals.",
+      features: [
+        "AI-powered workout recommendations",
+        "Goal-based training programs",
+        "Adaptive difficulty scaling",
+        "Progress-based adjustments",
+      ],
     },
     {
-      icon: Share2,
-      title: "Social Sharing",
-      description: "Share your achievements and workouts with friends and the community.",
+      id: "motivation",
+      label: "Stay Motivated",
+      icon: Zap,
+      title: "Achieve Your Goals",
+      description: "Stay motivated with achievements, streaks, and community support.",
+      features: [
+        "Achievement badges and streaks",
+        "Community challenges",
+        "Progress celebrations",
+        "Motivational insights",
+      ],
     },
   ]
 
   const features = isCoach ? coachFeatures : clientFeatures
 
   return (
-    <section className="py-20">
+    <section className={`py-20 ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
-          <Badge variant="outline" className="mb-4">
-            Features
-          </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {isCoach ? "Everything you need to grow your coaching business" : "Simple, powerful fitness tracking"}
+          <h2 className={`text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+            {isCoach ? "Everything You Need to Coach" : "Everything You Need to Train"}
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} max-w-3xl mx-auto`}>
             {isCoach
-              ? "From client management to payment processing, Juice provides all the tools you need to run a successful personal training business."
-              : "Track your workouts, monitor your progress, and stay motivated with our easy-to-use fitness app."}
+              ? "Powerful tools designed specifically for personal trainers to manage clients and grow their business."
+              : "Simple, effective tools to track your workouts, monitor progress, and achieve your fitness goals."}
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue={features[0].id} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            {features.map((feature) => (
+              <TabsTrigger key={feature.id} value={feature.id} className="flex items-center gap-2">
+                <feature.icon size={16} />
+                {feature.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, index) => (
-                <Card key={index} className="border-2 hover:border-juice/50 transition-colors">
-                  <CardHeader>
-                    <feature.icon className="h-8 w-8 text-juice mb-2" />
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base">{feature.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="details" className="space-y-8">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold mb-4">
-                {isCoach ? "Detailed Coach Features" : "Detailed Client Features"}
-              </h3>
-              <p className="text-muted-foreground mb-8">
-                {isCoach
-                  ? "Comprehensive tools designed specifically for personal trainers"
-                  : "Everything you need for effective fitness tracking"}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
+          {features.map((feature) => (
+            <TabsContent key={feature.id} value={feature.id}>
+              <Card className={`${isCoach ? "bg-white" : "bg-zinc-800 border-zinc-700"}`}>
                 <CardHeader>
-                  <CardTitle>Advanced Analytics</CardTitle>
+                  <CardTitle className={`flex items-center gap-3 ${isCoach ? "text-black" : "text-white"}`}>
+                    <feature.icon size={24} className="text-orange-500" />
+                    {feature.title}
+                  </CardTitle>
+                  <CardDescription className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    {feature.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    {isCoach
-                      ? "Get detailed insights into client progress, retention rates, and business metrics."
-                      : "Track your personal records, workout frequency, and fitness improvements over time."}
-                  </p>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <ul className="space-y-3">
+                        {feature.features.map((item, index) => (
+                          <li
+                            key={index}
+                            className={`flex items-center gap-3 ${isCoach ? "text-gray-700" : "text-gray-300"}`}
+                          >
+                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button className="mt-6 bg-orange-500 hover:bg-orange-600 text-white">Learn More</Button>
+                    </div>
+                    <div
+                      className={`${isCoach ? "bg-gray-100" : "bg-zinc-700"} rounded-lg p-6 flex items-center justify-center`}
+                    >
+                      <feature.icon size={64} className="text-orange-500" />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Custom Workflows</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    {isCoach
-                      ? "Create automated workflows for client onboarding, check-ins, and program progressions."
-                      : "Set up personalized workout routines and automated progress tracking."}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="integrations" className="space-y-8">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold mb-4">Seamless Integrations</h3>
-              <p className="text-muted-foreground mb-8">Connect with your favorite tools and platforms</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {["Google Sheets", "Stripe", "Zoom", "Calendar", "Slack", "Zapier", "MyFitnessPal", "Strava"].map(
-                (integration) => (
-                  <Card key={integration} className="text-center p-4">
-                    <CardContent className="p-0">
-                      <p className="font-medium">{integration}</p>
-                    </CardContent>
-                  </Card>
-                ),
-              )}
-            </div>
-          </TabsContent>
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </section>

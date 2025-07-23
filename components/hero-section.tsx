@@ -2,19 +2,18 @@
 
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
-import { WaitlistForm } from "@/components/waitlist-form"
 import { useTheme } from "@/components/theme-provider"
+import { WaitlistForm } from "@/components/waitlist-form"
+import { Button } from "@/components/ui/button"
+import { Play } from "lucide-react"
 
 export function HeroSection() {
   const { isCoach } = useTheme()
   const [showWaitlist, setShowWaitlist] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
   const waitlistRef = useRef<HTMLDivElement>(null)
 
   const handleWaitlistClick = () => {
     setShowWaitlist(true)
-
-    // Wait for state to update and DOM to render before scrolling
     setTimeout(() => {
       if (waitlistRef.current) {
         waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
@@ -29,19 +28,34 @@ export function HeroSection() {
   }, [showWaitlist])
 
   return (
-    <section className="pt-32 pb-10 md:pt-40 md:pb-10">
+    <section className={`pt-32 pb-10 md:pt-40 md:pb-10 ${isCoach ? "bg-white" : "bg-black"}`}>
       <div className="container mx-auto px-4 md:px-6 text-center">
+        <div className="mb-4">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+            🚀 New: AI-Powered Workout Plans
+          </span>
+        </div>
+
         <h1 className="mb-6 max-w-4xl mx-auto text-center">
           {isCoach ? (
             <div className="flex flex-col space-y-2">
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">Kill the hassle.</span>
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
+              <span
+                className={`text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight ${isCoach ? "text-black" : "text-white"}`}
+              >
+                Kill the hassle.
+              </span>
+              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent pb-4">
                 Keep the gains.
               </span>
             </div>
           ) : (
-            <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
-              Simplify <span className="text-[#D2FF28]">Training.</span>
+            <span
+              className={`text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight ${isCoach ? "text-black" : "text-white"}`}
+            >
+              Transform Your{" "}
+              <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                Fitness Journey
+              </span>
             </span>
           )}
         </h1>
@@ -53,39 +67,62 @@ export function HeroSection() {
               PR—all in one easy-to-use platform.
             </>
           ) : (
-            <>Super simple workout logging. Get insights into your training. Share your workouts.</>
+            <>
+              Connect with certified personal trainers, track your progress, and achieve your fitness goals with our
+              comprehensive platform.
+            </>
           )}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-          <button
-            onClick={() => (window.location.href = "https://app.juice.fitness/")}
-            className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
-            id={isCoach ? "early_access_trainer_hero" : "early_access_client_hero"}
+          <Button
+            onClick={() => window.open("https://app.juice.fitness/", "_blank")}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-medium"
           >
-            Start now
-          </button>
-          <button
-            onClick={handleWaitlistClick}
-            className={`rounded-full px-6 py-3 ${isCoach ? "border border-gray-200 hover:bg-gray-50" : "border border-zinc-800 hover:bg-zinc-800"} transition-colors flex items-center justify-center gap-2`}
-            id={isCoach ? "get_updates_trainer" : "get_updates_client"}
+            Start Free Trial
+          </Button>
+          <Button
+            variant="outline"
+            className={`px-8 py-3 rounded-full text-lg font-medium flex items-center gap-2 ${
+              isCoach
+                ? "border-gray-300 text-gray-700 hover:bg-gray-50"
+                : "border-zinc-600 text-gray-300 hover:bg-zinc-800"
+            }`}
           >
-            Get updates
-          </button>
+            <Play size={20} />
+            Watch Demo
+          </Button>
         </div>
 
-        {/* Only show this line for trainer view */}
         {isCoach && (
           <p className="text-sm text-gray-500 mt-2 mb-16">
             No credit card required. No lock-in. Works with Google Sheets.
           </p>
         )}
 
+        {/* Stats */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-16">
+          <div className="text-center">
+            <div className={`text-4xl font-bold ${isCoach ? "text-black" : "text-white"}`}>10K+</div>
+            <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Active Users</div>
+          </div>
+          <div className="text-center">
+            <div className={`text-4xl font-bold ${isCoach ? "text-black" : "text-white"}`}>500+</div>
+            <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Certified Trainers</div>
+          </div>
+          <div className="text-center">
+            <div className={`text-4xl font-bold ${isCoach ? "text-black" : "text-white"}`}>4.9</div>
+            <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>⭐ Rating</div>
+          </div>
+        </div>
+
         {/* Waitlist Form */}
         {showWaitlist && (
           <div ref={waitlistRef} className="max-w-md mx-auto mb-16 animate-fadeIn">
             <div
-              className={`${isCoach ? "bg-white" : "bg-zinc-900"} border-2 border-[#D2FF28] rounded-xl overflow-hidden shadow-lg`}
+              className={`${
+                isCoach ? "bg-white" : "bg-zinc-900"
+              } border-2 border-orange-500 rounded-xl overflow-hidden shadow-lg`}
             >
               <div className={`${isCoach ? "bg-gray-100" : "bg-zinc-800"} py-3 px-4`}>
                 <div className="text-center">
@@ -95,12 +132,13 @@ export function HeroSection() {
                 </div>
               </div>
               <div className="p-4">
-                <WaitlistForm selectedPlan={selectedPlan} />
+                <WaitlistForm selectedPlan="basic" />
               </div>
             </div>
           </div>
         )}
 
+        {/* Hero Image */}
         <div className="max-w-6xl mx-auto">
           <div className="relative w-full overflow-hidden">
             {isCoach ? (
@@ -130,7 +168,6 @@ export function HeroSection() {
             )}
           </div>
 
-          {/* Moved this line to underneath the dashboard image */}
           {isCoach && (
             <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mt-6 text-center`}>
               Because trainers should train, not juggle admin.
