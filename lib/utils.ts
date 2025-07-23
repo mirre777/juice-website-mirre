@@ -32,3 +32,15 @@ export function truncate(text: string, length: number): string {
   if (text.length <= length) return text
   return text.slice(0, length) + "..."
 }
+
+export function scrollToSection(sectionId: string) {
+  const section = document.getElementById(sectionId)
+  if (section) {
+    const headerHeight = 80
+    const offsetPosition = section.offsetTop - headerHeight
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth",
+    })
+  }
+}
