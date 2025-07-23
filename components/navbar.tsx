@@ -1,127 +1,161 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Logo } from "@/components/logo"
 import { UserToggle } from "@/components/user-toggle"
-import { useTheme } from "@/components/theme-provider"
-import { Button } from "@/components/ui/button"
+import { useTheme } from "@/contexts/theme-context"
+import { useState } from "react"
 import { Menu, X } from "lucide-react"
 
-interface NavbarProps {
-  isHomePage?: boolean
-}
-
-export function Navbar({ isHomePage = false }: NavbarProps) {
-  const router = useRouter()
+export function Navbar() {
   const pathname = usePathname()
-  const { isCoach } = useTheme()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const { isCoach, setIsCoach } = useTheme()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const navItems = [
-    { name: "Blog", href: "/blog" },
-    { name: "Find Trainers", href: "/findatrainer" },
-    { name: "About", href: "/about" },
-  ]
-
-  const handleNavClick = (href: string) => {
-    setMobileMenuOpen(false)
-    router.push(href)
-  }
+  const isNavbarDark = pathname === "/marketplace" || pathname === "/100trainers" || pathname === "/findatrainer"
+  const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
-    <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled || !isHomePage
-            ? `${isCoach ? "bg-white/95 backdrop-blur-sm border-b border-gray-200" : "bg-black/95 backdrop-blur-sm border-b border-zinc-800"}`
-            : "bg-transparent"
-        }`}
-      >
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
+    <nav
+      className={`sticky top-0 z-50 w-full border-b ${isNavbarDark ? "bg-black border-gray-800" : "bg-white border-gray-200"}`}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex items-center">
+            <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
+          </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-orange-500 ${
-                    pathname === item.href ? "text-orange-500" : isCoach ? "text-gray-700" : "text-gray-300"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* Right side items */}
-            <div className="hidden md:flex items-center space-x-4">
-              <UserToggle />
-              <Button
-                onClick={() => window.open("https://app.juice.fitness/", "_blank")}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium"
+          {/* Desktop Navigation */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-8">
+              <Link
+                href="/#how-it-works"
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
-                Get Started
-              </Button>
+                How It Works
+              </Link>
+              <Link
+                href="/pricing-demo"
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+              >
+                Pricing
+              </Link>
+              {!isCoach && (
+                <Link
+                  href="/download-juice-app"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                >
+                  Download
+                </Link>
+              )}
+              {isCoach && (
+                <Link
+                  href="/workout-planner"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                >
+                  Workout Planner
+                </Link>
+              )}
+              <Link
+                href="/marketplace"
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+              >
+                Marketplace
+              </Link>
             </div>
+          </div>
 
-            {/* Mobile menu button */}
+          {/* User Toggle and CTA - Fixed spacing */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex-shrink-0">
+              <UserToggle isCoach={isCoach} onChange={setIsCoach} isDarkBackground={isNavbarDark} />
+            </div>
+            <div className="flex-shrink-0">
+              {isCoach ? (
+                <Link
+                  href="https://app.juice.fitness/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="trainer-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                >
+                  Start now
+                </Link>
+              ) : (
+                <Link
+                  href="/download-juice-app"
+                  className="client-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                >
+                  Download App
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`md:hidden p-2 rounded-md ${
-                isCoach ? "text-gray-700 hover:bg-gray-100" : "text-gray-300 hover:bg-zinc-800"
-              }`}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className={`inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${linkTextColorClass}`}
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className={`md:hidden border-t ${isCoach ? "bg-white border-gray-200" : "bg-black border-zinc-800"}`}>
-            <div className="px-4 py-4 space-y-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavClick(item.href)}
-                  className={`block w-full text-left text-sm font-medium transition-colors hover:text-orange-500 ${
-                    pathname === item.href ? "text-orange-500" : isCoach ? "text-gray-700" : "text-gray-300"
-                  }`}
-                >
-                  {item.name}
-                </button>
-              ))}
-              <div className="pt-4 border-t border-gray-200">
-                <UserToggle />
-                <Button
-                  onClick={() => window.open("https://app.juice.fitness/", "_blank")}
-                  className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium"
-                >
-                  Get Started
-                </Button>
-              </div>
-            </div>
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div
+          className={`md:hidden ${isNavbarDark ? "bg-black" : "bg-white"} border-t ${isNavbarDark ? "border-gray-800" : "border-gray-200"}`}
+        >
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <Link
+              href="/#how-it-works"
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              How It Works
+            </Link>
+            <Link
+              href="/pricing-demo"
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Pricing
+            </Link>
+            {!isCoach && (
+              <Link
+                href="/download-juice-app"
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Download
+              </Link>
+            )}
+            {isCoach && (
+              <Link
+                href="/workout-planner"
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Workout Planner
+              </Link>
+            )}
+            <Link
+              href="/marketplace"
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Marketplace
+            </Link>
           </div>
-        )}
-      </nav>
-    </>
+        </div>
+      )}
+    </nav>
   )
 }
+
+export default Navbar

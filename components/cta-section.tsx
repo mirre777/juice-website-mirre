@@ -68,14 +68,22 @@ export function CTASection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-gray-300 hover:bg-gray-100 text-lg px-8 py-3 rounded-full bg-transparent"
+                className="border-gray-300 hover:bg-gray-100 text-lg px-8 text-black"
                 onClick={handleHowItWorksClick}
+                id={isCoach ? "CTA_Click_SeeWorks_Trainer_Bottom" : "CTA_Click_SeeWorks_Client_Bottom"}
               >
-                How it works
+                See How It Works
               </Button>
             </div>
-
-            <p className="text-sm text-gray-500 mt-4">No credit card required. No lock-in. Works with Google Sheets.</p>
+            <Button
+              className={`w-full max-w-xs mx-auto sm:max-w-none ${
+                isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+              } text-black mt-4`}
+              id={isCoach ? "early_access_trainer_cta" : "early_access_client_cta"}
+              onClick={() => handlePlanClick("coach")}
+            >
+              Get early access
+            </Button>
           </div>
         </motion.div>
       </div>

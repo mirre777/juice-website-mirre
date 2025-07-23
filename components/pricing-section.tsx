@@ -1,5 +1,3 @@
-"use client"
-
 const PricingSection = () => {
   return (
     <section className="bg-gray-100 py-12">
@@ -62,5 +60,4 @@ const PricingSection = () => {
   )
 }
 
-export { PricingSection }
 export default PricingSection

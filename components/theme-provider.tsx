@@ -1,18 +1,32 @@
 "use client"
 
-import * as React from "react"
+import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import type { ThemeProviderProps } from "next-themes"
 
-interface ThemeContextType {
+type ThemeContextType = {
   isCoach: boolean
-  setIsCoach: (isCoach: boolean) => void
+  setIsCoach: (value: boolean) => void
 }
 
-const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  const [isCoach, setIsCoach] = React.useState(true)
+export function ThemeProvider({ children, ...props }: ThemeProviderProps & { children: ReactNode }) {
+  // Changed the default value to true to make coach mode the default
+  const [isCoach, setIsCoach] = useState(true)
+
+  // Apply body class based on isCoach state
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      if (isCoach) {
+        document.body.classList.add("coach-mode")
+        document.body.classList.remove("client-mode")
+      } else {
+        document.body.classList.add("client-mode")
+        document.body.classList.remove("coach-mode")
+      }
+    }
+  }, [isCoach])
 
   return (
     <ThemeContext.Provider value={{ isCoach, setIsCoach }}>
@@ -22,7 +36,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 }
 
 export function useTheme() {
-  const context = React.useContext(ThemeContext)
+  const context = useContext(ThemeContext)
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider")
   }

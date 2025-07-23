@@ -67,19 +67,25 @@ export const successAnimations = {
   // Pulse animation for success
   pulse: {
     container: {
-      initial: { scale: 0, opacity: 0 },
+      initial: { scale: 0.8, opacity: 0 },
       animate: { scale: 1, opacity: 1 },
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: transitions.easeInOut,
     },
     icon: {
-      initial: { scale: 0 },
-      animate: { scale: 1 },
-      transition: { delay: 0.2, duration: 0.3, ease: "easeOut" },
+      initial: { scale: 0.5, opacity: 0 },
+      animate: {
+        scale: [0.5, 1.2, 1],
+        opacity: 1,
+      },
+      transition: {
+        duration: 0.8,
+        times: [0, 0.6, 1],
+      },
     },
     text: {
-      initial: { opacity: 0, y: 10 },
-      animate: { opacity: 1, y: 0 },
-      transition: { delay: 0.4, duration: 0.3, ease: "easeOut" },
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      transition: { delay: 0.5, duration: 0.3 },
     },
   },
 
@@ -337,31 +343,4 @@ export function createStaggeredAnimation(
     },
     item: childAnimation,
   }
-}
-
-// Additional animations
-export const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 },
-}
-
-export const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-}
-
-export const slideInLeft = {
-  initial: { opacity: 0, x: -50 },
-  animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.6 },
-}
-
-export const slideInRight = {
-  initial: { opacity: 0, x: 50 },
-  animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.6 },
 }

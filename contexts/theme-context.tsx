@@ -1,33 +1,10 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+// Re-export the useTheme hook from the theme-provider for backward compatibility
+import { useTheme as useThemeFromProvider, ThemeProvider } from "@/components/theme-provider"
 
-type Theme = "client" | "coach"
+// Export the hook with the same name
+export const useTheme = useThemeFromProvider
 
-interface ThemeContextType {
-  theme: Theme
-  setTheme: (theme: Theme) => void
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
-
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("client")
-
-  useEffect(() => {
-    const root = window.document.documentElement
-    root.classList.remove("client", "coach")
-    root.classList.add(theme)
-  }, [theme])
-
-  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext)
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider")
-  }
-  return context
-}
+// Export the provider
+export { ThemeProvider }
