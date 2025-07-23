@@ -1,12 +1,11 @@
 "use client"
-
-import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import HomePage from "@/components/home-page"
 
 export default function ClientPage() {
-  useEffect(() => {
-    // Any client-side initialization can go here
-  }, [])
+  const router = useRouter()
 
+  // This component now serves as the root route handler
+  // It renders the HomePage component directly
   return <HomePage />
 }

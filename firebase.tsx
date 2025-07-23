@@ -1,37 +1,27 @@
 "use client"
 
+// Minimal Firebase setup without Analytics to prevent Google logging errors
 import { initializeApp, getApps } from "firebase/app"
-import { getFirestore } from "firebase/firestore"
 import { getAuth } from "firebase/auth"
+import { getFirestore } from "firebase/firestore"
+import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  // Commented out to prevent Google Analytics error in v0 preview
-  // measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "demo-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "demo.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "demo-project",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "demo.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:demo",
+  // Completely removed measurementId to prevent Google Analytics errors
 }
 
 // Initialize Firebase only if it hasn't been initialized already
-let app
-try {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-} catch (error) {
-  console.error("Firebase initialization error:", error)
-  // Fallback initialization
-  app = initializeApp({
-    apiKey: "fallback",
-    authDomain: "fallback.firebaseapp.com",
-    projectId: "fallback",
-    storageBucket: "fallback.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:fallback",
-  })
-}
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
-export const db = getFirestore(app)
+// Initialize Firebase services
 export const auth = getAuth(app)
-export { app }
+export const db = getFirestore(app)
+export const storage = getStorage(app)
+
+export default app

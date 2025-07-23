@@ -1,106 +1,97 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
-import { Logo } from "./logo"
-import { UserToggle } from "./user-toggle"
-import { useTheme } from "@/components/theme-provider"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { Menu, X } from "lucide-react"
+import { Logo } from "@/components/logo"
+import { UserToggle } from "@/components/user-toggle"
 
 export function Navbar() {
-  const { isCoach } = useTheme()
-  const pathname = usePathname()
-
-  // Determine if the navbar should be dark
-  const isNavbarDark =
-    pathname === "/marketplace" ||
-    pathname === "/100trainers" ||
-    pathname === "/findatrainer" ||
-    pathname.startsWith("/client") ||
-    (pathname !== "/download-juice-app" && !isCoach)
-
-  const navbarBgClass = isNavbarDark ? "bg-black/95 border-zinc-800" : "bg-white/95 border-gray-200"
-
-  const getTextColorClass = (isActive = false) => {
-    if (isNavbarDark) {
-      return isActive ? "text-juice" : "text-white hover:text-juice"
-    } else {
-      return isActive ? "text-juice" : "text-gray-700 hover:text-juice"
-    }
-  }
-
-  const navItems = [
-    { href: "/blog", label: "Blog" },
-    { href: "/findatrainer", label: "Find Trainers" },
-    { href: "/about", label: "About" },
-  ]
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <nav
-      className={cn(
-        "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        navbarBgClass,
-      )}
-    >
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <Logo isDarkBackground={isNavbarDark} className={getTextColorClass()} />
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Logo />
           </Link>
-          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn("transition-colors", getTextColorClass(pathname === item.href))}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link href="/features" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              Features
+            </Link>
+            <Link href="/pricing" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              Pricing
+            </Link>
+            <Link href="/blog" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              Blog
+            </Link>
+            <Link href="/about" className="transition-colors hover:text-foreground/80 text-foreground/60">
+              About
+            </Link>
           </nav>
         </div>
-
-        <div className="flex items-center gap-4">
-          <UserToggle />
-          <Button
-            className={cn(
-              "hidden md:inline-flex",
-              isCoach ? "trainer-gradient-btn" : "bg-juice text-juice-foreground hover:bg-juice/90",
-            )}
-            asChild
-          >
-            <Link href="https://app.juice.fitness/">{isCoach ? "Start now" : "Get Started"}</Link>
-          </Button>
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className={cn("md:hidden", getTextColorClass())}>
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <nav className="flex flex-col gap-4">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block px-2 py-1 text-lg hover:text-juice transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                <Button className="mt-4 bg-juice text-juice-foreground hover:bg-juice/90" asChild>
-                  <Link href="https://app.juice.fitness/">Get Started</Link>
-                </Button>
-              </nav>
-            </SheetContent>
-          </Sheet>
+        <Button
+          className="inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-9 py-2 mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={isMenuOpen}
+          aria-controls="radix-:R16u6la:"
+          data-state={isMenuOpen ? "open" : "closed"}
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full flex-1 md:w-auto md:flex-none">
+            <Link href="/" className="md:hidden">
+              <Logo />
+            </Link>
+          </div>
+          <nav className="flex items-center space-x-2">
+            <UserToggle />
+            <Button asChild size="sm" className="px-4">
+              <Link href="/signup">Get Started</Link>
+            </Button>
+          </nav>
         </div>
       </div>
+      {isMenuOpen && (
+        <div className="border-b md:hidden">
+          <nav className="flex flex-col space-y-3 p-4">
+            <Link
+              href="/features"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Features
+            </Link>
+            <Link
+              href="/pricing"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/blog"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Blog
+            </Link>
+            <Link
+              href="/about"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About
+            </Link>
+          </nav>
+        </div>
+      )}
     </nav>
   )
 }
