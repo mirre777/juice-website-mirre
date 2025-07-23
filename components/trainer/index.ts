@@ -1,2 +1,2 @@
-export { TrainerProfileDisplay } from "./TrainerProfileDisplay"
-export type { TrainerData, TrainerProfileDisplayProps } from "./TrainerProfileDisplay"
+export { default as TrainerProfileDisplay } from "./TrainerProfileDisplay"
+export type { TrainerData } from "./TrainerProfileDisplay"

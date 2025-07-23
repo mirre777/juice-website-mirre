@@ -60,4 +60,5 @@ const PricingSection = () => {
   )
 }
 
-export default PricingSection
+// Changed from default export to named export
+export { PricingSection }
