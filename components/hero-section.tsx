@@ -140,7 +140,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              className="border-zinc-700 hover:bg-zinc-800 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto"
+              className="border-zinc-700 hover:bg-zinc-800 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto bg-transparent"
               onClick={handleHowItWorksClick}
               id={isCoach ? "CTA_Click_SeeWorks_Coach_FirstView" : "CTA_Click_SeeWorks_Client_FirstView"}
             >
