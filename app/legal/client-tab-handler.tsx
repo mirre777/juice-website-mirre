@@ -148,140 +148,187 @@ export function ClientTabHandler() {
 
         <TabsContent value="privacy" className="mt-0">
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Privacy Policy</h2>
-            <p className="text-zinc-300">Last updated: May 19, 2025</p>
+            <h2 className="text-2xl font-bold">Privacy Policy for Juice Fitness App</h2>
+            <p className="text-zinc-300">Effective Date: [Insert Date]</p>
 
             <div className="space-y-6 text-zinc-300">
               <p>
-                Juice Fitness ("we," "our," or "us") respects your privacy and is committed to protecting your personal
-                data. This Privacy Policy describes how we collect, use, and share information when you use our website,
-                mobile app, and associated services (collectively, "the Service").
+                Thank you for using Juice Fitness App ("we," "our," or "us"). Your privacy is important to us. This
+                Privacy Policy explains how we collect, use, and protect your personal information in compliance with
+                the General Data Protection Regulation (GDPR), the California Consumer Privacy Act (CCPA/CPRA), and
+                other applicable privacy laws.
               </p>
-
-              <p>By accessing or using Juice, you agree to this Privacy Policy.</p>
 
               <section>
                 <h3 className="text-xl font-semibold mb-3">1. Who We Are</h3>
                 <p>
-                  Juice Fitness is a company registered in Austria. If you have questions or requests regarding your
-                  data, you can contact us at:
+                  Juice Fitness App is operated by Folger Eduardo Fonseca Velasco, who is also the designated data
+                  protection officer. He is located at Karl-Marx-Allee 53, 10243 Berlin, Germany. You can contact with
+                  us at crew@juice.fitness.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">2. Data We Collect</h3>
+                <p>We may collect the following personal data:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>Name</li>
+                  <li>Email address</li>
+                  <li>IP address</li>
+                  <li>Device identifiers (e.g., IDFA, Android Advertising ID)</li>
+                  <li>Photos, videos, or files uploaded to the app</li>
+                  <li>Payment information</li>
+                  <li>Health and biometric data (e.g., fitness activity, workout stats)</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">3. How We Collect Your Data</h3>
+                <p>We collect data:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>Directly from you via forms and user inputs</li>
+                  <li>Automatically through analytics and device usage</li>
+                  <li>From third-party sign-in services (e.g., Google, Facebook, Apple)</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">4. Why We Collect Your Data</h3>
+                <p>We use your data for the following purposes:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>To provide and maintain core app functionality</li>
+                  <li>To personalize your fitness experience</li>
+                  <li>For app analytics and improvements</li>
+                  <li>For customer support</li>
+                  <li>To process payments and subscriptions</li>
+                  <li>To send marketing communications (with your consent)</li>
+                  <li>To comply with legal obligations</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">5. Third-Party Services</h3>
+                <p>We use trusted third-party services to operate our app:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>Firebase (Authentication, Firestore, Analytics)</li>
+                  <li>Stripe / Apple Pay / Google Pay (Payment Processing)</li>
+                  <li>Crashlytics and Sentry (App Monitoring and Bug Reporting)</li>
+                  <li>Facebook SDK (Analytics and Social Features)</li>
+                  <li>Apple HealthKit / Google Fit (Fitness Data Syncing)</li>
+                  <li>One Signal (Push Notifications)</li>
+                </ul>
+                <p className="mt-2">
+                  These services may process some user data on our behalf, but no third parties collect data directly
+                  through our app.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">6. Data Sharing and Transfers</h3>
+                <p>
+                  We do not share your personal data with third parties beyond those listed above. All user data is
+                  stored within the European Union, and no cross-border data transfers occur.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">7. Workout Sharing Feature</h3>
+                <p>
+                  Our app includes an optional workout sharing feature that allows you to generate a shareable link to
+                  display your fitness progress publicly.
                 </p>
                 <p className="mt-2">
-                  Email: support@getjuice.app
-                  <br />
-                  Address: [insert physical address if available]
+                  <strong>What Data is Shared:</strong> When you choose to share a workout via link, the following
+                  information becomes publicly accessible to anyone with the link:
                 </p>
-                <p className="mt-2">We do not currently have a Data Protection Officer (DPO).</p>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold mb-3">2. What Data We Collect</h3>
-                <p>We may collect the following types of personal data:</p>
                 <ul className="list-disc pl-6 mt-2">
-                  <li>Identity Data: name, email address</li>
-                  <li>Workout Data: workout entries, exercise history, trainer feedback</li>
-                  <li>Media: photos you upload</li>
-                  <li>Technical Data: device and system information for troubleshooting</li>
-                  <li>Future: biometric data from Apple Health (if you opt in)</li>
+                  <li>Your username</li>
+                  <li>Details of the shared workout</li>
+                  <li>Your personal records for that workout</li>
+                  <li>
+                    Performance progress graphs for each exercise in the workout, showing your historical data over time
+                  </li>
                 </ul>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold mb-3">3. How We Collect Data</h3>
-                <p>We collect data in the following ways:</p>
-                <ul className="list-disc pl-6 mt-2">
-                  <li>When you enter information manually (e.g., during signup or workout tracking)</li>
-                  <li>From third-party integrations like Apple Health (with your permission)</li>
-                  <li>Automatically, such as device data during app use</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold mb-3">4. How We Use Your Data</h3>
-                <p>We process your personal data to:</p>
-                <ul className="list-disc pl-6 mt-2">
-                  <li>Provide and improve the Service</li>
-                  <li>Suggest workouts and track progress</li>
-                  <li>Enable communication with your trainer (only if you consent)</li>
-                  <li>Respond to your feedback or support requests</li>
-                  <li>Send product updates or marketing emails (only if you've opted in)</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold mb-3">5. Legal Basis for Processing</h3>
-                <p>We rely on the following legal bases under the General Data Protection Regulation (GDPR):</p>
-                <ul className="list-disc pl-6 mt-2">
-                  <li>Consent: For collecting health or biometric data, and sending marketing communications</li>
-                  <li>Performance of a contract: To provide the core functionality of Juice</li>
-                  <li>Legitimate interest: For technical troubleshooting and product improvement</li>
-                </ul>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold mb-3">6. Cookies and Tracking</h3>
-                <p>
-                  We use cookies and similar technologies (e.g., Google Analytics, Hotjar) to understand how users
-                  interact with the app and improve performance.
-                </p>
-                <p className="mt-2">We do not currently support "Do Not Track" browser signals.</p>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold mb-3">7. Sharing Your Data</h3>
-                <p>
-                  We do not currently share your data with third parties beyond the services needed to operate Juice.
-                </p>
                 <p className="mt-2">
-                  In the future, we may use services such as Mixpanel or Google BigQuery. Some providers may be located
-                  outside the EU and subject to international data transfer safeguards such as Standard Contractual
-                  Clauses.
+                  <strong>Important Privacy Considerations:</strong>
+                </p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>This feature is entirely optional and user-initiated</li>
+                  <li>You have full control over when to generate and share these links</li>
+                  <li>The shared data is accessible to anyone who has the link, including people outside our app</li>
+                  <li>Shared links remain active until you manually revoke them or delete your account</li>
+                  <li>You can disable or delete shared workout links at any time through your app settings</li>
+                  <li>You can choose which specific workouts to share or whether to share a workout at all</li>
+                </ul>
+                <p className="mt-2">
+                  By using this feature, you acknowledge that you are voluntarily making your workout data publicly
+                  accessible and take responsibility for managing who you share these links with.
                 </p>
               </section>
 
               <section>
-                <h3 className="text-xl font-semibold mb-3">8. Your Rights Under GDPR</h3>
-                <p>You have the right to:</p>
+                <h3 className="text-xl font-semibold mb-3">8. User Rights</h3>
+                <p>You have the following rights under GDPR and CCPA/CPRA:</p>
                 <ul className="list-disc pl-6 mt-2">
                   <li>Access your data</li>
-                  <li>Correct or update inaccurate information</li>
-                  <li>Withdraw your consent at any time</li>
-                  <li>Request deletion of your data</li>
-                  <li>Lodge a complaint with a data protection authority</li>
+                  <li>Request correction or deletion of your data</li>
+                  <li>Withdraw consent (where applicable)</li>
+                  <li>Opt out of marketing communications and analytics tracking</li>
                 </ul>
-                <p className="mt-2">To exercise any of these rights, please contact support@getjuice.app.</p>
+                <p className="mt-2">
+                  <strong>Note:</strong> You cannot opt out of essential data collection required for app functionality.
+                </p>
+                <p className="mt-2">To exercise your rights, email us at crew@juice.fitness.</p>
               </section>
 
               <section>
                 <h3 className="text-xl font-semibold mb-3">9. Data Retention</h3>
-                <p>
-                  We retain your data as long as your account is active or as needed to provide our Service. You may
-                  request account deletion at any time via customer support.
-                </p>
+                <p>We retain personal data:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>While your account is active</li>
+                  <li>Until you request deletion</li>
+                </ul>
               </section>
 
               <section>
                 <h3 className="text-xl font-semibold mb-3">10. Children's Privacy</h3>
                 <p>
-                  Juice is not intended for users under the age of 16. We do not knowingly collect data from minors.
+                  Our app is not directed to children under 16 years old. We do not knowingly collect data from minors.
+                  If we become aware of such collection, we will delete the information.
                 </p>
               </section>
 
               <section>
-                <h3 className="text-xl font-semibold mb-3">11. Changes to This Policy</h3>
-                <p>
-                  We may update this Privacy Policy occasionally. If we make significant changes, we'll notify you via
-                  the app or email.
+                <h3 className="text-xl font-semibold mb-3">11. Security Measures</h3>
+                <p>We implement the following security safeguards:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>Encryption of data in transit and at rest</li>
+                  <li>Role-based access control for internal staff</li>
+                  <li>Regular security updates and monitoring</li>
+                  <li>Error and crash monitoring with Sentry and Crashlytics</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">12. Policy Updates</h3>
+                <p>We may update this Privacy Policy. Users will be notified via:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>In-app notification</li>
+                  <li>Email</li>
+                </ul>
+                <p className="mt-2">
+                  Continued use of the app after changes take effect constitutes your acceptance of the updated policy.
                 </p>
               </section>
 
               <section>
-                <h3 className="text-xl font-semibold mb-3">12. Contact Us</h3>
+                <h3 className="text-xl font-semibold mb-3">13. Contact Us</h3>
                 <p>
-                  For any questions or concerns, please email:
+                  For questions or concerns about this policy, contact us at:
                   <br />
                   crew@juice.fitness
                 </p>
+                <p className="mt-2">Thank you for trusting Juice Fitness App with your personal data.</p>
               </section>
             </div>
           </div>
