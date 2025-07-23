@@ -63,7 +63,6 @@ export function TrainerProfileDisplay({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Preview Banner for Temp Mode */}
       {mode === "temp" && (
         <div className="bg-[#D2FF28] text-black py-3 px-4 text-center font-medium">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
@@ -78,7 +77,6 @@ export function TrainerProfileDisplay({
         </div>
       )}
 
-      {/* Status Bar for Live Mode */}
       {mode === "live" && showEditControls && (
         <div className="bg-white border-b py-3 px-4">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
@@ -99,7 +97,6 @@ export function TrainerProfileDisplay({
       )}
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Hero Section */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white p-8 mb-8">
           <div className="text-center">
             <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -142,9 +139,7 @@ export function TrainerProfileDisplay({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
             <Card>
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -168,7 +163,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Services Section */}
             <Card>
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -191,9 +185,7 @@ export function TrainerProfileDisplay({
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Let's Start Your Fitness Journey</h3>
@@ -226,7 +218,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Quick Stats */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Quick Stats</h3>
@@ -262,7 +253,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Availability */}
             {Object.keys(availability).length > 0 && (
               <Card>
                 <CardContent className="p-6">
@@ -281,7 +271,6 @@ export function TrainerProfileDisplay({
           </div>
         </div>
 
-        {/* Activation CTA for Temp Mode */}
         {mode === "temp" && (
           <Card className="mt-8">
             <CardContent className="p-8 text-center">

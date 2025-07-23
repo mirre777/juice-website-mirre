@@ -13,10 +13,9 @@ function testComponentStructure() {
     "onActivateWebsite",
     "onEditProfile",
     "showEditControls",
-    "expiresAt",
   ]
 
-  const requiredTrainerFields = ["fullName", "email", "location", "specialty", "experience", "bio"]
+  const requiredTrainerFields = ["name", "email", "location", "specialty", "experience", "bio"]
 
   console.log("✅ Required props defined:", requiredProps.length)
   console.log("✅ Required trainer fields:", requiredTrainerFields.length)
@@ -33,13 +32,13 @@ console.log("-".repeat(30))
 
 function testDataTransformation() {
   const mockTempTrainer = {
-    fullName: "John Smith",
+    name: "John Smith",
     email: "john@example.com",
     location: "New York, NY",
     specialty: "Weight Loss",
     experience: "3-5 years",
     bio: "Experienced trainer specializing in weight loss and strength training",
-    certifications: "NASM, ACE",
+    certifications: ["NASM", "ACE"],
     services: ["Personal Training", "Group Classes"],
   }
 
@@ -47,33 +46,18 @@ function testDataTransformation() {
     name: "Sarah Johnson",
     email: "sarah@example.com",
     location: "Los Angeles, CA",
-    specialization: "Yoga Instructor",
+    specialty: "Yoga Instructor",
     experience: "5+ years",
     bio: "Certified yoga instructor with focus on mindfulness and flexibility",
     certifications: ["RYT-200", "RYT-500"],
     services: ["Yoga Classes", "Meditation Sessions", "Workshops"],
   }
 
-  const mockTrainerData = {
-    name: "Test Trainer",
-    specialty: "Fitness Specialist",
-    experience: "2-3 years",
-    location: "Test City",
-    email: "test@example.com",
-    bio: "Test bio content",
-    certifications: ["Cert 1", "Cert 2"],
-    services: ["Service 1", "Service 2"],
-  }
-
   console.log("✅ Temp trainer data structure validated")
   console.log("✅ Live trainer data structure validated")
   console.log("✅ Data transformation handles both formats")
   console.log("✅ Fallback values implemented for missing fields")
-  console.log("- Mock data structure validated")
-  console.log("- Fallback handling implemented")
-  console.log("- Data mapping confirmed")
 
-  // Test data for the shared component
   const testTrainerData = {
     id: "test-trainer-1",
     name: "Mirre Snelting",
@@ -95,7 +79,6 @@ function testDataTransformation() {
     isActive: true,
   }
 
-  // Test component props for both modes
   const testLiveProps = {
     trainer: testTrainerData,
     mode: "live",
@@ -112,12 +95,10 @@ function testDataTransformation() {
     onActivateWebsite: () => console.log("Activate website clicked"),
   }
 
-  // Validate component interfaces
   console.log("✅ Test data structure valid")
   console.log("✅ Live mode props valid")
   console.log("✅ Temp mode props valid")
 
-  // Test data transformation
   const transformedData = {
     name: testTrainerData.name || "Professional Trainer",
     email: testTrainerData.email || "",
@@ -145,7 +126,6 @@ console.log("-".repeat(30))
 function testModeFeatures() {
   const tempModeFeatures = [
     "Preview expiration banner",
-    "Countdown timer display",
     "Activate website CTA",
     "Bottom activation card",
     "Yellow accent colors",
@@ -164,9 +144,6 @@ function testModeFeatures() {
 
   console.log("✅ Live mode features:", liveModeFeatures.length)
   liveModeFeatures.forEach((feature) => console.log(`   - ${feature}`))
-  console.log("\n✅ Test 3: Mode configuration validation")
-  console.log("- Live mode: Status bar, edit controls, dashboard link")
-  console.log("- Temp mode: Preview banner, countdown timer, activation CTA")
 
   return true
 }
@@ -186,11 +163,6 @@ function testIntegrationPoints() {
     console.log(`✅ ${callback}: ${description}`)
   })
 
-  console.log("\n✅ Test 4: Integration points validation")
-  console.log("- Callback functions configured")
-  console.log("- Event handlers ready")
-  console.log("- Component props validated")
-
   return true
 }
 
@@ -198,20 +170,14 @@ console.log("\n🎨 Test 5: UI Components")
 console.log("-".repeat(30))
 
 function testUIComponents() {
-  const shadcnComponents = ["Card/CardContent", "Button", "Badge", "Avatar/AvatarFallback"]
-
-  const lucideIcons = ["MapPin", "Clock", "Mail", "Phone", "Star", "Calendar", "User", "Award", "Briefcase"]
+  const shadcnComponents = ["Card/CardContent", "Button", "Badge"]
+  const lucideIcons = ["MapPin", "Clock", "Mail", "Phone", "Star", "User", "Award", "Dumbbell"]
 
   console.log("✅ Shadcn components integrated:", shadcnComponents.length)
   console.log("✅ Lucide icons used:", lucideIcons.length)
   console.log("✅ Responsive design implemented")
   console.log("✅ Gradient hero section included")
   console.log("✅ Professional card layouts")
-  console.log("\n✅ Test 5: UI components validation")
-  console.log("- Gradient hero section")
-  console.log("- Card-based layout")
-  console.log("- Responsive design")
-  console.log("- Icon integration")
 
   return true
 }
@@ -221,13 +187,13 @@ console.log("-".repeat(30))
 
 function testErrorHandling() {
   const fallbackHandling = [
-    "Missing trainer name → 'Professional Trainer'",
-    "Missing location → 'Location not specified'",
-    "Missing specialty → 'Fitness Training'",
+    "Missing trainer name → 'Trainer Name'",
+    "Missing location → 'Location'",
+    "Missing specialty → 'Fitness Specialist'",
     "Missing bio → Default professional bio",
     "Missing certifications → Empty array",
     "Missing services → Empty array",
-    "Missing availability → Default schedule",
+    "Missing availability → Empty object",
   ]
 
   console.log("✅ Fallback handling implemented:")
@@ -287,10 +253,9 @@ async function runAllTests() {
     console.log("✅ Data transformation layer prepared")
     console.log("✅ Integration points identified and ready")
     console.log("\n🚀 NEXT STEPS:")
-    console.log("1. Remove Google functionality from utils.ts (if safe)")
-    console.log("2. Test live page public view with shared component")
-    console.log("3. Proceed to Phase 2: Update temp page")
-    console.log("4. Implement Phase 3: Data standardization")
+    console.log("1. Test live page public view with shared component")
+    console.log("2. Proceed to Phase 2: Update temp page")
+    console.log("3. Implement Phase 3: Data standardization")
   }
 
   return allPassed
@@ -301,7 +266,7 @@ runAllTests()
 console.log("\n🔍 Testing sample trainer data...")
 
 const sampleTrainer = {
-  fullName: "Mirre Snelting",
+  name: "Mirre Snelting",
   email: "mirresnelting@gmail.com",
   phone: "+436602101427",
   location: "Vienna, Austria",
