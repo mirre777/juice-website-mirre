@@ -1,10 +1,14 @@
 "use client"
 
+import { useEffect } from "react"
+
+import { useRef } from "react"
+
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { FeaturesSection } from "@/components/features-section"
 import { HowItWorks } from "@/components/how-it-works"
-import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
+import { PricingSection } from "@/components/pricing-section"
 import { BenefitsSection } from "@/components/benefits-section"
 import { scrollToSection } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
@@ -103,37 +107,29 @@ export default function HomePage() {
   }
 
   return (
-    <div className={`min-h-screen ${isCoach ? "bg-white text-black" : "bg-black text-white"}`}>
+    <div className="min-h-screen bg-white">
       {/* Navigation - Floating Header */}
       <Navbar isHomePage={true} />
 
-      {/* Hero Section */}
-      <HeroSection />
+      <main>
+        {/* Hero Section */}
+        <HeroSection />
 
-      {/* Features Section */}
-      <section id="features" className="scroll-mt-20">
+        {/* Features Section */}
         <FeaturesSection />
-      </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="scroll-mt-20">
-        <HowItWorks />
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-20">
-        <PricingSectionWithPayment />
-      </section>
-
-      {/* Divider */}
-      <div className="w-full flex justify-center mt-8">
-        <div className="w-2/3 h-2 bg-juice"></div>
-      </div>
-
-      {/* Benefits Section */}
-      <section id="benefits" className="scroll-mt-20">
+        {/* Benefits Section */}
         <BenefitsSection />
-      </section>
+
+        {/* How It Works Section */}
+        <HowItWorks />
+
+        {/* Pricing Section */}
+        <PricingSection />
+
+        {/* CTA Section */}
+        <CTASection />
+      </main>
 
       {/* Blog Call to Action Section */}
       <section className="py-16">
@@ -155,9 +151,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <CTASection />
 
       {/* Footer */}
       <Footer />
