@@ -1,6 +1,9 @@
-export { default as TrainerProfileDisplay } from "./TrainerProfileDisplay"
+export { TrainerProfileDisplay } from "./TrainerProfileDisplay"
 export type {
-  DisplayTrainerData,
   DisplayService,
   DisplayTrainerContent,
+  DisplayTrainerData,
+  TrainerProfileDisplayProps,
 } from "./TrainerProfileDisplay"
+export type { DisplayTrainerData } from "@/types/trainer"
+</merged_code>

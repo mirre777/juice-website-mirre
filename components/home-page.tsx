@@ -4,9 +4,9 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { FeaturesSection } from "@/components/features-section"
 import { HowItWorks } from "@/components/how-it-works"
-import { PricingSection } from "@/components/pricing-section"
+import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
 import { BenefitsSection } from "@/components/benefits-section"
-import { scrollToSection } from "@/utils/scroll-utils"
+import { scrollToSection } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -107,59 +107,57 @@ export default function HomePage() {
       {/* Navigation - Floating Header */}
       <Navbar isHomePage={true} />
 
-      <main>
-        {/* Hero Section */}
-        <HeroSection />
+      {/* Hero Section */}
+      <HeroSection />
 
-        {/* Features Section */}
-        <section id="features" className="scroll-mt-20">
-          <FeaturesSection />
-        </section>
+      {/* Features Section */}
+      <section id="features" className="scroll-mt-20">
+        <FeaturesSection />
+      </section>
 
-        {/* How It Works Section */}
-        <section id="how-it-works" className="scroll-mt-20">
-          <HowItWorks />
-        </section>
+      {/* How It Works Section */}
+      <section id="how-it-works" className="scroll-mt-20">
+        <HowItWorks />
+      </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="scroll-mt-20">
-          <PricingSection />
-        </section>
+      {/* Pricing Section */}
+      <section id="pricing" className="scroll-mt-20">
+        <PricingSectionWithPayment />
+      </section>
 
-        {/* Divider */}
-        <div className="w-full flex justify-center mt-8">
-          <div className="w-2/3 h-2 bg-[#D2FF28]"></div>
-        </div>
+      {/* Divider */}
+      <div className="w-full flex justify-center mt-8">
+        <div className="w-2/3 h-2 bg-juice"></div>
+      </div>
 
-        {/* Benefits Section */}
-        <section id="benefits" className="scroll-mt-20">
-          <BenefitsSection />
-        </section>
+      {/* Benefits Section */}
+      <section id="benefits" className="scroll-mt-20">
+        <BenefitsSection />
+      </section>
 
-        {/* Blog Call to Action Section */}
-        <section className="py-16">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className={`rounded-3xl p-8 md:p-12 shadow-lg text-center ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
-              <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-                Stay Updated with the Juice Blog
-              </h2>
-              <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8`}>
-                Discover insights, tips, and the latest trends in fitness coaching and technology.
-              </p>
-              <Link href="/blog">
-                <button
-                  className={`rounded-full px-6 py-3 font-medium bg-white text-black border border-black transition-colors hover:bg-gray-100`}
-                >
-                  Go go gadget blog
-                </button>
-              </Link>
-            </div>
+      {/* Blog Call to Action Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className={`rounded-3xl p-8 md:p-12 shadow-lg text-center ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
+            <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+              Stay Updated with the Juice Blog
+            </h2>
+            <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8`}>
+              Discover insights, tips, and the latest trends in fitness coaching and technology.
+            </p>
+            <Link href="/blog">
+              <button
+                className={`rounded-full px-6 py-3 font-medium bg-white text-black border border-black transition-colors hover:bg-gray-100`}
+              >
+                Go go gadget blog
+              </button>
+            </Link>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* CTA Section */}
-        <CTASection />
-      </main>
+      {/* CTA Section */}
+      <CTASection />
 
       {/* Footer */}
       <Footer />
