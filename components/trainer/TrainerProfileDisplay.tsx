@@ -1,11 +1,11 @@
 "use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { MapPin, Clock, Mail, Phone, Star, Calendar, User, Award, Briefcase } from "lucide-react"
 
-// Shared interfaces for trainer data
 export interface TrainerData {
   id?: string
   tempId?: string
@@ -26,33 +26,6 @@ export interface TrainerData {
   rating?: number
   reviewCount?: number
   isActive?: boolean
-  content?: {
-    hero?: {
-      title?: string
-      subtitle?: string
-      description?: string
-    }
-    about?: {
-      title?: string
-      content?: string
-    }
-    services?: Array<{
-      title: string
-      description: string
-      price?: string
-    }>
-    testimonials?: Array<{
-      name: string
-      text: string
-      rating: number
-    }>
-    contact?: {
-      email: string
-      phone?: string
-      location: string
-      availability?: string
-    }
-  }
 }
 
 export interface TrainerProfileDisplayProps {
@@ -64,10 +37,8 @@ export interface TrainerProfileDisplayProps {
   onEditProfile?: () => void
   showEditControls?: boolean
   expiresAt?: Date
-  sessionToken?: string
 }
 
-// Data transformation utilities
 const transformTrainerData = (trainer: TrainerData) => {
   return {
     name: trainer.fullName || trainer.name || "Professional Trainer",
@@ -102,13 +73,11 @@ export function TrainerProfileDisplay({
   onEditProfile,
   showEditControls = false,
   expiresAt,
-  sessionToken,
 }: TrainerProfileDisplayProps) {
   const transformedTrainer = transformTrainerData(trainer)
   const isTemp = mode === "temp"
   const isLive = mode === "live"
 
-  // Get initials for avatar
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -118,7 +87,6 @@ export function TrainerProfileDisplay({
       .slice(0, 2)
   }
 
-  // Format countdown timer
   const formatTimeLeft = (expiresAt: Date) => {
     const now = new Date()
     const timeLeft = expiresAt.getTime() - now.getTime()
@@ -134,7 +102,6 @@ export function TrainerProfileDisplay({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Preview Banner for Temp Mode */}
       {isTemp && expiresAt && (
         <div className="bg-yellow-400 border-b border-yellow-500">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -163,7 +130,6 @@ export function TrainerProfileDisplay({
         </div>
       )}
 
-      {/* Status Bar for Live Mode */}
       {isLive && showEditControls && (
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -188,7 +154,6 @@ export function TrainerProfileDisplay({
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
         <div className="relative overflow-hidden rounded-2xl mb-8">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-600 to-purple-700" />
           <div className="relative px-8 py-12 text-center text-white">
@@ -237,9 +202,7 @@ export function TrainerProfileDisplay({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
@@ -264,7 +227,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Services Section */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
@@ -290,7 +252,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Reviews Section */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -308,7 +269,6 @@ export function TrainerProfileDisplay({
                 </div>
 
                 <div className="space-y-4">
-                  {/* Sample testimonials */}
                   <div className="border-l-4 border-blue-500 pl-4">
                     <p className="text-gray-600 italic mb-2">
                       "Working with this trainer has completely transformed my approach to fitness. The personalized
@@ -327,9 +287,7 @@ export function TrainerProfileDisplay({
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Let's Start Your Fitness Journey</h3>
@@ -362,7 +320,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Quick Stats */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Quick Stats</h3>
@@ -387,7 +344,6 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
-            {/* Availability */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Availability</h3>
@@ -404,7 +360,6 @@ export function TrainerProfileDisplay({
           </div>
         </div>
 
-        {/* Bottom CTA for Temp Mode */}
         {isTemp && onActivateWebsite && (
           <Card className="mt-8 bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
             <CardContent className="p-8 text-center">

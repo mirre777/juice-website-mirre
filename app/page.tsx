@@ -7,8 +7,8 @@ export const metadata = {
   },
 }
 
-import ClientPage from "./ClientPage"
+import { HomePage } from "@/components/home-page"
 
 export default function Home() {
-  return <ClientPage />
+  return <HomePage />
 }
