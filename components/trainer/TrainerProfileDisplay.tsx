@@ -1,30 +1,26 @@
 "use client"
-
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MapPin, Clock, Mail, Phone, Star, Calendar, User, Award, Briefcase } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { MapPin, Mail, Phone, Clock, Star, User, Award, Dumbbell } from "lucide-react"
 
 export interface TrainerData {
   id?: string
-  tempId?: string
-  fullName: string
-  name?: string
-  email: string
+  name: string
+  specialty?: string
+  experience?: string
+  location?: string
+  email?: string
   phone?: string
-  location: string
-  specialty: string
-  specialization?: string
-  experience: string
-  bio: string
-  certifications?: string | string[]
+  bio?: string
+  certifications?: string[]
   services?: string[]
   availability?: {
     [key: string]: string
   }
   rating?: number
   reviewCount?: number
+  profileImage?: string
   isActive?: boolean
 }
 
@@ -36,32 +32,6 @@ export interface TrainerProfileDisplayProps {
   onActivateWebsite?: () => void
   onEditProfile?: () => void
   showEditControls?: boolean
-  expiresAt?: Date
-}
-
-const transformTrainerData = (trainer: TrainerData) => {
-  return {
-    name: trainer.fullName || trainer.name || "Professional Trainer",
-    email: trainer.email || "",
-    phone: trainer.phone || "",
-    location: trainer.location || "Location not specified",
-    specialty: trainer.specialty || trainer.specialization || "Fitness Training",
-    experience: trainer.experience || "Experienced",
-    bio: trainer.bio || "Passionate fitness professional dedicated to helping clients achieve their goals.",
-    certifications: Array.isArray(trainer.certifications)
-      ? trainer.certifications
-      : trainer.certifications
-        ? [trainer.certifications]
-        : [],
-    services: trainer.services || [],
-    rating: trainer.rating || 5.0,
-    reviewCount: trainer.reviewCount || 24,
-    availability: trainer.availability || {
-      "Mon - Fri": "6:00 AM - 8:00 PM",
-      Saturday: "8:00 AM - 6:00 PM",
-      Sunday: "Closed",
-    },
-  }
 }
 
 export function TrainerProfileDisplay({
@@ -72,152 +42,122 @@ export function TrainerProfileDisplay({
   onActivateWebsite,
   onEditProfile,
   showEditControls = false,
-  expiresAt,
 }: TrainerProfileDisplayProps) {
-  const transformedTrainer = transformTrainerData(trainer)
-  const isTemp = mode === "temp"
-  const isLive = mode === "live"
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
-  const formatTimeLeft = (expiresAt: Date) => {
-    const now = new Date()
-    const timeLeft = expiresAt.getTime() - now.getTime()
-
-    if (timeLeft <= 0) return "00h 00m 00s"
-
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
-
-    return `${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`
-  }
+  const {
+    name = "Trainer Name",
+    specialty = "Fitness Specialist",
+    experience = "1-2 years",
+    location = "Location",
+    email = "",
+    phone = "",
+    bio = "Passionate fitness professional dedicated to helping clients achieve their health and fitness goals.",
+    certifications = [],
+    services = [],
+    availability = {},
+    rating = 5.0,
+    reviewCount = 0,
+    profileImage,
+    isActive = false,
+  } = trainer
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isTemp && expiresAt && (
-        <div className="bg-yellow-400 border-b border-yellow-500">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Preview Expires In</h3>
-                  <p className="text-sm text-gray-700">Activate now to make your website live</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">{formatTimeLeft(expiresAt)}</div>
-                </div>
-                {onActivateWebsite && (
-                  <Button onClick={onActivateWebsite} className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2">
-                    ⚡ Activate Now - €70
-                  </Button>
-                )}
-              </div>
+      {/* Preview Banner for Temp Mode */}
+      {mode === "temp" && (
+        <div className="bg-[#D2FF28] text-black py-3 px-4 text-center font-medium">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <span>Preview Expires In</span>
             </div>
+            <Button onClick={onActivateWebsite} className="bg-black text-white hover:bg-gray-800 text-sm px-4 py-1">
+              Activate Now - €70
+            </Button>
           </div>
         </div>
       )}
 
-      {isLive && showEditControls && (
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Live
-                </Badge>
-                <span className="text-sm text-gray-600">Active Profile</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                {onEditProfile && (
-                  <Button variant="outline" onClick={onEditProfile}>
-                    Edit Profile
-                  </Button>
-                )}
-                <Button variant="outline">Dashboard</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="relative overflow-hidden rounded-2xl mb-8">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-600 to-purple-700" />
-          <div className="relative px-8 py-12 text-center text-white">
-            <div className="mb-6">
-              <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/20">
-                <AvatarFallback className="bg-white/20 text-white text-2xl font-bold">
-                  {getInitials(transformedTrainer.name)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Transform Your Fitness with {transformedTrainer.name}
-            </h1>
-
-            <p className="text-xl mb-6 opacity-90">
-              Professional {transformedTrainer.specialty} with {transformedTrainer.experience} of experience
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                <User className="w-4 h-4 mr-2" />
-                {transformedTrainer.experience} Experience
+      {/* Status Bar for Live Mode */}
+      {mode === "live" && showEditControls && (
+        <div className="bg-white border-b py-3 px-4">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                Live
               </Badge>
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                <MapPin className="w-4 h-4 mr-2" />
-                {transformedTrainer.location}
-              </Badge>
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                <Award className="w-4 h-4 mr-2" />
-                {transformedTrainer.specialty}
-              </Badge>
+              <span className="text-sm text-gray-600">Active Profile</span>
             </div>
-
-            {(onBookConsultation || onScheduleConsultation) && (
-              <Button
-                size="lg"
-                className="bg-white text-purple-700 hover:bg-gray-100"
-                onClick={onBookConsultation || onScheduleConsultation}
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                Book Free Consultation
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onEditProfile}>
+                Edit Profile
               </Button>
-            )}
+              <Button>Dashboard</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white p-8 mb-8">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              {profileImage ? (
+                <img
+                  src={profileImage || "/placeholder.svg"}
+                  alt={name}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+              ) : (
+                <User className="w-12 h-12" />
+              )}
+            </div>
+            <h1 className="text-4xl font-bold mb-2">Transform Your Fitness with {name}</h1>
+            <p className="text-xl mb-6">
+              Professional {specialty} trainer with {experience} of experience
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
+              <Badge variant="secondary" className="bg-white/20 text-white">
+                <User className="w-4 h-4 mr-1" />
+                {experience} Experience
+              </Badge>
+              <Badge variant="secondary" className="bg-white/20 text-white">
+                <MapPin className="w-4 h-4 mr-1" />
+                {location}
+              </Badge>
+              <Badge variant="secondary" className="bg-white/20 text-white">
+                <Award className="w-4 h-4 mr-1" />
+                {specialty}
+              </Badge>
+            </div>
+            <Button
+              size="lg"
+              className="bg-white text-blue-600 hover:bg-gray-100"
+              onClick={mode === "temp" ? onBookConsultation : onScheduleConsultation}
+            >
+              {mode === "temp" ? "Book Free Consultation" : "Schedule Consultation"}
+            </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* About Section */}
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <User className="w-5 h-5 mr-2 text-gray-600" />
-                  <h2 className="text-2xl font-bold">About {transformedTrainer.name}</h2>
-                </div>
-                <p className="text-gray-600 leading-relaxed">{transformedTrainer.bio}</p>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <User className="w-6 h-6" />
+                  About {name}
+                </h2>
+                <p className="text-gray-600 leading-relaxed">{bio}</p>
 
-                {transformedTrainer.certifications.length > 0 && (
+                {certifications.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="font-semibold mb-3">Certifications</h3>
+                    <h3 className="font-semibold mb-2">Certifications</h3>
                     <div className="flex flex-wrap gap-2">
-                      {transformedTrainer.certifications.map((cert, index) => (
+                      {certifications.map((cert, index) => (
                         <Badge key={index} variant="outline">
-                          <Award className="w-3 h-3 mr-1" />
                           {cert}
                         </Badge>
                       ))}
@@ -227,150 +167,127 @@ export function TrainerProfileDisplay({
               </CardContent>
             </Card>
 
+            {/* Services Section */}
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <Briefcase className="w-5 h-5 mr-2 text-gray-600" />
-                  <h2 className="text-2xl font-bold">Services Offered</h2>
-                </div>
-
-                {transformedTrainer.services.length > 0 ? (
-                  <div className="grid gap-4">
-                    {transformedTrainer.services.map((service, index) => (
-                      <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3" />
-                        <span className="font-medium">{service}</span>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <Dumbbell className="w-6 h-6" />
+                  Services Offered
+                </h2>
+                {services.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {services.map((service, index) => (
+                      <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>{service}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Services information will be displayed here</p>
-                  </div>
+                  <p className="text-gray-500">Services will be displayed here once added.</p>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">Client Reviews</h2>
-                  <div className="flex items-center">
-                    <div className="flex text-yellow-400 mr-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-current" />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {transformedTrainer.rating} ({transformedTrainer.reviewCount} reviews)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <p className="text-gray-600 italic mb-2">
-                      "Working with this trainer has completely transformed my approach to fitness. The personalized
-                      programs really work!"
-                    </p>
-                    <p className="text-sm font-medium">- Sarah M.</p>
-                  </div>
-                  <div className="border-l-4 border-purple-500 pl-4">
-                    <p className="text-gray-600 italic mb-2">
-                      "Professional, knowledgeable, and motivating. I've seen incredible results in just 3 months."
-                    </p>
-                    <p className="text-sm font-medium">- Mike R.</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
 
+          {/* Sidebar */}
           <div className="space-y-6">
+            {/* Contact Card */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Let's Start Your Fitness Journey</h3>
-
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center text-gray-600">
-                    <Mail className="w-4 h-4 mr-3" />
-                    <span className="text-sm">{transformedTrainer.email}</span>
-                  </div>
-                  {transformedTrainer.phone && (
-                    <div className="flex items-center text-gray-600">
-                      <Phone className="w-4 h-4 mr-3" />
-                      <span className="text-sm">{transformedTrainer.phone}</span>
+                <div className="space-y-3">
+                  {email && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Mail className="w-4 h-4" />
+                      <span className="text-sm">{email}</span>
                     </div>
                   )}
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="w-4 h-4 mr-3" />
-                    <span className="text-sm">{transformedTrainer.location}</span>
-                  </div>
+                  {phone && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Phone className="w-4 h-4" />
+                      <span className="text-sm">{phone}</span>
+                    </div>
+                  )}
+                  {location && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-sm">{location}</span>
+                    </div>
+                  )}
                 </div>
-
-                {(onScheduleConsultation || onBookConsultation) && (
-                  <Button
-                    className="w-full bg-gray-900 hover:bg-gray-800"
-                    onClick={onScheduleConsultation || onBookConsultation}
-                  >
-                    Schedule Consultation
-                  </Button>
-                )}
+                <Button
+                  className="w-full mt-4 bg-black text-white hover:bg-gray-800"
+                  onClick={mode === "temp" ? onBookConsultation : onScheduleConsultation}
+                >
+                  {mode === "temp" ? "Schedule Consultation" : "Book Session"}
+                </Button>
               </CardContent>
             </Card>
 
+            {/* Quick Stats */}
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4">Quick Stats</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Experience</span>
-                    <span className="font-medium">{transformedTrainer.experience}</span>
+                    <span className="font-medium">{experience}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Specialty</span>
-                    <span className="font-medium">{transformedTrainer.specialty}</span>
+                    <span className="font-medium">{specialty}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Location</span>
-                    <span className="font-medium">{transformedTrainer.location}</span>
+                    <span className="font-medium">{location}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Services</span>
-                    <span className="font-medium">{transformedTrainer.services.length || 1}</span>
+                    <span className="font-medium">{services.length}</span>
                   </div>
+                  {reviewCount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Rating</span>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium">
+                          {rating} ({reviewCount})
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4">Availability</h3>
-                <div className="space-y-2">
-                  {Object.entries(transformedTrainer.availability).map(([day, hours]) => (
-                    <div key={day} className="flex justify-between text-sm">
-                      <span className="text-gray-600">{day}</span>
-                      <span className="font-medium">{hours}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Availability */}
+            {Object.keys(availability).length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold mb-4">Availability</h3>
+                  <div className="space-y-2">
+                    {Object.entries(availability).map(([day, hours]) => (
+                      <div key={day} className="flex justify-between text-sm">
+                        <span className="capitalize text-gray-600">{day}</span>
+                        <span className="font-medium">{hours}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
-        {isTemp && onActivateWebsite && (
-          <Card className="mt-8 bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+        {/* Activation CTA for Temp Mode */}
+        {mode === "temp" && (
+          <Card className="mt-8">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold mb-2">Ready to Make Your Website Live?</h2>
+              <h2 className="text-2xl font-bold mb-4">Ready to Make Your Website Live?</h2>
               <p className="text-gray-600 mb-6">One-time activation fee • No monthly costs • Full ownership</p>
-              <Button
-                size="lg"
-                onClick={onActivateWebsite}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8"
-              >
-                ⚡ Activate Website - €70
+              <Button size="lg" className="bg-[#D2FF28] text-black hover:bg-[#c5f01f]" onClick={onActivateWebsite}>
+                Activate Website - €70
               </Button>
             </CardContent>
           </Card>

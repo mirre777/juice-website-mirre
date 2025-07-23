@@ -7,7 +7,7 @@ export const metadata = {
   },
 }
 
-import { HomePage } from "@/components/home-page"
+import HomePage from "@/components/home-page"
 
 export default function Home() {
   return <HomePage />
