@@ -1,105 +1,157 @@
 "use client"
 
+import type React from "react"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
-import { Logo } from "./logo"
-import { UserToggle } from "./user-toggle"
 import { useTheme } from "@/components/theme-provider"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { Logo } from "@/components/logo"
+import { UserToggle } from "@/components/user-toggle"
+import { Button } from "@/components/ui/button"
+import { Menu, X } from "lucide-react"
+import { scrollToSection } from "@/lib/utils"
 
-export function Navbar() {
+interface NavbarProps {
+  isHomePage?: boolean
+}
+
+export function Navbar({ isHomePage = false }: NavbarProps) {
   const { isCoach } = useTheme()
-  const pathname = usePathname()
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Determine if the navbar should be dark
-  const isNavbarDark =
-    pathname === "/marketplace" ||
-    pathname === "/100trainers" ||
-    pathname === "/findatrainer" ||
-    pathname.startsWith("/client") ||
-    (pathname !== "/download-juice-app" && !isCoach)
-
-  const navbarBgClass = isNavbarDark ? "bg-black/95 border-zinc-800" : "bg-white/95 border-gray-200"
-
-  const getTextColorClass = (isActive = false) => {
-    if (isNavbarDark) {
-      return isActive ? "text-juice" : "text-white hover:text-juice"
-    } else {
-      return isActive ? "text-juice" : "text-gray-700 hover:text-juice"
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
     }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault()
+    scrollToSection(sectionId)
+    setMobileMenuOpen(false)
   }
 
   const navItems = [
-    { href: "/blog", label: "Blog" },
-    { href: "/findatrainer", label: "Find Trainers" },
-    { href: "/about", label: "About" },
+    { href: "#features", label: "Features" },
+    { href: "#how-it-works", label: "How it Works" },
+    { href: "#pricing", label: "Pricing" },
+    { href: "#benefits", label: "Benefits" },
   ]
 
   return (
     <nav
-      className={cn(
-        "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        navbarBgClass,
-      )}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled || mobileMenuOpen
+          ? isCoach
+            ? "bg-white/95 backdrop-blur-sm shadow-sm"
+            : "bg-zinc-900/95 backdrop-blur-sm shadow-sm"
+          : "bg-transparent"
+      }`}
     >
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <Logo isDarkBackground={isNavbarDark} className={getTextColorClass()} />
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center">
+            <Logo />
           </Link>
-          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn("transition-colors", getTextColorClass(pathname === item.href))}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {isHomePage &&
+              navItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href.substring(1))}
+                  className={`text-sm font-medium transition-colors hover:text-orange-500 ${
+                    isCoach ? "text-gray-700" : "text-gray-300"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            <Link
+              href="/blog"
+              className={`text-sm font-medium transition-colors hover:text-orange-500 ${
+                isCoach ? "text-gray-700" : "text-gray-300"
+              }`}
+            >
+              Blog
+            </Link>
+          </div>
+
+          {/* User Toggle and CTA */}
+          <div className="hidden md:flex items-center space-x-4">
+            <UserToggle />
+            <Button
+              className={`${
+                isCoach
+                  ? "bg-orange-500 hover:bg-orange-600 text-white"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
+              }`}
+            >
+              {isCoach ? "Start Free Trial" : "Get Started"}
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <UserToggle />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`p-2 ${isCoach ? "text-gray-700" : "text-gray-300"}`}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <UserToggle />
-          <Button
-            className={cn(
-              "hidden md:inline-flex",
-              isCoach ? "trainer-gradient-btn" : "bg-juice text-juice-foreground hover:bg-juice/90",
-            )}
-            asChild
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div
+            className={`md:hidden absolute top-16 left-0 right-0 ${
+              isCoach ? "bg-white" : "bg-zinc-900"
+            } border-t shadow-lg`}
           >
-            <Link href="https://app.juice.fitness/">{isCoach ? "Start now" : "Get Started"}</Link>
-          </Button>
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className={cn("md:hidden", getTextColorClass())}>
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <nav className="flex flex-col gap-4">
-                {navItems.map((item) => (
-                  <Link
+            <div className="px-4 py-6 space-y-4">
+              {isHomePage &&
+                navItems.map((item) => (
+                  <a
                     key={item.href}
                     href={item.href}
-                    className="block px-2 py-1 text-lg hover:text-juice transition-colors"
+                    onClick={(e) => handleNavClick(e, item.href.substring(1))}
+                    className={`block text-base font-medium transition-colors hover:text-orange-500 ${
+                      isCoach ? "text-gray-700" : "text-gray-300"
+                    }`}
                   >
                     {item.label}
-                  </Link>
+                  </a>
                 ))}
-                <Button className="mt-4 bg-juice text-juice-foreground hover:bg-juice/90" asChild>
-                  <Link href="https://app.juice.fitness/">Get Started</Link>
-                </Button>
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
+              <Link
+                href="/blog"
+                className={`block text-base font-medium transition-colors hover:text-orange-500 ${
+                  isCoach ? "text-gray-700" : "text-gray-300"
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Blog
+              </Link>
+              <Button
+                className={`w-full ${
+                  isCoach
+                    ? "bg-orange-500 hover:bg-orange-600 text-white"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
+              >
+                {isCoach ? "Start Free Trial" : "Get Started"}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

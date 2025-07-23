@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Check, Star } from "lucide-react"
 
-export default function PricingSection() {
+export function PricingSection() {
   const { isCoach } = useTheme()
 
   const coachPlans = [
@@ -100,7 +100,7 @@ export default function PricingSection() {
   const plans = isCoach ? coachPlans : clientPlans
 
   return (
-    <section id="pricing" className={`py-20 ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
+    <section className={`py-20 ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4">

@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/firebase"
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore"
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from "firebase/firestore"
 import { headers } from "next/headers" // Import headers function
 
 // Helper function to standardize plan values
@@ -119,5 +119,22 @@ export async function joinWaitlist(formData: FormData) {
       message: "Failed to join waitlist. Please try again.",
       error: error instanceof Error ? error.message : String(error),
     }
+  }
+}
+
+export async function submitWaitlistForm(email: string, userType: "coach" | "client") {
+  try {
+    // Add to Firestore
+    await addDoc(collection(db, "waitlist"), {
+      email,
+      userType,
+      timestamp: serverTimestamp(),
+      status: "pending",
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error adding to waitlist:", error)
+    return { success: false, error: "Failed to join waitlist" }
   }
 }
