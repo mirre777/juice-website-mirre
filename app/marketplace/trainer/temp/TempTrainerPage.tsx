@@ -2,193 +2,254 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { TrainerProfileDisplay } from "@/components/trainer/TrainerProfileDisplay"
-import type { TrainerData, DisplayTrainerData } from "@/types/trainer"
+import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
+import type { DisplayTrainerData, DisplayTrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, AlertCircle } from "lucide-react"
+import { AlertCircle, Clock } from "lucide-react"
 
-interface TempTrainerPageProps {
-  tempTrainer: TrainerData
+interface TempTrainerData {
   tempId: string
-  timeLeft: number
+  fullName: string
+  email: string
+  phone?: string
+  city?: string
+  district?: string
+  specialty: string
+  bio?: string
+  certifications?: string
+  services: string[]
+  createdAt: string
+  expiresAt: string
+  isExpired: boolean
 }
 
-export default function TempTrainerPage({ tempTrainer, tempId, timeLeft }: TempTrainerPageProps) {
+interface TempTrainerPageProps {
+  tempId: string
+}
+
+export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
+  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [timeLeft, setTimeLeft] = useState<number>(0)
   const router = useRouter()
-  const [currentTimeLeft, setCurrentTimeLeft] = useState(timeLeft)
-  const [isExpired, setIsExpired] = useState(timeLeft <= 0)
 
-  // Convert TrainerData to DisplayTrainerData format
-  const convertToDisplayFormat = (trainer: TrainerData): DisplayTrainerData => {
-    // Parse location string (e.g., "Dublin, City Centre" -> city: "Dublin", district: "City Centre")
-    const locationParts = trainer.location?.split(", ") || []
-    const city = locationParts[0] || ""
-    const district = locationParts[1] || ""
-
-    // Convert services array to structured format with pricing
-    const services =
-      trainer.services?.map((service) => ({
-        name: service,
-        price: "€50/session", // Default pricing for temp preview
-        description: `Professional ${service.toLowerCase()} training`,
-      })) || []
-
-    return {
-      id: trainer.id || tempId,
-      name: trainer.name || "Professional Trainer",
-      title: trainer.title || "Certified Personal Trainer",
-      location: {
-        city,
-        district,
-        full: trainer.location || "Location TBD",
-      },
-      avatar: trainer.profileImage || "/placeholder-user.jpg",
-      coverImage: trainer.coverImage || "/placeholder.jpg",
-      rating: 4.8, // Default rating for preview
-      reviewCount: 12, // Default review count
-      experience: trainer.experience || "5+ years",
-      specialties: trainer.specialties || [],
-      services,
-      content: {
-        hero: {
-          title: `Transform Your Fitness with ${trainer.name || "Professional Training"}`,
-          subtitle:
-            trainer.bio || "Achieve your fitness goals with personalized training programs designed just for you.",
-          cta: "Start Your Journey",
-        },
-        about: {
-          title: "About Your Trainer",
-          content:
-            trainer.bio ||
-            "Experienced fitness professional dedicated to helping you achieve your health and wellness goals through personalized training programs.",
-          highlights: [
-            `${trainer.experience || "5+"} years of experience`,
-            "Certified personal trainer",
-            "Personalized approach",
-            "Proven results",
-          ],
-        },
-        contact: {
-          title: "Ready to Get Started?",
-          subtitle: "Book your consultation today and take the first step towards your fitness transformation.",
-          cta: "Book Consultation",
-        },
-      },
-      pricing: {
-        consultation: "€30",
-        session: "€50",
-        package: "€200/month",
-      },
-      availability: "Available for new clients",
-      certifications: trainer.certifications || ["Certified Personal Trainer"],
-      languages: ["English"],
-      isActive: false, // Temp trainers are not active yet
-    }
-  }
-
-  const displayTrainer = convertToDisplayFormat(tempTrainer)
-
-  // Countdown timer effect
+  // Fetch temp trainer data
   useEffect(() => {
-    if (currentTimeLeft <= 0) {
-      setIsExpired(true)
-      return
+    const fetchTempTrainer = async () => {
+      try {
+        const response = await fetch(`/api/trainer/temp/${tempId}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load trainer preview")
+        }
+
+        if (data.success && data.trainer) {
+          setTrainer(data.trainer)
+
+          // Calculate initial time left
+          const expiresAt = new Date(data.trainer.expiresAt).getTime()
+          const now = Date.now()
+          const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+          setTimeLeft(remaining)
+        } else {
+          throw new Error("Trainer preview not found")
+        }
+      } catch (err) {
+        console.error("Error fetching temp trainer:", err)
+        setError(err instanceof Error ? err.message : "Failed to load trainer preview")
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const timer = setInterval(() => {
-      setCurrentTimeLeft((prev) => {
+    if (tempId) {
+      fetchTempTrainer()
+    }
+  }, [tempId])
+
+  // Countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) return
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
         const newTime = prev - 1
         if (newTime <= 0) {
-          setIsExpired(true)
-          return 0
+          // Mark as expired and redirect
+          setTimeout(() => {
+            router.push("/marketplace/personal-trainer-website")
+          }, 3000)
         }
-        return newTime
+        return Math.max(0, newTime)
       })
     }, 1000)
 
-    return () => clearInterval(timer)
-  }, [currentTimeLeft])
+    return () => clearInterval(interval)
+  }, [timeLeft, router])
 
   // Format time for display
-  const formatTime = (seconds: number) => {
+  const formatTimeLeft = (seconds: number): string => {
+    if (seconds <= 0) return "Expired"
+
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     const secs = seconds % 60
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`
+    } else {
+      return `${secs}s`
+    }
+  }
+
+  // Transform temp trainer data to display format
+  const transformToDisplayFormat = (
+    tempTrainer: TempTrainerData,
+  ): {
+    displayTrainer: DisplayTrainerData
+    displayContent: DisplayTrainerContent
+  } => {
+    // Parse location
+    const locationParts = tempTrainer.city ? tempTrainer.city.split(", ") : []
+    const city = locationParts[0] || ""
+    const district = locationParts[1] || tempTrainer.district || ""
+
+    const displayTrainer: DisplayTrainerData = {
+      id: tempTrainer.tempId,
+      fullName: tempTrainer.fullName,
+      email: tempTrainer.email,
+      phone: tempTrainer.phone,
+      city: city,
+      district: district,
+      specialty: tempTrainer.specialty,
+      bio: tempTrainer.bio,
+      certifications: tempTrainer.certifications,
+      services: tempTrainer.services,
+      status: "temp",
+      isActive: false,
+      isPaid: false,
+    }
+
+    // Generate enhanced services from string array
+    const enhancedServices = tempTrainer.services.map((service, index) => ({
+      id: `service-${index}`,
+      title: service,
+      description: `Professional ${service.toLowerCase()} service tailored to your fitness goals`,
+      price: index === 0 ? 75 : 60, // First service is premium
+      duration: "60 minutes",
+      featured: index === 0,
+    }))
+
+    const displayContent: DisplayTrainerContent = {
+      hero: {
+        title: `Transform Your Fitness with ${tempTrainer.fullName}`,
+        subtitle: `Professional ${tempTrainer.specialty} Trainer`,
+        description:
+          tempTrainer.bio ||
+          `Get personalized ${tempTrainer.specialty.toLowerCase()} training and achieve your fitness goals with expert guidance.`,
+      },
+      about: {
+        title: "About Me",
+        bio:
+          tempTrainer.bio ||
+          `I'm a certified ${tempTrainer.specialty} trainer passionate about helping clients achieve their fitness goals. With personalized training programs and dedicated support, I'll help you transform your health and fitness journey.`,
+      },
+      contact: {
+        title: "Ready to Start Your Fitness Journey?",
+        description: "This is a preview of your trainer profile. Activate now to start accepting clients and bookings!",
+        phone: tempTrainer.phone || "",
+        email: tempTrainer.email,
+        location: city && district ? `${city}, ${district}` : city || "Location",
+      },
+      services: enhancedServices,
+    }
+
+    return { displayTrainer, displayContent }
   }
 
   // Handle activation
   const handleActivate = () => {
-    router.push(`/payment?tempId=${tempId}&type=trainer-activation`)
+    // Store temp trainer data for payment flow
+    sessionStorage.setItem("tempTrainerData", JSON.stringify(trainer))
+    sessionStorage.setItem("tempTrainerToken", tempId)
+
+    // Redirect to payment
+    router.push("/payment?plan=trainer&tempId=" + tempId)
   }
 
-  // Handle expired state
-  if (isExpired) {
+  // Handle consultation booking (preview only)
+  const handleBookConsultation = () => {
+    alert("This is a preview! Activate your profile to enable client bookings.")
+  }
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Preview Expired</h1>
-            <p className="text-gray-600 mb-6">
-              This trainer preview has expired. Please create a new trainer profile to continue.
-            </p>
-            <Button onClick={() => router.push("/marketplace/personal-trainer-website")} className="w-full">
-              Create New Profile
-            </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading trainer preview...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !trainer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Not Found</h2>
+              <p className="text-gray-600 mb-4">{error || "This trainer preview has expired or doesn't exist."}</p>
+              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     )
   }
 
+  // Check if expired
+  const isExpired = timeLeft <= 0 || trainer.isExpired
+
+  if (isExpired) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Expired</h2>
+              <p className="text-gray-600 mb-4">
+                This trainer preview has expired. Create a new profile to get started.
+              </p>
+              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Transform data for display component
+  const { displayTrainer, displayContent } = transformToDisplayFormat(trainer)
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Preview Banner with Countdown */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 sticky top-0 z-50 shadow-lg">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Clock className="w-5 h-5" />
-            <span className="font-medium">Preview Mode</span>
-            <span className="text-blue-100">•</span>
-            <span className="font-mono text-lg">{formatTime(currentTimeLeft)}</span>
-          </div>
-          <Button
-            onClick={handleActivate}
-            variant="secondary"
-            size="sm"
-            className="bg-white text-blue-600 hover:bg-blue-50 font-medium"
-          >
-            Activate Now - €30
-          </Button>
-        </div>
-      </div>
-
-      {/* Trainer Profile Display */}
-      <TrainerProfileDisplay
-        trainer={displayTrainer}
-        mode="temp"
-        timeLeft={currentTimeLeft}
-        onActivate={handleActivate}
-      />
-
-      {/* Activation CTA Footer */}
-      <div className="bg-white border-t border-gray-200 py-6 px-4 sticky bottom-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-gray-900">Ready to go live?</h3>
-            <p className="text-sm text-gray-600">Activate your trainer profile and start accepting clients</p>
-          </div>
-          <Button
-            onClick={handleActivate}
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            Activate for €30
-          </Button>
-        </div>
-      </div>
-    </div>
+    <TrainerProfileDisplay
+      trainer={displayTrainer}
+      content={displayContent}
+      mode="temp"
+      timeLeft={formatTimeLeft(timeLeft)}
+      isExpired={isExpired}
+      activationPrice="€70"
+      onActivate={handleActivate}
+      onBookConsultation={handleBookConsultation}
+    />
   )
 }

@@ -5,9 +5,10 @@ import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import type { DisplayTrainerData, DisplayTrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 
 // Test data
-const mockTrainerData = {
+const mockTrainerData: DisplayTrainerData = {
   id: "test-trainer-123",
   fullName: "Sarah Johnson",
   email: "sarah@example.com",
@@ -24,7 +25,7 @@ const mockTrainerData = {
   isPaid: true,
 }
 
-const mockContent = {
+const mockContent: DisplayTrainerContent = {
   hero: {
     title: "Transform Your Body with Sarah Johnson",
     subtitle: "Certified Personal Trainer & Nutrition Coach",
@@ -70,7 +71,7 @@ const mockContent = {
   ],
 }
 
-const minimalTrainerData = {
+const minimalTrainerData: DisplayTrainerData = {
   id: "minimal-trainer",
   fullName: "John Doe",
   email: "john@example.com",
