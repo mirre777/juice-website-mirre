@@ -4,14 +4,12 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, X, Plus, Trash2, Eye } from "lucide-react"
-import PublicTrainerView from "./PublicTrainerView"
+import { MapPin, Users, Dumbbell, Phone, Plus, Trash2 } from "lucide-react"
+import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -393,211 +391,98 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   // Safe access to display content with fallbacks
   const displayContent = isEditing ? editingContent : trainer.content || editingContent
 
-  // Additional safety checks for nested properties
-  const heroContent = displayContent?.hero || {
-    title: `Transform Your Fitness with ${trainer.fullName}`,
-    subtitle: `Professional ${trainer.specialty} trainer`,
-    description: "Professional fitness training services",
-  }
-
-  const aboutContent = displayContent?.about || {
-    title: "About Me",
-    bio: "Professional trainer dedicated to helping clients achieve their fitness goals.",
-  }
-
-  const contactContent = displayContent?.contact || {
-    title: "Let's Start Your Fitness Journey",
-    description: "Get in touch to schedule your consultation",
-    phone: "",
-    email: trainer.email,
-    location: "",
-  }
-
-  // CRITICAL FIX: Ensure services is always an array
-  const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
-
-  // If in public view mode, render the clean public component without header
+  // If in public view mode, render the shared component in preview mode
   if (isPublicView) {
-    return <PublicTrainerView trainer={trainer} content={displayContent} onExitPublicView={handleExitPublicView} />
+    return (
+      <TrainerProfileDisplay
+        trainer={trainer}
+        content={displayContent}
+        mode="preview"
+        onExitPreview={handleExitPublicView}
+      />
+    )
   }
 
-  // Otherwise render the existing editable view
+  // Otherwise render the shared component in live mode with editing capabilities
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Header with Editing States */}
-      <div className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Badge variant="default" className="bg-green-500">
-                {trainer.isActive ? "Live" : "Draft"}
-              </Badge>
-              <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
-              {hasUnsavedChanges && (
-                <Badge variant="outline" className="border-orange-500 text-orange-600">
-                  Unsaved Changes
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-2">
-              {!isEditing ? (
-                // View Mode Actions
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPublicView(true)}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <Eye className="h-4 w-4" />
-                    <span>View Live</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleStartEditing}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit Profile</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                    className="flex items-center space-x-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Button>
-                </>
-              ) : (
-                // Edit Mode Actions
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={handleCancelEditing}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <X className="h-4 w-4" />
-                    <span>Cancel</span>
-                  </Button>
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={saving || !hasUnsavedChanges}
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <span>{saving ? "Saving..." : "Save Changes"}</span>
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Now Editable */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8 relative group">
-          <div className="max-w-4xl mx-auto text-center">
-            {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-white/80 text-sm">Hero Title</Label>
-                  <Input
-                    value={heroContent.title}
-                    onChange={(e) => updateContent("hero.title", e.target.value)}
-                    className="text-center text-4xl md:text-5xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Your main headline"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-sm">Subtitle</Label>
-                  <Input
-                    value={heroContent.subtitle}
-                    onChange={(e) => updateContent("hero.subtitle", e.target.value)}
-                    className="text-center text-xl bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Supporting headline"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-sm">Description</Label>
-                  <Textarea
-                    value={heroContent.description}
-                    onChange={(e) => updateContent("hero.description", e.target.value)}
-                    className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
-                    placeholder="Brief introduction"
-                    rows={3}
-                  />
-                </div>
-              </div>
-            ) : (
-              <>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
-                <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
-                <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
-              </>
-            )}
-
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              <Badge variant="secondary" className="text-blue-600">
-                <Award className="h-4 w-4 mr-1" />
-                {trainer.experience} Experience
-              </Badge>
-              <Badge variant="secondary" className="text-blue-600">
-                <MapPin className="h-4 w-4 mr-1" />
-                {contactContent.location || "Location"}
-              </Badge>
-              <Badge variant="secondary" className="text-blue-600">
-                <Dumbbell className="h-4 w-4 mr-1" />
-                {trainer.specialty}
-              </Badge>
-            </div>
-            <Button size="lg" variant="secondary" className="text-blue-600">
-              Book Free Consultation
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
-            {/* About Section */}
-            <Card className="relative group">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  {isEditing ? (
+    <TrainerProfileDisplay
+      trainer={trainer}
+      content={displayContent}
+      mode="live"
+      isEditing={isEditing}
+      editingContent={editingContent}
+      onEdit={handleStartEditing}
+      onViewLive={() => setIsPublicView(true)}
+      onDashboard={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+      onSave={handleSaveChanges}
+      onCancel={handleCancelEditing}
+      hasUnsavedChanges={hasUnsavedChanges}
+      saving={saving}
+      showHeader={true}
+      headerActions={
+        isEditing ? (
+          <div className="space-y-4">
+            {/* Hero Section Editing */}
+            <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-white/80 text-sm">Hero Title</Label>
                     <Input
-                      value={aboutContent.title}
-                      onChange={(e) => updateContent("about.title", e.target.value)}
-                      className="font-semibold"
-                      placeholder="About section title"
+                      value={editingContent.hero.title}
+                      onChange={(e) => updateContent("hero.title", e.target.value)}
+                      className="text-center text-2xl font-bold bg-white/10 border-white/20 text-white placeholder-white/60"
+                      placeholder="Your main headline"
                     />
-                  ) : (
-                    aboutContent.title
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <Textarea
-                    value={aboutContent.bio}
-                    onChange={(e) => updateContent("about.bio", e.target.value)}
-                    placeholder="Tell your story..."
-                    rows={8}
-                    className="w-full"
-                  />
-                ) : (
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
-                )}
-                {trainer.certifications && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold mb-2">Certifications</h4>
-                    <p className="text-gray-600">{trainer.certifications}</p>
                   </div>
-                )}
+                  <div>
+                    <Label className="text-white/80 text-sm">Subtitle</Label>
+                    <Input
+                      value={editingContent.hero.subtitle}
+                      onChange={(e) => updateContent("hero.subtitle", e.target.value)}
+                      className="text-center text-lg bg-white/10 border-white/20 text-white placeholder-white/60"
+                      placeholder="Supporting headline"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80 text-sm">Description</Label>
+                    <Textarea
+                      value={editingContent.hero.description}
+                      onChange={(e) => updateContent("hero.description", e.target.value)}
+                      className="text-center bg-white/10 border-white/20 text-white placeholder-white/60"
+                      placeholder="Brief introduction"
+                      rows={3}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Services Section */}
+            {/* About Section Editing */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  <Input
+                    value={editingContent.about.title}
+                    onChange={(e) => updateContent("about.title", e.target.value)}
+                    className="font-semibold"
+                    placeholder="About section title"
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={editingContent.about.bio}
+                  onChange={(e) => updateContent("about.bio", e.target.value)}
+                  placeholder="Tell your story..."
+                  rows={8}
+                  className="w-full"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Services Section Editing */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -605,209 +490,135 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
                     <Dumbbell className="h-5 w-5 mr-2" />
                     Services Offered
                   </CardTitle>
-                  {isEditing && (
-                    <Button onClick={addService} size="sm" variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Service
-                    </Button>
-                  )}
+                  <Button onClick={addService} size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Service
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {servicesContent.length > 0 ? (
-                    servicesContent.map((service, index) => (
+                  {Array.isArray(editingContent.services) && editingContent.services.length > 0 ? (
+                    editingContent.services.map((service, index) => (
                       <div key={service.id || index} className="border border-gray-200 rounded-lg p-4 relative">
-                        {isEditing ? (
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1 space-y-2">
-                                <Input
-                                  value={service.title || ""}
-                                  onChange={(e) => updateService(service.id, { title: e.target.value })}
-                                  placeholder="Service title"
-                                  className="font-semibold"
-                                />
-                                <Textarea
-                                  value={service.description || ""}
-                                  onChange={(e) => updateService(service.id, { description: e.target.value })}
-                                  placeholder="Service description"
-                                  rows={2}
-                                />
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeService(service.id)}
-                                className="text-red-500 hover:text-red-700 ml-2"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1 space-y-2">
+                              <Input
+                                value={service.title || ""}
+                                onChange={(e) => updateService(service.id, { title: e.target.value })}
+                                placeholder="Service title"
+                                className="font-semibold"
+                              />
+                              <Textarea
+                                value={service.description || ""}
+                                onChange={(e) => updateService(service.id, { description: e.target.value })}
+                                placeholder="Service description"
+                                rows={2}
+                              />
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              <div>
-                                <Label className="text-xs">Price (€)</Label>
-                                <Input
-                                  type="number"
-                                  value={service.price || 0}
-                                  onChange={(e) =>
-                                    updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
-                                  }
-                                  placeholder="Price"
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeService(service.id)}
+                              className="text-red-500 hover:text-red-700 ml-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Price (€)</Label>
+                              <Input
+                                type="number"
+                                value={service.price || 0}
+                                onChange={(e) =>
+                                  updateService(service.id, { price: Number.parseInt(e.target.value) || 0 })
+                                }
+                                placeholder="Price"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Duration</Label>
+                              <Input
+                                value={service.duration || ""}
+                                onChange={(e) => updateService(service.id, { duration: e.target.value })}
+                                placeholder="Duration"
+                              />
+                            </div>
+                            <div className="flex items-end">
+                              <label className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={service.featured || false}
+                                  onChange={(e) => updateService(service.id, { featured: e.target.checked })}
+                                  className="rounded"
                                 />
-                              </div>
-                              <div>
-                                <Label className="text-xs">Duration</Label>
-                                <Input
-                                  value={service.duration || ""}
-                                  onChange={(e) => updateService(service.id, { duration: e.target.value })}
-                                  placeholder="Duration"
-                                />
-                              </div>
-                              <div className="flex items-end">
-                                <label className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={service.featured || false}
-                                    onChange={(e) => updateService(service.id, { featured: e.target.checked })}
-                                    className="rounded"
-                                  />
-                                  <span className="text-xs">Featured</span>
-                                </label>
-                              </div>
+                                <span className="text-xs">Featured</span>
+                              </label>
                             </div>
                           </div>
-                        ) : (
-                          <>
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold">{service.title || "Service"}</h3>
-                                {service.featured && (
-                                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                                    Featured
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                <div className="text-lg font-bold">€{service.price || 0}</div>
-                                <div className="text-sm text-gray-500">{service.duration || "Duration"}</div>
-                              </div>
-                            </div>
-                            <p className="text-gray-600 text-sm">{service.description || "Service description"}</p>
-                          </>
-                        )}
+                        </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <p>No services available</p>
-                      {isEditing && (
-                        <Button onClick={addService} className="mt-4">
-                          Add Your First Service
-                        </Button>
-                      )}
+                      <Button onClick={addService} className="mt-4">
+                        Add Your First Service
+                      </Button>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Card */}
+            {/* Contact Section Editing */}
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {isEditing ? (
-                    <Input
-                      value={contactContent.title}
-                      onChange={(e) => updateContent("contact.title", e.target.value)}
-                      placeholder="Contact section title"
-                    />
-                  ) : (
-                    contactContent.title
-                  )}
+                  <Input
+                    value={editingContent.contact.title}
+                    onChange={(e) => updateContent("contact.title", e.target.value)}
+                    placeholder="Contact section title"
+                  />
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isEditing && (
-                  <div>
-                    <Label className="text-sm">Description</Label>
-                    <Textarea
-                      value={contactContent.description}
-                      onChange={(e) => updateContent("contact.description", e.target.value)}
-                      placeholder="Contact description"
-                      rows={3}
-                    />
-                  </div>
-                )}
-
-                <div className="flex items-center">
-                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="text-sm">{contactContent.email}</span>
+                <div>
+                  <Label className="text-sm">Description</Label>
+                  <Textarea
+                    value={editingContent.contact.description}
+                    onChange={(e) => updateContent("contact.description", e.target.value)}
+                    placeholder="Contact description"
+                    rows={3}
+                  />
                 </div>
 
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing ? (
-                    <Input
-                      value={contactContent.phone}
-                      onChange={(e) => updateContent("contact.phone", e.target.value)}
-                      placeholder="Phone number"
-                      className="text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">{contactContent.phone}</span>
-                  )}
+                  <Input
+                    value={editingContent.contact.phone}
+                    onChange={(e) => updateContent("contact.phone", e.target.value)}
+                    placeholder="Phone number"
+                    className="text-sm"
+                  />
                 </div>
 
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-3 text-gray-400" />
-                  {isEditing ? (
-                    <Input
-                      value={contactContent.location}
-                      onChange={(e) => updateContent("contact.location", e.target.value)}
-                      placeholder="Location"
-                      className="text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">{contactContent.location}</span>
-                  )}
-                </div>
-
-                <Separator />
-                <Button className="w-full">Schedule Consultation</Button>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Experience</span>
-                  <span className="font-semibold">{trainer.experience}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Specialty</span>
-                  <span className="font-semibold">{trainer.specialty}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Location</span>
-                  <span className="font-semibold">{contactContent.location || "Not specified"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Services</span>
-                  <span className="font-semibold">{servicesContent.length}</span>
+                  <Input
+                    value={editingContent.contact.location}
+                    onChange={(e) => updateContent("contact.location", e.target.value)}
+                    placeholder="Location"
+                    className="text-sm"
+                  />
                 </div>
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
-    </div>
+        ) : undefined
+      }
+    />
   )
 }
