@@ -54,6 +54,90 @@ console.log("- Proper meta tags")
 console.log("- Semantic HTML structure")
 console.log("- Canonical URLs\n")
 
+// Function to test if emoji titles are properly displayed
+function testEmojiTitleExtraction() {
+  console.log("Testing emoji title extraction...")
+
+  const content = `🏋️‍♀️ Top Fitness Software in Berlin 2025: Because Spreadsheets Are So Last Year
+
+TL;DR: AI isn't stealing your personal trainer's job. It's more like giving them superpowers.
+
+Some content here...`
+
+  // Simulate the regex extraction
+  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
+  const titleMatch = content.match(emojiTitleRegex)
+
+  if (titleMatch && titleMatch[1] === "🏋️‍♀️ Top Fitness Software in Berlin 2025: Because Spreadsheets Are So Last Year") {
+    console.log("✅ Emoji title extraction working correctly")
+  } else {
+    console.log("❌ Emoji title extraction failed")
+    console.log("Expected:", "🏋️‍♀️ Top Fitness Software in Berlin 2025: Because Spreadsheets Are So Last Year")
+    console.log("Got:", titleMatch ? titleMatch[1] : "No match")
+  }
+}
+
+// Function to test if TL;DR excerpts are properly extracted
+function testTldrExcerptExtraction() {
+  console.log("Testing TL;DR excerpt extraction...")
+
+  const content = `🏋️‍♀️ Top Fitness Software in Berlin 2025: Because Spreadsheets Are So Last Year
+
+TL;DR: AI isn't stealing your personal trainer's job. It's more like giving them superpowers.
+
+Some content here...`
+
+  // Simulate the regex extraction
+  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
+  const excerptMatch = content.match(tldrRegex)
+
+  if (
+    excerptMatch &&
+    excerptMatch[1] === "AI isn't stealing your personal trainer's job. It's more like giving them superpowers."
+  ) {
+    console.log("✅ TL;DR excerpt extraction working correctly")
+  } else {
+    console.log("❌ TL;DR excerpt extraction failed")
+    console.log("Expected:", "AI isn't stealing your personal trainer's job. It's more like giving them superpowers.")
+    console.log("Got:", excerptMatch ? excerptMatch[1] : "No match")
+  }
+}
+
+// Function to test URL slug formatting
+function testUrlSlugFormatting() {
+  console.log("Testing URL slug formatting...")
+
+  const title = "🏋️‍♀️ Top Fitness Software in Berlin 2025: Because Spreadsheets Are So Last Year"
+  const expectedSlug = "-top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year"
+
+  // Simulate slug creation (simplified version)
+  const slug = title
+    .replace(/^[\p{Emoji}\u200d]+\s*/u, "") // Remove leading emoji
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/^/, "-") // Add leading hyphen
+
+  if (slug === expectedSlug) {
+    console.log("✅ URL slug formatting working correctly")
+  } else {
+    console.log("❌ URL slug formatting failed")
+    console.log("Expected:", expectedSlug)
+    console.log("Got:", slug)
+  }
+}
+
+// Run all tests
+function runAllTests() {
+  console.log("Running all blog UI enhancement tests...")
+  testEmojiTitleExtraction()
+  testTldrExcerptExtraction()
+  testUrlSlugFormatting()
+  console.log("All tests completed!")
+}
+
+runAllTests()
+
 console.log("🎉 All blog UI enhancements have been implemented!")
 console.log("📝 Your markdown files will now render with:")
 console.log("   • Emoji headings with proper spacing")

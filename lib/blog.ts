@@ -16,9 +16,31 @@ export interface BlogPostFrontmatter {
 export interface BlogPost {
   frontmatter: BlogPostFrontmatter
   serializedContent: any // MDXRemoteSerializeResult
+  content: string // Raw content for reading time calculation
+  slug: string
 }
 
 const BLOG_CONTENT_PATH = "blog/" // Corrected prefix for Vercel Blob
+
+// Function to extract emoji and title from content if not in frontmatter
+function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
+  // Look for emoji title pattern at the beginning of the content
+  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
+  const titleMatch = content.match(emojiTitleRegex)
+
+  // Look for TL;DR section which often contains an excerpt
+  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
+  const excerptMatch = content.match(tldrRegex)
+
+  // If no TL;DR, try to get the first paragraph
+  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
+  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
+
+  return {
+    title: titleMatch ? titleMatch[1].trim() : null,
+    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
+  }
+}
 
 export async function getPostSlugs(): Promise<string[]> {
   console.log("[getPostSlugs] Fetching all blog post slugs from Vercel Blob...")
@@ -46,7 +68,6 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
     for (const blob of blobs) {
       if (blob.pathname.endsWith(".md")) {
         const fileContents = await fetch(blob.url).then((res) => res.text())
-        const { data, excerpt } = matter(fileContents, { excerpt: true })
 
         // Extract slug from the pathname
         const slug = blob.pathname
@@ -55,13 +76,23 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 
         console.log(`[getAllPosts] Processing blob: ${blob.pathname}, Extracted slug: ${slug}`)
 
+        // Parse frontmatter
+        const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+
+        // Extract title and excerpt from content if not in frontmatter
+        const extracted = extractTitleAndExcerpt(content)
+
+        // Use frontmatter data if available, otherwise use extracted data
+        const title = data.title || extracted.title || "Untitled"
+        const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
         posts.push({
-          title: data.title || "Untitled",
+          title: title,
           date: data.date || "No Date",
           category: data.category || "Uncategorized",
-          excerpt: excerpt || "No excerpt available.",
+          excerpt: excerpt,
           image: data.image || undefined,
-          slug: slug, // Assign the extracted slug
+          slug: slug,
         })
       }
     }
@@ -99,25 +130,37 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     const fileContents = await fetch(targetBlob.url).then((res) => res.text())
     console.log(`[getPostBySlug] Fetched file contents (first 200 chars): ${fileContents.substring(0, 200)}...`)
 
-    const { data, content, excerpt } = matter(fileContents, { excerpt: true })
+    // Parse frontmatter
+    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
     console.log(`[getPostBySlug] Gray-matter parsed. Frontmatter data:`, data)
+
+    // Extract title and excerpt from content if not in frontmatter
+    const extracted = extractTitleAndExcerpt(content)
+
+    // Use frontmatter data if available, otherwise use extracted data
+    const title = data.title || extracted.title || "Untitled"
+    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
     console.log(`[getPostBySlug] Content before serialization (first 200 chars): ${content.substring(0, 200)}...`)
+    console.log(`[getPostBySlug] Extracted title: ${extracted.title}, excerpt: ${extracted.excerpt}`)
 
     const serializedContent = await serialize(content, {
       parseFrontmatter: false, // Frontmatter already parsed by gray-matter
     })
-    console.log("[getPostBySlug] MDX serialized successfully. Result:", serializedContent)
+    console.log("[getPostBySlug] MDX serialized successfully.")
 
     return {
       frontmatter: {
-        title: data.title || "Untitled",
+        title: title,
         date: data.date || "No Date",
         category: data.category || "Uncategorized",
-        excerpt: excerpt || "No excerpt available.",
+        excerpt: excerpt,
         image: data.image || undefined,
-        slug: slug, // Ensure slug is passed here
+        slug: slug,
       },
       serializedContent,
+      content,
+      slug,
     }
   } catch (error) {
     console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)

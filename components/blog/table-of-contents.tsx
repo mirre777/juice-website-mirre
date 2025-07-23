@@ -1,81 +1,87 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { cn } from "@/lib/utils"
-
-interface TocItem {
-  id: string
-  text: string
-  level: number
-}
+import { ChevronUp } from "lucide-react"
 
 export function TableOfContents() {
-  const [toc, setToc] = useState<TocItem[]>([])
+  const [headings, setHeadings] = useState<{ id: string; text: string; level: number }[]>([])
   const [activeId, setActiveId] = useState<string>("")
   const [isVisible, setIsVisible] = useState(false)
 
+  // Extract headings from the document
   useEffect(() => {
-    // Generate table of contents from headings
-    const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
-    const tocItems: TocItem[] = []
+    const extractHeadings = () => {
+      const elements = Array.from(document.querySelectorAll("h2, h3, h4"))
+        .filter((element) => element.id) // Only get elements with IDs
+        .map((element) => ({
+          id: element.id,
+          text: element.textContent || "",
+          level: Number.parseInt(element.tagName.substring(1)), // Get heading level (2 for h2, etc.)
+        }))
 
-    headings.forEach((heading) => {
-      if (heading.id && heading.textContent) {
-        tocItems.push({
-          id: heading.id,
-          text: heading.textContent,
-          level: Number.parseInt(heading.tagName.charAt(1)),
-        })
-      }
-    })
+      setHeadings(elements)
+    }
 
-    setToc(tocItems)
-    setIsVisible(tocItems.length > 2) // Only show if there are more than 2 headings
-
-    // Set up intersection observer for active section
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id)
-          }
-        })
-      },
-      { rootMargin: "-20% 0% -80% 0%" },
-    )
-
-    headings.forEach((heading) => observer.observe(heading))
-
-    return () => observer.disconnect()
+    // Wait for content to render
+    setTimeout(extractHeadings, 500)
   }, [])
 
-  if (!isVisible) return null
+  // Track scroll position to highlight active heading
+  useEffect(() => {
+    if (headings.length === 0) return
+
+    const handleScroll = () => {
+      // Show TOC after scrolling down a bit
+      setIsVisible(window.scrollY > 300)
+
+      // Find the current active heading
+      const headingElements = headings.map(({ id }) => document.getElementById(id))
+      const visibleHeadings = headingElements
+        .filter((el) => el !== null)
+        .map((el, i) => {
+          if (!el) return { id: "", offsetTop: 0 }
+          return { id: el.id, offsetTop: el.getBoundingClientRect().top }
+        })
+        .filter(({ offsetTop }) => offsetTop < 200)
+
+      const current = visibleHeadings[visibleHeadings.length - 1]
+      if (current && current.id) {
+        setActiveId(current.id)
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [headings])
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  if (headings.length === 0 || !isVisible) {
+    return (
+      <div className="fixed bottom-8 right-8 z-50">
+        <button
+          onClick={scrollToTop}
+          className="bg-juice text-white p-3 rounded-full shadow-lg hover:bg-juice/90 transition-all"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      </div>
+    )
+  }
 
   return (
-    <div className="fixed right-8 top-1/2 transform -translate-y-1/2 hidden xl:block">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-xs">
-        <h4 className="font-semibold text-sm text-gray-900 mb-3">Table of Contents</h4>
-        <nav>
-          <ul className="space-y-1">
-            {toc.map((item) => (
-              <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  className={cn(
-                    "block text-sm py-1 px-2 rounded transition-colors",
-                    "hover:bg-gray-100 hover:text-juice",
-                    activeId === item.id ? "bg-juice/10 text-juice font-medium" : "text-gray-600",
-                    item.level > 2 && "ml-4 text-xs",
-                  )}
-                  style={{ paddingLeft: `${(item.level - 1) * 0.5}rem` }}
-                >
-                  {item.text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+    <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end">
+      <button
+        onClick={scrollToTop}
+        className="bg-juice text-white p-3 rounded-full shadow-lg hover:bg-juice/90 transition-all mb-4"
+        aria-label="Scroll to top"
+      >
+        <ChevronUp className="w-5 h-5" />
+      </button>
     </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Twitter, Linkedin, Copy, Check } from "lucide-react"
+import { Linkedin, Copy, Check } from "lucide-react"
 
 interface SocialShareProps {
   title: string
@@ -19,7 +19,6 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   const encodedText = encodeURIComponent(shareText)
 
   const shareLinks = {
-    twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
   }
 
@@ -36,16 +35,6 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm text-gray-600 mr-2">Share:</span>
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => window.open(shareLinks.twitter, "_blank")}
-        className="flex items-center gap-2"
-      >
-        <Twitter className="w-4 h-4" />
-        <span className="hidden sm:inline">Twitter</span>
-      </Button>
 
       <Button
         variant="outline"

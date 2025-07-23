@@ -9,19 +9,24 @@ export function ReadingProgress() {
     const updateProgress = () => {
       const scrollTop = window.scrollY
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollPercent = (scrollTop / docHeight) * 100
-      setProgress(Math.min(100, Math.max(0, scrollPercent)))
+      const scrollPercent = scrollTop / docHeight
+      setProgress(scrollPercent * 100)
     }
 
-    window.addEventListener("scroll", updateProgress)
-    updateProgress() // Initial calculation
+    window.addEventListener("scroll", updateProgress, { passive: true })
+    updateProgress()
 
     return () => window.removeEventListener("scroll", updateProgress)
   }, [])
 
   return (
-    <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
-      <div className="h-full bg-juice transition-all duration-150 ease-out" style={{ width: `${progress}%` }} />
-    </div>
+    <div
+      className="fixed top-0 left-0 right-0 h-1 bg-juice z-50 transition-all duration-150"
+      style={{ width: `${progress}%` }}
+      role="progressbar"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    />
   )
 }

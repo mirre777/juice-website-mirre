@@ -22,19 +22,15 @@ export const metadata = {
 // Fitness-related placeholder images
 const getPlaceholderImage = (category: string, index = 0) => {
   const placeholders = {
-    coaching: ["/fitness-coaching-session.png", "/personal-trainer-workout-clipboard.png", "/fitness-coaching-motivation-gym.png"],
+    coaching: [
+      "/fitness-coaching-session.png",
+      "/personal-trainer-workout-clipboard.png",
+      "/fitness-coaching-motivation-gym.png",
+    ],
     technology: ["/fitness-app-tracking.png", "/placeholder-oiv1i.png", "/fitness-tech-digital-health.png"],
     fitness: ["/gym-dumbbells.png", "/fitness-equipment.png", "/strength-training-barbell-gym.png"],
-    nutrition: [
-      "/healthy-meal-prep.png",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-    ],
-    default: [
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-    ],
+    nutrition: ["/healthy-meal-prep.png", "/healthy-meal-prep.png", "/nutrition-planning.png"],
+    default: ["/diverse-fitness-training.png", "/gym-equipment-variety.png", "/workout-plan.png"],
   }
 
   const categoryKey = category.toLowerCase() as keyof typeof placeholders
@@ -48,25 +44,25 @@ export default async function BlogPage() {
   // Create sample posts if no posts are available
   const samplePosts: BlogPostFrontmatter[] = [
     {
-      title: "The Science Behind High-Intensity Interval Training",
+      title: "🏋️‍♀️ Top Fitness Software in Berlin 2025: Because Spreadsheets Are So Last Year",
       excerpt:
-        "Discover why HIIT workouts are so effective for burning fat and building endurance, backed by the latest research.",
+        "Alright, fitness aficionados of Berlin! Let's face it: running a personal training business with just a notebook and a dream is about as effective as doing bicep curls in the squat rack. It's time to ditch the stone age and embrace the tech revolution. Lucky for you, 2025 is bringing some seriously juicy software upgrades. Here's the lowdown on the tools that'll make you wonder how you ever survived without them.",
       date: "2024-01-15",
-      category: "Fitness",
-      slug: "hiit-training-science",
-      image: getPlaceholderImage("fitness", 0),
+      category: "Technology",
+      slug: "-top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+      image: getPlaceholderImage("technology", 0),
     },
     {
-      title: "Building Your Personal Training Business Online",
+      title: "💪 Building Your Personal Training Business Online",
       excerpt:
         "Learn how to leverage technology and digital platforms to grow your personal training business and reach more clients.",
       date: "2024-01-12",
       category: "Coaching",
-      slug: "online-training-business",
+      slug: "building-your-personal-training-business-online",
       image: getPlaceholderImage("coaching", 0),
     },
     {
-      title: "The Future of Fitness Technology",
+      title: "🤖 The Future of Fitness Technology",
       excerpt:
         "Exploring how AI, wearables, and mobile apps are revolutionizing the way we approach fitness and health tracking.",
       date: "2024-01-10",
@@ -75,7 +71,7 @@ export default async function BlogPage() {
       image: getPlaceholderImage("technology", 0),
     },
     {
-      title: "Nutrition Timing for Optimal Performance",
+      title: "🥗 Nutrition Timing for Optimal Performance",
       excerpt:
         "Understanding when and what to eat before, during, and after workouts to maximize your training results.",
       date: "2024-01-08",
@@ -84,7 +80,7 @@ export default async function BlogPage() {
       image: getPlaceholderImage("nutrition", 0),
     },
     {
-      title: "Strength Training Myths Debunked",
+      title: "🏆 Strength Training Myths Debunked",
       excerpt: "Separating fact from fiction in the world of strength training and muscle building.",
       date: "2024-01-05",
       category: "Fitness",
