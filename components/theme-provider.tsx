@@ -1,23 +1,28 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState } from "react"
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import type { ThemeProviderProps } from "next-themes"
 
 interface ThemeContextType {
   isCoach: boolean
   setIsCoach: (isCoach: boolean) => void
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isCoach, setIsCoach] = useState(true)
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  const [isCoach, setIsCoach] = React.useState(true)
 
-  return <ThemeContext.Provider value={{ isCoach, setIsCoach }}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={{ isCoach, setIsCoach }}>
+      <NextThemesProvider {...props}>{children}</NextThemesProvider>
+    </ThemeContext.Provider>
+  )
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = React.useContext(ThemeContext)
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider")
   }
