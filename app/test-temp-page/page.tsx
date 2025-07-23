@@ -5,7 +5,6 @@ import TempTrainerPage from "@/app/marketplace/trainer/temp/TempTrainerPage"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import jest from "jest" // Import jest to declare the variable
 
 // Mock temp trainer data for testing
 const mockTempTrainers = {
@@ -72,19 +71,21 @@ export default function TestTempPagePage() {
     }
   }
 
-  // Override fetch for testing
+  // Override fetch for testing (without Jest dependency)
   const originalFetch = global.fetch
-  global.fetch = jest.fn().mockImplementation((url: string) => {
-    const tempId = url.split("/").pop()
-    const response = mockApiResponse(tempId || "")
+  if (typeof window !== "undefined") {
+    global.fetch = ((url: string) => {
+      const tempId = url.split("/").pop()
+      const response = mockApiResponse(tempId || "")
 
-    logEvent(`API call: ${url}`)
+      logEvent(`API call: ${url}`)
 
-    return Promise.resolve({
-      ok: response.success,
-      json: () => Promise.resolve(response),
-    })
-  })
+      return Promise.resolve({
+        ok: response.success,
+        json: () => Promise.resolve(response),
+      } as Response)
+    }) as typeof fetch
+  }
 
   const testScenarios = {
     "full-data": {
