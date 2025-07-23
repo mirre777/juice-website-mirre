@@ -1,180 +1,158 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
+import type React from "react"
+import { motion } from "framer-motion"
+import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartphone, Users } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
-import { WaitlistForm } from "@/components/waitlist-form"
-import { Button } from "@/components/ui/button"
-import { Play } from "lucide-react"
+
+interface Feature {
+  icon: React.ReactNode
+  title: string
+  description: string
+}
 
 export function HeroSection() {
-  const { isCoach } = useTheme()
-  const [showWaitlist, setShowWaitlist] = useState(false)
-  const waitlistRef = useRef<HTMLDivElement>(null)
+  const { isCoach, setIsCoach } = useTheme()
 
-  const handleWaitlistClick = () => {
-    setShowWaitlist(true)
-    setTimeout(() => {
-      if (waitlistRef.current) {
-        waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
-      }
-    }, 100)
-  }
+  const clientFeatures: Feature[] = [
+    {
+      icon: <Activity className="h-6 w-6 text-juice" />,
+      title: "Track your progress",
+      description:
+        "Monitor your fitness journey with detailed metrics and visualizations that show your improvement over time.",
+    },
+    {
+      icon: <Calendar className="h-6 w-6 text-juice" />,
+      title: "Workout schedule",
+      description:
+        "Access your personalized workout plans and schedule anytime, anywhere with clear instructions for each exercise.",
+    },
+    {
+      icon: <MessageSquare className="h-6 w-6 text-juice" />,
+      title: "Direct communication",
+      description: "Chat directly with your trainer for guidance, feedback, and motivation between sessions.",
+    },
+    {
+      icon: <Share2 className="h-6 w-6 text-juice" />,
+      title: "Share achievements",
+      description: "Celebrate your wins by sharing your progress and achievements with your trainer and community.",
+    },
+  ]
 
-  useEffect(() => {
-    if (showWaitlist && waitlistRef.current) {
-      waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
-    }
-  }, [showWaitlist])
+  const trainerFeatures: Feature[] = [
+    {
+      icon: <Users className="h-6 w-6 text-juice" />,
+      title: "Client management",
+      description: "All your clients' details, goals, and progress in one fitness coaching app.",
+    },
+    {
+      icon: <BarChart3 className="h-6 w-6 text-juice" />,
+      title: "Instant performance insights",
+      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
+    },
+    {
+      icon: <Dumbbell className="h-6 w-6 text-juice" />,
+      title: "Workout builder app",
+      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
+    },
+    {
+      icon: <Smartphone className="h-6 w-6 text-juice" />,
+      title: "Easy workout logging for clients",
+      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+    },
+  ]
 
   return (
-    <section className={`pt-32 pb-10 md:pt-40 md:pb-10 ${isCoach ? "bg-white" : "bg-black"}`}>
-      <div className="container mx-auto px-4 md:px-6 text-center">
-        <div className="mb-4">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
-            🚀 New: AI-Powered Workout Plans
-          </span>
-        </div>
-
-        <h1 className="mb-6 max-w-4xl mx-auto text-center">
-          {isCoach ? (
-            <div className="flex flex-col space-y-2">
-              <span
-                className={`text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight ${isCoach ? "text-black" : "text-white"}`}
-              >
-                Kill the hassle.
-              </span>
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent pb-4">
-                Keep the gains.
-              </span>
-            </div>
-          ) : (
-            <span
-              className={`text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight ${isCoach ? "text-black" : "text-white"}`}
-            >
-              Transform Your{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                Fitness Journey
-              </span>
-            </span>
-          )}
-        </h1>
-
-        <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
-          {isCoach ? (
-            <>
-              Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate every
-              PR—all in one easy-to-use platform.
-            </>
-          ) : (
-            <>
-              Connect with certified personal trainers, track your progress, and achieve your fitness goals with our
-              comprehensive platform.
-            </>
-          )}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-          <Button
-            onClick={() => window.open("https://app.juice.fitness/", "_blank")}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-medium"
-          >
-            Start Free Trial
-          </Button>
-          <Button
-            variant="outline"
-            className={`px-8 py-3 rounded-full text-lg font-medium flex items-center gap-2 ${
-              isCoach
-                ? "border-gray-300 text-gray-700 hover:bg-gray-50"
-                : "border-zinc-600 text-gray-300 hover:bg-zinc-800"
-            }`}
-          >
-            <Play size={20} />
-            Watch Demo
-          </Button>
-        </div>
-
-        {isCoach && (
-          <p className="text-sm text-gray-500 mt-2 mb-16">
-            No credit card required. No lock-in. Works with Google Sheets.
+    <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
+      <div className="container px-4 md:px-6 pb-4">
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>FEATURES</span>
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+            Powerful tools for both sides of fitness
+          </h2>
+          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
+            Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional
+            results, Juice has you covered as the best personal training software.
           </p>
-        )}
-
-        {/* Stats */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-16">
-          <div className="text-center">
-            <div className={`text-4xl font-bold ${isCoach ? "text-black" : "text-white"}`}>10K+</div>
-            <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Active Users</div>
-          </div>
-          <div className="text-center">
-            <div className={`text-4xl font-bold ${isCoach ? "text-black" : "text-white"}`}>500+</div>
-            <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Certified Trainers</div>
-          </div>
-          <div className="text-center">
-            <div className={`text-4xl font-bold ${isCoach ? "text-black" : "text-white"}`}>4.9</div>
-            <div className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>⭐ Rating</div>
-          </div>
         </div>
 
-        {/* Waitlist Form */}
-        {showWaitlist && (
-          <div ref={waitlistRef} className="max-w-md mx-auto mb-16 animate-fadeIn">
-            <div
-              className={`${
-                isCoach ? "bg-white" : "bg-zinc-900"
-              } border-2 border-orange-500 rounded-xl overflow-hidden shadow-lg`}
-            >
-              <div className={`${isCoach ? "bg-gray-100" : "bg-zinc-800"} py-3 px-4`}>
-                <div className="text-center">
-                  <h3 className={`text-xl font-bold ${isCoach ? "text-black" : "text-white"}`}>
-                    Get early access. Join the waitlist.
-                  </h3>
-                </div>
-              </div>
-              <div className="p-4">
-                <WaitlistForm selectedPlan="basic" />
-              </div>
+        <Tabs
+          defaultValue="client"
+          value={isCoach ? "trainer" : "client"}
+          onValueChange={(value) => setIsCoach(value === "trainer")}
+          className="w-full max-w-4xl mx-auto"
+        >
+          <div className="flex justify-center mb-8">
+            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
+              <TabsTrigger
+                value="client"
+                className="data-[state=active]:bg-juice data-[state=active]:text-black"
+                id="Tab_Client_Features"
+              >
+                For Clients
+              </TabsTrigger>
+              <TabsTrigger
+                value="trainer"
+                className="data-[state=active]:bg-juice data-[state=active]:text-black"
+                id="Tab_Trainer_Features"
+              >
+                For Trainers
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
+            <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
+              {clientFeatures.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                >
+                  <div className="feature-card">
+                    <div className="flex flex-col md:flex-row items-start">
+                      <div className="mr-4 mt-1">{feature.icon}</div>
+                      <div>
+                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                          {feature.title}
+                        </h3>
+                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
-        )}
+          </TabsContent>
 
-        {/* Hero Image */}
-        <div className="max-w-6xl mx-auto">
-          <div className="relative w-full overflow-hidden">
-            {isCoach ? (
-              <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
-                <Image
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
-                  alt="Juice Dashboard Interface for Coaches"
-                  width={1200}
-                  height={675}
-                  className="w-full h-auto"
-                />
-                <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-              </div>
-            ) : (
-              <div className="flex justify-center py-8">
-                <div className="w-full max-w-md mx-auto">
-                  <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/grouped2.png-5fgujVXCN7IjtalAMRb3UbRpx7bgEC.jpeg"
-                    alt="Juice App Interface for Clients"
-                    width={400}
-                    height={320}
-                    className="w-auto h-auto"
-                    priority
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {isCoach && (
-            <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mt-6 text-center`}>
-              Because trainers should train, not juggle admin.
-            </p>
-          )}
-        </div>
+          <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
+            <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
+              {trainerFeatures.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                >
+                  <div className="feature-card">
+                    <div className="flex flex-col md:flex-row items-start">
+                      <div className="mr-4 mt-1">{feature.icon}</div>
+                      <div>
+                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                          {feature.title}
+                        </h3>
+                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-    </section>
+    </div>
   )
 }

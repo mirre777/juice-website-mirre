@@ -1,78 +1,34 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import type { ThemeProviderProps } from "next-themes"
 
-type Theme = "dark" | "light" | "system"
-
-type ThemeProviderProps = {
+interface ExtendedThemeProviderProps extends ThemeProviderProps {
   children: React.ReactNode
-  attribute?: string
-  defaultTheme?: Theme
-  enableSystem?: boolean
-  disableTransitionOnChange?: boolean
 }
 
-type ThemeProviderState = {
-  theme: Theme
-  setTheme: (theme: Theme) => void
+interface ThemeContextType {
   isCoach: boolean
   setIsCoach: (isCoach: boolean) => void
 }
 
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
-  isCoach: true,
-  setIsCoach: () => null,
-}
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
-
-export function ThemeProvider({
-  children,
-  attribute = "class",
-  defaultTheme = "system",
-  enableSystem = true,
-  disableTransitionOnChange = false,
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme)
-  const [isCoach, setIsCoach] = useState(true)
-
-  useEffect(() => {
-    const root = window.document.documentElement
-    root.classList.remove("light", "dark")
-
-    if (theme === "system" && enableSystem) {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-      root.classList.add(systemTheme)
-      return
-    }
-
-    root.classList.add(theme)
-  }, [theme, enableSystem])
-
-  const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      setTheme(theme)
-    },
-    isCoach,
-    setIsCoach,
-  }
+export function ThemeProvider({ children, ...props }: ExtendedThemeProviderProps) {
+  const [isCoach, setIsCoach] = React.useState(false)
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
+    <NextThemesProvider {...props}>
+      <ThemeContext.Provider value={{ isCoach, setIsCoach }}>{children}</ThemeContext.Provider>
+    </NextThemesProvider>
   )
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
-
-  if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider")
-
+export function useTheme() {
+  const context = React.useContext(ThemeContext)
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider")
+  }
   return context
 }

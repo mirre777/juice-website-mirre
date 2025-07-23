@@ -1,273 +1,115 @@
 "use client"
-import { motion } from "framer-motion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { useTheme } from "@/components/theme-provider"
-import { StatisticsScreen } from "./statistics-screen"
-import Image from "next/image"
-import { useRef, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ArrowRight, Users, Calendar, BarChart3, Smartphone } from "lucide-react"
 
 export function HowItWorks() {
-  const { isCoach, setIsCoach } = useTheme()
+  const { isCoach } = useTheme()
+
+  const coachSteps = [
+    {
+      step: 1,
+      title: "Set Up Your Profile",
+      description: "Create your trainer profile with certifications, specialties, and availability.",
+      icon: Users,
+    },
+    {
+      step: 2,
+      title: "Add Your Clients",
+      description: "Invite clients to join your platform and set up their individual profiles and goals.",
+      icon: Users,
+    },
+    {
+      step: 3,
+      title: "Create Workout Plans",
+      description: "Design personalized workout routines using our extensive exercise library.",
+      icon: Calendar,
+    },
+    {
+      step: 4,
+      title: "Track Progress",
+      description: "Monitor client progress, adjust plans, and celebrate achievements together.",
+      icon: BarChart3,
+    },
+  ]
 
   const clientSteps = [
     {
-      title: "Sign up",
-      description: "Create your account and connect with your personal trainer through our simple invitation system.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%205-zliJmLGfVhvFrnFoAunOzzrXKfhV2j.svg",
-      isCustomImage: true,
+      step: 1,
+      title: "Download the App",
+      description: "Get started with our simple, intuitive mobile app available on iOS and Android.",
+      icon: Smartphone,
     },
     {
-      title: "Access your program",
-      description: "View your personalized workout programs created by your trainer.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%206-u3ETphKaJdW3Q2m3Fkx0DUHHBXmEfG.svg",
-      isCustomImage: true,
+      step: 2,
+      title: "Find Your Trainer",
+      description: "Browse certified trainers in your area or connect with your existing trainer.",
+      icon: Users,
     },
     {
-      title: "Track workouts",
-      description: "Log your workouts, track your progress, and share results directly with your trainer.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%207-T1S5NqKwaF8HKNAREjRHzEjMEefk05.svg",
-      isCustomImage: true,
+      step: 3,
+      title: "Start Training",
+      description: "Follow your personalized workout plans and log your progress in real-time.",
+      icon: Calendar,
     },
     {
-      title: "Get feedback",
-      description: "Receive real-time feedback and adjustments to your program based on your performance.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%208-DPVFUYjwaJfVfuAKeYDCMg4hs080JP.svg",
-      isCustomImage: true,
+      step: 4,
+      title: "See Results",
+      description: "Track your improvements with detailed analytics and celebrate your achievements.",
+      icon: BarChart3,
     },
   ]
 
-  const trainerSteps = [
-    {
-      title: "See client workouts anytime",
-      description: "Even without an account. Clients can share their workout progress with you via a simple link.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-04-04%20at%2019.49.21-XnrWtZYmqveZeYpIb6JMeMMWuqDPCF.png",
-      isStatisticsScreen: false,
-    },
-    {
-      title: "Invite clients",
-      description: "Easily invite and onboard your existing clients to the platform with a simple link.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-04-04%20at%2019.43.48-ZEkpRNsl8XtwR2jmYvTTrM424Z2FGL.png",
-      isStatisticsScreen: false,
-    },
-    {
-      title: "Create programs",
-      description: "Design custom workout programs and nutrition plans for each client based on their goals.",
-      images: [
-        {
-          src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-gZGWzN35sY81NbpTjGeGxYRLzemp48.png",
-          alt: "Workout Program Builder",
-        },
-        {
-          src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-kyaEofnzNBcUDCovMaKspmcFSFcB49.png",
-          alt: "Choose a Template",
-        },
-      ],
-      isMultiImage: true,
-    },
-    {
-      title: "Monitor & adjust",
-      description: "Track client progress in real-time and make data-driven adjustments to optimize results.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/52438241-D498-4E4C-8890-881052560206_1_105_c-PgGNfmwYLk2ybjSvWuTddBZgp7jcXo.jpeg",
-      isCustomImage: true,
-    },
-  ]
-
-  // Custom hook for video autoplay on visibility
-  const VideoPlayer = ({ src, className }: { src: string; className?: string }) => {
-    const videoRef = useRef<HTMLVideoElement>(null)
-
-    useEffect(() => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && videoRef.current) {
-              videoRef.current.play().catch((e) => console.log("Autoplay prevented:", e))
-            } else if (videoRef.current) {
-              videoRef.current.pause()
-            }
-          })
-        },
-        { threshold: 0.5 },
-      )
-
-      if (videoRef.current) {
-        observer.observe(videoRef.current)
-      }
-
-      return () => {
-        if (videoRef.current) {
-          observer.unobserve(videoRef.current)
-        }
-      }
-    }, [])
-
-    return <video ref={videoRef} src={src} className={className} muted loop playsInline controls={false} />
-  }
+  const steps = isCoach ? coachSteps : clientSteps
 
   return (
-    <section
-      id="how-it-works"
-      className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}
-    >
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>HOW IT WORKS</span>
-          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Simple setup, powerful results
+    <section id="how-it-works" className={`py-20 ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="text-center mb-16">
+          <Badge variant="outline" className="mb-4">
+            How It Works
+          </Badge>
+          <h2 className={`text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+            {isCoach ? "Start coaching in 4 simple steps" : "Get fit in 4 simple steps"}
           </h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Our streamlined platform makes fitness training and progress tracking effortless for both trainers and
-            clients.
+          <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} max-w-3xl mx-auto`}>
+            {isCoach
+              ? "From setup to success, here's how Juice helps you build and grow your personal training business."
+              : "From download to results, here's how Juice helps you achieve your fitness goals."}
           </p>
         </div>
 
-        <Tabs
-          defaultValue="client"
-          value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => setIsCoach(value === "trainer")}
-          className="w-full max-w-5xl mx-auto"
-        >
-          <div className="flex justify-center mb-8">
-            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
-              <TabsTrigger value="client" className="data-[state=active]:bg-juice data-[state=active]:text-black">
-                For Clients
-              </TabsTrigger>
-              <TabsTrigger value="trainer" className="data-[state=active]:bg-juice data-[state=active]:text-black">
-                For Trainers
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="client" className="mt-0 min-h-[450px]">
-            <div className="space-y-4 md:space-y-2">
-              {clientSteps.map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-2 items-center py-0`}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-start gap-4 mb-2">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-juice text-black font-bold">
-                        {index + 1}
-                      </div>
-                      <h3 className={`text-2xl font-bold ${isCoach ? "text-black" : "text-white"}`}>{step.title}</h3>
-                    </div>
-                    <p className="text-zinc-400 mb-3">{step.description}</p>
-                    <div className="h-1 w-20 bg-juice rounded-full"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {steps.map((step, index) => (
+            <div key={step.step} className="relative">
+              <Card className={`h-full ${isCoach ? "bg-white" : "bg-zinc-800 border-zinc-700"}`}>
+                <CardHeader className="text-center">
+                  <div className="mx-auto mb-4 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                    <step.icon className="h-6 w-6 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <div className="relative rounded-xl overflow-hidden shadow-lg bg-transparent border-0">
-                      {step.isCustomImage ? (
-                        <div className="flex justify-center py-2 bg-transparent">
-                          <div className="relative w-[320px] h-[580px] md:w-[360px] md:h-[640px]">
-                            <Image
-                              src={step.image || "/placeholder.svg"}
-                              alt={step.title}
-                              fill
-                              className="object-contain object-center"
-                              style={{ objectFit: "scale-down", objectPosition: "center 45%" }}
-                            />
-                          </div>
-                        </div>
-                      ) : step.isStatisticsScreen ? (
-                        <div className="flex justify-center py-4 bg-black">
-                          <StatisticsScreen />
-                        </div>
-                      ) : (
-                        <img
-                          src={step.image || "/placeholder.svg"}
-                          alt={step.title}
-                          className="w-full h-auto object-contain"
-                        />
-                      )}
-                    </div>
+                  <div className="mb-2">
+                    <Badge variant="secondary" className="text-xs">
+                      Step {step.step}
+                    </Badge>
                   </div>
-                </motion.div>
-              ))}
+                  <CardTitle className={`text-xl ${isCoach ? "text-black" : "text-white"}`}>{step.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className={`text-center ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    {step.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+              {index < steps.length - 1 && (
+                <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                  <ArrowRight className={`h-6 w-6 ${isCoach ? "text-gray-400" : "text-zinc-600"}`} />
+                </div>
+              )}
             </div>
-          </TabsContent>
-
-          <TabsContent value="trainer" className="mt-0 min-h-[450px]">
-            <div className="space-y-16">
-              {trainerSteps.map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 items-center`}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-juice text-black font-bold">
-                        {index + 1}
-                      </div>
-                      <h3 className="text-2xl font-bold">{step.title}</h3>
-                    </div>
-                    <p className="text-zinc-400 mb-6">{step.description}</p>
-                    <div className="h-1 w-20 bg-juice rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="relative rounded-xl overflow-hidden shadow-lg bg-transparent border-0">
-                      {step.isVideo ? (
-                        <div className="bg-white rounded-xl p-3 shadow-md">
-                          <div className="rounded-lg overflow-hidden">
-                            <VideoPlayer src={step.video || ""} className="w-full h-auto object-contain rounded-lg" />
-                          </div>
-                          <p className="text-xs text-center text-gray-500 mt-2">Client progress tracking interface</p>
-                        </div>
-                      ) : step.isStatisticsScreen ? (
-                        <div className="flex justify-center py-4 bg-black">
-                          <StatisticsScreen />
-                        </div>
-                      ) : step.isMultiImage ? (
-                        <div className="flex flex-col gap-4 py-4">
-                          {step.images?.map((image, imgIndex) => (
-                            <div key={imgIndex} className="bg-white rounded-xl p-2 shadow-md">
-                              <Image
-                                src={image.src || "/placeholder.svg"}
-                                alt={image.alt}
-                                width={500}
-                                height={350}
-                                className="w-full h-auto object-contain rounded-lg"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      ) : step.isCustomImage ? (
-                        <div className="flex justify-center py-4 bg-white rounded-xl">
-                          <Image
-                            src={step.image || "/placeholder.svg"}
-                            alt={step.title}
-                            width={600}
-                            height={800}
-                            className="w-full h-auto object-contain rounded-xl"
-                          />
-                        </div>
-                      ) : (
-                        <img
-                          src={step.image || "/placeholder.svg"}
-                          alt={step.title}
-                          className="w-full h-auto object-contain"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+          ))}
+        </div>
       </div>
     </section>
   )

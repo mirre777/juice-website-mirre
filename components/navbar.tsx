@@ -1,127 +1,106 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
-import { Logo } from "@/components/logo"
-import { UserToggle } from "@/components/user-toggle"
-import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
+import { Logo } from "./logo"
+import { UserToggle } from "./user-toggle"
+import { useTheme } from "@/components/theme-provider"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 
-interface NavbarProps {
-  isHomePage?: boolean
-}
-
-export function Navbar({ isHomePage = false }: NavbarProps) {
-  const router = useRouter()
-  const pathname = usePathname()
+export function Navbar() {
   const { isCoach } = useTheme()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
+  // Determine if the navbar should be dark
+  const isNavbarDark =
+    pathname === "/marketplace" ||
+    pathname === "/100trainers" ||
+    pathname === "/findatrainer" ||
+    pathname.startsWith("/client") ||
+    (pathname !== "/download-juice-app" && !isCoach)
+
+  const navbarBgClass = isNavbarDark ? "bg-black/95 border-zinc-800" : "bg-white/95 border-gray-200"
+
+  const getTextColorClass = (isActive = false) => {
+    if (isNavbarDark) {
+      return isActive ? "text-juice" : "text-white hover:text-juice"
+    } else {
+      return isActive ? "text-juice" : "text-gray-700 hover:text-juice"
     }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const navItems = [
-    { name: "Blog", href: "/blog" },
-    { name: "Find Trainers", href: "/findatrainer" },
-    { name: "About", href: "/about" },
-  ]
-
-  const handleNavClick = (href: string) => {
-    setMobileMenuOpen(false)
-    router.push(href)
   }
 
+  const navItems = [
+    { href: "/blog", label: "Blog" },
+    { href: "/findatrainer", label: "Find Trainers" },
+    { href: "/about", label: "About" },
+  ]
+
   return (
-    <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled || !isHomePage
-            ? `${isCoach ? "bg-white/95 backdrop-blur-sm border-b border-gray-200" : "bg-black/95 backdrop-blur-sm border-b border-zinc-800"}`
-            : "bg-transparent"
-        }`}
-      >
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <Logo />
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-orange-500 ${
-                    pathname === item.href ? "text-orange-500" : isCoach ? "text-gray-700" : "text-gray-300"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* Right side items */}
-            <div className="hidden md:flex items-center space-x-4">
-              <UserToggle />
-              <Button
-                onClick={() => window.open("https://app.juice.fitness/", "_blank")}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium"
+    <nav
+      className={cn(
+        "sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        navbarBgClass,
+      )}
+    >
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-6 md:gap-10">
+          <Link href="/" className="flex items-center space-x-2">
+            <Logo isDarkBackground={isNavbarDark} className={getTextColorClass()} />
+          </Link>
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn("transition-colors", getTextColorClass(pathname === item.href))}
               >
-                Get Started
-              </Button>
-            </div>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`md:hidden p-2 rounded-md ${
-                isCoach ? "text-gray-700 hover:bg-gray-100" : "text-gray-300 hover:bg-zinc-800"
-              }`}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className={`md:hidden border-t ${isCoach ? "bg-white border-gray-200" : "bg-black border-zinc-800"}`}>
-            <div className="px-4 py-4 space-y-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavClick(item.href)}
-                  className={`block w-full text-left text-sm font-medium transition-colors hover:text-orange-500 ${
-                    pathname === item.href ? "text-orange-500" : isCoach ? "text-gray-700" : "text-gray-300"
-                  }`}
-                >
-                  {item.name}
-                </button>
-              ))}
-              <div className="pt-4 border-t border-gray-200">
-                <UserToggle />
-                <Button
-                  onClick={() => window.open("https://app.juice.fitness/", "_blank")}
-                  className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium"
-                >
-                  Get Started
+        <div className="flex items-center gap-4">
+          <UserToggle />
+          <Button
+            className={cn(
+              "hidden md:inline-flex",
+              isCoach ? "trainer-gradient-btn" : "bg-juice text-juice-foreground hover:bg-juice/90",
+            )}
+            asChild
+          >
+            <Link href="https://app.juice.fitness/">{isCoach ? "Start now" : "Get Started"}</Link>
+          </Button>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className={cn("md:hidden", getTextColorClass())}>
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <nav className="flex flex-col gap-4">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block px-2 py-1 text-lg hover:text-juice transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <Button className="mt-4 bg-juice text-juice-foreground hover:bg-juice/90" asChild>
+                  <Link href="https://app.juice.fitness/">Get Started</Link>
                 </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
-    </>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+    </nav>
   )
 }

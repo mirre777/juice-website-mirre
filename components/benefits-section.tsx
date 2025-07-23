@@ -1,94 +1,116 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Check, Shield, Clock, Award } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { CheckCircle, TrendingUp, Users, Clock, DollarSign, Heart, Target, Zap } from "lucide-react"
 
 export function BenefitsSection() {
   const { isCoach } = useTheme()
 
-  // If not in coach view, don't render anything
-  if (!isCoach) {
-    return null
-  }
+  const coachBenefits = [
+    {
+      icon: DollarSign,
+      title: "Increase Revenue",
+      description: "Streamline your business operations and take on more clients with automated tools.",
+      stats: "Average 40% revenue increase",
+    },
+    {
+      icon: Clock,
+      title: "Save Time",
+      description: "Reduce administrative work with automated scheduling, billing, and progress tracking.",
+      stats: "Save 10+ hours per week",
+    },
+    {
+      icon: Users,
+      title: "Better Client Retention",
+      description: "Keep clients engaged with personalized plans and consistent communication.",
+      stats: "85% client retention rate",
+    },
+    {
+      icon: TrendingUp,
+      title: "Scale Your Business",
+      description: "Manage more clients efficiently without compromising on service quality.",
+      stats: "Handle 3x more clients",
+    },
+  ]
+
+  const clientBenefits = [
+    {
+      icon: Target,
+      title: "Achieve Your Goals",
+      description: "Personalized workout plans designed specifically for your fitness objectives.",
+      stats: "90% goal achievement rate",
+    },
+    {
+      icon: Heart,
+      title: "Stay Motivated",
+      description: "Regular check-ins, progress tracking, and community support keep you on track.",
+      stats: "3x more likely to stick to routine",
+    },
+    {
+      icon: Zap,
+      title: "See Faster Results",
+      description: "Expert guidance and optimized training plans accelerate your progress.",
+      stats: "Results 50% faster",
+    },
+    {
+      icon: CheckCircle,
+      title: "Build Healthy Habits",
+      description: "Develop sustainable fitness habits that last a lifetime with professional support.",
+      stats: "95% habit formation success",
+    },
+  ]
+
+  const benefits = isCoach ? coachBenefits : clientBenefits
 
   return (
-    <div className={`pt-10 pb-0 ${isCoach ? "bg-white" : "bg-black"}`}>
+    <section className={`py-20 ${isCoach ? "bg-white" : "bg-black"}`}>
       <div className="container mx-auto px-4 md:px-6">
-        <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>BENEFITS</span>
-          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Why trainers choose Juice
+        <div className="text-center mb-16">
+          <Badge variant="outline" className="mb-4">
+            Benefits
+          </Badge>
+          <h2 className={`text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+            {isCoach ? "Why trainers choose Juice" : "Why clients love Juice"}
           </h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Our platform is designed to make your life easier and your business more successful.
+          <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} max-w-3xl mx-auto`}>
+            {isCoach
+              ? "Join thousands of successful trainers who have transformed their business with our platform."
+              : "Join thousands of satisfied clients who have achieved their fitness goals with professional guidance."}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
-          >
-            <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
-              <Clock className="h-8 w-8 text-black" />
-            </div>
-            <h3 className={`text-xl font-bold mb-2 ${isCoach ? "text-black" : "text-white"}`}>Save Time</h3>
-            <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-              Automate client management and workout tracking to focus on what matters most - training.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
-          >
-            <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
-              <Award className="h-8 w-8 text-black" />
-            </div>
-            <h3 className={`text-xl font-bold mb-2 ${isCoach ? "text-black" : "text-white"}`}>Grow Your Business</h3>
-            <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-              Impress clients with professional tools and deliver better results to attract more referrals.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
-          >
-            <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
-              <Shield className="h-8 w-8 text-black" />
-            </div>
-            <h3 className={`text-xl font-bold mb-2 ${isCoach ? "text-black" : "text-white"}`}>Reduce Admin Work</h3>
-            <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-              Eliminate spreadsheets and manual tracking with our all-in-one platform built for trainers.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
-          >
-            <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
-              <Check className="h-8 w-8 text-black" />
-            </div>
-            <h3 className={`text-xl font-bold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-              Improve Client Results
-            </h3>
-            <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-              Track progress more effectively and provide data-driven feedback to help clients succeed.
-            </p>
-          </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {benefits.map((benefit, index) => (
+            <Card
+              key={index}
+              className={`${isCoach ? "bg-gray-50 border-gray-200" : "bg-zinc-900 border-zinc-800"} hover:shadow-lg transition-shadow`}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <benefit.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className={`text-xl ${isCoach ? "text-black" : "text-white"}`}>
+                      {benefit.title}
+                    </CardTitle>
+                    <Badge variant="secondary" className="text-xs mt-1">
+                      {benefit.stats}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className={`${isCoach ? "text-gray-600" : "text-gray-400"} text-base`}>
+                  {benefit.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

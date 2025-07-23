@@ -1,8 +1,8 @@
 "use server"
 
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
-import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
-import { headers } from "next/headers"
+import { db } from "@/firebase"
+import { collection, addDoc, query, where, getDocs } from "firebase/firestore"
+import { headers } from "next/headers" // Import headers function
 
 // Helper function to standardize plan values
 function standardizePlan(plan: string, userType: string): string {
@@ -34,6 +34,7 @@ export async function joinWaitlist(formData: FormData) {
     const plan = formData.get("plan") as string
     const message = formData.get("message") as string
     const numClients = formData.get("numClients") as string // New: Get numClients
+    const userType = formData.get("user_type") as string
 
     // Get origin if possible
     let origin = ""
@@ -45,58 +46,40 @@ export async function joinWaitlist(formData: FormData) {
       console.error("Could not get headers:", e)
     }
 
-    // Validate email
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      console.log("Email validation failed")
+    // Validate email and city
+    if (!email || !city || !/^\S+@\S+\.\S+$/.test(email)) {
+      console.log("Email or city validation failed")
       return {
         success: false,
-        message: "Please provide a valid email address.",
-      }
-    }
-
-    // If we don't have real Firebase config, simulate success
-    if (!hasRealFirebaseConfig || !db) {
-      console.log("Using mock Firebase configuration - simulating success")
-      // Simulate a delay like a real database call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      return {
-        success: true,
-        message: "You've been added to our waitlist! (Preview Mode)",
+        message: "Please provide a valid email address and city.",
       }
     }
 
     // Check if email already exists in the waitlist
-    const potentialUsersRef = collection(db, "potential_users")
-    const emailQuery = query(potentialUsersRef, where("email", "==", email))
+    const waitlistRef = collection(db, "waitlist")
+    const emailQuery = query(waitlistRef, where("email", "==", email))
     const querySnapshot = await getDocs(emailQuery)
 
     if (!querySnapshot.empty) {
       console.log("Email already exists in waitlist:", email)
       return {
         success: true,
-        message: "You're already on the list! We'll notify you when we launch.",
+        message: "You're already on our waitlist!",
         alreadyExists: true,
       }
     }
-
-    // Get user_type from form or determine based on plan
-    const formUserType = formData.get("user_type") as string
-    const user_type = formUserType || (plan === "coach" ? "trainer" : "client")
-
-    console.log("Setting user_type to:", user_type)
 
     // Create waitlist entry with additional metadata
     const waitlistData: { [key: string]: any } = {
       // Use index signature for dynamic properties
       email,
-      city: city || "", // Add city to waitlist data
-      plan: standardizePlan(plan || "unknown", user_type),
+      city,
+      plan: standardizePlan(plan || "unknown", userType),
       message: message || "",
-      createdAt: serverTimestamp(),
+      createdAt: new Date(),
       status: "waitlist", // Mark as waitlist entry
       source: "website_waitlist",
-      user_type, // Use user_type instead of role
+      userType: userType || "client", // Use user_type instead of role
       signUpDate: new Date().toISOString(),
       origin,
       fromWaitlist: true,
@@ -107,17 +90,17 @@ export async function joinWaitlist(formData: FormData) {
       waitlistData.numClients = Number.parseInt(numClients, 10) // Parse to integer
     }
 
-    console.log("Saving to Firebase collection 'potential_users':", waitlistData)
+    console.log("Saving to Firebase collection 'waitlist':", waitlistData)
 
-    // Add to Firebase - using potential_users collection
-    const docRef = await addDoc(collection(db, "potential_users"), waitlistData)
+    // Add to Firebase - using waitlist collection
+    const docRef = await addDoc(waitlistRef, waitlistData)
 
     console.log("Document written with ID:", docRef.id)
 
     // Return success
     return {
       success: true,
-      message: "You've been added to our waitlist! We'll notify you when we launch.",
+      message: "Successfully added to waitlist!",
     }
   } catch (error) {
     console.error("Error adding document:", error)
@@ -127,14 +110,13 @@ export async function joinWaitlist(formData: FormData) {
       return {
         success: false,
         message: "Unable to save to database. Please check Firebase permissions.",
-        error:
-          "Firebase permission error. Make sure your security rules allow writes to the 'potential_users' collection.",
+        error: "Firebase permission error. Make sure your security rules allow writes to the 'waitlist' collection.",
       }
     }
 
     return {
       success: false,
-      message: "Something went wrong. Please try again later.",
+      message: "Failed to join waitlist. Please try again.",
       error: error instanceof Error ? error.message : String(error),
     }
   }

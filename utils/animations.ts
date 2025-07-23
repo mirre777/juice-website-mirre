@@ -67,25 +67,19 @@ export const successAnimations = {
   // Pulse animation for success
   pulse: {
     container: {
-      initial: { scale: 0.8, opacity: 0 },
+      initial: { scale: 0, opacity: 0 },
       animate: { scale: 1, opacity: 1 },
-      transition: transitions.easeInOut,
+      transition: { duration: 0.3, ease: "easeOut" },
     },
     icon: {
-      initial: { scale: 0.5, opacity: 0 },
-      animate: {
-        scale: [0.5, 1.2, 1],
-        opacity: 1,
-      },
-      transition: {
-        duration: 0.8,
-        times: [0, 0.6, 1],
-      },
+      initial: { scale: 0 },
+      animate: { scale: 1 },
+      transition: { delay: 0.2, duration: 0.3, ease: "easeOut" },
     },
     text: {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      transition: { delay: 0.5, duration: 0.3 },
+      initial: { opacity: 0, y: 10 },
+      animate: { opacity: 1, y: 0 },
+      transition: { delay: 0.4, duration: 0.3, ease: "easeOut" },
     },
   },
 

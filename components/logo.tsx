@@ -1,20 +1,19 @@
 "use client"
-import Image from "next/image"
-import { useTheme } from "@/components/theme-provider"
 
-export function Logo() {
-  const { isCoach } = useTheme()
+import { cn } from "@/lib/utils"
 
+interface LogoProps {
+  className?: string
+  isDarkBackground?: boolean
+}
+
+export function Logo({ className, isDarkBackground = false }: LogoProps) {
   return (
-    <div className="flex items-center">
-      <Image
-        src={isCoach ? "/images/juiceNewLogoPrime.png" : "/images/juiceNewLogoPrimeWhite.png"}
-        alt="Juice"
-        width={100}
-        height={32}
-        className="h-8 w-auto"
-        priority
-      />
+    <div className={cn("flex items-center space-x-2", className)}>
+      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-lg">J</span>
+      </div>
+      <span className={cn("text-xl font-bold", isDarkBackground ? "text-white" : "text-gray-900")}>Juice</span>
     </div>
   )
 }

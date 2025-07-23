@@ -1,11 +1,13 @@
 "use client"
 
-// Completely removed Firebase Analytics to prevent Google logging errors
+// COMPLETELY REMOVED ALL GOOGLE ANALYTICS AND FIREBASE ANALYTICS
+// This file now only contains basic Firebase setup without any analytics
+
 import { initializeApp, getApps } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
 
+// Basic Firebase config without any analytics or measurement ID
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "demo-key",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "demo.firebaseapp.com",
@@ -13,15 +15,15 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "demo.appspot.com",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:demo",
-  // NO measurementId - completely removed to prevent Google Analytics errors
+  // NO measurementId - completely removed
+  // NO analytics imports - completely removed
 }
 
-// Initialize Firebase
+// Initialize Firebase without analytics
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
-// Initialize Firebase services
+// Only export basic Firebase services - NO ANALYTICS
 export const auth = getAuth(app)
 export const db = getFirestore(app)
-export const storage = getStorage(app)
 
 export default app
