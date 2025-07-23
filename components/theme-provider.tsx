@@ -1,42 +1,32 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
+import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import type { ThemeProviderProps } from "next-themes"
 
-type ThemeContextType = {
-  isCoach: boolean
-  setIsCoach: (value: boolean) => void
+interface ExtendedThemeProviderProps extends ThemeProviderProps {
+  children: React.ReactNode
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+interface ThemeContextType {
+  isCoach: boolean
+  setIsCoach: (isCoach: boolean) => void
+}
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps & { children: ReactNode }) {
-  // Changed the default value to true to make coach mode the default
-  const [isCoach, setIsCoach] = useState(true)
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
 
-  // Apply body class based on isCoach state
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      if (isCoach) {
-        document.body.classList.add("coach-mode")
-        document.body.classList.remove("client-mode")
-      } else {
-        document.body.classList.add("client-mode")
-        document.body.classList.remove("coach-mode")
-      }
-    }
-  }, [isCoach])
+export function ThemeProvider({ children, ...props }: ExtendedThemeProviderProps) {
+  const [isCoach, setIsCoach] = React.useState(false)
 
   return (
-    <ThemeContext.Provider value={{ isCoach, setIsCoach }}>
-      <NextThemesProvider {...props}>{children}</NextThemesProvider>
-    </ThemeContext.Provider>
+    <NextThemesProvider {...props}>
+      <ThemeContext.Provider value={{ isCoach, setIsCoach }}>{children}</ThemeContext.Provider>
+    </NextThemesProvider>
   )
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = React.useContext(ThemeContext)
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider")
   }
