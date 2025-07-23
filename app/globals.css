@@ -184,3 +184,67 @@ body {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* Enhanced MDX Styling */
+.mdx-content {
+  @apply text-gray-700 leading-relaxed;
+}
+
+/* Emoji headings styling */
+.emoji-heading {
+  @apply flex items-center gap-3;
+}
+
+.emoji-heading::before {
+  content: "";
+  @apply flex-shrink-0;
+}
+
+/* TL;DR special styling */
+.tldr-heading {
+  @apply text-juice;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-padding-top: 100px;
+}
+
+/* Custom scrollbar for table of contents */
+.toc-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.toc-container::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+.toc-container::-webkit-scrollbar-thumb {
+  @apply bg-juice rounded-full;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .mdx-content {
+    @apply text-black;
+  }
+
+  .mdx-content h1,
+  .mdx-content h2,
+  .mdx-content h3,
+  .mdx-content h4,
+  .mdx-content h5,
+  .mdx-content h6 {
+    @apply text-black;
+    break-after: avoid;
+  }
+
+  .mdx-content p {
+    orphans: 3;
+    widows: 3;
+  }
+}
