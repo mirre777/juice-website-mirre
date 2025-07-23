@@ -2,254 +2,288 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
-import type { DisplayTrainerData, DisplayTrainerContent } from "@/components/trainer/TrainerProfileDisplay"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Clock } from "lucide-react"
-
-interface TempTrainerData {
-  tempId: string
-  fullName: string
-  email: string
-  phone?: string
-  city?: string
-  district?: string
-  specialty: string
-  bio?: string
-  certifications?: string
-  services: string[]
-  createdAt: string
-  expiresAt: string
-  isExpired: boolean
-}
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Clock, MapPin, Star, Phone, Mail, Calendar, CheckCircle, AlertCircle } from "lucide-react"
+import type { TempTrainerData } from "@/types/trainer"
 
 interface TempTrainerPageProps {
-  tempId: string
+  trainer: TempTrainerData
 }
 
-export default function TempTrainerPage({ tempId }: TempTrainerPageProps) {
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState<number>(0)
+export default function TempTrainerPage({ trainer }: TempTrainerPageProps) {
   const router = useRouter()
+  const [timeRemaining, setTimeRemaining] = useState<string>("")
+  const [isExpired, setIsExpired] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch temp trainer data
+  // Calculate time remaining
   useEffect(() => {
-    const fetchTempTrainer = async () => {
+    if (!trainer?.createdAt) {
+      setIsLoading(false)
+      return
+    }
+
+    const updateTimer = () => {
       try {
-        const response = await fetch(`/api/trainer/temp/${tempId}`)
-        const data = await response.json()
+        const createdTime = new Date(trainer.createdAt).getTime()
+        const expiryTime = createdTime + 24 * 60 * 60 * 1000 // 24 hours
+        const now = Date.now()
+        const remaining = expiryTime - now
 
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to load trainer preview")
+        if (remaining <= 0) {
+          setIsExpired(true)
+          setTimeRemaining("Expired")
+          setIsLoading(false)
+          return
         }
 
-        if (data.success && data.trainer) {
-          setTrainer(data.trainer)
+        const hours = Math.floor(remaining / (1000 * 60 * 60))
+        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((remaining % (1000 * 60)) / 1000)
 
-          // Calculate initial time left
-          const expiresAt = new Date(data.trainer.expiresAt).getTime()
-          const now = Date.now()
-          const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
-          setTimeLeft(remaining)
-        } else {
-          throw new Error("Trainer preview not found")
-        }
-      } catch (err) {
-        console.error("Error fetching temp trainer:", err)
-        setError(err instanceof Error ? err.message : "Failed to load trainer preview")
-      } finally {
-        setLoading(false)
+        setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`)
+        setIsLoading(false)
+      } catch (error) {
+        console.error("Error calculating time:", error)
+        setIsLoading(false)
       }
     }
 
-    if (tempId) {
-      fetchTempTrainer()
-    }
-  }, [tempId])
+    // Initial calculation
+    updateTimer()
 
-  // Countdown timer
-  useEffect(() => {
-    if (timeLeft <= 0) return
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        const newTime = prev - 1
-        if (newTime <= 0) {
-          // Mark as expired and redirect
-          setTimeout(() => {
-            router.push("/marketplace/personal-trainer-website")
-          }, 3000)
-        }
-        return Math.max(0, newTime)
-      })
-    }, 1000)
+    // Update every second
+    const interval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(interval)
-  }, [timeLeft, router])
+  }, [trainer?.createdAt])
 
-  // Format time for display
-  const formatTimeLeft = (seconds: number): string => {
-    if (seconds <= 0) return "Expired"
-
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${secs}s`
-    } else if (minutes > 0) {
-      return `${minutes}m ${secs}s`
-    } else {
-      return `${secs}s`
-    }
-  }
-
-  // Transform temp trainer data to display format
-  const transformToDisplayFormat = (
-    tempTrainer: TempTrainerData,
-  ): {
-    displayTrainer: DisplayTrainerData
-    displayContent: DisplayTrainerContent
-  } => {
-    // Parse location
-    const locationParts = tempTrainer.city ? tempTrainer.city.split(", ") : []
-    const city = locationParts[0] || ""
-    const district = locationParts[1] || tempTrainer.district || ""
-
-    const displayTrainer: DisplayTrainerData = {
-      id: tempTrainer.tempId,
-      fullName: tempTrainer.fullName,
-      email: tempTrainer.email,
-      phone: tempTrainer.phone,
-      city: city,
-      district: district,
-      specialty: tempTrainer.specialty,
-      bio: tempTrainer.bio,
-      certifications: tempTrainer.certifications,
-      services: tempTrainer.services,
-      status: "temp",
-      isActive: false,
-      isPaid: false,
-    }
-
-    // Generate enhanced services from string array
-    const enhancedServices = tempTrainer.services.map((service, index) => ({
-      id: `service-${index}`,
-      title: service,
-      description: `Professional ${service.toLowerCase()} service tailored to your fitness goals`,
-      price: index === 0 ? 75 : 60, // First service is premium
-      duration: "60 minutes",
-      featured: index === 0,
-    }))
-
-    const displayContent: DisplayTrainerContent = {
-      hero: {
-        title: `Transform Your Fitness with ${tempTrainer.fullName}`,
-        subtitle: `Professional ${tempTrainer.specialty} Trainer`,
-        description:
-          tempTrainer.bio ||
-          `Get personalized ${tempTrainer.specialty.toLowerCase()} training and achieve your fitness goals with expert guidance.`,
-      },
-      about: {
-        title: "About Me",
-        bio:
-          tempTrainer.bio ||
-          `I'm a certified ${tempTrainer.specialty} trainer passionate about helping clients achieve their fitness goals. With personalized training programs and dedicated support, I'll help you transform your health and fitness journey.`,
-      },
-      contact: {
-        title: "Ready to Start Your Fitness Journey?",
-        description: "This is a preview of your trainer profile. Activate now to start accepting clients and bookings!",
-        phone: tempTrainer.phone || "",
-        email: tempTrainer.email,
-        location: city && district ? `${city}, ${district}` : city || "Location",
-      },
-      services: enhancedServices,
-    }
-
-    return { displayTrainer, displayContent }
-  }
-
-  // Handle activation
   const handleActivate = () => {
+    if (!trainer?.tempId) return
+
     // Store temp trainer data for payment flow
     sessionStorage.setItem("tempTrainerData", JSON.stringify(trainer))
-    sessionStorage.setItem("tempTrainerToken", tempId)
-
-    // Redirect to payment
-    router.push("/payment?plan=trainer&tempId=" + tempId)
+    router.push(`/payment?tempId=${trainer.tempId}`)
   }
 
-  // Handle consultation booking (preview only)
   const handleBookConsultation = () => {
-    alert("This is a preview! Activate your profile to enable client bookings.")
+    alert("This is a preview. Activate your profile to enable booking!")
   }
 
-  if (loading) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D2FF28] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading trainer preview...</p>
         </div>
       </div>
     )
   }
 
-  if (error || !trainer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Not Found</h2>
-              <p className="text-gray-600 mb-4">{error || "This trainer preview has expired or doesn't exist."}</p>
-              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Check if expired
-  const isExpired = timeLeft <= 0 || trainer.isExpired
-
+  // Show expired state
   if (isExpired) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Expired</h2>
-              <p className="text-gray-600 mb-4">
-                This trainer preview has expired. Create a new profile to get started.
-              </p>
-              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
-            </div>
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Preview Expired</h2>
+            <p className="text-gray-600 mb-6">
+              This trainer preview has expired. Please create a new profile to continue.
+            </p>
+            <Button
+              onClick={() => router.push("/marketplace/personal-trainer-website")}
+              className="bg-[#D2FF28] hover:bg-[#B8E625] text-black"
+            >
+              Create New Profile
+            </Button>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  // Transform data for display component
-  const { displayTrainer, displayContent } = transformToDisplayFormat(trainer)
+  // Show error state if no trainer data
+  if (!trainer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Trainer Not Found</h2>
+            <p className="text-gray-600 mb-6">
+              The trainer profile you're looking for doesn't exist or has been removed.
+            </p>
+            <Button
+              onClick={() => router.push("/marketplace/personal-trainer-website")}
+              className="bg-[#D2FF28] hover:bg-[#B8E625] text-black"
+            >
+              Create New Profile
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <TrainerProfileDisplay
-      trainer={displayTrainer}
-      content={displayContent}
-      mode="temp"
-      timeLeft={formatTimeLeft(timeLeft)}
-      isExpired={isExpired}
-      activationPrice="€70"
-      onActivate={handleActivate}
-      onBookConsultation={handleBookConsultation}
-    />
+    <div className="min-h-screen bg-gray-50">
+      {/* Preview Banner */}
+      <div className="bg-[#D2FF28] border-b-2 border-black">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-black" />
+              <span className="font-semibold text-black">Preview Mode - Expires in: {timeRemaining}</span>
+            </div>
+            <Button
+              onClick={handleActivate}
+              size="sm"
+              className="bg-black text-[#D2FF28] hover:bg-gray-800 font-semibold"
+            >
+              Activate for €70
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-gray-900 to-gray-700 text-white p-8">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-4xl font-bold mb-2">{trainer.fullName}</h1>
+                <p className="text-xl text-gray-300 mb-4">{trainer.specialty} Specialist</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>
+                      {trainer.city}, {trainer.district}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-[#D2FF28]" />
+                    <span>New Trainer</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge variant="secondary" className="bg-[#D2FF28] text-black font-semibold">
+                  PREVIEW
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* About Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-bold mb-4">About Me</h2>
+                <p className="text-gray-700 leading-relaxed mb-6">
+                  {trainer.bio ||
+                    `Hi! I'm ${trainer.fullName}, a dedicated ${trainer.specialty.toLowerCase()} specialist based in ${trainer.city}. I'm passionate about helping clients achieve their fitness goals through personalized training programs and expert guidance.`}
+                </p>
+
+                {trainer.certifications && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3">Certifications</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {trainer.certifications.split(",").map((cert, index) => (
+                        <Badge key={index} variant="outline">
+                          {cert.trim()}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {trainer.services && trainer.services.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Services Offered</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {trainer.services.map((service, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          <span className="text-sm">{service}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Contact Card */}
+          <div>
+            <Card className="sticky top-4">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold mb-4">Get In Touch</h3>
+
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm">{trainer.email}</span>
+                  </div>
+                  {trainer.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-gray-500" />
+                      <span className="text-sm">{trainer.phone}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm">
+                      {trainer.city}, {trainer.district}
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleBookConsultation}
+                  className="w-full bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold mb-3"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Book Consultation
+                </Button>
+
+                <Button
+                  onClick={handleActivate}
+                  variant="outline"
+                  className="w-full border-[#D2FF28] text-black hover:bg-[#D2FF28] bg-transparent"
+                >
+                  Activate Profile - €70
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Activation CTA */}
+        <Card className="bg-gradient-to-r from-[#D2FF28] to-[#B8E625] border-0">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold text-black mb-2">Ready to Go Live?</h2>
+            <p className="text-black/80 mb-6">
+              Activate your profile to start accepting clients and bookings. Your website will be live in minutes!
+            </p>
+            <Button
+              onClick={handleActivate}
+              size="lg"
+              className="bg-black text-[#D2FF28] hover:bg-gray-800 font-semibold px-8"
+            >
+              Activate Now - €70
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   )
 }
