@@ -1,97 +1,118 @@
 "use client"
+
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Star, MapPin, Clock, Users, Award, CheckCircle, Calendar, MessageCircle, Phone, Mail } from "lucide-react"
+import { MapPin, Users, Dumbbell, Award, Phone, Mail, Calendar, Clock, CheckCircle, MessageCircle } from "lucide-react"
 
-export interface TrainerData {
-  id?: string
-  tempId?: string
-  name: string
-  title?: string
-  specialties?: string[]
-  bio?: string
-  experience?: string
-  certifications?: string[]
-  location?: string
-  rating?: number
-  reviewCount?: number
-  hourlyRate?: number
-  availability?: string[]
-  profileImage?: string
-  languages?: string[]
-  achievements?: string[]
-  workoutTypes?: string[]
-  equipment?: string[]
-  clientCount?: number
-  yearsExperience?: number
-  contactEmail?: string
-  contactPhone?: string
-  socialMedia?: {
-    instagram?: string
-    facebook?: string
-    linkedin?: string
-  }
-  gallery?: string[]
-  testimonials?: Array<{
-    name: string
-    rating: number
-    comment: string
-    date: string
-  }>
-  packages?: Array<{
-    name: string
-    description: string
-    price: number
-    duration: string
-    sessions: number
-  }>
+// Shared interfaces for the display component
+export interface DisplayService {
+  id: string
+  title: string
+  description: string
+  price: number
+  duration: string
+  featured: boolean
 }
 
-interface TrainerProfileDisplayProps {
-  trainer: TrainerData
-  mode?: "live" | "temp"
-  onContact?: () => void
-  onBookSession?: () => void
-  onViewPackages?: () => void
-  className?: string
+export interface DisplayTrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    bio: string
+  }
+  contact: {
+    title: string
+    description: string
+    phone: string
+    email: string
+    location: string
+  }
+  services: DisplayService[]
+}
+
+export interface DisplayTrainerData {
+  id: string
+  fullName: string
+  email: string
+  phone?: string
+  city?: string
+  district?: string
+  specialty: string
+  bio?: string
+  certifications?: string
+  services: string[]
+  profileImage?: string
+  status: string
+  isActive?: boolean
+  isPaid?: boolean
+}
+
+export interface TrainerProfileDisplayProps {
+  trainer: DisplayTrainerData
+  content?: DisplayTrainerContent
+  mode: "live" | "temp"
+
+  // Mode-specific props
+  onBookConsultation?: () => void
+  onScheduleSession?: () => void
+  onSendMessage?: () => void
+
+  // Temp mode specific
+  onActivate?: () => void
+  timeLeft?: string
+  isExpired?: boolean
+  activationPrice?: string
+
+  // Live mode specific
+  isEditable?: boolean
+  onEdit?: () => void
 }
 
 export default function TrainerProfileDisplay({
   trainer,
-  mode = "live",
-  onContact,
-  onBookSession,
-  onViewPackages,
-  className = "",
+  content,
+  mode,
+  onBookConsultation,
+  onScheduleSession,
+  onSendMessage,
+  onActivate,
+  timeLeft,
+  isExpired,
+  activationPrice = "€70",
+  isEditable = false,
+  onEdit,
 }: TrainerProfileDisplayProps) {
-  const {
-    name = "Professional Trainer",
-    title = "Certified Personal Trainer",
-    specialties = [],
-    bio = "Experienced fitness professional dedicated to helping clients achieve their goals.",
-    experience = "New to the platform",
-    certifications = [],
-    location = "Location not specified",
-    rating = 0,
-    reviewCount = 0,
-    hourlyRate = 0,
-    availability = [],
-    profileImage,
-    languages = ["English"],
-    achievements = [],
-    workoutTypes = [],
-    equipment = [],
-    clientCount = 0,
-    yearsExperience = 0,
-    contactEmail,
-    contactPhone,
-    socialMedia = {},
-    gallery = [],
-    testimonials = [],
-    packages = [],
-  } = trainer
+  // Safe access to content with fallbacks
+  const heroContent = content?.hero || {
+    title: `Transform Your Fitness with ${trainer.fullName}`,
+    subtitle: `Professional ${trainer.specialty} trainer`,
+    description: trainer.bio || "Professional fitness training services tailored to your goals.",
+  }
+
+  const aboutContent = content?.about || {
+    title: "About Me",
+    bio: trainer.bio || "Professional trainer dedicated to helping clients achieve their fitness goals.",
+  }
+
+  const contactContent = content?.contact || {
+    title: mode === "temp" ? "Let's Start Your Fitness Journey" : "Contact",
+    description:
+      mode === "temp"
+        ? "Get in touch to schedule your consultation"
+        : "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+    phone: trainer.phone || "",
+    email: trainer.email,
+    location: trainer.city && trainer.district ? `${trainer.city}, ${trainer.district}` : trainer.city || "Location",
+  }
+
+  const servicesContent = Array.isArray(content?.services) ? content.services : []
 
   const getInitials = (name: string) => {
     return name
@@ -102,309 +123,290 @@ export default function TrainerProfileDisplay({
       .slice(0, 2)
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount)
-  }
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-      />
-    ))
-  }
-
   return (
-    <div className={`max-w-4xl mx-auto space-y-6 ${className}`}>
-      {/* Mode Indicator */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Temp Mode Banner */}
       {mode === "temp" && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <div className="flex items-center space-x-2">
-            <Clock className="h-5 w-5 text-orange-600" />
-            <span className="text-orange-800 font-medium">Preview Mode - This profile is not yet live</span>
+        <div className="bg-[#D2FF28] text-black py-3 px-4 text-center font-medium">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <span>Preview Mode - {timeLeft || "Time remaining"}</span>
+            </div>
+            <Button onClick={onActivate} className="bg-black text-white hover:bg-gray-800 text-sm px-4 py-1">
+              Activate Now - {activationPrice}
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Header Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex-shrink-0">
-              <Avatar className="h-32 w-32">
-                <AvatarImage src={profileImage || "/placeholder.svg"} alt={name} />
-                <AvatarFallback className="text-2xl bg-orange-100 text-orange-600">{getInitials(name)}</AvatarFallback>
+      {/* Live Mode Edit Bar */}
+      {mode === "live" && isEditable && (
+        <div className="bg-white border-b py-3 px-4">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Live
+              </Badge>
+              <span className="text-sm text-gray-600">Your profile is active</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onEdit}>
+                Edit Profile
+              </Button>
+              <Button>Dashboard</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section - Shared Design */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 mb-8">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Profile Image */}
+            <div className="mb-6">
+              <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
+                <AvatarImage src={trainer.profileImage || "/placeholder.svg"} alt={trainer.fullName} />
+                <AvatarFallback className="text-2xl bg-white/20 text-white">
+                  {getInitials(trainer.fullName)}
+                </AvatarFallback>
               </Avatar>
             </div>
 
-            <div className="flex-1 space-y-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
-                <p className="text-xl text-gray-600">{title}</p>
-              </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
+            <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
+            <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
 
-              <div className="flex flex-wrap gap-2">
-                {specialties.map((specialty, index) => (
-                  <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-800">
-                    {specialty}
-                  </Badge>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                {location && (
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{location}</span>
-                  </div>
-                )}
-
-                {rating > 0 && (
-                  <div className="flex items-center space-x-1">
-                    <div className="flex">{renderStars(rating)}</div>
-                    <span>{rating.toFixed(1)}</span>
-                    {reviewCount > 0 && <span className="text-gray-400">({reviewCount} reviews)</span>}
-                  </div>
-                )}
-
-                {yearsExperience > 0 && (
-                  <div className="flex items-center space-x-1">
-                    <Award className="h-4 w-4" />
-                    <span>{yearsExperience} years experience</span>
-                  </div>
-                )}
-
-                {clientCount > 0 && (
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span>{clientCount} clients</span>
-                  </div>
-                )}
-              </div>
-
-              {hourlyRate > 0 && (
-                <div className="text-2xl font-bold text-orange-600">{formatCurrency(hourlyRate)}/hour</div>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2 min-w-[200px]">
-              {mode === "live" && (
-                <>
-                  <Button onClick={onBookSession} className="bg-orange-600 hover:bg-orange-700">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Book Session
-                  </Button>
-                  <Button variant="outline" onClick={onContact}>
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Contact Trainer
-                  </Button>
-                  {packages.length > 0 && (
-                    <Button variant="outline" onClick={onViewPackages}>
-                      View Packages
-                    </Button>
-                  )}
-                </>
-              )}
-              {mode === "temp" && (
-                <Button disabled variant="outline">
-                  Profile in Review
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bio Section */}
-      {bio && (
-        <Card>
-          <CardHeader>
-            <CardTitle>About</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 leading-relaxed">{bio}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Certifications */}
-        {certifications.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="h-5 w-5" />
-                <span>Certifications</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {certifications.map((cert, index) => (
-                  <li key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>{cert}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Workout Types */}
-        {workoutTypes.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Workout Types</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {workoutTypes.map((type, index) => (
-                  <Badge key={index} variant="outline">
-                    {type}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Languages */}
-        {languages.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Languages</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {languages.map((language, index) => (
-                  <Badge key={index} variant="outline">
-                    {language}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Equipment */}
-        {equipment.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Equipment Available</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {equipment.map((item, index) => (
-                  <Badge key={index} variant="outline">
-                    {item}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Availability */}
-      {availability.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="h-5 w-5" />
-              <span>Availability</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {availability.map((slot, index) => (
-                <Badge key={index} variant="outline" className="bg-green-50 text-green-700">
-                  {slot}
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
+              <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                <Award className="h-4 w-4 mr-1" />
+                {trainer.specialty}
+              </Badge>
+              <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                <MapPin className="h-4 w-4 mr-1" />
+                {contactContent.location}
+              </Badge>
+              {trainer.certifications && (
+                <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Certified
                 </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Packages */}
-      {packages.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Training Packages</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {packages.map((pkg, index) => (
-                <div key={index} className="border rounded-lg p-4 space-y-2">
-                  <h4 className="font-semibold">{pkg.name}</h4>
-                  <p className="text-sm text-gray-600">{pkg.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-orange-600">{formatCurrency(pkg.price)}</span>
-                    <span className="text-sm text-gray-500">{pkg.sessions} sessions</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Testimonials */}
-      {testimonials.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Client Testimonials</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {testimonials.map((testimonial, index) => (
-                <div key={index} className="border-l-4 border-orange-200 pl-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="flex">{renderStars(testimonial.rating)}</div>
-                    <span className="font-medium">{testimonial.name}</span>
-                    <span className="text-sm text-gray-500">{testimonial.date}</span>
-                  </div>
-                  <p className="text-gray-700">{testimonial.comment}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Contact Information */}
-      {mode === "live" && (contactEmail || contactPhone) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {contactEmail && (
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-gray-500" />
-                  <a href={`mailto:${contactEmail}`} className="text-orange-600 hover:underline">
-                    {contactEmail}
-                  </a>
-                </div>
-              )}
-              {contactPhone && (
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-gray-500" />
-                  <a href={`tel:${contactPhone}`} className="text-orange-600 hover:underline">
-                    {contactPhone}
-                  </a>
-                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            {/* CTA Button - Mode Specific */}
+            <Button
+              size="lg"
+              variant="secondary"
+              className="text-blue-600 bg-white hover:bg-gray-100"
+              onClick={onBookConsultation}
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Book Free Consultation
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-8">
+            {/* About Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  {aboutContent.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+                {trainer.certifications && (
+                  <div className="mt-6">
+                    <h4 className="font-semibold mb-3 flex items-center">
+                      <Award className="w-4 h-4 mr-2" />
+                      Certifications
+                    </h4>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-gray-700">{trainer.certifications}</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Services Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Dumbbell className="h-5 w-5 mr-2" />
+                  Services Offered
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {servicesContent.length > 0 ? (
+                    servicesContent.map((service, index) => (
+                      <div
+                        key={service.id || index}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">{service.title}</h3>
+                            {service.featured && (
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                Featured
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-blue-600">€{service.price}</div>
+                            <div className="text-sm text-gray-500">{service.duration}</div>
+                          </div>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-3">{service.description}</p>
+                        <Button className="w-full bg-transparent" variant="outline" onClick={onScheduleSession}>
+                          Book This Service
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <Dumbbell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <h3 className="font-medium mb-2">Services Coming Soon</h3>
+                      <p className="text-sm">This trainer is setting up their service offerings.</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{contactContent.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-600 text-sm">{contactContent.description}</p>
+
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                    <span className="text-sm">{contactContent.email}</span>
+                  </div>
+
+                  {contactContent.phone && (
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                      <span className="text-sm">{contactContent.phone}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-3 text-gray-400" />
+                    <span className="text-sm">{contactContent.location}</span>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Mode-specific contact buttons */}
+                <div className="space-y-2">
+                  {mode === "temp" ? (
+                    <Button
+                      className="w-full"
+                      style={{ backgroundColor: "#D2FF28", color: "black" }}
+                      onClick={onBookConsultation}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Book Consultation
+                    </Button>
+                  ) : (
+                    <>
+                      <Button className="w-full" onClick={onScheduleSession}>
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Schedule Session
+                      </Button>
+                      <Button variant="outline" className="w-full bg-transparent" onClick={onSendMessage}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Send Message
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Specialty</span>
+                  <span className="font-semibold">{trainer.specialty}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Location</span>
+                  <span className="font-semibold">{contactContent.location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Services</span>
+                  <span className="font-semibold">{servicesContent.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status</span>
+                  <Badge variant={mode === "live" ? "default" : "secondary"}>
+                    {mode === "live" ? "Active" : "Preview"}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Temp Mode - Activation CTA */}
+            {mode === "temp" && !isExpired && (
+              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <h3 className="font-semibold text-gray-900 mb-2">Ready to Go Live?</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Activate your trainer profile and start accepting bookings today.
+                    </p>
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      onClick={onActivate}
+                    >
+                      Activate Profile - {activationPrice}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Expired State */}
+            {mode === "temp" && isExpired && (
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <h3 className="font-semibold text-red-900 mb-2">Preview Expired</h3>
+                    <p className="text-sm text-red-600 mb-4">
+                      This preview has expired. Please create a new trainer profile.
+                    </p>
+                    <Button variant="outline" className="w-full border-red-300 text-red-700 bg-transparent">
+                      Create New Profile
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
