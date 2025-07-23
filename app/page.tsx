@@ -1,5 +1,3 @@
-import ClientPage from "./ClientPage"
-
 export const metadata = {
   title: "Juice - Fitness Tracking & Coaching Platform | Best Online Personal Trainer App",
   description:
@@ -8,6 +6,8 @@ export const metadata = {
     images: "/images/og-feature-graphic.png",
   },
 }
+
+import ClientPage from "./ClientPage"
 
 export default function Home() {
   return <ClientPage />
