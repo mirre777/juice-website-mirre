@@ -78,38 +78,56 @@ function removeDuplicateTitle(content: string, title: string): string {
 }
 
 async function fetchBlobContent(url: string): Promise<string> {
-  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
+  console.log(`[fetchBlobContent] 🔍 Attempting to fetch: ${url}`)
+  console.log(`[fetchBlobContent] 🔑 BLOB_TOKEN available: ${!!BLOB_TOKEN}`)
+  console.log(`[fetchBlobContent] 🔑 BLOB_TOKEN length: ${BLOB_TOKEN?.length || 0}`)
 
   const methods = [
-    () => fetch(url),
-    () =>
-      fetch(url, {
+    () => {
+      console.log(`[fetchBlobContent] 📡 Method 1: Direct fetch (no auth)`)
+      return fetch(url)
+    },
+    () => {
+      console.log(`[fetchBlobContent] 📡 Method 2: Bearer token auth`)
+      return fetch(url, {
         headers: {
           Authorization: `Bearer ${BLOB_TOKEN}`,
         },
-      }),
-    () =>
-      fetch(url, {
+      })
+    },
+    () => {
+      console.log(`[fetchBlobContent] 📡 Method 3: Token auth`)
+      return fetch(url, {
         headers: {
           Authorization: `token ${BLOB_TOKEN}`,
         },
-      }),
+      })
+    },
   ]
 
   for (let i = 0; i < methods.length; i++) {
     try {
-      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
+      console.log(`[fetchBlobContent] 🚀 Trying method ${i + 1}...`)
       const response = await methods[i]()
 
-      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
+      console.log(`[fetchBlobContent] 📊 Method ${i + 1} response:`)
+      console.log(`  - Status: ${response.status}`)
+      console.log(`  - Status Text: ${response.statusText}`)
+      console.log(`  - Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()))}`)
 
       if (response.ok) {
         const content = await response.text()
-        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
+        console.log(`[fetchBlobContent] ✅ SUCCESS with method ${i + 1}`)
+        console.log(`[fetchBlobContent] 📝 Content length: ${content.length} characters`)
+        console.log(`[fetchBlobContent] 📝 Content preview (first 300 chars): ${content.substring(0, 300)}`)
         return content
+      } else {
+        console.log(`[fetchBlobContent] ❌ Method ${i + 1} failed with status ${response.status}`)
+        const errorText = await response.text()
+        console.log(`[fetchBlobContent] 📄 Error response body: ${errorText}`)
       }
     } catch (error) {
-      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
+      console.log(`[fetchBlobContent] 💥 Method ${i + 1} threw error:`, error)
     }
   }
 
@@ -117,60 +135,93 @@ async function fetchBlobContent(url: string): Promise<string> {
 }
 
 export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] Fetching all blog post slugs...")
+  console.log("[getPostSlugs] 🔍 Starting to fetch all blog post slugs...")
+  console.log(`[getPostSlugs] 🔑 BLOB_TOKEN check: ${!!BLOB_TOKEN ? "AVAILABLE" : "MISSING"}`)
+  console.log(`[getPostSlugs] 📁 Looking for files with prefix: ${BLOG_CONTENT_PATH}`)
 
   if (!BLOB_TOKEN) {
-    console.error("[getPostSlugs] BLOB_READ_WRITE_TOKEN is not set")
+    console.error("[getPostSlugs] ❌ BLOB_READ_WRITE_TOKEN is not set")
     return []
   }
 
   try {
+    console.log("[getPostSlugs] 📡 Calling list() function...")
     const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    const slugs = blobs
-      .filter((blob) => blob.pathname.endsWith(".md"))
-      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
-    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
+    console.log(`[getPostSlugs] 📊 Raw blob response: ${blobs.length} total blobs found`)
+
+    blobs.forEach((blob, index) => {
+      console.log(`[getPostSlugs] 📄 Blob ${index + 1}: ${blob.pathname} (${blob.size} bytes)`)
+    })
+
+    const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
+    console.log(`[getPostSlugs] 📝 Markdown files found: ${markdownBlobs.length}`)
+
+    const slugs = markdownBlobs.map((blob) => {
+      const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+      console.log(`[getPostSlugs] 🏷️ Extracted slug: "${slug}" from "${blob.pathname}"`)
+      return slug
+    })
+
+    console.log(`[getPostSlugs] ✅ Final slugs array: [${slugs.join(", ")}]`)
     return slugs
   } catch (error) {
-    console.error("[getPostSlugs] Error fetching from blob storage:", error)
+    console.error("[getPostSlugs] 💥 Error fetching from blob storage:", error)
+    console.error("[getPostSlugs] 📊 Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    })
     return []
   }
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] Fetching all blog posts...")
+  console.log("[getAllPosts] 🔍 Starting to fetch all blog posts...")
+  console.log(`[getAllPosts] 🔑 BLOB_TOKEN check: ${!!BLOB_TOKEN ? "AVAILABLE" : "MISSING"}`)
 
   if (!BLOB_TOKEN) {
-    console.error("[getAllPosts] BLOB_READ_WRITE_TOKEN is not set")
+    console.error("[getAllPosts] ❌ BLOB_READ_WRITE_TOKEN is not set")
     return []
   }
 
   try {
+    console.log("[getAllPosts] 📡 Calling list() function...")
     const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
+    console.log(`[getAllPosts] 📊 Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
     const posts: BlogPostFrontmatter[] = []
 
     for (const blob of blobs) {
       if (blob.pathname.endsWith(".md")) {
-        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
+        console.log(`[getAllPosts] 📝 Processing markdown blob: ${blob.pathname}`)
+        console.log(`[getAllPosts] 📊 Blob details: size=${blob.size}, url=${blob.url}`)
 
         try {
+          console.log(`[getAllPosts] 🚀 Fetching content for: ${blob.pathname}`)
           const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
+          console.log(`[getAllPosts] ✅ Successfully fetched content: ${fileContents.length} chars`)
 
           const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+          console.log(`[getAllPosts] 🏷️ Extracted slug: ${slug}`)
 
-          console.log(`[getAllPosts] Extracted slug: ${slug}`)
-
+          console.log(`[getAllPosts] 📄 Parsing frontmatter and content...`)
           const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+          console.log(`[getAllPosts] 📊 Frontmatter data:`, data)
+          console.log(`[getAllPosts] 📝 Content length: ${content.length} chars`)
+          console.log(`[getAllPosts] 📝 Matter excerpt: ${matterExcerpt?.substring(0, 100) || "none"}`)
 
           const extracted = extractTitleAndExcerpt(content)
+          console.log(`[getAllPosts] 🔍 Extracted title: "${extracted.title}"`)
+          console.log(`[getAllPosts] 🔍 Extracted excerpt: "${extracted.excerpt?.substring(0, 100) || "none"}"`)
 
           const title = data.title || extracted.title || `Post: ${slug}`
           const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
+          console.log(`[getAllPosts] ✅ Final processed post:`)
+          console.log(`  - Title: ${title}`)
+          console.log(`  - Date: ${data.date || "auto-generated"}`)
+          console.log(`  - Category: ${data.category || "Uncategorized"}`)
+          console.log(`  - Excerpt: ${excerpt.substring(0, 100)}...`)
 
           posts.push({
             title: title,
@@ -181,76 +232,103 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             slug: slug,
           })
         } catch (error) {
-          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
+          console.error(`[getAllPosts] 💥 Error processing blob ${blob.pathname}:`, error)
           continue
         }
+      } else {
+        console.log(`[getAllPosts] ⏭️ Skipping non-markdown file: ${blob.pathname}`)
       }
     }
 
+    console.log(`[getAllPosts] 📊 Sorting ${posts.length} posts by date...`)
     posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
+    console.log(`[getAllPosts] ✅ Successfully processed ${posts.length} posts from blob storage`)
+    posts.forEach((post, index) => {
+      console.log(`[getAllPosts] 📄 Post ${index + 1}: "${post.title}" (${post.slug})`)
+    })
+
     return posts
   } catch (error) {
-    console.error("[getAllPosts] Error fetching from blob storage:", error)
+    console.error("[getAllPosts] 💥 Error fetching from blob storage:", error)
+    console.error("[getAllPosts] 📊 Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    })
     return []
   }
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
+  console.log(`[getPostBySlug] 🔍 Starting to fetch post with slug: "${slug}"`)
+  console.log(`[getPostBySlug] 🔑 BLOB_TOKEN check: ${!!BLOB_TOKEN ? "AVAILABLE" : "MISSING"}`)
 
   if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set")
+    console.error("[getPostBySlug] ❌ BLOB_READ_WRITE_TOKEN is not set")
     return null
   }
 
   try {
     const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
-    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
+    console.log(`[getPostBySlug] 🎯 Target blob path: ${targetPath}`)
 
+    console.log(`[getPostBySlug] 📡 Calling list() to find target blob...`)
     const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
+    console.log(`[getPostBySlug] 📊 List response: ${blobs.length} blobs found`)
+
+    blobs.forEach((blob, index) => {
+      console.log(`[getPostBySlug] 📄 Blob ${index + 1}: ${blob.pathname}`)
+    })
+
     const targetBlob = blobs.find((b) => b.pathname === targetPath)
 
     if (!targetBlob) {
-      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
+      console.warn(`[getPostBySlug] ❌ No blob found for exact path: ${targetPath}`)
       console.log(
-        `[getPostBySlug] Available blobs:`,
+        `[getPostBySlug] 📊 Available blobs:`,
         blobs.map((b) => b.pathname),
       )
       return null
     }
 
-    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
+    console.log(`[getPostBySlug] ✅ Found target blob:`)
+    console.log(`  - Path: ${targetBlob.pathname}`)
+    console.log(`  - URL: ${targetBlob.url}`)
+    console.log(`  - Size: ${targetBlob.size} bytes`)
 
+    console.log(`[getPostBySlug] 🚀 Fetching blob content...`)
     const fileContents = await fetchBlobContent(targetBlob.url)
-    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
+    console.log(`[getPostBySlug] ✅ Successfully fetched file contents: ${fileContents.length} chars`)
+    console.log(`[getPostBySlug] 📝 Content preview (first 500 chars): ${fileContents.substring(0, 500)}`)
 
+    console.log(`[getPostBySlug] 📄 Parsing frontmatter and content...`)
     const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] Frontmatter:`, data)
-    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
+    console.log(`[getPostBySlug] 📊 Parsed frontmatter:`, data)
+    console.log(`[getPostBySlug] 📝 Content length after frontmatter removal: ${content.length} chars`)
 
     const extracted = extractTitleAndExcerpt(content)
-    console.log(
-      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
-    )
+    console.log(`[getPostBySlug] 🔍 Extracted from content:`)
+    console.log(`  - Title: "${extracted.title}"`)
+    console.log(`  - Excerpt: "${extracted.excerpt?.substring(0, 100)}..."`)
 
     const title = data.title || extracted.title || `Post: ${slug}`
+    console.log(`[getPostBySlug] 🏷️ Final title: "${title}"`)
 
+    console.log(`[getPostBySlug] 🔧 Removing duplicate title from content...`)
     const contentDeduplicated = removeDuplicateTitle(content, title)
-    console.log(`[getPostBySlug] Content after title deduplication: ${contentDeduplicated.length} chars`)
+    console.log(`[getPostBySlug] ✅ Content after deduplication: ${contentDeduplicated.length} chars`)
 
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+    console.log(`[getPostBySlug] 📝 Final excerpt: "${excerpt.substring(0, 100)}..."`)
 
-    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
-
+    console.log(`[getPostBySlug] ⚙️ Serializing MDX content...`)
     const serializedContent = await serialize(contentDeduplicated, {
       parseFrontmatter: false,
     })
-    console.log("[getPostBySlug] MDX serialized successfully")
+    console.log("[getPostBySlug] ✅ MDX serialized successfully")
 
-    return {
+    const finalPost = {
       frontmatter: {
         title: title,
         date: data.date || new Date().toISOString().split("T")[0],
@@ -263,8 +341,21 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       content: contentDeduplicated,
       slug,
     }
+
+    console.log(`[getPostBySlug] ✅ Final post object created:`)
+    console.log(`  - Title: ${finalPost.frontmatter.title}`)
+    console.log(`  - Date: ${finalPost.frontmatter.date}`)
+    console.log(`  - Category: ${finalPost.frontmatter.category}`)
+    console.log(`  - Slug: ${finalPost.slug}`)
+
+    return finalPost
   } catch (error) {
-    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
+    console.error(`[getPostBySlug] 💥 Error fetching or processing post ${slug}:`, error)
+    console.error(`[getPostBySlug] 📊 Error details:`, {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    })
     return null
   }
 }
