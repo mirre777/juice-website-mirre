@@ -807,6 +807,50 @@ function extractTitleAndExcerpt(content: string): { title: string | null; excerp
   }
 }
 
+// Helper function to remove duplicate title from content
+function removeDuplicateTitle(content: string, title: string): string {
+  if (!title || !content) return content
+
+  console.log(`[removeDuplicateTitle] Checking for duplicate title: "${title}"`)
+
+  // Clean the title for comparison (remove emojis and extra whitespace)
+  const cleanTitle = title.replace(/[\p{Emoji}\u200d\s]+/gu, "").toLowerCase()
+
+  // Try different heading formats
+  const headingPatterns = [
+    new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+    new RegExp(`^##\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+    new RegExp(`^###\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+  ]
+
+  // Try to match and remove the duplicate title
+  for (const pattern of headingPatterns) {
+    if (pattern.test(content)) {
+      console.log(`[removeDuplicateTitle] Found duplicate title with exact match, removing...`)
+      return content.replace(pattern, "").trim()
+    }
+  }
+
+  // If no exact match, try a more flexible approach for emoji titles
+  const lines = content.split("\n")
+  if (lines.length > 0) {
+    const firstLine = lines[0].trim()
+    if (firstLine.startsWith("#")) {
+      const firstLineClean = firstLine
+        .replace(/^#+\s*/, "")
+        .replace(/[\p{Emoji}\u200d\s]+/gu, "")
+        .toLowerCase()
+      if (firstLineClean === cleanTitle) {
+        console.log(`[removeDuplicateTitle] Found duplicate title via flexible matching, removing...`)
+        return lines.slice(1).join("\n").trim()
+      }
+    }
+  }
+
+  console.log(`[removeDuplicateTitle] No duplicate title found`)
+  return content
+}
+
 // Helper function to fetch blob content with proper authentication
 async function fetchBlobContent(url: string): Promise<string> {
   console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
@@ -945,14 +989,18 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     const sampleContent = SAMPLE_BLOG_CONTENT[slug]
 
     if (samplePost && sampleContent) {
-      const serializedContent = await serialize(sampleContent, {
+      // Apply deduplication to sample content too!
+      const contentDeduplicated = removeDuplicateTitle(sampleContent, samplePost.title)
+      console.log(`[getPostBySlug] Sample content after title deduplication: ${contentDeduplicated.length} chars`)
+
+      const serializedContent = await serialize(contentDeduplicated, {
         parseFrontmatter: false,
       })
 
       return {
         frontmatter: samplePost,
         serializedContent,
-        content: sampleContent,
+        content: contentDeduplicated,
         slug: slug,
       }
     }
@@ -996,50 +1044,9 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 
     const title = data.title || extracted.title || `Post: ${slug}`
 
-    // Remove duplicate title from content if it exists
-    function removeDuplicateTitle(content: string, title: string): string {
-      if (!title || !content) return content
-
-      // Clean the title for comparison (remove emojis and extra whitespace)
-      const cleanTitle = title.replace(/[\p{Emoji}\u200d\s]+/gu, "").toLowerCase()
-
-      // Try different heading formats
-      const headingPatterns = [
-        new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-        new RegExp(`^##\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-        new RegExp(`^###\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-      ]
-
-      // Try to match and remove the duplicate title
-      for (const pattern of headingPatterns) {
-        if (pattern.test(content)) {
-          console.log(`[removeDuplicateTitle] Found duplicate title, removing...`)
-          return content.replace(pattern, "").trim()
-        }
-      }
-
-      // If no exact match, try a more flexible approach for emoji titles
-      const lines = content.split("\n")
-      if (lines.length > 0) {
-        const firstLine = lines[0].trim()
-        if (firstLine.startsWith("#")) {
-          const firstLineClean = firstLine
-            .replace(/^#+\s*/, "")
-            .replace(/[\p{Emoji}\u200d\s]+/gu, "")
-            .toLowerCase()
-          if (firstLineClean === cleanTitle) {
-            console.log(`[removeDuplicateTitle] Found duplicate title via flexible matching, removing...`)
-            return lines.slice(1).join("\n").trim()
-          }
-        }
-      }
-
-      return content
-    }
-
-    // Apply the deduplication
+    // Apply the deduplication to blob content
     const contentDeduplicated = removeDuplicateTitle(content, title)
-    console.log(`[getPostBySlug] Content after title deduplication: ${contentDeduplicated.length} chars`)
+    console.log(`[getPostBySlug] Blob content after title deduplication: ${contentDeduplicated.length} chars`)
 
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
