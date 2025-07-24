@@ -1,198 +1,253 @@
 import { list } from "@vercel/blob"
-import matter from "gray-matter"
-import { serialize } from "next-mdx-remote/serialize"
 
 export interface BlogPost {
   slug: string
-  frontmatter: {
-    title: string
-    excerpt: string
-    date: string
-    category: string
-    author?: string
-    image?: string
-  }
-  content: string
-  serializedContent: any
+  title: string
+  excerpt: string
+  date: string
+  category: string
+  image: string
+  readTime: string
+  content?: string
 }
 
-// Function to extract title from markdown content (handles emojis)
-function extractTitleFromContent(content: string): string {
-  // First try to find emoji title at the start
-  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
-  const emojiMatch = content.match(emojiTitleRegex)
-  if (emojiMatch) {
-    return emojiMatch[1].trim()
-  }
+// Enhanced content extraction with better logging
+function extractContentFromMarkdown(content: string, slug: string): Partial<BlogPost> {
+  console.log(`🔍 Extracting content for slug: ${slug}`)
+  console.log(`📏 Content length: ${content.length}`)
 
-  // Try to find any heading
-  const headingRegex = /^#+\s+(.+)$/m
-  const headingMatch = content.match(headingRegex)
-  if (headingMatch) {
-    return headingMatch[1].trim()
-  }
-
-  // Fallback to first line
-  const firstLine = content.split("\n")[0]
-  return firstLine.trim() || "Untitled"
-}
-
-// Function to extract excerpt from content
-function extractExcerptFromContent(content: string): string {
-  // Look for TL;DR section
-  const tldrRegex = /TL;DR:?\s*(.*?)(?:\n\n|\n(?=[A-Z])|$)/s
-  const tldrMatch = content.match(tldrRegex)
-  if (tldrMatch) {
-    return tldrMatch[1].trim()
-  }
-
-  // Look for first paragraph after title
-  const lines = content.split("\n").filter((line) => line.trim())
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (line && !line.startsWith("#") && !line.startsWith("---") && line.length > 50) {
-      return line.substring(0, 200) + (line.length > 200 ? "..." : "")
+  if (!content || content.trim().length === 0) {
+    console.log("⚠️ Empty content provided")
+    return {
+      title: `Post ${slug}`,
+      excerpt: "Coming Soon",
+      category: "Uncategorized",
     }
   }
 
-  return "No excerpt available."
-}
+  // Show content preview for debugging
+  const preview = content.substring(0, 200).replace(/\n/g, " ")
+  console.log(`👀 Content preview: "${preview}..."`)
 
-export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] Starting to fetch post slugs...")
-
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-  if (!token) {
-    console.error("[getPostSlugs] BLOB_READ_WRITE_TOKEN not found")
-    return []
-  }
+  let title = "Untitled"
+  let excerpt = "Coming Soon"
+  let category = "Uncategorized"
 
   try {
-    const { blobs } = await list({ token })
-    console.log(`[getPostSlugs] Found ${blobs.length} total blobs`)
+    // Extract frontmatter if present
+    if (content.startsWith("---")) {
+      const frontmatterEnd = content.indexOf("---", 3)
+      if (frontmatterEnd !== -1) {
+        const frontmatter = content.slice(3, frontmatterEnd)
+        const titleMatch = frontmatter.match(/title:\s*["']?([^"'\n]+)["']?/)
+        const excerptMatch = frontmatter.match(/excerpt:\s*["']?([^"'\n]+)["']?/)
+        const categoryMatch = frontmatter.match(/category:\s*["']?([^"'\n]+)["']?/)
 
-    const blogBlobs = blobs.filter((blob) => blob.pathname.startsWith("blog/") && blob.pathname.endsWith(".md"))
-    console.log(`[getPostSlugs] Found ${blogBlobs.length} blog markdown files`)
-
-    const slugs = blogBlobs.map((blob) => {
-      const slug = blob.pathname.replace("blog/", "").replace(/\.md$/, "")
-      console.log(`[getPostSlugs] Extracted slug: "${slug}" from ${blob.pathname}`)
-      return slug
-    })
-
-    return slugs
-  } catch (error) {
-    console.error("[getPostSlugs] Error fetching slugs:", error)
-    return []
-  }
-}
-
-export async function getAllPosts(): Promise<BlogPost[]> {
-  console.log("[getAllPosts] Starting to fetch all posts...")
-
-  const slugs = await getPostSlugs()
-  console.log(`[getAllPosts] Got ${slugs.length} slugs`)
-
-  const posts: BlogPost[] = []
-
-  for (const slug of slugs) {
-    try {
-      const post = await getPostBySlug(slug)
-      if (post) {
-        posts.push(post)
-        console.log(`[getAllPosts] Successfully loaded post: ${post.frontmatter.title}`)
+        if (titleMatch) {
+          title = titleMatch[1].trim()
+          console.log(`📰 Extracted title from frontmatter: "${title}"`)
+        }
+        if (excerptMatch) {
+          excerpt = excerptMatch[1].trim()
+          console.log(`📝 Extracted excerpt from frontmatter: "${excerpt.substring(0, 50)}..."`)
+        }
+        if (categoryMatch) {
+          category = categoryMatch[1].trim()
+          console.log(`🏷️ Extracted category from frontmatter: "${category}"`)
+        }
       }
-    } catch (error) {
-      console.error(`[getAllPosts] Error loading post ${slug}:`, error)
     }
+
+    // If no frontmatter title, look for markdown headers with emojis
+    if (title === "Untitled") {
+      const lines = content.split("\n")
+
+      // Look for emoji titles first
+      const emojiTitleLine = lines.find((line) => {
+        const trimmed = line.trim()
+        return (
+          (trimmed.startsWith("# ") || trimmed.startsWith("## ")) &&
+          /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(
+            trimmed,
+          )
+        )
+      })
+
+      if (emojiTitleLine) {
+        title = emojiTitleLine.replace(/^#+\s*/, "").trim()
+        console.log(`🏋️‍♀️ Extracted emoji title: "${title}"`)
+      } else {
+        // Fallback to first header
+        const headerLine = lines.find((line) => line.trim().startsWith("# "))
+        if (headerLine) {
+          title = headerLine.replace(/^#+\s*/, "").trim()
+          console.log(`📰 Extracted header title: "${title}"`)
+        }
+      }
+    }
+
+    // Extract TL;DR as excerpt if no frontmatter excerpt
+    if (excerpt === "Coming Soon") {
+      const tldrMatch = content.match(/(?:TL;DR|TLDR)[:\s]*([^#\n]+(?:\n(?!#)[^\n]+)*)/i)
+      if (tldrMatch) {
+        excerpt = tldrMatch[1].trim().replace(/\n+/g, " ").substring(0, 200)
+        console.log(`📋 Extracted TL;DR excerpt: "${excerpt.substring(0, 50)}..."`)
+      } else {
+        // Fallback to first paragraph
+        const paragraphs = content
+          .split("\n\n")
+          .filter((p) => p.trim().length > 0 && !p.trim().startsWith("#") && !p.trim().startsWith("---"))
+        if (paragraphs.length > 0) {
+          excerpt = paragraphs[0].trim().substring(0, 200)
+          console.log(`📄 Extracted first paragraph excerpt: "${excerpt.substring(0, 50)}..."`)
+        }
+      }
+    }
+
+    // Determine category from content or slug
+    if (category === "Uncategorized") {
+      if (content.toLowerCase().includes("fitness") || content.toLowerCase().includes("workout")) {
+        category = "Fitness"
+      } else if (content.toLowerCase().includes("technology") || content.toLowerCase().includes("software")) {
+        category = "Technology"
+      } else if (content.toLowerCase().includes("coaching") || content.toLowerCase().includes("trainer")) {
+        category = "Coaching"
+      }
+      console.log(`🏷️ Determined category: "${category}"`)
+    }
+  } catch (error) {
+    console.error(`❌ Error extracting content for ${slug}:`, error)
   }
 
-  console.log(`[getAllPosts] Returning ${posts.length} posts`)
-  return posts.sort((a, b) => new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime())
+  const result = { title, excerpt, category }
+  console.log(`✅ Final extracted content:`, result)
+  return result
 }
 
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] Fetching post for slug: "${slug}"`)
-
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-  if (!token) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN not found")
-    return null
-  }
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  console.log("📚 Fetching blog posts from Vercel Blob...")
 
   try {
-    const { blobs } = await list({ token })
-    const blobPath = `blog/${slug}.md`
-    console.log(`[getPostBySlug] Looking for blob at path: ${blobPath}`)
+    // Check if token exists
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error("❌ BLOB_READ_WRITE_TOKEN not found")
+      return []
+    }
 
-    const blob = blobs.find((b) => b.pathname === blobPath)
-    if (!blob) {
-      console.log(`[getPostBySlug] Blob not found. Available blog blobs:`)
-      blobs
-        .filter((b) => b.pathname.startsWith("blog/"))
-        .forEach((b) => {
-          console.log(`  - ${b.pathname}`)
-        })
+    console.log("🔑 Token found, listing blobs...")
+    const { blobs } = await list({ prefix: "blog/" })
+
+    console.log(`📁 Found ${blobs.length} blobs with 'blog/' prefix`)
+
+    // Filter for markdown files
+    const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
+    console.log(`📝 Found ${markdownBlobs.length} markdown files`)
+
+    if (markdownBlobs.length === 0) {
+      console.log("⚠️ No markdown files found in blog/ directory")
+      return []
+    }
+
+    const posts: BlogPost[] = []
+
+    for (const blob of markdownBlobs) {
+      console.log(`\n📄 Processing: ${blob.pathname}`)
+
+      try {
+        const response = await fetch(blob.url)
+        if (!response.ok) {
+          console.error(`❌ Failed to fetch ${blob.pathname}: ${response.status}`)
+          continue
+        }
+
+        const content = await response.text()
+        console.log(`📏 Content fetched: ${content.length} characters`)
+
+        // Extract slug from pathname
+        const slug = blob.pathname.replace("blog/", "").replace(".md", "")
+        console.log(`🔗 Extracted slug: "${slug}"`)
+
+        // Extract content
+        const extracted = extractContentFromMarkdown(content, slug)
+
+        // Create post object
+        const post: BlogPost = {
+          slug,
+          title: extracted.title || `Post ${slug}`,
+          excerpt: extracted.excerpt || "Coming Soon",
+          date: new Date().toISOString().split("T")[0],
+          category: extracted.category || "Uncategorized",
+          image: "/fitness-coaching-session.png", // Default image
+          readTime: "3 min read",
+          content,
+        }
+
+        console.log(`✅ Created post: "${post.title}"`)
+        posts.push(post)
+      } catch (error) {
+        console.error(`❌ Error processing ${blob.pathname}:`, error)
+      }
+    }
+
+    console.log(`🎉 Successfully processed ${posts.length} blog posts`)
+    return posts
+  } catch (error) {
+    console.error("❌ Error fetching blog posts:", error)
+    return []
+  }
+}
+
+export async function getBlogPost(slug: string): Promise<BlogPost | null> {
+  console.log(`🔍 Fetching single blog post: ${slug}`)
+
+  try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error("❌ BLOB_READ_WRITE_TOKEN not found")
       return null
     }
 
-    console.log(`[getPostBySlug] Found blob: ${blob.pathname} (${blob.size} bytes)`)
-    console.log(`[getPostBySlug] Blob URL: ${blob.url}`)
+    // Try to fetch the specific blob
+    const blobPath = `blog/${slug}.md`
+    console.log(`📁 Looking for blob at: ${blobPath}`)
 
-    const response = await fetch(blob.url)
+    const { blobs } = await list({ prefix: "blog/" })
+    const targetBlob = blobs.find((blob) => blob.pathname === blobPath)
+
+    if (!targetBlob) {
+      console.log(`❌ Blob not found: ${blobPath}`)
+      console.log("📋 Available blobs:")
+      blobs.forEach((blob) => console.log(`   - ${blob.pathname}`))
+      return null
+    }
+
+    console.log(`✅ Found blob: ${targetBlob.pathname}`)
+
+    const response = await fetch(targetBlob.url)
     if (!response.ok) {
-      console.error(`[getPostBySlug] Failed to fetch blob content: ${response.status} ${response.statusText}`)
+      console.error(`❌ Failed to fetch content: ${response.status}`)
       return null
     }
 
     const content = await response.text()
-    console.log(`[getPostBySlug] Fetched content: ${content.length} characters`)
-    console.log(`[getPostBySlug] Content preview: ${content.substring(0, 200)}...`)
+    console.log(`📏 Content fetched: ${content.length} characters`)
 
-    let frontmatter: any = {}
-    let markdownContent = content
-
-    // Parse frontmatter if it exists
-    if (content.startsWith("---")) {
-      console.log("[getPostBySlug] Parsing frontmatter...")
-      const { data, content: bodyContent } = matter(content)
-      frontmatter = data
-      markdownContent = bodyContent
-      console.log("[getPostBySlug] Frontmatter parsed:", frontmatter)
-    } else {
-      console.log("[getPostBySlug] No frontmatter found, extracting from content")
-    }
-
-    // Extract title and excerpt from content if not in frontmatter
-    const title = frontmatter.title || extractTitleFromContent(content)
-    const excerpt = frontmatter.excerpt || extractExcerptFromContent(markdownContent)
-    const date = frontmatter.date || new Date().toISOString().split("T")[0]
-    const category = frontmatter.category || "Uncategorized"
-
-    console.log(`[getPostBySlug] Extracted title: "${title}"`)
-    console.log(`[getPostBySlug] Extracted excerpt: "${excerpt.substring(0, 100)}..."`)
-
-    // Serialize the content for MDX
-    const serializedContent = await serialize(markdownContent)
+    const extracted = extractContentFromMarkdown(content, slug)
 
     const post: BlogPost = {
       slug,
-      frontmatter: {
-        title,
-        excerpt,
-        date,
-        category,
-        author: frontmatter.author,
-        image: frontmatter.image,
-      },
-      content: markdownContent,
-      serializedContent,
+      title: extracted.title || `Post ${slug}`,
+      excerpt: extracted.excerpt || "Coming Soon",
+      date: new Date().toISOString().split("T")[0],
+      category: extracted.category || "Uncategorized",
+      image: "/fitness-coaching-session.png",
+      readTime: "3 min read",
+      content,
     }
 
-    console.log(`[getPostBySlug] Successfully created post object for: ${title}`)
+    console.log(`✅ Successfully fetched post: "${post.title}"`)
     return post
   } catch (error) {
-    console.error(`[getPostBySlug] Error fetching post ${slug}:`, error)
+    console.error(`❌ Error fetching blog post ${slug}:`, error)
     return null
   }
 }
