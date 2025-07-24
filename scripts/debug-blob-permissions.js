@@ -19,6 +19,11 @@ async function debugBlobPermissions() {
 
   if (!BLOB_TOKEN) {
     console.error("❌ BLOB_READ_WRITE_TOKEN is not set.")
+    console.log("\n💡 SOLUTION:")
+    console.log("1. The token exists in your Vercel deployment but not in v0")
+    console.log("2. Your blog files exist in Vercel Blob storage")
+    console.log("3. We need to create sample blog posts for v0 testing")
+    console.log("4. Or configure the token in v0 environment")
     return
   }
 
