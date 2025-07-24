@@ -63,17 +63,15 @@ export default async function BlogPage() {
     },
     {
       title: "🤖 The Future of Fitness Technology",
-      excerpt:
-        "Exploring how AI, wearables, and mobile apps are revolutionizing the way we approach fitness and health tracking.",
+      excerpt: "Coming Soon",
       date: "2024-01-10",
       category: "Technology",
       slug: "fitness-technology-future",
-      image: getPlaceholderImage("technology", 0),
+      image: getPlaceholderImage("technology", 1),
     },
     {
       title: "🥗 Nutrition Timing for Optimal Performance",
-      excerpt:
-        "Understanding when and what to eat before, during, and after workouts to maximize your training results.",
+      excerpt: "Coming Soon",
       date: "2024-01-08",
       category: "Nutrition",
       slug: "nutrition-timing-performance",
@@ -81,7 +79,7 @@ export default async function BlogPage() {
     },
     {
       title: "🏆 Strength Training Myths Debunked",
-      excerpt: "Separating fact from fiction in the world of strength training and muscle building.",
+      excerpt: "Coming Soon",
       date: "2024-01-05",
       category: "Fitness",
       slug: "strength-training-myths",
@@ -91,62 +89,72 @@ export default async function BlogPage() {
 
   // Use actual posts if available, otherwise use sample posts
   const displayPosts = posts.length > 0 ? posts : samplePosts
-  const featuredPost = displayPosts[0]
-  const otherPosts = displayPosts.slice(1)
+  const featuredPosts = displayPosts.slice(0, 2)
+  const otherPosts = displayPosts.slice(2)
 
   return (
     <main className="min-h-screen bg-white text-black">
       <Navbar isCoach={true} />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-16">
+      {/* Hero Section - Reduced padding */}
+      <section className="pt-24 pb-8">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">Juice Blog</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Juice Blog</h1>
+            <p className="text-xl text-gray-600 max-w-3xl mb-6">
               Insights, tips, and stories from the world of fitness coaching and technology.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Featured Post */}
-      {featuredPost && (
-        <section className="py-8">
-          <div className="container px-4 md:px-6">
-            <Link
-              href={`/blog/${featuredPost.slug}`}
-              className="relative rounded-xl overflow-hidden block shadow-lg group"
-            >
-              <div className="relative h-[500px]">
-                <Image
-                  src={featuredPost.image || getPlaceholderImage(featuredPost.category, 0)}
-                  alt={featuredPost.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="px-3 py-1 bg-juice text-black text-xs font-semibold rounded-full">FEATURED</span>
-                    <span className="text-white/80 text-sm">{featuredPost.date}</span>
-                    <span className="text-white/60 text-sm">•</span>
-                    <span className="text-white/80 text-sm">{featuredPost.category}</span>
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">{featuredPost.title}</h2>
-                  <p className="text-white/90 max-w-3xl mb-6 text-lg">{featuredPost.excerpt}</p>
-                  <Button className="bg-juice text-juice-foreground hover:bg-juice/90">Read Article</Button>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* Blog Posts Grid */}
-      <section className="py-16 bg-gray-50">
+      {/* Featured Posts - Two side by side */}
+      <section className="py-6">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="grid md:grid-cols-2 gap-6">
+            {featuredPosts.map((post, index) => (
+              <Link
+                key={index}
+                href={`/blog/${post.slug}`}
+                className="relative rounded-xl overflow-hidden block shadow-lg group"
+              >
+                <div className="relative h-[300px]">
+                  <Image
+                    src={post.image || getPlaceholderImage(post.category, index)}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="px-3 py-1 bg-juice text-black text-xs font-semibold rounded-full">FEATURED</span>
+                      <span className="text-white/80 text-sm">{post.date}</span>
+                      <span className="text-white/60 text-sm">•</span>
+                      <span className="text-white/80 text-sm">{post.category}</span>
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-bold mb-3 line-clamp-2">{post.title}</h2>
+                    <p className="text-white/90 text-sm line-clamp-2 mb-4">
+                      {post.excerpt === "Coming Soon" ? "Coming Soon" : post.excerpt}
+                    </p>
+                    <Button
+                      className="bg-juice text-juice-foreground hover:bg-juice/90"
+                      disabled={post.excerpt === "Coming Soon"}
+                    >
+                      {post.excerpt === "Coming Soon" ? "Coming Soon" : "Read Article"}
+                    </Button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Posts Grid - Reduced padding */}
+      <section className="py-8 bg-gray-50">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Latest Articles</h2>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
@@ -167,41 +175,49 @@ export default async function BlogPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {otherPosts.map((post, index) => (
               <Card
                 key={index}
                 className="bg-white border-gray-200 overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
               >
-                <Link href={`/blog/${post.slug}`}>
+                <Link href={post.excerpt === "Coming Soon" ? "#" : `/blog/${post.slug}`}>
                   <div className="relative h-48">
                     <Image
-                      src={post.image || getPlaceholderImage(post.category, index)}
+                      src={post.image || getPlaceholderImage(post.category, index + 2)}
                       alt={post.title}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
+                    {post.excerpt === "Coming Soon" && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="bg-juice text-black px-4 py-2 rounded-full font-semibold">Coming Soon</span>
+                      </div>
+                    )}
                   </div>
-                  <CardHeader>
+                  <CardHeader className="pb-3">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
                         {post.category}
                       </span>
                       <span className="text-gray-500 text-xs">{post.date}</span>
                     </div>
-                    <CardTitle className="text-xl text-gray-900 group-hover:text-juice transition-colors">
+                    <CardTitle className="text-lg text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
                       {post.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-gray-700 line-clamp-3">{post.excerpt}</CardDescription>
+                  <CardContent className="pt-0">
+                    <CardDescription className="text-gray-700 line-clamp-2">
+                      {post.excerpt === "Coming Soon" ? "Stay tuned for this upcoming article!" : post.excerpt}
+                    </CardDescription>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-0">
                     <Button
                       variant="link"
                       className="text-black p-0 h-auto underline decoration-juice hover:no-underline group-hover:text-juice transition-colors"
+                      disabled={post.excerpt === "Coming Soon"}
                     >
-                      Read More →
+                      {post.excerpt === "Coming Soon" ? "Coming Soon" : "Read More →"}
                     </Button>
                   </CardFooter>
                 </Link>
@@ -209,7 +225,7 @@ export default async function BlogPage() {
             ))}
           </div>
 
-          <div className="flex justify-center mt-12">
+          <div className="flex justify-center mt-8">
             <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
               Load More Articles
             </Button>
@@ -217,20 +233,20 @@ export default async function BlogPage() {
         </div>
       </section>
 
-      {/* Newsletter Section */}
-      <section className="py-16 bg-gray-100">
+      {/* Newsletter Section - Reduced padding */}
+      <section className="py-12 bg-gray-100">
         <div className="container px-4 md:px-6">
-          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-lg">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg">
+            <div className="grid md:grid-cols-2 gap-6 items-center">
               <div>
-                <h2 className="text-3xl font-bold mb-4 text-gray-900">Subscribe to Our Newsletter</h2>
-                <p className="text-gray-700 mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-3 text-gray-900">Subscribe to Our Newsletter</h2>
+                <p className="text-gray-700 mb-4">
                   Get the latest articles, resources, and insights on fitness coaching and technology delivered straight
                   to your inbox.
                 </p>
               </div>
               <div>
-                <form className="flex flex-col sm:flex-row gap-4">
+                <form className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="email"
                     placeholder="Enter your email"
@@ -238,7 +254,7 @@ export default async function BlogPage() {
                   />
                   <Button className="bg-juice text-juice-foreground hover:bg-juice/90">Subscribe</Button>
                 </form>
-                <p className="text-gray-500 text-sm mt-3 mb-4">We respect your privacy. Unsubscribe at any time.</p>
+                <p className="text-gray-500 text-sm mt-2 mb-3">We respect your privacy. Unsubscribe at any time.</p>
                 <Link href="/download-juice-app">
                   <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
                     Download the Juice App
