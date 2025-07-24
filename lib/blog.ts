@@ -484,7 +484,7 @@ Berlin trainers are staying current with exercise science:
 
 - **Peer-reviewed research**: Evidence-based training decisions
 - **Biomechanics analysis**: Understanding movement efficiency
-- **Adaptation physiology**: Optimizing training for specific outcomes
+- **Adaptation Physiology**: Optimizing training for specific outcomes
 
 ### Data-Driven Decisions
 Using metrics to guide training:
@@ -995,11 +995,57 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     )
 
     const title = data.title || extracted.title || `Post: ${slug}`
+
+    // Remove duplicate title from content if it exists
+    function removeDuplicateTitle(content: string, title: string): string {
+      if (!title || !content) return content
+
+      // Clean the title for comparison (remove emojis and extra whitespace)
+      const cleanTitle = title.replace(/[\p{Emoji}\u200d\s]+/gu, "").toLowerCase()
+
+      // Try different heading formats
+      const headingPatterns = [
+        new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+        new RegExp(`^##\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+        new RegExp(`^###\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+      ]
+
+      // Try to match and remove the duplicate title
+      for (const pattern of headingPatterns) {
+        if (pattern.test(content)) {
+          console.log(`[removeDuplicateTitle] Found duplicate title, removing...`)
+          return content.replace(pattern, "").trim()
+        }
+      }
+
+      // If no exact match, try a more flexible approach for emoji titles
+      const lines = content.split("\n")
+      if (lines.length > 0) {
+        const firstLine = lines[0].trim()
+        if (firstLine.startsWith("#")) {
+          const firstLineClean = firstLine
+            .replace(/^#+\s*/, "")
+            .replace(/[\p{Emoji}\u200d\s]+/gu, "")
+            .toLowerCase()
+          if (firstLineClean === cleanTitle) {
+            console.log(`[removeDuplicateTitle] Found duplicate title via flexible matching, removing...`)
+            return lines.slice(1).join("\n").trim()
+          }
+        }
+      }
+
+      return content
+    }
+
+    // Apply the deduplication
+    const contentDeduplicated = removeDuplicateTitle(content, title)
+    console.log(`[getPostBySlug] Content after title deduplication: ${contentDeduplicated.length} chars`)
+
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
     console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
 
-    const serializedContent = await serialize(content, {
+    const serializedContent = await serialize(contentDeduplicated, {
       parseFrontmatter: false,
     })
     console.log("[getPostBySlug] MDX serialized successfully")
@@ -1014,7 +1060,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         slug: slug,
       },
       serializedContent,
-      content,
+      content: contentDeduplicated,
       slug,
     }
   } catch (error) {
