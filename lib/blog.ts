@@ -38,6 +38,52 @@ function extractTitleAndExcerpt(content: string): { title: string | null; excerp
   }
 }
 
+// Helper function to fetch blob content with proper authentication
+async function fetchBlobContent(url: string): Promise<string> {
+  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
+
+  // Try multiple methods to fetch the content
+  const methods = [
+    // Method 1: Direct fetch (for public blobs)
+    () => fetch(url),
+
+    // Method 2: Fetch with authorization header
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `Bearer ${BLOB_TOKEN}`,
+        },
+      }),
+
+    // Method 3: Fetch with different auth format
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `token ${BLOB_TOKEN}`,
+        },
+      }),
+  ]
+
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
+      const response = await methods[i]()
+
+      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
+
+      if (response.ok) {
+        const content = await response.text()
+        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
+        return content
+      }
+    } catch (error) {
+      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
+    }
+  }
+
+  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
+}
+
 export async function getPostSlugs(): Promise<string[]> {
   console.log("[getPostSlugs] Fetching all blog post slugs from Vercel Blob...")
 
@@ -78,13 +124,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
         console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
 
         try {
-          const response = await fetch(blob.url)
-          if (!response.ok) {
-            console.error(`[getAllPosts] Failed to fetch ${blob.pathname}: ${response.status}`)
-            continue
-          }
-
-          const fileContents = await response.text()
+          const fileContents = await fetchBlobContent(blob.url)
           console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
 
           const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
@@ -151,13 +191,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 
     console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
 
-    const response = await fetch(targetBlob.url)
-    if (!response.ok) {
-      console.error(`[getPostBySlug] Failed to fetch content: ${response.status}`)
-      return null
-    }
-
-    const fileContents = await response.text()
+    const fileContents = await fetchBlobContent(targetBlob.url)
     console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
     console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
 
