@@ -73,54 +73,53 @@ export default async function BlogPage() {
         {posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post) => (
-              <Card
-                key={post.slug}
-                className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white"
-              >
-                <div className="relative overflow-hidden rounded-t-lg">
-                  <Image
-                    src={post.image || getPlaceholderImage(post.category)}
-                    alt={post.title}
-                    width={400}
-                    height={240}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>
-                  </div>
-                </div>
-
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{post.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>5 min read</span>
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
+                <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
+                  <div className="relative overflow-hidden rounded-t-lg">
+                    <Image
+                      src={post.image || getPlaceholderImage(post.category)}
+                      alt={post.title}
+                      width={400}
+                      height={240}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>
                     </div>
                   </div>
 
-                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
-                    {post.title}
-                  </CardTitle>
-                </CardHeader>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{post.date}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>5 min read</span>
+                      </div>
+                    </div>
 
-                <CardContent className="pt-0">
-                  <CardDescription className="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</CardDescription>
+                    <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
+                      {post.title}
+                    </CardTitle>
+                  </CardHeader>
 
-                  <Link href={`/blog/${post.slug}`}>
-                    <Button
-                      variant="ghost"
-                      className="group/btn p-0 h-auto font-semibold text-juice hover:text-juice/80 hover:bg-transparent"
-                    >
-                      Read More
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+                  <CardContent className="pt-0 flex-1 flex flex-col justify-between">
+                    <CardDescription className="text-gray-600 mb-4 line-clamp-3 flex-1">{post.excerpt}</CardDescription>
+
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        className="group/btn p-0 h-auto font-semibold text-juice hover:text-juice/80 hover:bg-transparent"
+                      >
+                        Read More
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (
