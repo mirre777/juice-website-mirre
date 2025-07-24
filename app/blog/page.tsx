@@ -7,7 +7,6 @@ import Link from "next/link"
 
 import { getAllPosts, type BlogPostFrontmatter } from "@/lib/blog"
 
-// This line ensures the page always fetches the latest data from Vercel Blob
 export const dynamic = "force-dynamic"
 
 export const metadata = {
@@ -15,11 +14,10 @@ export const metadata = {
   description:
     "Explore articles, tips, and stories on fitness coaching, technology, and personal training. Stay updated with the latest trends from Juice.",
   openGraph: {
-    images: "/images/og-feature-graphic.png", // Specific image for blog page
+    images: "/images/og-feature-graphic.png",
   },
 }
 
-// Fitness-related placeholder images
 const getPlaceholderImage = (category: string, index = 0) => {
   const placeholders = {
     coaching: [
@@ -43,14 +41,11 @@ export default async function BlogPage() {
   const posts: BlogPostFrontmatter[] = await getAllPosts()
   console.log(`[BlogPage] Fetched ${posts.length} posts from blob storage`)
 
-  // Only show posts if we actually have them from blob storage
-  // Don't fall back to sample posts - this ensures we only show real content
   if (posts.length === 0) {
     return (
       <main className="min-h-screen bg-white text-black">
         <Navbar isCoach={true} />
 
-        {/* Hero Section */}
         <section className="pt-24 pb-8">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center">
@@ -62,7 +57,6 @@ export default async function BlogPage() {
           </div>
         </section>
 
-        {/* No Posts Message */}
         <section className="py-16">
           <div className="container px-4 md:px-6">
             <div className="text-center">
@@ -90,7 +84,6 @@ export default async function BlogPage() {
     <main className="min-h-screen bg-white text-black">
       <Navbar isCoach={true} />
 
-      {/* Hero Section - Reduced padding */}
       <section className="pt-24 pb-8">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
@@ -102,7 +95,6 @@ export default async function BlogPage() {
         </div>
       </section>
 
-      {/* Featured Posts - Two side by side */}
       {featuredPosts.length > 0 && (
         <section className="py-6">
           <div className="container px-4 md:px-6">
@@ -142,7 +134,6 @@ export default async function BlogPage() {
         </section>
       )}
 
-      {/* Blog Posts Grid - Only show if we have other posts */}
       {otherPosts.length > 0 && (
         <section className="py-8 bg-gray-50">
           <div className="container px-4 md:px-6">
@@ -218,7 +209,6 @@ export default async function BlogPage() {
         </section>
       )}
 
-      {/* Newsletter Section - Reduced padding */}
       <section className="py-12 bg-gray-100">
         <div className="container px-4 md:px-6">
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg">

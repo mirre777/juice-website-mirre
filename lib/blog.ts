@@ -10,29 +10,25 @@ export interface BlogPostFrontmatter {
   excerpt: string
   category: string
   image?: string
-  slug: string // Ensure slug is part of the type
+  slug: string
 }
 
 export interface BlogPost {
   frontmatter: BlogPostFrontmatter
-  serializedContent: any // MDXRemoteSerializeResult
-  content: string // Raw content for reading time calculation
+  serializedContent: any
+  content: string
   slug: string
 }
 
-const BLOG_CONTENT_PATH = "blog/" // Corrected prefix for Vercel Blob
+const BLOG_CONTENT_PATH = "blog/"
 
-// Function to extract emoji and title from content if not in frontmatter
 function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
-  // Look for emoji title pattern at the beginning of the content
   const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
   const titleMatch = content.match(emojiTitleRegex)
 
-  // Look for TL;DR section which often contains an excerpt
   const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
   const excerptMatch = content.match(tldrRegex)
 
-  // If no TL;DR, try to get the first paragraph after the title
   const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
   const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
 
@@ -91,20 +87,14 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           const fileContents = await response.text()
           console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
 
-          // Extract slug from the pathname
-          const slug = blob.pathname
-            .replace(BLOG_CONTENT_PATH, "") // Remove the content path prefix
-            .replace(/\.md$/, "") // Remove the .md extension
+          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
 
           console.log(`[getAllPosts] Extracted slug: ${slug}`)
 
-          // Parse frontmatter
           const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
 
-          // Extract title and excerpt from content if not in frontmatter
           const extracted = extractTitleAndExcerpt(content)
 
-          // Use frontmatter data if available, otherwise use extracted data
           const title = data.title || extracted.title || `Post: ${slug}`
           const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
@@ -125,7 +115,6 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
       }
     }
 
-    // Sort posts by date, newest first
     posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     console.log(`[getAllPosts] Successfully processed ${posts.length} posts`)
@@ -148,7 +137,6 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
     console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
 
-    // List blobs to find the exact one
     const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
     const targetBlob = blobs.find((b) => b.pathname === targetPath)
 
@@ -173,25 +161,22 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
     console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
 
-    // Parse frontmatter
     const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
     console.log(`[getPostBySlug] Frontmatter:`, data)
     console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
 
-    // Extract title and excerpt from content if not in frontmatter
     const extracted = extractTitleAndExcerpt(content)
     console.log(
       `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
     )
 
-    // Use frontmatter data if available, otherwise use extracted data
     const title = data.title || extracted.title || `Post: ${slug}`
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
     console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
 
     const serializedContent = await serialize(content, {
-      parseFrontmatter: false, // Frontmatter already parsed by gray-matter
+      parseFrontmatter: false,
     })
     console.log("[getPostBySlug] MDX serialized successfully")
 
