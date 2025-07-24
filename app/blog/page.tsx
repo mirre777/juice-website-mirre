@@ -1,251 +1,222 @@
+import { getAllPosts } from "@/lib/blog"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Calendar, Tag, ArrowRight } from "lucide-react"
 
-import { getAllPosts, type BlogPostFrontmatter } from "@/lib/blog"
-
-// This line ensures the page always fetches the latest data from Vercel Blob
+// Force dynamic rendering to ensure fresh content
 export const dynamic = "force-dynamic"
 
-export const metadata = {
-  title: "Juice Blog | Insights for Fitness Coaches & Enthusiasts",
-  description:
-    "Explore articles, tips, and stories on fitness coaching, technology, and personal training. Stay updated with the latest trends from Juice.",
-  openGraph: {
-    images: "/images/og-feature-graphic.png", // Specific image for blog page
-  },
-}
-
-// Fitness-related placeholder images
-const getPlaceholderImage = (category: string, index = 0) => {
+// Fitness-related placeholder images for blog posts
+const getPlaceholderImage = (category: string) => {
   const placeholders = {
-    coaching: [
-      "/fitness-coaching-session.png",
-      "/personal-trainer-workout-clipboard.png",
-      "/fitness-coaching-motivation-gym.png",
-    ],
-    technology: ["/fitness-app-tracking.png", "/placeholder-oiv1i.png", "/fitness-tech-digital-health.png"],
-    fitness: ["/gym-dumbbells.png", "/fitness-equipment.png", "/strength-training-barbell-gym.png"],
-    nutrition: ["/healthy-meal-prep.png", "/healthy-meal-prep.png", "/nutrition-planning.png"],
-    default: ["/diverse-fitness-training.png", "/gym-equipment-variety.png", "/workout-plan.png"],
+    coaching: "/fitness-coaching-session.png",
+    technology: "/fitness-tech-digital-health.png",
+    fitness: "/gym-dumbbells.png",
+    nutrition: "/healthy-meal-prep.png",
+    default: "/fitness-equipment.png",
   }
 
-  const categoryKey = category.toLowerCase() as keyof typeof placeholders
-  const images = placeholders[categoryKey] || placeholders.default
-  return images[index % images.length]
+  const categoryKey = category?.toLowerCase() as keyof typeof placeholders
+  return placeholders[categoryKey] || placeholders.default
 }
 
 export default async function BlogPage() {
-  console.log("[BlogPage] Starting to fetch posts...")
-  const posts: BlogPostFrontmatter[] = await getAllPosts()
-  console.log(`[BlogPage] Fetched ${posts.length} posts from blob storage`)
+  console.log("[BlogPage] Starting to render blog page...")
 
-  // Only show posts if we actually have them from blob storage
-  // Don't fall back to sample posts - this ensures we only show real content
-  if (posts.length === 0) {
-    return (
-      <main className="min-h-screen bg-white text-black">
-        <Navbar isCoach={true} />
+  const posts = await getAllPosts()
+  console.log(`[BlogPage] Got ${posts.length} posts`)
 
-        {/* Hero Section */}
-        <section className="pt-24 pb-8">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Juice Blog</h1>
-              <p className="text-xl text-gray-600 max-w-3xl mb-6">
-                Insights, tips, and stories from the world of fitness coaching and technology.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* No Posts Message */}
-        <section className="py-16">
-          <div className="container px-4 md:px-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">Coming Soon!</h2>
-              <p className="text-gray-600 mb-8">
-                We're working on some amazing content for you. Check back soon for the latest insights on fitness
-                coaching and technology.
-              </p>
-              <Link href="/download-juice-app">
-                <Button className="bg-juice text-juice-foreground hover:bg-juice/90">Download the Juice App</Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <Footer />
-      </main>
-    )
-  }
-
+  // Get featured posts (first 2 posts)
   const featuredPosts = posts.slice(0, 2)
-  const otherPosts = posts.slice(2)
+  const remainingPosts = posts.slice(2)
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <Navbar isCoach={true} />
+      <Navbar isCoach={true} className="bg-white" />
 
       {/* Hero Section - Reduced padding */}
-      <section className="pt-24 pb-8">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Juice Blog</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mb-6">
-              Insights, tips, and stories from the world of fitness coaching and technology.
-            </p>
-          </div>
+      <section className="container mx-auto px-4 md:px-6 pt-24 pb-8">
+        <div className="text-center max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Juice Blog</h1>
+          <p className="text-xl text-gray-600">
+            Insights, tips, and stories from the world of fitness coaching and technology.
+          </p>
         </div>
       </section>
 
-      {/* Featured Posts - Two side by side */}
+      {/* Featured Posts Section - Two side by side */}
       {featuredPosts.length > 0 && (
-        <section className="py-6">
-          <div className="container px-4 md:px-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {featuredPosts.map((post, index) => (
-                <Link
-                  key={index}
-                  href={`/blog/${post.slug}`}
-                  className="relative rounded-xl overflow-hidden block shadow-lg group"
-                >
-                  <div className="relative h-[300px]">
+        <section className="container mx-auto px-4 md:px-6 py-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            {featuredPosts.map((post) => (
+              <article key={post.slug} className="group relative">
+                <Link href={`/blog/${post.slug}`} className="block">
+                  <div className="relative h-80 rounded-xl overflow-hidden shadow-lg">
                     <Image
-                      src={post.image || getPlaceholderImage(post.category, index)}
-                      alt={post.title}
+                      src={post.frontmatter.image || getPlaceholderImage(post.frontmatter.category)}
+                      alt={post.frontmatter.title}
                       fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                    {/* Featured Badge */}
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 bg-juice text-black text-sm font-bold rounded-full">FEATURED</span>
+                    </div>
+
+                    {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="px-3 py-1 bg-juice text-black text-xs font-semibold rounded-full">
-                          FEATURED
-                        </span>
-                        <span className="text-white/80 text-sm">{post.date}</span>
-                        <span className="text-white/60 text-sm">•</span>
-                        <span className="text-white/80 text-sm">{post.category}</span>
+                      <div className="flex items-center gap-4 mb-3 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{post.frontmatter.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Tag className="w-4 h-4" />
+                          <span>{post.frontmatter.category}</span>
+                        </div>
                       </div>
-                      <h2 className="text-xl md:text-2xl font-bold mb-3 line-clamp-2">{post.title}</h2>
-                      <p className="text-white/90 text-sm line-clamp-2 mb-4">{post.excerpt}</p>
-                      <Button className="bg-juice text-juice-foreground hover:bg-juice/90">Read Article</Button>
+
+                      <h2 className="text-2xl font-bold mb-2 line-clamp-2">{post.frontmatter.title}</h2>
+
+                      <p className="text-gray-200 line-clamp-2 mb-4">{post.frontmatter.excerpt}</p>
+
+                      <Button className="bg-juice text-black hover:bg-juice/90 font-semibold" size="sm">
+                        Read Article
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
+              </article>
+            ))}
           </div>
         </section>
       )}
 
-      {/* Blog Posts Grid - Only show if we have other posts */}
-      {otherPosts.length > 0 && (
-        <section className="py-8 bg-gray-50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Latest Articles</h2>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                  All
-                </Button>
-                <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                  Coaching
-                </Button>
-                <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                  Technology
-                </Button>
-                <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                  Fitness
-                </Button>
-                <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                  Nutrition
-                </Button>
-              </div>
-            </div>
+      {/* Latest Articles Section - Reduced padding */}
+      <section className="container mx-auto px-4 md:px-6 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-bold text-gray-900">Latest Articles</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {otherPosts.map((post, index) => (
-                <Card
-                  key={index}
-                  className="bg-white border-gray-200 overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
-                >
-                  <Link href={`/blog/${post.slug}`}>
+          {/* Category Filter */}
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="bg-juice text-black border-juice">
+              All
+            </Button>
+            <Button variant="outline" size="sm">
+              Coaching
+            </Button>
+            <Button variant="outline" size="sm">
+              Technology
+            </Button>
+            <Button variant="outline" size="sm">
+              Fitness
+            </Button>
+            <Button variant="outline" size="sm">
+              Nutrition
+            </Button>
+          </div>
+        </div>
+
+        {/* Blog Grid */}
+        {remainingPosts.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {remainingPosts.map((post) => (
+              <article key={post.slug} className="group">
+                <Link href={`/blog/${post.slug}`} className="block">
+                  <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                     <div className="relative h-48">
                       <Image
-                        src={post.image || getPlaceholderImage(post.category, index + 2)}
-                        alt={post.title}
+                        src={post.frontmatter.image || getPlaceholderImage(post.frontmatter.category)}
+                        alt={post.frontmatter.title}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
-                          {post.category}
-                        </span>
-                        <span className="text-gray-500 text-xs">{post.date}</span>
-                      </div>
-                      <CardTitle className="text-lg text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
-                        {post.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <CardDescription className="text-gray-700 line-clamp-2">{post.excerpt}</CardDescription>
-                    </CardContent>
-                    <CardFooter className="pt-0">
-                      <Button
-                        variant="link"
-                        className="text-black p-0 h-auto underline decoration-juice hover:no-underline group-hover:text-juice transition-colors"
-                      >
-                        Read More →
-                      </Button>
-                    </CardFooter>
-                  </Link>
-                </Card>
-              ))}
-            </div>
 
-            <div className="flex justify-center mt-8">
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                Load More Articles
-              </Button>
+                    <div className="p-6">
+                      <div className="flex items-center gap-4 mb-3 text-sm text-gray-500">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                          {post.frontmatter.category}
+                        </span>
+                        <span>{post.frontmatter.date}</span>
+                      </div>
+
+                      <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
+                        {post.frontmatter.title}
+                      </h3>
+
+                      <p className="text-gray-600 line-clamp-3 mb-4">{post.frontmatter.excerpt}</p>
+
+                      <div className="flex items-center text-juice font-semibold text-sm">
+                        Read More
+                        <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </article>
+            ))}
+          </div>
+        ) : (
+          // Empty state when no posts are found
+          <div className="text-center py-16">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                <Tag className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Coming Soon</h3>
+              <p className="text-gray-600 mb-6">
+                We're working on some amazing content for you. Check back soon for the latest insights on fitness
+                coaching and technology!
+              </p>
+              <Link href="/">
+                <Button className="bg-juice text-black hover:bg-juice/90">Back to Home</Button>
+              </Link>
             </div>
           </div>
-        </section>
-      )}
+        )}
+
+        {/* Load More Button */}
+        {remainingPosts.length > 0 && (
+          <div className="text-center mt-12">
+            <Button variant="outline" className="border-gray-300 hover:bg-gray-100 bg-transparent">
+              Load More Articles
+            </Button>
+          </div>
+        )}
+      </section>
 
       {/* Newsletter Section - Reduced padding */}
-      <section className="py-12 bg-gray-100">
-        <div className="container px-4 md:px-6">
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg">
-            <div className="grid md:grid-cols-2 gap-6 items-center">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold mb-3 text-gray-900">Subscribe to Our Newsletter</h2>
-                <p className="text-gray-700 mb-4">
-                  Get the latest articles, resources, and insights on fitness coaching and technology delivered straight
-                  to your inbox.
-                </p>
-              </div>
-              <div>
-                <form className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="flex-1 px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-juice"
-                  />
-                  <Button className="bg-juice text-juice-foreground hover:bg-juice/90">Subscribe</Button>
-                </form>
-                <p className="text-gray-500 text-sm mt-2 mb-3">We respect your privacy. Unsubscribe at any time.</p>
-                <Link href="/download-juice-app">
-                  <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-                    Download the Juice App
-                  </Button>
-                </Link>
-              </div>
+      <section className="bg-gray-50 py-12">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4 text-gray-900">Subscribe to Our Newsletter</h2>
+            <p className="text-gray-600 mb-8">
+              Get the latest articles, resources, and insights on fitness coaching and technology delivered straight to
+              your inbox.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-juice focus:border-transparent"
+              />
+              <Button className="bg-juice text-black hover:bg-juice/90 px-8">Subscribe</Button>
+            </div>
+
+            <p className="text-sm text-gray-500 mt-4">We respect your privacy. Unsubscribe at any time.</p>
+
+            <div className="mt-6">
+              <Link href="/download-juice-app" className="text-juice hover:underline font-semibold">
+                Download the Juice App
+              </Link>
             </div>
           </div>
         </div>
