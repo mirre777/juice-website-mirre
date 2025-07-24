@@ -1,5 +1,5 @@
 // Debug script to check what content we're fetching from Vercel Blob
-import { list } from "@vercel/blob"
+const { list } = require("@vercel/blob")
 
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 const BLOG_CONTENT_PATH = "blog/"
@@ -101,19 +101,23 @@ async function debugBlobContentFetching() {
         }
 
         // Check for emoji title
-        const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
-        const titleMatch = content.match(emojiTitleRegex)
-        if (titleMatch) {
-          console.log(`✅ Emoji title found: "${titleMatch[1]}"`)
+        const lines = content.split("\n")
+        const firstLine = lines[0]
+        if (
+          firstLine &&
+          /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u.test(firstLine)
+        ) {
+          console.log(`✅ Emoji title found: "${firstLine}"`)
         } else {
           console.log("⚠️  No emoji title found")
         }
 
         // Check for TL;DR
-        const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
-        const tldrMatch = content.match(tldrRegex)
-        if (tldrMatch) {
-          console.log(`✅ TL;DR found: "${tldrMatch[1].substring(0, 100)}..."`)
+        if (content.includes("TL;DR")) {
+          const tldrMatch = content.match(/TL;DR:?\s*(.*?)[\r\n]/)
+          if (tldrMatch) {
+            console.log(`✅ TL;DR found: "${tldrMatch[1].substring(0, 100)}..."`)
+          }
         } else {
           console.log("⚠️  No TL;DR found")
         }
