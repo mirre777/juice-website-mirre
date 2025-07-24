@@ -46,12 +46,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   try {
     post = await getPostBySlug(params.slug)
+    console.log(`[BlogPostPage] Post fetched:`, post ? "SUCCESS" : "NOT FOUND")
   } catch (error) {
     console.error(`[BlogPostPage] Error fetching post for slug ${params.slug}:`, error)
     notFound()
   }
 
   if (!post) {
+    console.log(`[BlogPostPage] Post not found for slug: ${params.slug}`)
     notFound()
   }
 
