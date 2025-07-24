@@ -1,5 +1,5 @@
 // Debug script to check what content we're fetching from Vercel Blob
-const { list } = require("@vercel/blob")
+import { list } from "@vercel/blob"
 
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 const BLOG_CONTENT_PATH = "blog/"
@@ -42,6 +42,10 @@ async function debugBlobContentFetching() {
 
     if (blogBlobs.length === 0) {
       console.log("❌ No blog content found with the specified prefix")
+      console.log("\n🔍 Checking for any .md files anywhere:")
+      const anyMarkdown = blobs.filter((blob) => blob.pathname.endsWith(".md"))
+      console.log(`Found ${anyMarkdown.length} markdown files total:`)
+      anyMarkdown.forEach((blob) => console.log(`  - ${blob.pathname}`))
       return
     }
 
@@ -51,7 +55,7 @@ async function debugBlobContentFetching() {
     console.log(`Found ${markdownBlobs.length} markdown files`)
 
     if (markdownBlobs.length === 0) {
-      console.log("❌ No markdown files found")
+      console.log("❌ No markdown files found in blog directory")
       return
     }
 
@@ -135,16 +139,26 @@ async function debugBlobContentFetching() {
       console.log("Available blog paths:")
       blogBlobs.forEach((blob) => console.log(`  - ${blob.pathname}`))
     }
+
+    // Summary
+    console.log("\n📊 SUMMARY:")
+    console.log(`Total blobs: ${blobs.length}`)
+    console.log(`Blog blobs: ${blogBlobs.length}`)
+    console.log(`Markdown files: ${markdownBlobs.length}`)
+    console.log(`Environment token: ${BLOB_TOKEN ? "SET" : "NOT SET"}`)
   } catch (error) {
     console.error("❌ Error during blob analysis:", error)
+    console.error("Stack trace:", error.stack)
   }
 }
 
 // Run the debug function
+console.log("🚀 Starting blob content debug analysis...")
 debugBlobContentFetching()
   .then(() => {
     console.log("\n✅ Debug analysis complete")
   })
   .catch((error) => {
     console.error("❌ Debug script failed:", error)
+    console.error("Stack trace:", error.stack)
   })
