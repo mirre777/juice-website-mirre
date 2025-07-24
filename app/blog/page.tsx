@@ -26,16 +26,27 @@ const getPlaceholderImage = (category: string) => {
 }
 
 export default async function BlogPage() {
-  console.log("[BlogPage] Rendering blog page...")
+  console.log("🚀 [BlogPage] STARTING BLOG PAGE RENDER")
+  console.log("🔑 [BlogPage] Environment check:")
+  console.log("  - BLOB_READ_WRITE_TOKEN exists:", !!process.env.BLOB_READ_WRITE_TOKEN)
+  console.log("  - BLOB_READ_WRITE_TOKEN length:", process.env.BLOB_READ_WRITE_TOKEN?.length || 0)
 
   let posts
   try {
+    console.log("📡 [BlogPage] About to call getAllPosts()...")
     posts = await getAllPosts()
-    console.log(`[BlogPage] Fetched ${posts.length} posts`)
+    console.log(`✅ [BlogPage] getAllPosts() returned ${posts.length} posts`)
+    console.log(
+      "📊 [BlogPage] Posts summary:",
+      posts.map((p) => ({ title: p.title, slug: p.slug })),
+    )
   } catch (error) {
-    console.error("[BlogPage] Error fetching posts:", error)
+    console.error("💥 [BlogPage] Error in getAllPosts():", error)
     posts = []
   }
+
+  console.log(`🎯 [BlogPage] Final posts count: ${posts.length}`)
+  console.log(`🎯 [BlogPage] Will show: ${posts.length > 0 ? "POSTS GRID" : "COMING SOON"}`)
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -48,6 +59,25 @@ export default async function BlogPage() {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Insights, tips, and stories from the world of fitness coaching and technology.
           </p>
+        </div>
+
+        {/* Debug Info */}
+        <div className="mb-8 p-4 bg-gray-100 rounded-lg">
+          <h3 className="font-bold mb-2">Debug Info:</h3>
+          <p>Posts found: {posts.length}</p>
+          <p>BLOB_TOKEN available: {!!process.env.BLOB_READ_WRITE_TOKEN ? "Yes" : "No"}</p>
+          {posts.length > 0 && (
+            <div>
+              <p>Post titles:</p>
+              <ul className="list-disc ml-4">
+                {posts.map((post) => (
+                  <li key={post.slug}>
+                    {post.title} ({post.slug})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Category Filter */}
