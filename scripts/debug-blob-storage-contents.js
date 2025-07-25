@@ -1,84 +1,69 @@
-// Debug script to see what's in blob storage
+// This script checks what's in your blob storage
 const { list } = require("@vercel/blob")
 
 async function debugBlobStorage() {
-  console.log("🔍 DEBUGGING BLOB STORAGE CONTENTS")
-  console.log("================================")
+  console.log("DEBUGGING BLOB STORAGE CONTENTS")
+  console.log("=============================")
 
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-  console.log("🔑 Token available:", !!token)
-  console.log("🔑 Token length:", token?.length || 0)
+  const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
+  console.log(`Token available: ${!!BLOB_TOKEN}`)
+  console.log(`Token length: ${BLOB_TOKEN?.length || 0}`)
 
-  if (!token) {
-    console.error("❌ No BLOB_READ_WRITE_TOKEN found")
+  if (!BLOB_TOKEN) {
+    console.error("No BLOB_READ_WRITE_TOKEN found")
     return
   }
 
   try {
-    // First, list ALL blobs to see what's there
-    console.log("\n📊 LISTING ALL BLOBS:")
-    console.log("====================")
-    const allBlobs = await list({ token })
-    console.log(`Total blobs found: ${allBlobs.blobs.length}`)
+    // Get all blobs
+    const { blobs } = await list({ token: BLOB_TOKEN })
+    console.log(`Found ${blobs.length} total blobs:`)
 
-    allBlobs.blobs.forEach((blob, index) => {
-      console.log(`${index + 1}. ${blob.pathname}`)
-      console.log(`   Size: ${blob.size} bytes`)
-      console.log(`   URL: ${blob.url}`)
-      console.log(`   Uploaded: ${blob.uploadedAt}`)
-      console.log("")
+    blobs.forEach((blob, i) => {
+      console.log(`${i + 1}. ${blob.pathname} (${blob.size} bytes)`)
     })
 
-    // Then, specifically look for blog/ prefix
-    console.log("\n📝 LOOKING FOR BLOG/ PREFIX:")
-    console.log("============================")
-    const blogBlobs = await list({ prefix: "blog/", token })
-    console.log(`Blog blobs found: ${blogBlobs.blobs.length}`)
+    // Check for blog/ prefix
+    const blogBlobs = blobs.filter((blob) => blob.pathname.startsWith("blog/"))
+    console.log(`\nFound ${blogBlobs.length} blobs with blog/ prefix:`)
 
-    blogBlobs.blobs.forEach((blob, index) => {
-      console.log(`${index + 1}. ${blob.pathname}`)
-      console.log(`   Is markdown: ${blob.pathname.endsWith(".md")}`)
-      console.log(`   Size: ${blob.size} bytes`)
-      console.log("")
+    blogBlobs.forEach((blob, i) => {
+      console.log(`${i + 1}. ${blob.pathname} (${blob.size} bytes)`)
     })
 
-    // Look for any markdown files anywhere
-    console.log("\n📄 ALL MARKDOWN FILES:")
-    console.log("======================")
-    const markdownFiles = allBlobs.blobs.filter((blob) => blob.pathname.endsWith(".md"))
-    console.log(`Markdown files found: ${markdownFiles.length}`)
+    // Check for markdown files
+    const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
+    console.log(`\nFound ${markdownBlobs.length} markdown files:`)
 
-    markdownFiles.forEach((blob, index) => {
-      console.log(`${index + 1}. ${blob.pathname}`)
-      console.log(`   Directory: ${blob.pathname.split("/").slice(0, -1).join("/") || "root"}`)
-      console.log("")
+    markdownBlobs.forEach((blob, i) => {
+      console.log(`${i + 1}. ${blob.pathname} (${blob.size} bytes)`)
     })
 
-    // Try different prefixes
-    console.log("\n🔍 TRYING DIFFERENT PREFIXES:")
-    console.log("=============================")
-    const prefixes = ["", "content/", "posts/", "blog-posts/", "content/blog/"]
+    // Try to fetch content from first markdown file
+    if (markdownBlobs.length > 0) {
+      console.log(`\nTrying to fetch content from: ${markdownBlobs[0].pathname}`)
 
-    for (const prefix of prefixes) {
       try {
-        const result = await list({ prefix, token })
-        const mdFiles = result.blobs.filter((b) => b.pathname.endsWith(".md"))
-        console.log(`Prefix "${prefix}": ${result.blobs.length} total, ${mdFiles.length} markdown`)
-        if (mdFiles.length > 0) {
-          mdFiles.forEach((file) => console.log(`  - ${file.pathname}`))
+        const response = await fetch(markdownBlobs[0].url, {
+          headers: {
+            Authorization: `Bearer ${BLOB_TOKEN}`,
+          },
+        })
+
+        if (response.ok) {
+          const content = await response.text()
+          console.log(`Successfully fetched content (${content.length} chars):`)
+          console.log(content.substring(0, 300) + "...")
+        } else {
+          console.error(`Failed to fetch content: ${response.status} ${response.statusText}`)
         }
       } catch (error) {
-        console.log(`Prefix "${prefix}": Error - ${error.message}`)
+        console.error(`Error fetching content: ${error.message}`)
       }
     }
   } catch (error) {
-    console.error("💥 Error accessing blob storage:", error)
-    console.error("Error details:", {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    })
+    console.error(`Error listing blobs: ${error.message}`)
   }
 }
 
-debugBlobStorage().catch(console.error)
+debugBlobStorage()
