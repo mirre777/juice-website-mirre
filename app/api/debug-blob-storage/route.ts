@@ -1,26 +1,32 @@
 import { list } from "@vercel/blob"
 import { NextResponse } from "next/server"
 
-export async function GET() {
-  const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
-  const tokenAvailable = !!BLOB_TOKEN
-  const tokenLength = BLOB_TOKEN?.length || 0
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 
-  const results: any = {
-    tokenAvailable,
-    tokenLength,
-    allBlobs: [],
-    blogBlobs: [],
-    markdownFiles: [],
-    prefixTests: {},
-    errors: [],
-    contentTest: null,
+export async function GET() {
+  console.log("[DEBUG] Starting blob storage debug...")
+
+  const result = {
+    tokenAvailable: !!BLOB_TOKEN,
+    tokenLength: BLOB_TOKEN?.length || 0,
+    allBlobs: [] as any[],
+    blogBlobs: [] as any[],
+    markdownFiles: [] as any[],
+    prefixTests: {} as any,
+    errors: [] as string[],
+    contentTest: null as any,
+  }
+
+  if (!BLOB_TOKEN) {
+    result.errors.push("BLOB_READ_WRITE_TOKEN not found")
+    return NextResponse.json(result)
   }
 
   try {
     // Get all blobs
-    const { blobs } = await list({ token: BLOB_TOKEN })
-    results.allBlobs = blobs.map((blob, index) => ({
+    console.log("[DEBUG] Fetching all blobs...")
+    const { blobs: allBlobs } = await list({ token: BLOB_TOKEN })
+    result.allBlobs = allBlobs.map((blob, index) => ({
       index: index + 1,
       pathname: blob.pathname,
       size: blob.size,
@@ -28,81 +34,63 @@ export async function GET() {
       uploadedAt: blob.uploadedAt,
     }))
 
-    // Filter for blog/ prefix
-    results.blogBlobs = blobs
-      .filter((blob) => blob.pathname.startsWith("blog/"))
-      .map((blob, index) => ({
-        index: index + 1,
-        pathname: blob.pathname,
-        isMarkdown: blob.pathname.endsWith(".md"),
-        size: blob.size,
-      }))
+    // Get blog-specific blobs
+    console.log("[DEBUG] Fetching blog/ prefixed blobs...")
+    const { blobs: blogBlobs } = await list({ prefix: "blog/", token: BLOB_TOKEN })
+    result.blogBlobs = blogBlobs.map((blob, index) => ({
+      index: index + 1,
+      pathname: blob.pathname,
+      isMarkdown: blob.pathname.endsWith(".md"),
+      size: blob.size,
+    }))
 
     // Find all markdown files
-    results.markdownFiles = blobs
-      .filter((blob) => blob.pathname.endsWith(".md"))
-      .map((blob, index) => {
-        const parts = blob.pathname.split("/")
-        const directory = parts.length > 1 ? parts.slice(0, -1).join("/") : "root"
-        return {
-          index: index + 1,
-          pathname: blob.pathname,
-          directory,
-        }
-      })
+    const markdownFiles = allBlobs.filter((blob) => blob.pathname.endsWith(".md"))
+    result.markdownFiles = markdownFiles.map((blob, index) => ({
+      index: index + 1,
+      pathname: blob.pathname,
+      directory: blob.pathname.split("/")[0],
+    }))
 
     // Test different prefixes
     const prefixesToTest = ["", "content/", "posts/", "blog-posts/", "content/blog/"]
     for (const prefix of prefixesToTest) {
-      const { blobs: prefixBlobs } = await list({ prefix, token: BLOB_TOKEN })
-      const markdownFiles = prefixBlobs.filter((blob) => blob.pathname.endsWith(".md")).map((blob) => blob.pathname)
-      results.prefixTests[prefix || "root"] = {
-        totalBlobs: prefixBlobs.length,
-        markdownCount: markdownFiles.length,
-        markdownFiles,
+      try {
+        const { blobs } = await list({ prefix, token: BLOB_TOKEN })
+        const markdownCount = blobs.filter((b) => b.pathname.endsWith(".md")).length
+        result.prefixTests[prefix || "root"] = {
+          totalBlobs: blobs.length,
+          markdownCount,
+          markdownFiles: blobs.filter((b) => b.pathname.endsWith(".md")).map((b) => b.pathname),
+        }
+      } catch (error) {
+        result.prefixTests[prefix || "root"] = { error: error.message }
       }
     }
 
     // Try to fetch content from the first markdown file
-    if (results.markdownFiles.length > 0) {
-      const firstFile = results.markdownFiles[0].pathname
+    if (markdownFiles.length > 0) {
+      const firstFile = markdownFiles[0]
       try {
-        const firstBlob = blobs.find((blob) => blob.pathname === firstFile)
-        if (firstBlob) {
-          const response = await fetch(firstBlob.url, {
-            headers: {
-              Authorization: `Bearer ${BLOB_TOKEN}`,
-            },
-          })
-
-          if (response.ok) {
-            const content = await response.text()
-            results.contentTest = {
-              file: firstFile,
-              fetchStatus: response.status,
-              contentPreview: content.substring(0, 200) + "...",
-            }
-          } else {
-            results.contentTest = {
-              file: firstFile,
-              fetchStatus: response.status,
-              error: "Failed to fetch content",
-            }
-          }
+        console.log(`[DEBUG] Attempting to fetch content from: ${firstFile.url}`)
+        const response = await fetch(firstFile.url)
+        result.contentTest = {
+          file: firstFile.pathname,
+          fetchStatus: response.status,
+          error: response.ok ? null : "Failed to fetch content",
         }
       } catch (error) {
-        results.contentTest = {
-          file: firstFile,
+        result.contentTest = {
+          file: firstFile.pathname,
+          fetchStatus: null,
           error: error.message,
         }
       }
     }
   } catch (error) {
-    results.errors.push({
-      message: error.message,
-      stack: error.stack,
-    })
+    console.error("[DEBUG] Error in blob storage debug:", error)
+    result.errors.push(error.message)
   }
 
-  return NextResponse.json(results)
+  return NextResponse.json(result)
 }
