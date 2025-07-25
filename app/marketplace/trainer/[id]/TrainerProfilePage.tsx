@@ -10,8 +10,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { MapPin, Users, Dumbbell, Award, Phone, Mail, Edit, ExternalLink, X, Plus, Trash2, Eye } from "lucide-react"
-import PublicTrainerView from "./PublicTrainerView"
+import { MapPin, Users, Dumbbell, Award, Phone, Mail, X, Plus, Trash2 } from "lucide-react"
+import TrainerProfileDisplay, {
+  type DisplayTrainerContent,
+  type DisplayTrainerData,
+} from "@/components/trainer/TrainerProfileDisplay"
+import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
 
 interface TrainerProfilePageProps {
   trainerId: string
@@ -416,83 +420,76 @@ export default function TrainerProfilePage({ trainerId }: TrainerProfilePageProp
   // CRITICAL FIX: Ensure services is always an array
   const servicesContent = Array.isArray(displayContent?.services) ? displayContent.services : []
 
-  // If in public view mode, render the clean public component without header
-  if (isPublicView) {
-    return <PublicTrainerView trainer={trainer} content={displayContent} onExitPublicView={handleExitPublicView} />
+  const transformToDisplayFormat = (
+    trainer: TrainerData,
+    content: TrainerContent,
+  ): {
+    displayTrainer: DisplayTrainerData
+    displayContent: DisplayTrainerContent
+  } => {
+    const displayTrainer: DisplayTrainerData = {
+      id: trainer.id,
+      fullName: trainer.fullName,
+      email: trainer.email,
+      specialty: trainer.specialty,
+      certifications: trainer.certifications,
+      services: trainer.services,
+      status: trainer.status,
+      isActive: trainer.isActive,
+      isPaid: trainer.isPaid,
+    }
+
+    const displayContent: DisplayTrainerContent = {
+      hero: content.hero,
+      about: content.about,
+      contact: content.contact,
+      services: content.services,
+    }
+
+    return { displayTrainer, displayContent }
   }
 
-  // Otherwise render the existing editable view
+  // If in public view mode, render the clean public component without header
+  if (isPublicView) {
+    const { displayTrainer, displayContent } = transformToDisplayFormat(trainer, displayContent)
+    return (
+      <div className="relative">
+        <Button
+          onClick={handleExitPublicView}
+          className="fixed top-4 right-4 z-50 bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
+          size="sm"
+        >
+          <X className="h-4 w-4 mr-2" />
+          Exit Live View
+        </Button>
+        <TrainerProfileDisplay
+          trainer={displayTrainer}
+          content={displayContent}
+          mode="live"
+          onBookConsultation={() => console.log("Book consultation")}
+          onScheduleSession={() => console.log("Schedule session")}
+          onSendMessage={() => console.log("Send message")}
+        />
+      </div>
+    )
+  }
+
+  // Otherwise render with shared header and display components
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Header with Editing States */}
-      <div className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Badge variant="default" className="bg-green-500">
-                {trainer.isActive ? "Live" : "Draft"}
-              </Badge>
-              <Badge variant="secondary">{isEditing ? "Editing Mode" : "Active Profile"}</Badge>
-              {hasUnsavedChanges && (
-                <Badge variant="outline" className="border-orange-500 text-orange-600">
-                  Unsaved Changes
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-2">
-              {!isEditing ? (
-                // View Mode Actions
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPublicView(true)}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <Eye className="h-4 w-4" />
-                    <span>View Live</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleStartEditing}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit Profile</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
-                    className="flex items-center space-x-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Button>
-                </>
-              ) : (
-                // Edit Mode Actions
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={handleCancelEditing}
-                    className="flex items-center space-x-2 bg-transparent"
-                  >
-                    <X className="h-4 w-4" />
-                    <span>Cancel</span>
-                  </Button>
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={saving || !hasUnsavedChanges}
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <span>{saving ? "Saving..." : "Save Changes"}</span>
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Shared Header Component */}
+      <TrainerProfileHeader
+        mode="live"
+        isActive={trainer.isActive}
+        isEditing={isEditing}
+        hasUnsavedChanges={hasUnsavedChanges}
+        onViewLive={() => setIsPublicView(true)}
+        onEdit={handleStartEditing}
+        onDashboard={() => router.push(`/marketplace/trainer/${trainerId}/dashboard`)}
+        onSave={handleSaveChanges}
+        onCancel={handleCancelEditing}
+        saving={saving}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section - Now Editable */}
