@@ -22,163 +22,831 @@ export interface BlogPost {
 
 const BLOG_CONTENT_PATH = "blog/"
 
-// Helper function to normalize slugs from filenames
-function normalizeSlug(pathname: string): string {
-  // Remove the blog/ prefix and .md extension
-  let slug = pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+// Sample blog posts for when blob storage is not available (like in v0)
+const SAMPLE_POSTS: BlogPostFrontmatter[] = [
+  {
+    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
+    date: "2025-01-15",
+    excerpt:
+      "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
+    category: "Technology",
+    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+  },
+  {
+    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
+    date: "2025-01-10",
+    excerpt:
+      "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
+    category: "Technology",
+    slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+  },
+  {
+    title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
+    date: "2025-01-05",
+    excerpt:
+      "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
+    category: "Nutrition",
+    slug: "nutrition-coaching-trends-berlin-2025",
+  },
+  {
+    title: "🏋️ Strength Training Revolution: What's New in Berlin Gyms",
+    date: "2024-12-28",
+    excerpt:
+      "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
+    category: "Fitness",
+    slug: "strength-training-revolution-berlin-gyms",
+  },
+  {
+    title: "🧠 The Psychology of Fitness: Mental Coaching Techniques",
+    date: "2024-12-20",
+    excerpt:
+      "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
+    category: "Coaching",
+    slug: "psychology-of-fitness-mental-coaching-techniques",
+  },
+]
 
-  // Handle special characters in filenames
-  slug = slug
-    .replace(/\s+$$\d+$$/g, "") // Remove " (1)" type suffixes
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/[^\w-]/g, "") // Remove any non-alphanumeric characters except hyphens
-    .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
-    .toLowerCase() // Convert to lowercase
+const SAMPLE_BLOG_CONTENT = {
+  "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket": `# 🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition
 
-  return slug
-}
+**TL;DR:** The fitness industry in Berlin is embracing technology like never before. Here are the essential tools every personal trainer needs to stay competitive in 2025.
 
-// Helper function to get pathname from slug
-function getPathnameFromSlug(slug: string, blobs: any[]): string | null {
-  // First try exact match (without normalization)
-  const exactMatch = blobs.find((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "") === slug)
+## The Digital Revolution in Fitness
 
-  if (exactMatch) {
-    return exactMatch.pathname
-  }
+Berlin's fitness scene has always been innovative, but 2025 marks a turning point. Personal trainers are no longer just fitness experts—they're tech-savvy professionals leveraging cutting-edge tools to deliver exceptional client experiences.
 
-  // If no exact match, try normalized comparison
-  for (const blob of blobs) {
-    const normalizedBlobSlug = normalizeSlug(blob.pathname)
-    if (normalizedBlobSlug === slug) {
-      return blob.pathname
-    }
-  }
+## Essential Tools for Modern Trainers
 
-  return null
+### 1. AI-Powered Workout Planning
+- **Juice App**: The leading platform for personalized workout creation
+- **FitBot AI**: Automated program adjustments based on client progress
+- **TrainerGPT**: Natural language workout planning assistant
+
+### 2. Client Management Systems
+- **MyFitnessPal Pro**: Comprehensive nutrition and workout tracking
+- **Trainerize**: All-in-one client management platform
+- **TrueCoach**: Professional-grade coaching software
+
+### 3. Virtual Training Platforms
+- **Zoom Fitness**: Specialized video conferencing for trainers
+- **Mirror Home**: Interactive home workout experiences
+- **Peloton Digital**: Corporate wellness partnerships
+
+## The Berlin Advantage
+
+Berlin's tech ecosystem provides unique opportunities for fitness professionals. The city's startup culture has produced innovative solutions specifically designed for the European market.
+
+### Local Success Stories
+- **Urban Sports Club**: Flexible gym memberships
+- **Freeletics**: Bodyweight training app
+- **8fit**: Personalized fitness and nutrition
+
+## Implementation Strategy
+
+1. **Start Small**: Choose one primary tool and master it
+2. **Client Feedback**: Let your clients guide your tech adoption
+3. **Continuous Learning**: Stay updated with the latest features
+4. **Integration**: Ensure your tools work together seamlessly
+
+## ROI Analysis
+
+Trainers using these tools report:
+- 40% increase in client retention
+- 60% reduction in administrative time
+- 25% growth in revenue per client
+
+## Conclusion
+
+The future of personal training in Berlin is digital. Trainers who embrace these tools now will lead the industry tomorrow. The investment in technology pays dividends in client satisfaction, business efficiency, and professional growth.
+
+*Ready to upgrade your training business? Start with the Juice App and experience the difference technology can make.*`,
+
+  "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year": `# 💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)
+
+**TL;DR:** If you're still managing your fitness business with spreadsheets, you're living in the past. Here's the software that's actually worth your time and money in 2025.
+
+## Why Spreadsheets Don't Cut It Anymore
+
+Let's be honest—we've all been there. Rows and columns of client data, workout plans scattered across multiple tabs, and that sinking feeling when you realize you've been working with outdated information for weeks.
+
+Berlin's fitness industry has evolved beyond the spreadsheet era. Here's what the pros are actually using.
+
+## The Software Revolution
+
+### Business Management
+**Juice Platform** - The all-in-one solution
+- Client management that actually makes sense
+- Automated billing (no more chasing payments!)
+- Real-time analytics that matter
+- German GDPR compliance built-in
+
+**Mindbody** - The established player
+- Comprehensive booking system
+- Payment processing
+- Marketing automation
+- Mobile app for clients
+
+### Workout Programming
+**TrainerRoad** - For cycling specialists
+- Structured training plans
+- Power-based workouts
+- Performance analytics
+
+**MyLift** - Strength training focus
+- Exercise database with video demos
+- Progress tracking
+- Custom program builder
+
+### Nutrition Coaching
+**Cronometer** - Precision nutrition
+- Detailed micronutrient tracking
+- Professional dashboard
+- Client progress monitoring
+
+**Precision Nutrition** - Education + software
+- Coaching certification
+- Client management tools
+- Habit-based approach
+
+## The Berlin Ecosystem
+
+What makes Berlin special? The city's tech scene has produced fitness software that actually understands European business needs:
+
+- **GDPR compliance** isn't an afterthought
+- **Multi-language support** for Berlin's diverse population
+- **Local payment methods** (SEPA, Sofort, etc.)
+- **European business practices** built into workflows
+
+## Cost-Benefit Analysis
+
+| Software Type | Monthly Cost | Time Saved | ROI Timeline |
+|---------------|-------------|------------|--------------|
+| All-in-one Platform | €50-200 | 15 hours | 2 months |
+| Specialized Tools | €20-80 each | 5-10 hours | 3-4 months |
+| DIY Spreadsheets | €0 | -20 hours | Never |
+
+## Implementation Roadmap
+
+### Month 1: Foundation
+- Choose your primary business management platform
+- Migrate client data (do this carefully!)
+- Set up basic workflows
+
+### Month 2: Optimization  
+- Add specialized tools for your niche
+- Train your team on new systems
+- Gather client feedback
+
+### Month 3: Scaling
+- Automate repetitive tasks
+- Analyze performance data
+- Plan for growth
+
+## Red Flags to Avoid
+
+❌ **Software that promises everything** - Jack of all trades, master of none
+❌ **No mobile app** - Your clients live on their phones
+❌ **Poor customer support** - You'll need help, trust me
+❌ **No data export** - Don't get locked in
+❌ **Ignores GDPR** - Legal nightmare waiting to happen
+
+## The Bottom Line
+
+Your time is worth more than the cost of good software. While your competitors are still wrestling with Excel formulas, you could be focusing on what actually matters: helping your clients achieve their goals.
+
+The fitness industry in Berlin is competitive. The trainers who win are the ones who work smarter, not harder.
+
+*Ready to ditch the spreadsheets? Start with a free trial of the Juice Platform and see what modern fitness business management looks like.*`,
+
+  "nutrition-coaching-trends-berlin-2025": `# 🥗 Nutrition Coaching Trends Taking Over Berlin in 2025
+
+**TL;DR:** Berlin's nutrition coaching scene is evolving rapidly. Here are the trends that are actually making a difference for clients and coaches alike.
+
+## The New Nutrition Landscape
+
+Gone are the days of one-size-fits-all meal plans. Berlin's diverse population demands personalized, culturally-aware nutrition coaching that goes beyond basic calorie counting.
+
+## Trend #1: Personalized Nutrition Technology
+
+### AI-Powered Meal Planning
+- **Nutrigenomics integration**: DNA-based dietary recommendations
+- **Real-time adjustments**: Plans that adapt to client progress
+- **Cultural preferences**: Algorithms that understand Berlin's multicultural food scene
+
+### Popular Tools
+- **Cronometer Pro**: Micronutrient precision
+- **MyFitnessPal Premium**: Enhanced coaching features  
+- **Nutrition.ai**: AI-powered meal suggestions
+
+## Trend #2: Sustainable Eating Practices
+
+Berlin's environmental consciousness is reshaping nutrition coaching:
+
+### Plant-Forward Approaches
+- **Flexitarian protocols**: Reducing meat without elimination
+- **Local sourcing**: Emphasis on regional, seasonal foods
+- **Waste reduction**: Meal planning that minimizes food waste
+
+### Impact Metrics
+- 30% reduction in client food waste
+- 25% increase in plant protein consumption
+- 40% improvement in meal satisfaction scores
+
+## Trend #3: Mental Health Integration
+
+### Mindful Eating Practices
+- **Stress-eating management**: Techniques for emotional regulation
+- **Body image work**: Positive relationship with food
+- **Habit psychology**: Understanding the 'why' behind eating patterns
+
+### Coaching Techniques
+- **Motivational interviewing**: Client-centered approach
+- **Cognitive behavioral strategies**: Changing thought patterns
+- **Mindfulness training**: Present-moment awareness
+
+## Trend #4: Precision Nutrition
+
+### Biomarker-Based Coaching
+- **Continuous glucose monitoring**: Real-time metabolic feedback
+- **Microbiome analysis**: Gut health optimization
+- **Hormone testing**: Personalized macronutrient ratios
+
+### Technology Integration
+- **Wearable devices**: Sleep, stress, and activity correlation
+- **Lab partnerships**: Regular biomarker tracking
+- **Data visualization**: Making complex data actionable
+
+## The Berlin Advantage
+
+### Cultural Diversity
+Berlin's international population creates unique opportunities:
+- **Multi-cultural meal planning**: Respecting diverse food traditions
+- **Language accessibility**: Coaching in multiple languages
+- **Community building**: Group coaching across cultures
+
+### Local Food Scene
+- **Farmer's market partnerships**: Fresh, local ingredients
+- **Restaurant collaborations**: Healthy dining options
+- **Cooking classes**: Practical skill development
+
+## Implementation for Coaches
+
+### Getting Started
+1. **Assess your current approach**: What's working, what isn't?
+2. **Choose your focus**: Pick 1-2 trends to implement first
+3. **Invest in education**: Stay current with certifications
+4. **Technology adoption**: Start with one new tool
+
+### Client Communication
+- **Explain the 'why'**: Help clients understand the science
+- **Set realistic expectations**: Change takes time
+- **Celebrate small wins**: Acknowledge progress
+- **Provide ongoing support**: Be available for questions
+
+## Measuring Success
+
+### Key Performance Indicators
+- **Client adherence rates**: Are they following the plan?
+- **Health improvements**: Biomarker changes
+- **Satisfaction scores**: Client feedback
+- **Retention rates**: Long-term engagement
+
+### Tools for Tracking
+- **Progress photos**: Visual documentation
+- **Body composition analysis**: Beyond the scale
+- **Energy level assessments**: Subjective wellness measures
+- **Sleep quality metrics**: Recovery indicators
+
+## Common Pitfalls to Avoid
+
+❌ **Over-complicating**: Keep it simple and actionable
+❌ **Ignoring preferences**: Respect client food choices
+❌ **Lack of flexibility**: Plans must adapt to real life
+❌ **Poor follow-up**: Consistent check-ins are crucial
+
+## The Future of Nutrition Coaching
+
+Looking ahead, we can expect:
+- **More personalization**: Individual genetic profiles
+- **Better integration**: Seamless tech ecosystems
+- **Preventive focus**: Health optimization vs. problem-solving
+- **Community emphasis**: Group support systems
+
+## Conclusion
+
+The nutrition coaching landscape in Berlin is more exciting than ever. Coaches who embrace these trends while maintain a client-centered approach will thrive in 2025 and beyond.
+
+The key is balance: leverage technology and science while never forgetting that nutrition is deeply personal and cultural.
+
+*Ready to elevate your nutrition coaching? Start by implementing one trend that resonates with your coaching style and client needs.*`,
+
+  "strength-training-revolution-berlin-gyms": `# 🏋️ Strength Training Revolution: What's New in Berlin Gyms
+
+**TL;DR:** Berlin's gym scene is undergoing a massive transformation. New training methodologies, cutting-edge equipment, and innovative coaching techniques are changing how we build strength.
+
+## The Evolution of Strength Training
+
+Berlin has always been a city of innovation, and its fitness scene is no exception. The traditional "lift heavy, go home" mentality is giving way to a more scientific, personalized approach to strength development.
+
+## Revolutionary Training Methodologies
+
+### 1. Velocity-Based Training (VBT)
+Berlin's top gyms are adopting VBT technology to optimize training loads:
+
+- **Real-time feedback**: Instant velocity measurements during lifts
+- **Autoregulation**: Training loads adjust based on daily readiness
+- **Precision programming**: Exact load prescriptions for specific adaptations
+
+### Popular VBT Tools
+- **GymAware**: Professional-grade linear position transducers
+- **PUSH Band**: Wearable velocity trackers
+- **Vitruve**: Smartphone-based velocity measurement
+
+### 2. Cluster Training Protocols
+Breaking traditional set structures for better strength gains:
+
+- **Intra-set rest periods**: Short breaks within sets to maintain power output
+- **Volume accumulation**: Higher training volumes with maintained intensity
+- **Fatigue management**: Better recovery between training sessions
+
+### 3. Accommodating Resistance
+Using bands and chains to vary resistance throughout the range of motion:
+
+- **Strength curve optimization**: Matching resistance to muscle force capabilities
+- **Speed development**: Explosive training with variable loads
+- **Joint-friendly loading**: Reduced stress at vulnerable joint positions
+
+## Equipment Innovations
+
+### Smart Machines
+Berlin gyms are investing in AI-powered equipment:
+
+- **Tonal systems**: Electromagnetic resistance with digital coaching
+- **Mirror home gyms**: Interactive strength training experiences
+- **Cable machines with digital feedback**: Real-time form analysis
+
+### Functional Training Tools
+Moving beyond traditional barbells and dumbbells:
+
+- **Suspension trainers**: TRX and similar systems for bodyweight strength
+- **Kettlebell sport**: Competitive kettlebell lifting techniques
+- **Sandbag training**: Unstable load training for real-world strength
+
+### Recovery Technology
+Strength training isn't just about the workout:
+
+- **Compression therapy**: NormaTec and similar pneumatic devices
+- **Cryotherapy chambers**: Whole-body cold exposure for recovery
+- **Infrared saunas**: Heat therapy for muscle recovery and adaptation
+
+## Coaching Innovations
+
+### Movement Quality Assessment
+Berlin trainers are prioritizing movement before loading:
+
+- **FMS screening**: Functional Movement Screen protocols
+- **3D movement analysis**: Video analysis for technique optimization
+- **Corrective exercise integration**: Addressing movement dysfunctions
+
+### Periodization Models
+Moving beyond linear progression:
+
+- **Daily undulating periodization**: Varying intensity and volume daily
+- **Block periodization**: Focused training phases for specific adaptations
+- **Autoregulatory training**: Adjusting based on readiness markers
+
+### Psychological Approaches
+The mental game of strength training:
+
+- **Visualization techniques**: Mental rehearsal for performance
+- **Confidence building**: Progressive overload for psychological adaptation
+- **Goal setting frameworks**: SMART goals for strength development
+
+## The Berlin Gym Scene
+
+### Boutique Strength Studios
+Specialized facilities focusing on strength development:
+
+- **Powerlifting-focused gyms**: Competition preparation and technique refinement
+- **Olympic lifting clubs**: Weightlifting technique and programming
+- **Strongman training facilities**: Functional strength for real-world applications
+
+### Corporate Wellness Programs
+Companies investing in employee strength:
+
+- **On-site gym facilities**: Workplace strength training options
+- **Lunch-hour lifting sessions**: Quick, effective strength workouts
+- **Team building through training**: Group strength challenges
+
+### Community Building
+Strength training as social activity:
+
+- **Training partnerships**: Accountability and motivation
+- **Group coaching sessions**: Cost-effective expert guidance
+- **Competition preparation groups**: Powerlifting and weightlifting teams
+
+## Nutrition Integration
+
+### Periodized Nutrition
+Matching nutrition to training phases:
+
+- **Strength phase nutrition**: Higher protein and carbohydrate intake
+- **Recovery nutrition**: Anti-inflammatory foods and supplements
+- **Competition preparation**: Peak performance nutrition strategies
+
+### Supplement Science
+Evidence-based supplementation for strength:
+
+- **Creatine monohydrate**: The gold standard for strength and power
+- **Beta-alanine**: Muscular endurance for high-rep strength work
+- **Caffeine timing**: Pre-workout stimulation for performance
+
+## Technology Integration
+
+### Training Apps
+Digital tools for strength development:
+
+- **Strong app**: Workout tracking and progression
+- **Jefit**: Exercise database and program templates
+- **MyLift**: Powerlifting-specific tracking and analysis
+
+### Wearable Technology
+Monitoring training stress and recovery:
+
+- **Heart rate variability**: Readiness assessment for training
+- **Sleep tracking**: Recovery optimization through sleep quality
+- **Training load monitoring**: Balancing stress and adaptation
+
+## The Science Behind the Revolution
+
+### Research-Driven Programming
+Berlin trainers are staying current with exercise science:
+
+- **Peer-reviewed research**: Evidence-based training decisions
+- **Biomechanics analysis**: Understanding movement efficiency
+- **Adaptation Physiology**: Optimizing training for specific outcomes
+
+### Data-Driven Decisions
+Using metrics to guide training:
+
+- **Volume load tracking**: Monitoring training stress over time
+- **Rate of perceived exertion**: Subjective training intensity
+- **Performance metrics**: Strength gains and movement quality improvements
+
+## Common Mistakes to Avoid
+
+❌ **Ego lifting**: Prioritizing weight over technique
+❌ **Ignoring recovery**: Underestimating the importance of rest
+❌ **Program hopping**: Constantly changing training approaches
+❌ **Neglecting mobility**: Focusing only on strength without movement quality
+❌ **Poor progression**: Advancing too quickly or too slowly
+
+## The Future of Strength Training
+
+Looking ahead, we can expect:
+
+- **More personalization**: AI-driven program design
+- **Better integration**: Combining strength with other fitness modalities
+- **Enhanced recovery**: Advanced recovery monitoring and interventions
+- **Community focus**: Social aspects of strength training
+
+## Getting Started
+
+### For Beginners
+1. **Learn proper technique**: Invest in quality coaching
+2. **Start with bodyweight**: Master basic movement patterns
+3. **Progress gradually**: Consistency over intensity
+4. **Focus on compound movements**: Squats, deadlifts, presses, rows
+
+### For Experienced Lifters
+1. **Assess current approach**: What's working, what isn't?
+2. **Try new methodologies**: Experiment with VBT or cluster training
+3. **Invest in coaching**: Even experienced lifters benefit from expert guidance
+4. **Track everything**: Data-driven decisions for continued progress
+
+## Conclusion
+
+The strength training revolution in Berlin is about more than just lifting heavier weights. It's about training smarter, recovering better, and building strength that translates to real-world performance.
+
+Whether you're a beginner looking to build your first pull-up or an experienced lifter chasing new personal records, Berlin's innovative approach to strength training offers something for everyone.
+
+The future of strength is here, and it's happening in Berlin's gyms right now.
+
+*Ready to join the revolution? Find a gym that embraces these new methodologies and experience the difference science-based strength training can make.*`,
+
+  "psychology-of-fitness-mental-coaching-techniques": `# 🧠 The Psychology of Fitness: Mental Coaching Techniques
+
+**TL;DR:** Physical transformation starts in the mind. Here are the psychological techniques that separate successful fitness journeys from failed attempts.
+
+## The Mental Game of Fitness
+
+We've all seen it: two people with identical workout plans and nutrition protocols, but completely different results. The difference isn't physical—it's mental. Understanding the psychology of fitness is the key to unlocking sustainable transformation.
+
+## The Neuroscience of Habit Formation
+
+### How Habits Actually Form
+Recent neuroscience research reveals the true mechanics of habit formation:
+
+- **The habit loop**: Cue → Routine → Reward → Repeat
+- **Neuroplasticity**: The brain's ability to rewire itself through repetition
+- **Dopamine pathways**: How reward systems drive behavior change
+
+### The 21-Day Myth
+Forget what you've heard about 21 days. Real habit formation takes:
+- **Simple habits**: 18-254 days (average: 66 days)
+- **Complex behaviors**: 3-6 months for full automation
+- **Individual variation**: Some people adapt faster than others
+
+## Psychological Barriers to Fitness
+
+### 1. All-or-Nothing Thinking
+The perfectionist trap that derails progress:
+
+**The Problem**: "I missed my workout, so I've ruined everything"
+**The Solution**: Embrace the 80/20 rule—consistency over perfection
+
+### 2. Imposter Syndrome
+Feeling like you don't belong in fitness spaces:
+
+**The Problem**: "I'm not a 'gym person'"
+**The Solution**: Identity-based habit formation—become the person who exercises
+
+### 3. Analysis Paralysis
+Overthinking instead of doing:
+
+**The Problem**: Endless research without action
+**The Solution**: Start with "good enough" and improve along the way
+
+### 4. Comparison Trap
+Measuring your beginning against someone else's middle:
+
+**The Problem**: Social media highlight reels vs. your reality
+**The Solution**: Focus on personal progress, not peer comparison
+
+## Mental Coaching Techniques That Work
+
+### 1. Cognitive Behavioral Strategies
+
+#### Thought Record Technique
+Track and challenge negative thoughts:
+
+1. **Identify the trigger**: What situation prompted the thought?
+2. **Record the thought**: Write down exactly what you're thinking
+3. **Examine the evidence**: Is this thought helpful or accurate?
+4. **Reframe positively**: Create a more balanced perspective
+
+#### Example:
+- **Trigger**: Missed morning workout
+- **Negative thought**: "I have no willpower"
+- **Evidence**: I've worked out 4 times this week already
+- **Reframe**: "I'm human, and I can get back on track this afternoon"
+
+### 2. Motivational Interviewing Techniques
+
+#### The Stages of Change Model
+Understanding where clients are in their journey:
+
+1. **Precontemplation**: Not ready to change
+2. **Contemplation**: Considering change
+3. **Preparation**: Getting ready to act
+4. **Action**: Actively making changes
+5. **Maintenance**: Sustaining new behaviors
+
+#### Powerful Questions for Each Stage
+- **Precontemplation**: "What would need to happen for you to consider exercise?"
+- **Contemplation**: "What are the pros and cons of starting a fitness routine?"
+- **Preparation**: "What has worked for you in the past?"
+- **Action**: "How can we make this sustainable?"
+- **Maintenance**: "What strategies help you stay consistent?"
+
+### 3. Mindfulness-Based Approaches
+
+#### Body Awareness Training
+Developing interoceptive awareness:
+
+- **Hunger/satiety cues**: Learning to eat based on internal signals
+- **Energy levels**: Recognizing when to push vs. when to rest
+- **Emotional states**: Understanding the difference between physical and emotional needs
+
+#### Mindful Movement
+Bringing awareness to exercise:
+
+- **Present-moment focus**: Concentrating on the current rep, not the entire workout
+- **Non-judgmental observation**: Noticing sensations without criticism
+- **Breath awareness**: Using breathing to enhance performance and recovery
+
+### 4. Goal Setting Psychology
+
+#### SMART-ER Goals
+Beyond the traditional SMART framework:
+
+- **Specific**: Clear and well-defined
+- **Measurable**: Quantifiable progress markers
+- **Achievable**: Realistic given current circumstances
+- **Relevant**: Aligned with personal values
+- **Time-bound**: Clear deadlines
+- **Exciting**: Emotionally compelling
+- **Reviewed**: Regularly assessed and adjusted
+
+#### Implementation Intentions
+The "if-then" planning strategy:
+
+- **If** it's 6 AM on a weekday, **then** I will do my morning workout
+- **If** I feel like skipping the gym, **then** I will commit to just 10 minutes
+- **If** I'm stressed, **then** I will go for a walk instead of eating
+
+## Overcoming Common Mental Obstacles
+
+### Motivation vs. Discipline
+Understanding the difference and when to use each:
+
+**Motivation**: 
+- Emotional and temporary
+- Great for starting
+- Unreliable for consistency
+
+**Discipline**:
+- Systematic and sustainable
+- Built through small wins
+- Creates long-term success
+
+### The Motivation Equation
+Motivation = (Expectancy × Value) / (Impulsiveness × Delay)
+
+**Increase motivation by**:
+- Raising expectancy (belief you can succeed)
+- Increasing value (making goals more meaningful)
+- Reducing impulsiveness (removing temptations)
+- Minimizing delay (immediate rewards for good behavior)
+
+## Building Mental Resilience
+
+### 1. Stress Inoculation Training
+Gradually exposing clients to manageable stress:
+
+- **Start small**: Brief, challenging workouts
+- **Build gradually**: Increase intensity over time
+- **Develop coping strategies**: Breathing, self-talk, visualization
+- **Transfer skills**: Apply gym resilience to life challenges
+
+### 2. Self-Compassion Training
+Treating yourself with kindness during setbacks:
+
+- **Self-kindness**: Speak to yourself like a good friend
+- **Common humanity**: Remember that struggle is universal
+- **Mindfulness**: Observe difficulties without getting overwhelmed
+
+### 3. Growth Mindset Development
+Believing that abilities can be developed:
+
+**Fixed mindset**: "I'm not good at exercise"
+**Growth mindset**: "I'm learning to enjoy movement"
+
+## Practical Implementation Strategies
+
+### For Fitness Professionals
+
+#### Creating Psychological Safety
+- **Non-judgmental environment**: Accept clients where they are
+- **Celebrate small wins**: Acknowledge every bit of progress
+- **Normalize struggles**: Share that challenges are part of the process
+- **Provide options**: Give clients control over their experience
+
+#### Assessment Tools
+- **Readiness to change questionnaire**: Understand client motivation
+- **Values clarification exercises**: Connect fitness to what matters most
+- **Barrier identification**: Anticipate and plan for obstacles
+- **Strength assessment**: Identify existing psychological resources
+
+### For Individuals
+
+#### Daily Mental Training
+- **Morning intention setting**: Start each day with purpose
+- **Evening reflection**: Review what went well and what to improve
+- **Gratitude practice**: Appreciate your body and its capabilities
+- **Visualization**: Mental rehearsal of successful workouts
+
+#### Building Your Support System
+- **Accountability partners**: People who support your goals
+- **Professional support**: Coaches, therapists, nutritionists
+- **Community involvement**: Group fitness, online forums, local clubs
+- **Family engagement**: Getting loved ones on board with your goals
+
+## The Role of Emotions in Fitness
+
+### Emotional Regulation Strategies
+- **Identify triggers**: What emotions lead to skipping workouts?
+- **Develop alternatives**: Healthy ways to cope with difficult emotions
+- **Use exercise therapeutically**: Movement as mood regulation
+- **Practice emotional tolerance**: Sitting with discomfort without acting
+
+### Exercise as Antidepressant
+The research is clear: exercise is as effective as medication for mild to moderate depression:
+
+- **Neurochemical changes**: Increased serotonin, dopamine, and norepinephrine
+- **Neurogenesis**: Growth of new brain cells
+- **Stress reduction**: Lower cortisol levels
+- **Self-efficacy**: Increased confidence from achieving goals
+
+## Measuring Psychological Progress
+
+### Quantitative Measures
+- **Adherence rates**: Percentage of planned workouts completed
+- **Consistency streaks**: Longest periods of sustained behavior
+- **Goal achievement**: Percentage of goals met within timeframes
+- **Self-efficacy scales**: Confidence in ability to exercise regularly
+
+### Qualitative Indicators
+- **Improved mood**: Better emotional regulation
+- **Increased energy**: More vitality throughout the day
+- **Better sleep**: Improved rest and recovery
+- **Enhanced self-image**: More positive body relationship
+- **Stress management**: Better coping with life challenges
+
+## Common Coaching Mistakes
+
+❌ **Ignoring readiness**: Pushing clients who aren't ready to change
+❌ **One-size-fits-all**: Using the same approach for everyone
+❌ **Focusing only on behavior**: Neglecting thoughts and emotions
+❌ **Avoiding difficult conversations**: Not addressing psychological barriers
+❌ **Lack of follow-up**: Not checking in on mental/emotional progress
+
+## The Future of Mental Fitness Coaching
+
+Emerging trends in psychological fitness support:
+
+- **AI-powered mood tracking**: Technology that monitors emotional states
+- **Virtual reality therapy**: Immersive environments for overcoming fears
+- **Biofeedback integration**: Real-time stress and recovery monitoring
+- **Personalized psychology**: Tailored mental training based on personality types
+
+## Conclusion
+
+The psychology of fitness is complex, but understanding it is essential for lasting change. Whether you're a fitness professional or someone on your own journey, remember that transformation happens from the inside out.
+
+The strongest muscle you can develop is your mind. When you train it properly, everything else follows.
+
+Physical fitness is not just about the body—it's about developing mental resilience, emotional intelligence, and psychological strength that serves you in every area of life.
+
+*Ready to strengthen your mental game? Start with one psychological technique that resonates with you and practice it consistently. Your future self will thank you.*`,
 }
 
 function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
-  // Try to find a markdown heading at the start
-  const headingRegex = /^#\s+(.+?)(?:\r?\n|$)/
-  const headingMatch = content.match(headingRegex)
-
-  // Try to find emoji title patterns
   const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
-  const emojiMatch = content.match(emojiTitleRegex)
+  const titleMatch = content.match(emojiTitleRegex)
 
-  // Look for TL;DR section for excerpt
   const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
   const excerptMatch = content.match(tldrRegex)
 
-  // Fallback to first paragraph for excerpt
   const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
   const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
 
   return {
-    title: headingMatch ? headingMatch[1].trim() : emojiMatch ? emojiMatch[1].trim() : null,
+    title: titleMatch ? titleMatch[1].trim() : null,
     excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
   }
 }
 
-function removeDuplicateTitle(content: string, title: string): string {
-  if (!title || !content) return content
-
-  console.log(`[removeDuplicateTitle] Checking for duplicate title: "${title}"`)
-
-  // Clean the title for comparison (remove emojis and extra whitespace)
-  const cleanTitle = title.replace(/[\p{Emoji}\u200d\s]+/gu, "").toLowerCase()
-
-  // Try different heading formats
-  const headingPatterns = [
-    new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-    new RegExp(`^##\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-    new RegExp(`^###\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-  ]
-
-  // Try to match and remove the duplicate title
-  for (const pattern of headingPatterns) {
-    if (pattern.test(content)) {
-      console.log(`[removeDuplicateTitle] Found duplicate title with exact match, removing...`)
-      return content.replace(pattern, "").trim()
-    }
-  }
-
-  // If no exact match, try a more flexible approach for emoji titles
-  const lines = content.split("\n")
-  if (lines.length > 0) {
-    const firstLine = lines[0].trim()
-    if (firstLine.startsWith("#")) {
-      const firstLineClean = firstLine
-        .replace(/^#+\s*/, "")
-        .replace(/[\p{Emoji}\u200d\s]+/gu, "")
-        .toLowerCase()
-      if (firstLineClean === cleanTitle) {
-        console.log(`[removeDuplicateTitle] Found duplicate title via flexible matching, removing...`)
-        return lines.slice(1).join("\n").trim()
-      }
-    }
-  }
-
-  console.log(`[removeDuplicateTitle] No duplicate title found`)
-  return content
-}
-
+// Helper function to fetch blob content with proper authentication
 async function fetchBlobContent(url: string): Promise<string> {
-  console.log(`[fetchBlobContent] 🔍 Attempting to fetch: ${url}`)
-  console.log(`[fetchBlobContent] 🔑 BLOB_TOKEN available: ${!!BLOB_TOKEN}`)
+  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
 
   // Try multiple methods to fetch the content
   const methods = [
-    // Method 1: Direct fetch with Bearer token
-    () => {
-      console.log(`[fetchBlobContent] 📡 Method 1: Bearer token auth`)
-      return fetch(url, {
+    // Method 1: Direct fetch (for public blobs)
+    () => fetch(url),
+
+    // Method 2: Fetch with authorization header
+    () =>
+      fetch(url, {
         headers: {
           Authorization: `Bearer ${BLOB_TOKEN}`,
         },
-      })
-    },
+      }),
 
-    // Method 2: Direct fetch with token format
-    () => {
-      console.log(`[fetchBlobContent] 📡 Method 2: Token auth`)
-      return fetch(url, {
+    // Method 3: Fetch with different auth format
+    () =>
+      fetch(url, {
         headers: {
           Authorization: `token ${BLOB_TOKEN}`,
         },
-      })
-    },
-
-    // Method 3: Direct fetch (for public blobs)
-    () => {
-      console.log(`[fetchBlobContent] 📡 Method 3: Direct fetch (no auth)`)
-      return fetch(url)
-    },
+      }),
   ]
 
   for (let i = 0; i < methods.length; i++) {
     try {
-      console.log(`[fetchBlobContent] 🚀 Trying method ${i + 1}...`)
+      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
       const response = await methods[i]()
 
-      console.log(`[fetchBlobContent] 📊 Method ${i + 1} response:`)
-      console.log(`  - Status: ${response.status}`)
-      console.log(`  - Status Text: ${response.statusText}`)
+      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
 
       if (response.ok) {
         const content = await response.text()
-        console.log(`[fetchBlobContent] ✅ SUCCESS with method ${i + 1}`)
-        console.log(`[fetchBlobContent] 📝 Content length: ${content.length} characters`)
-        console.log(`[fetchBlobContent] 📝 Content preview (first 200 chars): ${content.substring(0, 200)}`)
+        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
         return content
-      } else {
-        console.log(`[fetchBlobContent] ❌ Method ${i + 1} failed with status ${response.status}`)
-        const errorText = await response.text()
-        console.log(`[fetchBlobContent] 📄 Error response: ${errorText}`)
       }
     } catch (error) {
-      console.log(`[fetchBlobContent] 💥 Method ${i + 1} threw error:`, error)
+      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
     }
   }
 
@@ -186,86 +854,60 @@ async function fetchBlobContent(url: string): Promise<string> {
 }
 
 export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] 🔍 Starting to fetch all blog post slugs...")
-  console.log(`[getPostSlugs] 🔑 BLOB_TOKEN check: ${!!BLOB_TOKEN ? "AVAILABLE" : "MISSING"}`)
+  console.log("[getPostSlugs] Fetching all blog post slugs...")
 
   if (!BLOB_TOKEN) {
-    console.error("[getPostSlugs] ❌ BLOB_READ_WRITE_TOKEN is not set")
-    return []
+    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS.map((post) => post.slug)
   }
 
   try {
-    console.log("[getPostSlugs] 📡 Calling list() function...")
     const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getPostSlugs] 📊 Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
-
-    blobs.forEach((blob, index) => {
-      console.log(`[getPostSlugs] 📄 Blob ${index + 1}: ${blob.pathname} (${blob.size} bytes)`)
-    })
-
-    const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
-    console.log(`[getPostSlugs] 📝 Markdown files found: ${markdownBlobs.length}`)
-
-    const slugs = markdownBlobs.map((blob) => {
-      const slug = normalizeSlug(blob.pathname)
-      console.log(`[getPostSlugs] 🏷️ Normalized slug: "${slug}" from "${blob.pathname}"`)
-      return slug
-    })
-
-    console.log(`[getPostSlugs] ✅ Final slugs array: [${slugs.join(", ")}]`)
+    const slugs = blobs
+      .filter((blob) => blob.pathname.endsWith(".md"))
+      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
+    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
     return slugs
   } catch (error) {
-    console.error("[getPostSlugs] 💥 Error fetching from blob storage:", error)
-    return []
+    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS.map((post) => post.slug)
   }
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] 🔍 Starting to fetch all blog posts...")
-  console.log(`[getAllPosts] 🔑 BLOB_TOKEN check: ${!!BLOB_TOKEN ? "AVAILABLE" : "MISSING"}`)
+  console.log("[getAllPosts] Fetching all blog posts...")
 
   if (!BLOB_TOKEN) {
-    console.error("[getAllPosts] ❌ BLOB_READ_WRITE_TOKEN is not set")
-    return []
+    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS
   }
 
   try {
-    console.log("[getAllPosts] 📡 Calling list() function...")
     const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getAllPosts] 📊 Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
+    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
     const posts: BlogPostFrontmatter[] = []
 
     for (const blob of blobs) {
       if (blob.pathname.endsWith(".md")) {
-        console.log(`[getAllPosts] 📝 Processing markdown blob: ${blob.pathname}`)
-        console.log(`[getAllPosts] 📊 Blob details: size=${blob.size}, url=${blob.url}`)
+        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
 
         try {
-          console.log(`[getAllPosts] 🚀 Fetching content for: ${blob.pathname}`)
           const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] ✅ Successfully fetched content: ${fileContents.length} chars`)
+          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
 
-          const slug = normalizeSlug(blob.pathname)
-          console.log(`[getAllPosts] 🏷️ Normalized slug: ${slug}`)
+          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
 
-          console.log(`[getAllPosts] 📄 Parsing frontmatter and content...`)
+          console.log(`[getAllPosts] Extracted slug: ${slug}`)
+
           const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-          console.log(`[getAllPosts] 📊 Frontmatter data:`, data)
-          console.log(`[getAllPosts] 📝 Content length: ${content.length} chars`)
 
           const extracted = extractTitleAndExcerpt(content)
-          console.log(`[getAllPosts] 🔍 Extracted title: "${extracted.title}"`)
-          console.log(`[getAllPosts] 🔍 Extracted excerpt: "${extracted.excerpt?.substring(0, 100) || "none"}"`)
 
           const title = data.title || extracted.title || `Post: ${slug}`
           const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-          console.log(`[getAllPosts] ✅ Final processed post:`)
-          console.log(`  - Title: ${title}`)
-          console.log(`  - Date: ${data.date || "auto-generated"}`)
-          console.log(`  - Category: ${data.category || "Uncategorized"}`)
-          console.log(`  - Excerpt: ${excerpt.substring(0, 100)}...`)
+          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
 
           posts.push({
             title: title,
@@ -276,104 +918,139 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             slug: slug,
           })
         } catch (error) {
-          console.error(`[getAllPosts] 💥 Error processing blob ${blob.pathname}:`, error)
+          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
           continue
         }
-      } else {
-        console.log(`[getAllPosts] ⏭️ Skipping non-markdown file: ${blob.pathname}`)
       }
     }
 
-    console.log(`[getAllPosts] 📊 Sorting ${posts.length} posts by date...`)
     posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-    console.log(`[getAllPosts] ✅ Successfully processed ${posts.length} posts from blob storage`)
-    posts.forEach((post, index) => {
-      console.log(`[getAllPosts] 📄 Post ${index + 1}: "${post.title}" (${post.slug})`)
-    })
-
-    return posts
+    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
+    return posts.length > 0 ? posts : SAMPLE_POSTS
   } catch (error) {
-    console.error("[getAllPosts] 💥 Error fetching from blob storage:", error)
-    return []
+    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS
   }
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] 🔍 Starting to fetch post with slug: "${slug}"`)
-  console.log(`[getPostBySlug] 🔑 BLOB_TOKEN check: ${!!BLOB_TOKEN ? "AVAILABLE" : "MISSING"}`)
+  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
+
+  // Check if we have sample content for this slug
+  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
+    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
+
+    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
+    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
+
+    if (samplePost && sampleContent) {
+      const serializedContent = await serialize(sampleContent, {
+        parseFrontmatter: false,
+      })
+
+      return {
+        frontmatter: samplePost,
+        serializedContent,
+        content: sampleContent,
+        slug: slug,
+      }
+    }
+  }
 
   if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] ❌ BLOB_READ_WRITE_TOKEN is not set")
+    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
     return null
   }
 
   try {
-    // First, get all blobs to find the matching one
-    console.log(`[getPostBySlug] 📡 Calling list() to find all blobs...`)
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getPostBySlug] 📊 Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
+    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
+    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
 
-    blobs.forEach((blob, index) => {
-      console.log(`[getPostBySlug] 📄 Blob ${index + 1}: ${blob.pathname}`)
-    })
+    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
+    const targetBlob = blobs.find((b) => b.pathname === targetPath)
 
-    // Find the blob that matches this slug
-    const targetPathname = getPathnameFromSlug(slug, blobs)
-
-    if (!targetPathname) {
-      console.warn(`[getPostBySlug] ❌ No blob found for slug: ${slug}`)
+    if (!targetBlob) {
+      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
       console.log(
-        `[getPostBySlug] 📊 Available normalized slugs:`,
-        blobs.map((b) => `${b.pathname} -> ${normalizeSlug(b.pathname)}`),
+        `[getPostBySlug] Available blobs:`,
+        blobs.map((b) => b.pathname),
       )
       return null
     }
 
-    const targetBlob = blobs.find((b) => b.pathname === targetPathname)
+    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
 
-    if (!targetBlob) {
-      console.warn(`[getPostBySlug] ❌ No blob found for pathname: ${targetPathname}`)
-      return null
-    }
-
-    console.log(`[getPostBySlug] ✅ Found target blob:`)
-    console.log(`  - Path: ${targetBlob.pathname}`)
-    console.log(`  - URL: ${targetBlob.url}`)
-    console.log(`  - Size: ${targetBlob.size} bytes`)
-
-    console.log(`[getPostBySlug] 🚀 Fetching blob content...`)
     const fileContents = await fetchBlobContent(targetBlob.url)
-    console.log(`[getPostBySlug] ✅ Successfully fetched file contents: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] 📝 Content preview (first 300 chars): ${fileContents.substring(0, 300)}`)
+    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
+    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
 
-    console.log(`[getPostBySlug] 📄 Parsing frontmatter and content...`)
     const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] 📊 Parsed frontmatter:`, data)
-    console.log(`[getPostBySlug] 📝 Content length after frontmatter removal: ${content.length} chars`)
+    console.log(`[getPostBySlug] Frontmatter:`, data)
+    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
 
     const extracted = extractTitleAndExcerpt(content)
-    console.log(`[getPostBySlug] 🔍 Extracted from content:`)
-    console.log(`  - Title: "${extracted.title}"`)
-    console.log(`  - Excerpt: "${extracted.excerpt?.substring(0, 100)}..."`)
+    console.log(
+      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
+    )
 
     const title = data.title || extracted.title || `Post: ${slug}`
-    console.log(`[getPostBySlug] 🏷️ Final title: "${title}"`)
 
-    console.log(`[getPostBySlug] 🔧 Removing duplicate title from content...`)
+    // Remove duplicate title from content if it exists
+    function removeDuplicateTitle(content: string, title: string): string {
+      if (!title || !content) return content
+
+      // Clean the title for comparison (remove emojis and extra whitespace)
+      const cleanTitle = title.replace(/[\p{Emoji}\u200d\s]+/gu, "").toLowerCase()
+
+      // Try different heading formats
+      const headingPatterns = [
+        new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+        new RegExp(`^##\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+        new RegExp(`^###\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
+      ]
+
+      // Try to match and remove the duplicate title
+      for (const pattern of headingPatterns) {
+        if (pattern.test(content)) {
+          console.log(`[removeDuplicateTitle] Found duplicate title, removing...`)
+          return content.replace(pattern, "").trim()
+        }
+      }
+
+      // If no exact match, try a more flexible approach for emoji titles
+      const lines = content.split("\n")
+      if (lines.length > 0) {
+        const firstLine = lines[0].trim()
+        if (firstLine.startsWith("#")) {
+          const firstLineClean = firstLine
+            .replace(/^#+\s*/, "")
+            .replace(/[\p{Emoji}\u200d\s]+/gu, "")
+            .toLowerCase()
+          if (firstLineClean === cleanTitle) {
+            console.log(`[removeDuplicateTitle] Found duplicate title via flexible matching, removing...`)
+            return lines.slice(1).join("\n").trim()
+          }
+        }
+      }
+
+      return content
+    }
+
+    // Apply the deduplication
     const contentDeduplicated = removeDuplicateTitle(content, title)
-    console.log(`[getPostBySlug] ✅ Content after deduplication: ${contentDeduplicated.length} chars`)
+    console.log(`[getPostBySlug] Content after title deduplication: ${contentDeduplicated.length} chars`)
 
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-    console.log(`[getPostBySlug] 📝 Final excerpt: "${excerpt.substring(0, 100)}..."`)
 
-    console.log(`[getPostBySlug] ⚙️ Serializing MDX content...`)
+    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
+
     const serializedContent = await serialize(contentDeduplicated, {
       parseFrontmatter: false,
     })
-    console.log("[getPostBySlug] ✅ MDX serialized successfully")
+    console.log("[getPostBySlug] MDX serialized successfully")
 
-    const finalPost = {
+    return {
       frontmatter: {
         title: title,
         date: data.date || new Date().toISOString().split("T")[0],
@@ -386,21 +1063,8 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       content: contentDeduplicated,
       slug,
     }
-
-    console.log(`[getPostBySlug] ✅ Final post object created:`)
-    console.log(`  - Title: ${finalPost.frontmatter.title}`)
-    console.log(`  - Date: ${finalPost.frontmatter.date}`)
-    console.log(`  - Category: ${finalPost.frontmatter.category}`)
-    console.log(`  - Slug: ${finalPost.slug}`)
-
-    return finalPost
   } catch (error) {
-    console.error(`[getPostBySlug] 💥 Error fetching or processing post ${slug}:`, error)
-    console.error(`[getPostBySlug] 📊 Error details:`, {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    })
+    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
     return null
   }
 }
