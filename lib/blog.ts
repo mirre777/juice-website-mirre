@@ -1,4 +1,8 @@
+import { list } from "@vercel/blob"
+import matter from "gray-matter"
 import { serialize } from "next-mdx-remote/serialize"
+
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 
 export interface BlogPostFrontmatter {
   title: string
@@ -16,7 +20,9 @@ export interface BlogPost {
   slug: string
 }
 
-// Sample blog posts
+const BLOG_CONTENT_PATH = "blog/"
+
+// Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
     title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
@@ -785,35 +791,234 @@ Physical fitness is not just about the body—it's about developing mental resil
 *Ready to strengthen your mental game? Start with one psychological technique that resonates with you and practice it consistently. Your future self will thank you.*`,
 }
 
-export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] Using sample posts")
-  return SAMPLE_POSTS.map((post) => post.slug)
+function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
+  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
+  const titleMatch = content.match(emojiTitleRegex)
+
+  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
+  const excerptMatch = content.match(tldrRegex)
+
+  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
+  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
+
+  return {
+    title: titleMatch ? titleMatch[1].trim() : null,
+    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
+  }
 }
 
-export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] Using sample posts")
-  return SAMPLE_POSTS
-}
+// Helper function to fetch blob content with proper authentication
+async function fetchBlobContent(url: string): Promise<string> {
+  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
 
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] Looking for slug: ${slug}`)
+  // Try multiple methods to fetch the content
+  const methods = [
+    // Method 1: Direct fetch (for public blobs)
+    () => fetch(url),
 
-  const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-  const sampleContent = SAMPLE_BLOG_CONTENT[slug]
+    // Method 2: Fetch with authorization header
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `Bearer ${BLOB_TOKEN}`,
+        },
+      }),
 
-  if (samplePost && sampleContent) {
-    const serializedContent = await serialize(sampleContent, {
-      parseFrontmatter: false,
-    })
+    // Method 3: Fetch with different auth format
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `token ${BLOB_TOKEN}`,
+        },
+      }),
+  ]
 
-    return {
-      frontmatter: samplePost,
-      serializedContent,
-      content: sampleContent,
-      slug: slug,
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
+      const response = await methods[i]()
+
+      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
+
+      if (response.ok) {
+        const content = await response.text()
+        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
+        return content
+      }
+    } catch (error) {
+      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
     }
   }
 
-  console.log(`[getPostBySlug] Post not found for slug: ${slug}`)
-  return null
+  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
+}
+
+export async function getPostSlugs(): Promise<string[]> {
+  console.log("[getPostSlugs] Fetching all blog post slugs...")
+
+  if (!BLOB_TOKEN) {
+    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS.map((post) => post.slug)
+  }
+
+  try {
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    const slugs = blobs
+      .filter((blob) => blob.pathname.endsWith(".md"))
+      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
+    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
+    return slugs
+  } catch (error) {
+    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS.map((post) => post.slug)
+  }
+}
+
+export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
+  console.log("[getAllPosts] Fetching all blog posts...")
+
+  if (!BLOB_TOKEN) {
+    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS
+  }
+
+  try {
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
+
+    const posts: BlogPostFrontmatter[] = []
+
+    for (const blob of blobs) {
+      if (blob.pathname.endsWith(".md")) {
+        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
+
+        try {
+          const fileContents = await fetchBlobContent(blob.url)
+          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
+
+          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+
+          console.log(`[getAllPosts] Extracted slug: ${slug}`)
+
+          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+
+          const extracted = extractTitleAndExcerpt(content)
+
+          const title = data.title || extracted.title || `Post: ${slug}`
+          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
+          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
+
+          posts.push({
+            title: title,
+            date: data.date || new Date().toISOString().split("T")[0],
+            category: data.category || "Uncategorized",
+            excerpt: excerpt,
+            image: data.image || undefined,
+            slug: slug,
+          })
+        } catch (error) {
+          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
+          continue
+        }
+      }
+    }
+
+    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
+    return posts.length > 0 ? posts : SAMPLE_POSTS
+  } catch (error) {
+    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS
+  }
+}
+
+export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
+
+  // Check if we have sample content for this slug
+  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
+    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
+
+    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
+    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
+
+    if (samplePost && sampleContent) {
+      const serializedContent = await serialize(sampleContent, {
+        parseFrontmatter: false,
+      })
+
+      return {
+        frontmatter: samplePost,
+        serializedContent,
+        content: sampleContent,
+        slug: slug,
+      }
+    }
+  }
+
+  if (!BLOB_TOKEN) {
+    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
+    return null
+  }
+
+  try {
+    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
+    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
+
+    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
+    const targetBlob = blobs.find((b) => b.pathname === targetPath)
+
+    if (!targetBlob) {
+      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
+      console.log(
+        `[getPostBySlug] Available blobs:`,
+        blobs.map((b) => b.pathname),
+      )
+      return null
+    }
+
+    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
+
+    const fileContents = await fetchBlobContent(targetBlob.url)
+    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
+    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
+
+    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+    console.log(`[getPostBySlug] Frontmatter:`, data)
+    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
+
+    const extracted = extractTitleAndExcerpt(content)
+    console.log(
+      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
+    )
+
+    const title = data.title || extracted.title || `Post: ${slug}`
+    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
+    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
+
+    const serializedContent = await serialize(content, {
+      parseFrontmatter: false,
+    })
+    console.log("[getPostBySlug] MDX serialized successfully")
+
+    return {
+      frontmatter: {
+        title: title,
+        date: data.date || new Date().toISOString().split("T")[0],
+        category: data.category || "Uncategorized",
+        excerpt: excerpt,
+        image: data.image || undefined,
+        slug: slug,
+      },
+      serializedContent,
+      content,
+      slug,
+    }
+  } catch (error) {
+    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
+    return null
+  }
 }
