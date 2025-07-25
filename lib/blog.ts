@@ -1,8 +1,4 @@
-import { list } from "@vercel/blob"
-import matter from "gray-matter"
 import { serialize } from "next-mdx-remote/serialize"
-
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 
 export interface BlogPostFrontmatter {
   title: string
@@ -20,9 +16,7 @@ export interface BlogPost {
   slug: string
 }
 
-const BLOG_CONTENT_PATH = "blog/"
-
-// Sample blog posts for when blob storage is not available (like in v0)
+// Sample blog posts
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
     title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
@@ -484,7 +478,7 @@ Berlin trainers are staying current with exercise science:
 
 - **Peer-reviewed research**: Evidence-based training decisions
 - **Biomechanics analysis**: Understanding movement efficiency
-- **Adaptation Physiology**: Optimizing training for specific outcomes
+- **Adaptation physiology**: Optimizing training for specific outcomes
 
 ### Data-Driven Decisions
 Using metrics to guide training:
@@ -791,280 +785,35 @@ Physical fitness is not just about the body—it's about developing mental resil
 *Ready to strengthen your mental game? Start with one psychological technique that resonates with you and practice it consistently. Your future self will thank you.*`,
 }
 
-function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
-  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
-  const titleMatch = content.match(emojiTitleRegex)
-
-  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
-  const excerptMatch = content.match(tldrRegex)
-
-  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
-  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
-
-  return {
-    title: titleMatch ? titleMatch[1].trim() : null,
-    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
-  }
-}
-
-// Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(url: string): Promise<string> {
-  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
-
-  // Try multiple methods to fetch the content
-  const methods = [
-    // Method 1: Direct fetch (for public blobs)
-    () => fetch(url),
-
-    // Method 2: Fetch with authorization header
-    () =>
-      fetch(url, {
-        headers: {
-          Authorization: `Bearer ${BLOB_TOKEN}`,
-        },
-      }),
-
-    // Method 3: Fetch with different auth format
-    () =>
-      fetch(url, {
-        headers: {
-          Authorization: `token ${BLOB_TOKEN}`,
-        },
-      }),
-  ]
-
-  for (let i = 0; i < methods.length; i++) {
-    try {
-      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
-      const response = await methods[i]()
-
-      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
-
-      if (response.ok) {
-        const content = await response.text()
-        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
-        return content
-      }
-    } catch (error) {
-      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
-    }
-  }
-
-  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
-}
-
 export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] Fetching all blog post slugs...")
-
-  if (!BLOB_TOKEN) {
-    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS.map((post) => post.slug)
-  }
-
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    const slugs = blobs
-      .filter((blob) => blob.pathname.endsWith(".md"))
-      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
-    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
-    return slugs
-  } catch (error) {
-    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS.map((post) => post.slug)
-  }
+  console.log("[getPostSlugs] Using sample posts")
+  return SAMPLE_POSTS.map((post) => post.slug)
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] Fetching all blog posts...")
-
-  if (!BLOB_TOKEN) {
-    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS
-  }
-
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
-
-    const posts: BlogPostFrontmatter[] = []
-
-    for (const blob of blobs) {
-      if (blob.pathname.endsWith(".md")) {
-        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
-
-        try {
-          const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
-
-          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-
-          console.log(`[getAllPosts] Extracted slug: ${slug}`)
-
-          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-
-          const extracted = extractTitleAndExcerpt(content)
-
-          const title = data.title || extracted.title || `Post: ${slug}`
-          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
-
-          posts.push({
-            title: title,
-            date: data.date || new Date().toISOString().split("T")[0],
-            category: data.category || "Uncategorized",
-            excerpt: excerpt,
-            image: data.image || undefined,
-            slug: slug,
-          })
-        } catch (error) {
-          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
-          continue
-        }
-      }
-    }
-
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
-    return posts.length > 0 ? posts : SAMPLE_POSTS
-  } catch (error) {
-    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS
-  }
+  console.log("[getAllPosts] Using sample posts")
+  return SAMPLE_POSTS
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
+  console.log(`[getPostBySlug] Looking for slug: ${slug}`)
 
-  // Check if we have sample content for this slug
-  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
-    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
+  const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
+  const sampleContent = SAMPLE_BLOG_CONTENT[slug]
 
-    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
-
-    if (samplePost && sampleContent) {
-      const serializedContent = await serialize(sampleContent, {
-        parseFrontmatter: false,
-      })
-
-      return {
-        frontmatter: samplePost,
-        serializedContent,
-        content: sampleContent,
-        slug: slug,
-      }
-    }
-  }
-
-  if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
-    return null
-  }
-
-  try {
-    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
-    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
-
-    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
-    const targetBlob = blobs.find((b) => b.pathname === targetPath)
-
-    if (!targetBlob) {
-      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
-      console.log(
-        `[getPostBySlug] Available blobs:`,
-        blobs.map((b) => b.pathname),
-      )
-      return null
-    }
-
-    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
-
-    const fileContents = await fetchBlobContent(targetBlob.url)
-    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
-
-    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] Frontmatter:`, data)
-    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
-
-    const extracted = extractTitleAndExcerpt(content)
-    console.log(
-      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
-    )
-
-    const title = data.title || extracted.title || `Post: ${slug}`
-
-    // Remove duplicate title from content if it exists
-    function removeDuplicateTitle(content: string, title: string): string {
-      if (!title || !content) return content
-
-      // Clean the title for comparison (remove emojis and extra whitespace)
-      const cleanTitle = title.replace(/[\p{Emoji}\u200d\s]+/gu, "").toLowerCase()
-
-      // Try different heading formats
-      const headingPatterns = [
-        new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-        new RegExp(`^##\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-        new RegExp(`^###\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[\r\n]+`, "i"),
-      ]
-
-      // Try to match and remove the duplicate title
-      for (const pattern of headingPatterns) {
-        if (pattern.test(content)) {
-          console.log(`[removeDuplicateTitle] Found duplicate title, removing...`)
-          return content.replace(pattern, "").trim()
-        }
-      }
-
-      // If no exact match, try a more flexible approach for emoji titles
-      const lines = content.split("\n")
-      if (lines.length > 0) {
-        const firstLine = lines[0].trim()
-        if (firstLine.startsWith("#")) {
-          const firstLineClean = firstLine
-            .replace(/^#+\s*/, "")
-            .replace(/[\p{Emoji}\u200d\s]+/gu, "")
-            .toLowerCase()
-          if (firstLineClean === cleanTitle) {
-            console.log(`[removeDuplicateTitle] Found duplicate title via flexible matching, removing...`)
-            return lines.slice(1).join("\n").trim()
-          }
-        }
-      }
-
-      return content
-    }
-
-    // Apply the deduplication
-    const contentDeduplicated = removeDuplicateTitle(content, title)
-    console.log(`[getPostBySlug] Content after title deduplication: ${contentDeduplicated.length} chars`)
-
-    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
-
-    const serializedContent = await serialize(contentDeduplicated, {
+  if (samplePost && sampleContent) {
+    const serializedContent = await serialize(sampleContent, {
       parseFrontmatter: false,
     })
-    console.log("[getPostBySlug] MDX serialized successfully")
 
     return {
-      frontmatter: {
-        title: title,
-        date: data.date || new Date().toISOString().split("T")[0],
-        category: data.category || "Uncategorized",
-        excerpt: excerpt,
-        image: data.image || undefined,
-        slug: slug,
-      },
+      frontmatter: samplePost,
       serializedContent,
-      content: contentDeduplicated,
-      slug,
+      content: sampleContent,
+      slug: slug,
     }
-  } catch (error) {
-    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
-    return null
   }
+
+  console.log(`[getPostBySlug] Post not found for slug: ${slug}`)
+  return null
 }

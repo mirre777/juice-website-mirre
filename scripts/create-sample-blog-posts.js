@@ -1,11 +1,10 @@
 // Create sample blog posts for testing since we don't have access to Vercel Blob in v0
-console.log("🚀 Creating sample blog posts for testing...")
+console.log("📝 Creating sample blog posts for v0 testing...")
 
-// Sample blog posts data
 const samplePosts = [
   {
-    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
     category: "Technology",
     date: "2025-01-15",
     excerpt:
@@ -65,8 +64,8 @@ The future of personal training in Berlin is digital. Trainers who embrace these
 *Ready to upgrade your training business? Start with the Juice App and experience the difference technology can make.*`,
   },
   {
-    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
     category: "Technology",
     date: "2025-01-10",
     excerpt:
@@ -169,8 +168,8 @@ The fitness industry in Berlin is competitive. The trainers who win are the ones
 *Ready to ditch the spreadsheets? Start with a free trial of the Juice Platform and see what modern fitness business management looks like.*`,
   },
   {
-    title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
     slug: "nutrition-coaching-trends-berlin-2025",
+    title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
     category: "Nutrition",
     date: "2025-01-05",
     excerpt:
@@ -297,261 +296,6 @@ The key is balance: leverage technology and science while never forgetting that 
 
 *Ready to elevate your nutrition coaching? Start by implementing one trend that resonates with your coaching style and client needs.*`,
   },
-  {
-    title: "🏋️ Strength Training Revolution: What's New in Berlin Gyms",
-    slug: "strength-training-revolution-berlin-gyms",
-    category: "Fitness",
-    date: "2024-12-28",
-    excerpt:
-      "Berlin gyms are shaking up strength training with new equipment and techniques. Discover the latest trends and innovations.",
-    content: `# 🏋️ Strength Training Revolution: What's New in Berlin Gyms
-
-**TL;DR:** Berlin gyms are at the forefront of strength training innovation. From new equipment to cutting-edge techniques, discover what's transforming how clients build muscle and strength.
-
-## The Strength Training Renaissance
-
-Berlin's fitness community is embracing strength training like never before. Gyms are investing in the latest technology and techniques to provide clients with the best possible strength training experience.
-
-## Trend #1: Functional Training Equipment
-
-### New Machines
-- **Kettlebell Racks**: Versatile strength training tool
-- **Resistance Bands**: Portable and adjustable resistance
-- **Medicine Balls**: Core stability and power exercises
-
-### Impact
-- **Improved technique**: Clients learn proper form
-- **Increased engagement**: Fun and varied workouts
-- **Better results**: Enhanced muscle development
-
-## Trend #2: High-Intensity Interval Training (HIIT)
-
-### HIIT Equipment
-- **Battle Ropes**: Cardiovascular and strength training
-- **Jump Ropes**: Efficient calorie burn and agility
-- **Boxing Bags**: Full-body workouts with impact
-
-### Benefits
-- **Time-efficient**: Short, intense workouts
-- **Cardiovascular health**: Improved heart health
-- **Fat loss**: Accelerated weight loss
-
-## Trend #3: Personalized Training Programs
-
-### Technology
-- **Biometric Scanners**: Assess client fitness levels
-- **Data Analytics**: Track progress and adjust programs
-- **Mobile Apps**: Accessible training plans and progress tracking
-
-### Advantages
-- **Tailored workouts**: Programs specific to client needs
-- **Increased motivation**: Personalized goals and feedback
-- **Optimized results**: Maximum efficiency in training
-
-## Trend #4: Group Training Sessions
-
-### Group Classes
-- **Circuit Training**: High-intensity group workouts
-- **Bootcamps**: Structured training programs with community support
-- **Nutrition Workshops**: Group sessions for dietary guidance
-
-### Benefits
-- **Social interaction**: Enhanced motivation and accountability
-- **Cost-effective**: Shared training sessions
-- **Community building**: Networking and support among clients
-
-## The Berlin Advantage
-
-### Cutting-Edge Technology
-Berlin gyms are equipped with the latest technology:
-- **Virtual Reality (VR) Training**: Immersive workout experiences
-- **Augmented Reality (AR) Coaching**: Real-time feedback and guidance
-- **Smart Mirrors**: Mirror-based training with video analysis
-
-### Diverse Equipment
-Berlin gyms offer a wide range of equipment:
-- **Multi-functional Machines**: Combining strength and cardio
-- **Customizable Stations**: Clients can choose their own exercises
-- **Portable Equipment**: Ideal for home workouts
-
-## Implementation for Gyms
-
-### Getting Started
-1. **Assess current equipment**: Identify gaps and areas for improvement
-2. **Choose your focus**: Pick 1-2 trends to implement first
-3. **Invest in training**: Staff training for new equipment and techniques
-4. **Client education**: Inform clients about the benefits of new trends
-
-### Client Communication
-- **Explain the 'why'**: Help clients understand the science
-- **Set realistic expectations**: Change takes time
-- **Celebrate small wins**: Acknowledge progress
-- **Provide ongoing support**: Be available for questions
-
-## Measuring Success
-
-### Key Performance Indicators
-- **Client adherence rates**: Are they following the plan?
-- **Strength gains**: Increased muscle mass and strength
-- **Satisfaction scores**: Client feedback
-- **Retention rates**: Long-term engagement
-
-### Tools for Tracking
-- **Progress photos**: Visual documentation
-- **Strength assessments**: Regular muscle testing
-- **Energy level assessments**: Subjective wellness measures
-- **Sleep quality metrics**: Recovery indicators
-
-## Common Pitfalls to Avoid
-
-❌ **Over-complicating**: Keep it simple and actionable
-❌ **Ignoring preferences**: Respect client exercise choices
-❌ **Lack of flexibility**: Programs must adapt to real life
-❌ **Poor follow-up**: Consistent check-ins are crucial
-
-## The Future of Strength Training
-
-Looking ahead, we can expect:
-- **More personalization**: Individualized training programs
-- **Better integration**: Seamless tech ecosystems
-- **Preventive focus**: Injury prevention and recovery
-- **Community emphasis**: Group support systems
-
-## Conclusion
-
-Berlin gyms are leading the strength training revolution. Gyms that embrace these trends while maintaining a client-centered approach will thrive in 2025 and beyond.
-
-The key is balance: leverage technology and innovation while never forgetting the importance of proper form and technique.
-
-*Ready to elevate your strength training programs? Start by implementing one trend that resonates with your gym's mission and client needs.*`,
-  },
-  {
-    title: "🧠 The Psychology of Fitness: Mental Coaching Techniques",
-    slug: "psychology-of-fitness-mental-coaching-techniques",
-    category: "Coaching",
-    date: "2024-12-20",
-    excerpt:
-      "Discover how mental coaching techniques can enhance your fitness journey. Learn the strategies that top Berlin coaches are using.",
-    content: `# 🧠 The Psychology of Fitness: Mental Coaching Techniques
-
-**TL;DR:** The mental aspect of fitness is just as important as the physical. Discover the psychological strategies that top Berlin coaches are using to help clients achieve their fitness goals.
-
-## The Mental Fitness Revolution
-
-Berlin's fitness industry is recognizing the importance of mental coaching. Coaches are now incorporating psychological techniques to help clients overcome obstacles and achieve their fitness goals.
-
-## Trend #1: Goal Setting and Visualization
-
-### Techniques
-- **SMART Goals**: Specific, Measurable, Achievable, Relevant, Time-bound
-- **Visualization**: Imagining success to boost motivation
-- **Affirmations**: Positive self-talk to build confidence
-
-### Benefits
-- **Increased motivation**: Clients are more committed to their goals
-- **Better focus**: Enhanced concentration during workouts
-- **Improved results**: Higher likelihood of achieving fitness goals
-
-## Trend #2: Mindfulness and Meditation
-
-### Practices
-- **Mindfulness Meditation**: Reducing stress and improving focus
-- **Breathing Exercises**: Calming the mind before workouts
-- **Progressive Muscle Relaxation**: Reducing anxiety and improving performance
-
-### Benefits
-- **Reduced stress**: Clients are less likely to burn out
-- **Enhanced recovery**: Faster muscle recovery and reduced injury risk
-- **Improved performance**: Better focus and energy during workouts
-
-## Trend #3: Cognitive Behavioral Therapy (CBT)
-
-### Techniques
-- **Identify Negative Thoughts**: Recognizing and challenging limiting beliefs
-- **Behavioral Adjustments**: Changing habits to support fitness goals
-- **Positive Reinforcement**: Celebrating small wins to maintain motivation
-
-### Benefits
-- **Overcoming obstacles**: Clients can better handle setbacks
-- **Increased resilience**: Improved mental toughness
-- **Better adherence**: Higher likelihood of sticking to fitness plans
-
-## Trend #4: Emotional Regulation
-
-### Techniques
-- **Stress Management**: Strategies to cope with stress
-- **Emotional Awareness**: Understanding and managing emotions
-- **Mindful Eating**: Techniques to manage emotional eating
-
-### Benefits
-- **Improved mood**: Clients are happier and more motivated
-- **Better adherence**: Higher likelihood of sticking to fitness plans
-- **Enhanced recovery**: Faster mental recovery from setbacks
-
-## The Berlin Advantage
-
-### Professional Coaches
-Berlin's fitness coaches are trained in mental coaching techniques:
-- **Certified Mental Coaches**: Professional training in psychological strategies
-- **Integrated Approach**: Combining physical and mental coaching
-
-### Diverse Techniques
-Berlin coaches offer a wide range of mental techniques:
-- **Group Sessions**: Sharing strategies and support
-- **One-on-One Coaching**: Personalized mental training
-- **Online Resources**: Accessible mental coaching tools
-
-## Implementation for Coaches
-
-### Getting Started
-1. **Assess current approach**: Identify gaps in mental coaching
-2. **Choose your focus**: Pick 1-2 trends to implement first
-3. **Invest in training**: Professional development in mental coaching
-4. **Client education**: Inform clients about the benefits of mental coaching
-
-### Client Communication
-- **Explain the 'why'**: Help clients understand the science
-- **Set realistic expectations**: Change takes time
-- **Celebrate small wins**: Acknowledge progress
-- **Provide ongoing support**: Be available for questions
-
-## Measuring Success
-
-### Key Performance Indicators
-- **Client adherence rates**: Are they following the plan?
-- **Mental health improvements**: Reduced stress and anxiety
-- **Satisfaction scores**: Client feedback
-- **Retention rates**: Long-term engagement
-
-### Tools for Tracking
-- **Progress photos**: Visual documentation
-- **Mental health assessments**: Regular emotional checks
-- **Energy level assessments**: Subjective wellness measures
-- **Sleep quality metrics**: Recovery indicators
-
-## Common Pitfalls to Avoid
-
-❌ **Over-complicating**: Keep it simple and actionable
-❌ **Ignoring preferences**: Respect client mental health needs
-❌ **Lack of flexibility**: Techniques must adapt to real life
-❌ **Poor follow-up**: Consistent check-ins are crucial
-
-## The Future of Mental Coaching
-
-Looking ahead, we can expect:
-- **More personalization**: Individualized mental training programs
-- **Better integration**: Seamless tech ecosystems for mental tracking
-- **Preventive focus**: Early intervention for mental health issues
-- **Community emphasis**: Group support systems for mental well-being
-
-## Conclusion
-
-Berlin coaches are leading the mental fitness revolution. Coaches that embrace these trends while maintaining a client-centered approach will thrive in 2025 and beyond.
-
-The key is balance: leverage psychological strategies and techniques while never forgetting the importance of physical training and support.
-
-*Ready to elevate your mental coaching techniques? Start by implementing one trend that resonates with your coaching style and client needs.*`,
-  },
 ]
 
 // Create the blog posts data structure
@@ -567,25 +311,20 @@ const blogPosts = samplePosts.map((post) => ({
   slug: post.slug,
 }))
 
-console.log("📝 Sample blog posts created:")
-samplePosts.forEach((post, index) => {
-  console.log(`${index + 1}. ${post.title}`)
-  console.log(`   Slug: ${post.slug}`)
-  console.log(`   Category: ${post.category}`)
-  console.log(`   Date: ${post.date}`)
+console.log(`✅ Created ${blogPosts.length} sample blog posts:`)
+blogPosts.forEach((post) => {
+  console.log(`   - ${post.frontmatter.title}`)
+  console.log(`     Slug: ${post.slug}`)
+  console.log(`     Category: ${post.frontmatter.category}`)
+  console.log(`     Date: ${post.frontmatter.date}`)
+  console.log(`     Excerpt length: ${post.frontmatter.excerpt.length} chars`)
+  console.log(`     Content length: ${post.content.length} chars`)
   console.log("")
 })
 
-console.log("✅ All 5 sample blog posts now have full content available!")
-console.log("🔗 You can access them at:")
-samplePosts.forEach((post) => {
-  console.log(`   /blog/${post.slug}`)
-})
-
-console.log("\n📊 Summary:")
-console.log(`Total posts: ${samplePosts.length}`)
-console.log(`Categories: ${[...new Set(samplePosts.map((p) => p.category))].join(", ")}`)
-console.log("All posts should now work without 404 errors!")
+console.log("🎉 Sample blog posts ready for testing!")
+console.log("💡 These posts simulate what would come from Vercel Blob storage")
+console.log("🔧 In production, these would be fetched from your actual blob storage")
 
 // Export for use in other files
 if (typeof module !== "undefined" && module.exports) {

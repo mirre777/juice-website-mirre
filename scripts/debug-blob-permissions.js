@@ -1,77 +1,137 @@
-const { list } = require("@vercel/blob")
+// Debug script to check blob permissions and access issues
+const { list, head } = require("@vercel/blob")
 
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
+const BLOG_CONTENT_PATH = "blog/"
 
 async function debugBlobPermissions() {
-  console.log("🚀 Starting blob permissions debug analysis...")
-  console.log("📊 DEBUG: Blob Permissions and Access Analysis")
-  console.log("=".repeat(50))
+  console.log("🔐 DEBUG: Blob Permissions and Access Analysis")
+  console.log("=".repeat(60))
 
-  // Check environment variables
   console.log("📋 Environment Check:")
   console.log(`BLOB_READ_WRITE_TOKEN: ${BLOB_TOKEN ? "✅ SET" : "❌ NOT SET"}`)
 
+  if (BLOB_TOKEN) {
+    console.log(`Token length: ${BLOB_TOKEN.length} characters`)
+    console.log(`Token starts with: ${BLOB_TOKEN.substring(0, 10)}...`)
+  }
+  console.log("")
+
   if (!BLOB_TOKEN) {
-    console.log("❌ BLOB_READ_WRITE_TOKEN is not set.")
-    console.log("✅ Permissions debug analysis complete")
+    console.error("❌ BLOB_READ_WRITE_TOKEN is not set.")
+    console.log("\n💡 SOLUTION:")
+    console.log("1. The token exists in your Vercel deployment but not in v0")
+    console.log("2. Your blog files exist in Vercel Blob storage")
+    console.log("3. We need to create sample blog posts for v0 testing")
+    console.log("4. Or configure the token in v0 environment")
     return
   }
 
   try {
-    // Test basic blob listing
-    console.log("\n🔍 Testing blob listing permissions...")
+    // List blobs with detailed info
+    console.log("📁 Listing blobs with detailed permissions...")
     const { blobs } = await list({ token: BLOB_TOKEN })
-    console.log(`✅ Successfully listed ${blobs.length} blobs`)
 
-    // Test specific blog content access
-    const blogBlobs = blobs.filter((blob) => blob.pathname.startsWith("blog/"))
-    console.log(`📝 Found ${blogBlobs.length} blog-related blobs`)
+    console.log(`Found ${blobs.length} total blobs`)
 
-    if (blogBlobs.length > 0) {
-      console.log("\n🧪 Testing content access for each blob...")
+    const blogBlobs = blobs.filter((blob) => blob.pathname.startsWith(BLOG_CONTENT_PATH))
+    console.log(`Found ${blogBlobs.length} blog blobs`)
 
-      for (const blob of blogBlobs.slice(0, 3)) {
-        // Test first 3 blobs
-        console.log(`\n--- Testing: ${blob.pathname} ---`)
-        console.log(`Size: ${blob.size} bytes`)
-        console.log(`URL: ${blob.url}`)
+    for (const blob of blogBlobs) {
+      console.log(`\n--- BLOB: ${blob.pathname} ---`)
+      console.log(`Size: ${blob.size} bytes`)
+      console.log(`URL: ${blob.url}`)
+      console.log(`Upload date: ${blob.uploadedAt}`)
 
-        try {
-          const response = await fetch(blob.url)
-          console.log(`Status: ${response.status} ${response.statusText}`)
+      // Test different access methods
+      console.log("\n🔍 Testing access methods:")
 
-          if (response.ok) {
-            const content = await response.text()
-            console.log(`✅ Successfully fetched ${content.length} characters`)
-          } else {
-            console.log(`❌ Failed to fetch: ${response.status}`)
+      // Method 1: Direct fetch with no additional headers
+      try {
+        console.log("1. Direct fetch (no headers)...")
+        const response1 = await fetch(blob.url)
+        console.log(`   Status: ${response1.status} ${response1.statusText}`)
+        console.log(`   Headers: ${JSON.stringify(Object.fromEntries(response1.headers.entries()))}`)
 
-            // Try with different authentication methods
-            console.log("🔄 Trying with Authorization header...")
-            const authResponse = await fetch(blob.url, {
-              headers: {
-                Authorization: `Bearer ${BLOB_TOKEN}`,
-              },
-            })
-            console.log(`Auth attempt status: ${authResponse.status}`)
-          }
-        } catch (error) {
-          console.log(`❌ Fetch error: ${error.message}`)
+        if (response1.ok) {
+          const content = await response1.text()
+          console.log(`   ✅ SUCCESS: Content length: ${content.length}`)
+          console.log(`   Preview: ${content.substring(0, 100)}...`)
         }
+      } catch (error) {
+        console.log(`   ❌ ERROR: ${error.message}`)
       }
+
+      // Method 2: Fetch with authorization header
+      try {
+        console.log("2. Fetch with authorization header...")
+        const response2 = await fetch(blob.url, {
+          headers: {
+            Authorization: `Bearer ${BLOB_TOKEN}`,
+          },
+        })
+        console.log(`   Status: ${response2.status} ${response2.statusText}`)
+
+        if (response2.ok) {
+          const content = await response2.text()
+          console.log(`   ✅ SUCCESS: Content length: ${content.length}`)
+        }
+      } catch (error) {
+        console.log(`   ❌ ERROR: ${error.message}`)
+      }
+
+      // Method 3: Use Vercel Blob head function
+      try {
+        console.log("3. Using Vercel Blob head function...")
+        const headResult = await head(blob.url, { token: BLOB_TOKEN })
+        console.log(`   ✅ HEAD SUCCESS:`, headResult)
+      } catch (error) {
+        console.log(`   ❌ HEAD ERROR: ${error.message}`)
+      }
+
+      // Method 4: Check if URL is publicly accessible
+      try {
+        console.log("4. Testing public access (no token)...")
+        const publicResponse = await fetch(blob.url, {
+          method: "HEAD",
+        })
+        console.log(`   Status: ${publicResponse.status} ${publicResponse.statusText}`)
+        console.log(`   Public access: ${publicResponse.ok ? "✅ ALLOWED" : "❌ FORBIDDEN"}`)
+      } catch (error) {
+        console.log(`   ❌ PUBLIC ACCESS ERROR: ${error.message}`)
+      }
+
+      console.log("\n" + "-".repeat(50))
     }
+
+    // Test token validity
+    console.log("\n🔑 Testing token validity...")
+    try {
+      const testList = await list({ token: BLOB_TOKEN, limit: 1 })
+      console.log("✅ Token can list blobs successfully")
+    } catch (error) {
+      console.log(`❌ Token list error: ${error.message}`)
+    }
+
+    // Check if we need to use a different approach
+    console.log("\n💡 RECOMMENDATIONS:")
+    console.log("1. Check if blobs were uploaded as private vs public")
+    console.log("2. Verify BLOB_READ_WRITE_TOKEN has read permissions")
+    console.log("3. Consider using Vercel Blob SDK methods instead of direct fetch")
+    console.log("4. Check if CORS settings are blocking access")
   } catch (error) {
     console.error("❌ Error during permissions analysis:", error)
+    console.error("Stack trace:", error.stack)
   }
-
-  console.log("\n✅ Permissions debug analysis complete")
 }
 
 // Run the debug function
+console.log("🚀 Starting blob permissions debug analysis...")
 debugBlobPermissions()
   .then(() => {
-    console.log("Debug complete")
+    console.log("\n✅ Permissions debug analysis complete")
   })
   .catch((error) => {
-    console.error("Debug failed:", error)
+    console.error("❌ Permissions debug script failed:", error)
+    console.error("Stack trace:", error.stack)
   })
