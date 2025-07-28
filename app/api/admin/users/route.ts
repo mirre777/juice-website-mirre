@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
             status: "waitlist",
             created_at: new Date().toISOString(),
             plan: "basic",
+            numClients: null,
           },
         ],
         message: "Using mock data - Firebase not configured",
@@ -39,16 +40,18 @@ export async function GET(request: NextRequest) {
 
     const users = querySnapshot.docs.map((doc) => {
       const data = doc.data()
+      console.log("User data from Firestore:", data) // Debug log
+
       return {
         id: doc.id,
-        email: data.email || "",
-        phone: data.phone || "",
-        city: data.city || "",
+        email: data.email || "N/A",
+        phone: data.phone || "N/A",
+        city: data.city || "N/A",
         user_type: data.user_type || "client",
         numClients: data.numClients || null,
         status: data.status || "waitlist",
         created_at: data.createdAt || data.created_at || null,
-        plan: data.plan || "",
+        plan: data.plan || "N/A",
         message: data.message || "",
         origin: data.origin || "",
         source: data.source || "",
@@ -56,6 +59,7 @@ export async function GET(request: NextRequest) {
     })
 
     console.log(`Successfully fetched ${users.length} users`)
+    console.log("Sample user:", users[0]) // Debug log
 
     return NextResponse.json({
       users,
