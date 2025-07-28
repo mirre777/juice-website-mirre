@@ -1,4 +1,6 @@
 "use client"
+
+import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { joinWaitlist } from "@/actions/waitlist-actions"
@@ -25,27 +27,33 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   const [city, setCity] = useState("")
   const [phone, setPhone] = useState("")
   const [clientCount, setClientCount] = useState(1)
+  const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  async function handleSubmit(formData: FormData) {
-    console.log("handleSubmit called")
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+
+    console.log("Form submission started")
+    console.log("isCoach from theme:", isCoach)
+
+    // Determine user type - fix the undefined issue
+    const userType = isCoach ? "trainer" : "client"
+    console.log("Determined user type:", userType)
+
+    // Add all form data
+    if (showClientCounter) {
+      formData.append("numClients", clientCount.toString())
+    }
+    formData.append("city", city)
+    formData.append("phone", phone)
+    formData.append("user_type", userType) // Explicitly set user_type
+
+    // Provide immediate visual feedback
+    setButtonDisabled(true)
     setIsSubmitting(true)
-    setFormStatus({}) // Clear previous status
 
     try {
-      // Determine user type explicitly
-      const userType = isCoach ? "trainer" : "client"
-      console.log("User type determined:", userType)
-
-      // Add all required fields to formData
-      formData.append("user_type", userType)
-      formData.append("city", city)
-      formData.append("phone", phone)
-
-      if (showClientCounter && userType === "trainer") {
-        formData.append("numClients", clientCount.toString())
-      }
-
-      console.log("Form data being sent:", Object.fromEntries(formData.entries()))
+      console.log("Calling joinWaitlist with data:", Object.fromEntries(formData.entries()))
 
       const result = await joinWaitlist(formData)
       console.log("joinWaitlist result:", result)
@@ -53,11 +61,13 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       setFormStatus(result)
 
       if (result.success) {
-        // Clear form on success
+        // Clear form if successful
         setEmail("")
         setPhone("")
         setCity("")
-        setClientCount(1)
+        if (showClientCounter) {
+          setClientCount(1)
+        }
       }
     } catch (error) {
       console.error("Form submission error:", error)
@@ -68,10 +78,12 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       })
     } finally {
       setIsSubmitting(false)
+      setButtonDisabled(false)
     }
   }
 
   if (formStatus.success) {
+    // Using the pulse animation from our animations utility
     const animation = successAnimations.pulse
 
     return (
@@ -106,7 +118,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }
 
   return (
-    <form action={handleSubmit} className="space-y-3 max-w-sm mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Email Input */}
         <div className="space-y-1 flex-1">
@@ -159,8 +171,8 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           />
         </div>
 
-        {/* Client Count Stepper - only show for trainers */}
-        {showClientCounter && isCoach && (
+        {/* Client Count Stepper */}
+        {showClientCounter && (
           <div className="space-y-1 flex-1">
             <label htmlFor="numClients" className="text-sm font-medium text-left block text-white">
               Get clients
@@ -198,7 +210,11 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         )}
       </div>
 
+      {/* Hidden inputs for form data */}
       <input type="hidden" name="plan" value={selectedPlan || ""} />
+
+      {/* Debug info */}
+      <div className="text-xs text-zinc-500 text-center">Debug: User type will be {isCoach ? "trainer" : "client"}</div>
 
       <p className="text-xs text-zinc-400 text-center mt-2">
         By joining, you agree to receive updates about our launch. 💪
@@ -208,7 +224,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         <Button
           type="submit"
           className="bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300"
-          disabled={isSubmitting}
+          disabled={isSubmitting || buttonDisabled}
           id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
           data-plan={selectedPlan || ""}
         >
@@ -229,9 +245,6 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           {formStatus.error && <p className="mt-1">Error details: {formStatus.error}</p>}
         </div>
       )}
-
-      {/* Debug info */}
-      <div className="text-xs text-zinc-500 text-center">Debug: User type = {isCoach ? "trainer" : "client"}</div>
     </form>
   )
 }

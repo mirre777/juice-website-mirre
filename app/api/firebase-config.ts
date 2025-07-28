@@ -12,40 +12,25 @@ const firebaseConfig = {
   measurementId: process.env.FIREBASE_MEASUREMENT_ID || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
-console.log("Firebase config check:", {
-  hasApiKey: !!firebaseConfig.apiKey,
-  hasAuthDomain: !!firebaseConfig.authDomain,
-  hasProjectId: !!firebaseConfig.projectId,
-  projectId: firebaseConfig.projectId,
-  apiKeyPrefix: firebaseConfig.apiKey?.substring(0, 10) + "...",
-})
-
 // Check if we have real Firebase configuration
 export const hasRealFirebaseConfig = !!(
   firebaseConfig.apiKey &&
   firebaseConfig.authDomain &&
   firebaseConfig.projectId &&
   firebaseConfig.apiKey !== "your-api-key" &&
-  firebaseConfig.projectId !== "your-project-id" &&
-  firebaseConfig.apiKey.length > 10
+  firebaseConfig.projectId !== "your-project-id"
 )
-
-console.log("hasRealFirebaseConfig:", hasRealFirebaseConfig)
 
 let app: FirebaseApp
 let db: Firestore | null = null
 
 if (hasRealFirebaseConfig) {
   try {
-    console.log("Initializing Firebase with real config...")
-
     // Initialize Firebase app
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-    console.log("Firebase app initialized:", app.name)
 
     // Initialize Firestore
     db = getFirestore(app)
-    console.log("Firestore initialized successfully")
 
     // Connect to Firestore emulator in development if needed
     if (process.env.NODE_ENV === "development" && process.env.USE_FIRESTORE_EMULATOR === "true") {
@@ -60,20 +45,15 @@ if (hasRealFirebaseConfig) {
     console.log("Firebase initialized successfully with project:", firebaseConfig.projectId)
   } catch (error) {
     console.error("Error initializing Firebase:", error)
-    console.error("Firebase initialization error details:", {
-      name: error?.name,
-      message: error?.message,
-      code: error?.code,
-    })
     db = null
   }
 } else {
   console.log("Firebase configuration not found or incomplete. Using mock mode.")
-  console.log("Config status:", {
+  console.log("Available config:", {
     hasApiKey: !!firebaseConfig.apiKey,
     hasAuthDomain: !!firebaseConfig.authDomain,
     hasProjectId: !!firebaseConfig.projectId,
-    apiKeyLength: firebaseConfig.apiKey?.length,
+    apiKey: firebaseConfig.apiKey?.substring(0, 10) + "...",
     projectId: firebaseConfig.projectId,
   })
 }

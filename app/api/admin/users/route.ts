@@ -1,89 +1,89 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { initializeApp, getApps } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
+import { credential } from "firebase-admin"
 
 // Initialize Firebase Admin if not already initialized
-function initializeFirebaseAdmin() {
-  if (getApps().length === 0) {
-    try {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
+if (!getApps().length) {
+  try {
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
 
+    if (!privateKey || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PROJECT_ID) {
+      console.error("Missing Firebase Admin credentials")
+    } else {
       initializeApp({
-        credential: cert({
+        credential: credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: privateKey,
         }),
-        projectId: process.env.FIREBASE_PROJECT_ID,
       })
       console.log("Firebase Admin initialized successfully")
-    } catch (error) {
-      console.error("Failed to initialize Firebase Admin:", error)
-      throw error
     }
+  } catch (error) {
+    console.error("Firebase Admin initialization error:", error)
   }
-  return getFirestore()
 }
 
 export async function GET(request: NextRequest) {
-  console.log("Admin users API called")
-
   try {
-    const db = initializeFirebaseAdmin()
-    console.log("Firebase Admin initialized")
+    console.log("Fetching users from admin API...")
 
-    // Get all potential users from Firestore
+    // Check if Firebase Admin is properly configured
+    if (!getApps().length) {
+      console.log("Firebase Admin not configured, returning mock data")
+      return NextResponse.json({
+        users: [
+          {
+            id: "mock-1",
+            email: "mock@example.com",
+            phone: "+1234567890",
+            city: "Mock City",
+            user_type: "client",
+            status: "waitlist",
+            created_at: new Date().toISOString(),
+            numClients: null,
+          },
+        ],
+      })
+    }
+
+    const db = getFirestore()
+
+    // Fetch all potential users
     const usersSnapshot = await db.collection("potential_users").get()
-    console.log(`Found ${usersSnapshot.size} potential users`)
+
+    console.log(`Found ${usersSnapshot.size} users in database`)
 
     const users = usersSnapshot.docs.map((doc) => {
       const data = doc.data()
-      console.log("Processing user document:", doc.id, data)
+      console.log("User data from Firestore:", data)
 
       return {
         id: doc.id,
         email: data.email || "N/A",
         phone: data.phone || "N/A",
         city: data.city || "N/A",
-        user_type: data.user_type || "undefined",
-        numClients: data.numClients || null,
+        user_type: data.user_type || "unknown",
         status: data.status || "unknown",
-        created_at: data.created_at || data.createdAt || null,
+        created_at: data.createdAt?.toDate?.()?.toISOString() || data.signUpDate || new Date().toISOString(),
+        numClients: data.numClients || null,
         plan: data.plan || "unknown",
+        source: data.source || "unknown",
       }
     })
 
     console.log("Processed users:", users)
 
-    return NextResponse.json({
-      success: true,
-      users: users,
-      count: users.length,
-    })
+    return NextResponse.json({ users })
   } catch (error) {
     console.error("Error fetching users:", error)
-
-    // Return mock data if Firebase fails
-    const mockUsers = [
+    return NextResponse.json(
       {
-        id: "mock-1",
-        email: "test@example.com",
-        phone: "+1234567890",
-        city: "Test City",
-        user_type: "client",
-        numClients: null,
-        status: "waitlist",
-        created_at: new Date().toISOString(),
-        plan: "basic",
+        error: "Failed to fetch users",
+        details: error instanceof Error ? error.message : String(error),
       },
-    ]
-
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-      users: mockUsers,
-      count: mockUsers.length,
-      mock: true,
-    })
+      { status: 500 },
+    )
   }
 }
