@@ -3,52 +3,58 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Loader2, RefreshCw, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
 
-// Define the structure for a potential user
 interface PotentialUser {
   id: string
   email: string
+  phone?: string
+  city?: string
   user_type: string
   status: string
   created_at: string
   numClients?: number
+  plan?: string
+  source?: string
 }
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<PotentialUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [firebaseConfig, setFirebaseConfig] = useState({
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  })
-
-  useEffect(() => {
-    fetchUsers()
-  }, [])
+  const [refreshing, setRefreshing] = useState(false)
 
   const fetchUsers = async () => {
-    setLoading(true)
-    setError(null)
     try {
+      console.log("Fetching users from API...")
       const response = await fetch("/api/admin/users")
-      if (!response.ok) {
-        throw new Error("Failed to fetch users")
-      }
       const data = await response.json()
+
+      console.log("API response:", data)
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch users")
+      }
+
       setUsers(data.users || [])
+      setError(null)
     } catch (err) {
       console.error("Error fetching users:", err)
-      setError("Failed to fetch users. Check console for details.")
+      setError(err instanceof Error ? err.message : "Failed to fetch users")
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }
 
-  const handleAccept = async (userId: string) => {
+  const handleRefresh = () => {
+    setRefreshing(true)
+    fetchUsers()
+  }
+
+  const handleAcceptUser = async (userId: string) => {
     try {
       const response = await fetch("/api/admin/users/accept", {
         method: "POST",
@@ -58,102 +64,197 @@ export default function UserManagementPage() {
         body: JSON.stringify({ userId }),
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to update user status")
+      if (response.ok) {
+        // Refresh the list after accepting
+        handleRefresh()
+      } else {
+        console.error("Failed to accept user")
       }
+    } catch (error) {
+      console.error("Error accepting user:", error)
+    }
+  }
 
-      fetchUsers() // Refresh the list
-    } catch (err) {
-      console.error("Error updating user status:", err)
-      setError("Failed to update user status. Please try again.")
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const getUserTypeBadge = (userType: string) => {
+    switch (userType) {
+      case "trainer":
+        return (
+          <Badge variant="default" className="bg-blue-500">
+            Trainer
+          </Badge>
+        )
+      case "client":
+        return <Badge variant="secondary">Client</Badge>
+      default:
+        return <Badge variant="outline">Unknown</Badge>
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "waitlist":
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+            Waitlist
+          </Badge>
+        )
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-orange-100 text-orange-800">
+            Pending
+          </Badge>
+        )
+      case "active":
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Active
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">Unknown</Badge>
     }
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center bg-gray-100 p-4 dark:bg-gray-950">
-      <div className="w-full max-w-6xl space-y-6">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Link>
+          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-600 mt-2">Manage potential users and convert them from waitlist to pending status.</p>
         </div>
 
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">User Management</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Manage potential users and convert them from waitlist to pending status.
-          </p>
-        </div>
-
-        <Card className="w-full">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Waitlist Users</CardTitle>
-            <Button onClick={fetchUsers} disabled={loading}>
-              {loading ? "Refreshing..." : "Refresh List"}
+        {/* Waitlist Users Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Waitlist Users</CardTitle>
+            <Button onClick={handleRefresh} disabled={refreshing} variant="outline" size="sm">
+              {refreshing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Refresh List
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 rounded-md bg-gray-200 p-3 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-              <p>
-                <strong>Firebase Environment</strong>
-              </p>
-              <p>Project ID: {firebaseConfig.projectId || "N/A"}</p>
-              <p>Auth Domain: {firebaseConfig.authDomain || "N/A"}</p>
+            {/* Firebase Environment Info */}
+            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+              <h3 className="font-semibold mb-2">Firebase Environment</h3>
+              <div className="text-sm text-gray-600 font-mono">
+                <div>Project ID: {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "Not configured"}</div>
+                <div>Auth Domain: {process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "Not configured"}</div>
+              </div>
             </div>
 
-            {error && <div className="mb-4 text-red-500">{error}</div>}
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Loading users...</span>
+              </div>
+            ) : error ? (
+              <div className="text-red-600 py-4">
+                <p>Error: {error}</p>
+                <Button onClick={handleRefresh} className="mt-2 bg-transparent" variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No users found in the waitlist.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-semibold">Email</th>
+                      <th className="text-left p-3 font-semibold">Phone</th>
+                      <th className="text-left p-3 font-semibold">City</th>
+                      <th className="text-left p-3 font-semibold">User Type</th>
+                      <th className="text-left p-3 font-semibold">Clients</th>
+                      <th className="text-left p-3 font-semibold">Status</th>
+                      <th className="text-left p-3 font-semibold">Created At</th>
+                      <th className="text-left p-3 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3">{user.email}</td>
+                        <td className="p-3">{user.phone || "N/A"}</td>
+                        <td className="p-3">{user.city || "N/A"}</td>
+                        <td className="p-3">{getUserTypeBadge(user.user_type)}</td>
+                        <td className="p-3">
+                          {user.user_type === "trainer" && user.numClients
+                            ? user.numClients
+                            : user.user_type === "trainer"
+                              ? "0"
+                              : "-"}
+                        </td>
+                        <td className="p-3">{getStatusBadge(user.status)}</td>
+                        <td className="p-3">
+                          {new Date(user.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </td>
+                        <td className="p-3">
+                          {user.status === "waitlist" && (
+                            <Button
+                              onClick={() => handleAcceptUser(user.id)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              Accept
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>User Type</TableHead>
-                    <TableHead>Clients</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.length === 0 && !loading && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No users found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.email}</TableCell>
-                      <TableCell>{user.user_type}</TableCell>
-                      <TableCell>{user.numClients || "N/A"}</TableCell>
-                      <TableCell>
-                        <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                          {user.status} ({user.status === "waitlist" ? "potential_users" : user.status})
-                        </span>
-                      </TableCell>
-                      <TableCell>{user.created_at}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAccept(user.id)}
-                          disabled={user.status !== "waitlist"}
-                          className="juice-bg text-black hover:bg-juice/80"
-                        >
-                          Accept
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+        {/* Firebase Security Rules Info */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Firebase Security Rules</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              If you're experiencing permission errors when converting users, make sure your Firebase security rules
+              allow writes to the users collection:
+            </p>
+            <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
+              {`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /potential_users/{document=**} {
+      allow read, write: if true;
+    }
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    match /profile/{document=**} {
+      allow read, write: if true;
+    }
+    
+    match /notifications/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`}
+            </pre>
           </CardContent>
         </Card>
       </div>

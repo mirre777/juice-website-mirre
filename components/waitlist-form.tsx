@@ -1,5 +1,6 @@
 "use client"
 
+import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { joinWaitlist } from "@/actions/waitlist-actions"
@@ -23,61 +24,51 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
     alreadyExists?: boolean
   }>({})
   const [email, setEmail] = useState("")
-  const [city, setCity] = useState("") // New state for city
-  const [clientCount, setClientCount] = useState(1) // New state for client count
+  const [city, setCity] = useState("")
+  const [phone, setPhone] = useState("")
+  const [clientCount, setClientCount] = useState(1)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  async function handleSubmit(formData: FormData) {
-    // Add clientCount to formData only if showClientCounter is true
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+
+    console.log("Form submission started")
+    console.log("isCoach from theme:", isCoach)
+
+    // Determine user type - fix the undefined issue
+    const userType = isCoach ? "trainer" : "client"
+    console.log("Determined user type:", userType)
+
+    // Add all form data
     if (showClientCounter) {
       formData.append("numClients", clientCount.toString())
     }
-    formData.append("city", city) // Add city to formData
+    formData.append("city", city)
+    formData.append("phone", phone)
+    formData.append("user_type", userType) // Explicitly set user_type
 
     // Provide immediate visual feedback
     setButtonDisabled(true)
-
-    // Small delay before showing the spinner to ensure the button click is visually acknowledged
-    setTimeout(() => {
-      if (buttonDisabled) {
-        setIsSubmitting(true)
-      }
-    }, 150)
+    setIsSubmitting(true)
 
     try {
-      console.log("Submitting form with plan:", selectedPlan)
-
-      // Check if we're using mock Firebase configuration
-      if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-        // Simulate a successful response in preview/development mode
-        setTimeout(() => {
-          setFormStatus({
-            success: true,
-            message: "You've been added to our waitlist! (Preview Mode)",
-          })
-          setIsSubmitting(false)
-          setButtonDisabled(false)
-        }, 1000)
-        return
-      }
+      console.log("Calling joinWaitlist with data:", Object.fromEntries(formData.entries()))
 
       const result = await joinWaitlist(formData)
-      console.log("Form submission result:", result)
+      console.log("joinWaitlist result:", result)
+
       setFormStatus(result)
 
       if (result.success) {
         // Clear form if successful
         setEmail("")
-        setCity("") // Clear city field
+        setPhone("")
+        setCity("")
         if (showClientCounter) {
-          setClientCount(1) // Reset client count only if counter is shown
+          setClientCount(1)
         }
       }
-
-      // Re-enable the button after 2 seconds
-      setTimeout(() => {
-        setButtonDisabled(false)
-      }, 2000)
     } catch (error) {
       console.error("Form submission error:", error)
       setFormStatus({
@@ -85,13 +76,9 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         message: "Something went wrong. Please try again.",
         error: error instanceof Error ? error.message : String(error),
       })
-
-      // Re-enable the button after 2 seconds
-      setTimeout(() => {
-        setButtonDisabled(false)
-      }, 2000)
     } finally {
       setIsSubmitting(false)
+      setButtonDisabled(false)
     }
   }
 
@@ -120,7 +107,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           animate={animation.text.animate}
           transition={animation.text.transition}
         >
-          <h3 className={`text-lg font-bold mb-1 text-white`}>Thank You!</h3>
+          <h3 className="text-lg font-bold mb-1 text-white">Thank You!</h3>
           <p className="text-zinc-400 text-sm">{formStatus.message}</p>
           {formStatus.alreadyExists && (
             <p className="text-zinc-400 text-sm mt-2">We'll keep you updated on our progress.</p>
@@ -131,11 +118,11 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }
 
   return (
-    <form action={handleSubmit} className="space-y-3 max-w-sm mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Email Input */}
         <div className="space-y-1 flex-1">
-          <label htmlFor="email" className={`text-sm font-medium text-left block text-white`}>
+          <label htmlFor="email" className="text-sm font-medium text-left block text-white">
             Email
           </label>
           <input
@@ -146,13 +133,30 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
+            className="w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+          />
+        </div>
+
+        {/* Phone Input */}
+        <div className="space-y-1 flex-1">
+          <label htmlFor="phone" className="text-sm font-medium text-left block text-white">
+            Phone
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+31 6 1234 5678"
+            required
+            className="w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* City Input */}
         <div className="space-y-1 flex-1">
-          <label htmlFor="city" className={`text-sm font-medium text-left block text-white`}>
+          <label htmlFor="city" className="text-sm font-medium text-left block text-white">
             City
           </label>
           <input
@@ -163,14 +167,14 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
+            className="w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* Client Count Stepper */}
         {showClientCounter && (
           <div className="space-y-1 flex-1">
-            <label htmlFor="numClients" className={`text-sm font-medium text-left block text-white`}>
+            <label htmlFor="numClients" className="text-sm font-medium text-left block text-white">
               Get clients
             </label>
             <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
@@ -205,12 +209,17 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           </div>
         )}
       </div>
+
+      {/* Hidden inputs for form data */}
       <input type="hidden" name="plan" value={selectedPlan || ""} />
-      <input type="hidden" name="user_type" value={isCoach ? "trainer" : "client"} />
-      {/* Moved the paragraph here */}
+
+      {/* Debug info */}
+      <div className="text-xs text-zinc-500 text-center">Debug: User type will be {isCoach ? "trainer" : "client"}</div>
+
       <p className="text-xs text-zinc-400 text-center mt-2">
         By joining, you agree to receive updates about our launch. 💪
       </p>
+
       <div className="flex justify-center mt-6">
         <Button
           type="submit"
@@ -229,6 +238,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           )}
         </Button>
       </div>
+
       {formStatus.success === false && (
         <div className="text-red-500 text-xs text-center mt-2">
           <p>{formStatus.message}</p>

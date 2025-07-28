@@ -1,50 +1,62 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore, type FirebaseFirestore } from "firebase-admin/firestore"
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app"
+import { getFirestore, type Firestore, connectFirestoreEmulator } from "firebase/firestore"
 
-let db: FirebaseFirestore.Firestore | null = null
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+}
 
-export function hasRealFirebaseConfig(): boolean {
-  const requiredEnvVars = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"]
+// Check if we have real Firebase configuration
+export const hasRealFirebaseConfig = !!(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.apiKey !== "your-api-key" &&
+  firebaseConfig.projectId !== "your-project-id"
+)
 
-  return requiredEnvVars.every((envVar) => {
-    const value = process.env[envVar]
-    return value && value.trim() !== ""
+let app: FirebaseApp
+let db: Firestore | null = null
+
+if (hasRealFirebaseConfig) {
+  try {
+    // Initialize Firebase app
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+
+    // Initialize Firestore
+    db = getFirestore(app)
+
+    // Connect to Firestore emulator in development if needed
+    if (process.env.NODE_ENV === "development" && process.env.USE_FIRESTORE_EMULATOR === "true") {
+      try {
+        connectFirestoreEmulator(db, "localhost", 8080)
+        console.log("Connected to Firestore emulator")
+      } catch (error) {
+        console.log("Firestore emulator already connected or not available")
+      }
+    }
+
+    console.log("Firebase initialized successfully with project:", firebaseConfig.projectId)
+  } catch (error) {
+    console.error("Error initializing Firebase:", error)
+    db = null
+  }
+} else {
+  console.log("Firebase configuration not found or incomplete. Using mock mode.")
+  console.log("Available config:", {
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasAuthDomain: !!firebaseConfig.authDomain,
+    hasProjectId: !!firebaseConfig.projectId,
+    apiKey: firebaseConfig.apiKey?.substring(0, 10) + "...",
+    projectId: firebaseConfig.projectId,
   })
 }
 
-export function initializeFirebase() {
-  if (!hasRealFirebaseConfig()) {
-    console.warn("Firebase configuration incomplete - some features may not work")
-    return null
-  }
-
-  try {
-    if (getApps().length === 0) {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
-
-      const app = initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: privateKey,
-        }),
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      })
-
-      db = getFirestore(app)
-      console.log("Firebase Admin initialized successfully")
-    } else {
-      db = getFirestore()
-    }
-
-    return db
-  } catch (error) {
-    console.error("Failed to initialize Firebase:", error)
-    return null
-  }
-}
-
-// Initialize on import
-db = initializeFirebase()
-
 export { db }
+export default app

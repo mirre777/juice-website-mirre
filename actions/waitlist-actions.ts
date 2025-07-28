@@ -30,10 +30,14 @@ export async function joinWaitlist(formData: FormData) {
   try {
     // Extract form data
     const email = formData.get("email") as string
-    const city = formData.get("city") as string // New: Get city
+    const city = formData.get("city") as string
+    const phone = formData.get("phone") as string
     const plan = formData.get("plan") as string
     const message = formData.get("message") as string
-    const numClients = formData.get("numClients") as string // New: Get numClients
+    const numClients = formData.get("numClients") as string
+    const userType = formData.get("user_type") as string
+
+    console.log("Extracted data:", { email, city, phone, plan, userType, numClients })
 
     // Get origin if possible
     let origin = ""
@@ -54,6 +58,33 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
+    // Validate phone
+    if (!phone || phone.trim().length < 8) {
+      console.log("Phone validation failed")
+      return {
+        success: false,
+        message: "Please provide a valid phone number.",
+      }
+    }
+
+    // Validate city
+    if (!city || city.trim().length < 2) {
+      console.log("City validation failed")
+      return {
+        success: false,
+        message: "Please provide a valid city name.",
+      }
+    }
+
+    // Validate user type
+    if (!userType || !["client", "trainer"].includes(userType)) {
+      console.log("User type validation failed:", userType)
+      return {
+        success: false,
+        message: "Please select whether you're a client or trainer.",
+      }
+    }
+
     // If we don't have real Firebase config, simulate success
     if (!hasRealFirebaseConfig || !db) {
       console.log("Using mock Firebase configuration - simulating success")
@@ -66,37 +97,48 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
-    // Check if email already exists in the waitlist
-    const potentialUsersRef = collection(db, "potential_users")
-    const emailQuery = query(potentialUsersRef, where("email", "==", email))
-    const querySnapshot = await getDocs(emailQuery)
-
-    if (!querySnapshot.empty) {
-      console.log("Email already exists in waitlist:", email)
+    // Check if Firebase db is properly initialized
+    if (!db || typeof db.app === "undefined") {
+      console.error("Firebase database not properly initialized:", db)
       return {
-        success: true,
-        message: "You're already on the list! We'll notify you when we launch.",
-        alreadyExists: true,
+        success: false,
+        message: "Database connection error. Please try again later.",
+        error: "Firebase database not initialized",
       }
     }
 
-    // Get user_type from form or determine based on plan
-    const formUserType = formData.get("user_type") as string
-    const user_type = formUserType || (plan === "coach" ? "trainer" : "client")
+    // Check if email already exists in the waitlist
+    try {
+      const potentialUsersRef = collection(db, "potential_users")
+      const emailQuery = query(potentialUsersRef, where("email", "==", email.toLowerCase().trim()))
+      const querySnapshot = await getDocs(emailQuery)
 
-    console.log("Setting user_type to:", user_type)
+      if (!querySnapshot.empty) {
+        console.log("Email already exists in waitlist:", email)
+        return {
+          success: true,
+          message: "You're already on the list! We'll notify you when we launch.",
+          alreadyExists: true,
+        }
+      }
+    } catch (queryError) {
+      console.error("Error checking existing email:", queryError)
+      // Continue with registration if query fails
+    }
+
+    console.log("Setting user_type to:", userType)
 
     // Create waitlist entry with additional metadata
     const waitlistData: { [key: string]: any } = {
-      // Use index signature for dynamic properties
-      email,
-      city: city || "", // Add city to waitlist data
-      plan: standardizePlan(plan || "unknown", user_type),
+      email: email.toLowerCase().trim(),
+      phone: phone.trim(),
+      city: city.trim(),
+      plan: standardizePlan(plan || "unknown", userType),
       message: message || "",
       createdAt: serverTimestamp(),
-      status: "waitlist", // Mark as waitlist entry
+      status: "waitlist",
       source: "website_waitlist",
-      user_type, // Use user_type instead of role
+      user_type: userType,
       signUpDate: new Date().toISOString(),
       origin,
       fromWaitlist: true,
@@ -104,7 +146,10 @@ export async function joinWaitlist(formData: FormData) {
 
     // Add numClients only if it's provided (i.e., for trainers)
     if (numClients) {
-      waitlistData.numClients = Number.parseInt(numClients, 10) // Parse to integer
+      const clientCount = Number.parseInt(numClients, 10)
+      if (!isNaN(clientCount) && clientCount >= 0) {
+        waitlistData.numClients = clientCount
+      }
     }
 
     console.log("Saving to Firebase collection 'potential_users':", waitlistData)
@@ -121,6 +166,15 @@ export async function joinWaitlist(formData: FormData) {
     }
   } catch (error) {
     console.error("Error adding document:", error)
+
+    // Check if it's a Firebase initialization error
+    if (String(error).includes("collection") || String(error).includes("CollectionReference")) {
+      return {
+        success: false,
+        message: "Database connection error. Please try again later.",
+        error: "Firebase database not properly initialized. Please check your Firebase configuration.",
+      }
+    }
 
     // Check if it's a permission error
     if (String(error).includes("permission")) {
