@@ -1,78 +1,187 @@
 "use server"
 
-import { db } from "@/firebase"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
+import { headers } from "next/headers"
+
+// Helper function to standardize plan values
+function standardizePlan(plan: string, userType: string): string {
+  // For trainers
+  if (userType === "trainer" || userType === "coach") {
+    if (plan === "coach") {
+      return "pro"
+    } else if (["pro", "elite"].includes(plan)) {
+      return plan
+    }
+    return "pro" // Default for trainers
+  }
+  // For clients
+  else {
+    if (["basic", "premium"].includes(plan)) {
+      return plan
+    }
+    return "basic" // Default for clients
+  }
+}
 
 export async function joinWaitlist(formData: FormData) {
   console.log("Server action called with formData:", Object.fromEntries(formData.entries()))
 
   try {
+    // Extract form data
     const email = formData.get("email") as string
-    const phone = formData.get("phone") as string
     const city = formData.get("city") as string
-    const userType = formData.get("user_type") as string
+    const phone = formData.get("phone") as string
+    const plan = formData.get("plan") as string
+    const message = formData.get("message") as string
     const numClients = formData.get("numClients") as string
 
-    // Basic validation
-    if (!email || !phone || !city || !userType) {
-      console.log("Missing required fields")
+    // Get origin if possible
+    let origin = ""
+    try {
+      const headersList = headers()
+      origin = headersList.get("origin") || ""
+      console.log("Request origin:", origin)
+    } catch (e) {
+      console.error("Could not get headers:", e)
+    }
+
+    // Validate email
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      console.log("Email validation failed")
       return {
         success: false,
-        error: "Missing required fields",
+        message: "Please provide a valid email address.",
       }
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      console.log("Invalid email format")
+    // Validate phone
+    if (!phone || phone.trim().length < 8) {
+      console.log("Phone validation failed")
       return {
         success: false,
-        error: "Invalid email format",
+        message: "Please provide a valid phone number.",
       }
     }
 
-    // Validate phone number (minimum 8 characters)
-    if (phone.length < 8) {
-      console.log("Phone number must be at least 8 characters long")
+    // Validate city
+    if (!city || city.trim().length < 2) {
+      console.log("City validation failed")
       return {
         success: false,
-        error: "Phone number must be at least 8 characters long",
+        message: "Please provide a valid city name.",
       }
     }
 
-    // Prepare data for Firestore
-    const waitlistData: any = {
+    // If we don't have real Firebase config, simulate success
+    if (!hasRealFirebaseConfig || !db) {
+      console.log("Using mock Firebase configuration - simulating success")
+      // Simulate a delay like a real database call
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      return {
+        success: true,
+        message: "You've been added to our waitlist! (Preview Mode)",
+      }
+    }
+
+    // Check if Firebase db is properly initialized
+    if (!db || typeof db.app === "undefined") {
+      console.error("Firebase database not properly initialized:", db)
+      return {
+        success: false,
+        message: "Database connection error. Please try again later.",
+        error: "Firebase database not initialized",
+      }
+    }
+
+    // Check if email already exists in the waitlist
+    try {
+      const potentialUsersRef = collection(db, "potential_users")
+      const emailQuery = query(potentialUsersRef, where("email", "==", email))
+      const querySnapshot = await getDocs(emailQuery)
+
+      if (!querySnapshot.empty) {
+        console.log("Email already exists in waitlist:", email)
+        return {
+          success: true,
+          message: "You're already on the list! We'll notify you when we launch.",
+          alreadyExists: true,
+        }
+      }
+    } catch (queryError) {
+      console.error("Error checking existing email:", queryError)
+      // Continue with registration if query fails
+    }
+
+    // Get user_type from form or determine based on plan
+    const formUserType = formData.get("user_type") as string
+    const user_type = formUserType || (plan === "coach" ? "trainer" : "client")
+
+    console.log("Setting user_type to:", user_type)
+
+    // Create waitlist entry with additional metadata
+    const waitlistData: { [key: string]: any } = {
       email: email.toLowerCase().trim(),
       phone: phone.trim(),
       city: city.trim(),
-      user_type: userType,
+      plan: standardizePlan(plan || "unknown", user_type),
+      message: message || "",
+      createdAt: serverTimestamp(),
       status: "waitlist",
-      created_at: serverTimestamp(),
+      source: "website_waitlist",
+      user_type,
+      signUpDate: new Date().toISOString(),
+      origin,
+      fromWaitlist: true,
     }
 
-    // Add numClients if provided and user is trainer
-    if (userType === "trainer" && numClients) {
-      const clientCount = Number.parseInt(numClients)
+    // Add numClients only if it's provided (i.e., for trainers)
+    if (numClients) {
+      const clientCount = Number.parseInt(numClients, 10)
       if (!isNaN(clientCount) && clientCount >= 0) {
         waitlistData.numClients = clientCount
       }
     }
 
-    // Add to Firestore
+    console.log("Saving to Firebase collection 'potential_users':", waitlistData)
+
+    // Add to Firebase - using potential_users collection
     const docRef = await addDoc(collection(db, "potential_users"), waitlistData)
 
-    console.log("User added to waitlist:", docRef.id)
+    console.log("Document written with ID:", docRef.id)
 
+    // Return success
     return {
       success: true,
-      message: "Successfully added to waitlist",
+      message: "You've been added to our waitlist! We'll notify you when we launch.",
     }
   } catch (error) {
-    console.error("Error adding to waitlist:", error)
+    console.error("Error adding document:", error)
+
+    // Check if it's a Firebase initialization error
+    if (String(error).includes("collection") || String(error).includes("CollectionReference")) {
+      return {
+        success: false,
+        message: "Database connection error. Please try again later.",
+        error: "Firebase database not properly initialized. Please check your Firebase configuration.",
+      }
+    }
+
+    // Check if it's a permission error
+    if (String(error).includes("permission")) {
+      return {
+        success: false,
+        message: "Unable to save to database. Please check Firebase permissions.",
+        error:
+          "Firebase permission error. Make sure your security rules allow writes to the 'potential_users' collection.",
+      }
+    }
+
     return {
       success: false,
-      error: "Failed to join waitlist. Please try again.",
+      message: "Something went wrong. Please try again later.",
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
