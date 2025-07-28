@@ -1,28 +1,46 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/app/api/firebase-config"
-import { collection, getDocs } from "firebase-admin/firestore"
+import { collection, getDocs, query, orderBy } from "firebase/firestore"
+import { db } from "@/firebase"
 
 export async function GET(request: NextRequest) {
   try {
-    if (!db) {
-      return NextResponse.json({ error: "Firebase not configured" }, { status: 500 })
-    }
+    console.log("Fetching users from potential_users collection...")
 
-    const usersCollection = collection(db, "potential_users")
-    const userSnapshot = await getDocs(usersCollection)
+    // Query the potential_users collection
+    const usersRef = collection(db, "potential_users")
+    const q = query(usersRef, orderBy("created_at", "desc"))
+    const querySnapshot = await getDocs(q)
 
-    const users = userSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      email: doc.data().email,
-      user_type: doc.data().user_type,
-      status: doc.data().status,
-      created_at: doc.data().created_at?.toDate?.()?.toLocaleString() || "Unknown",
-      numClients: doc.data().numClients || "N/A",
-    }))
+    const users = querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        email: data.email || "N/A",
+        phone: data.phone || "N/A",
+        city: data.city || "N/A",
+        user_type: data.user_type || "N/A",
+        status: data.status || "waitlist",
+        created_at: data.created_at?.toDate?.()?.toLocaleDateString() || "N/A",
+        numClients: data.numClients || null,
+      }
+    })
 
-    return NextResponse.json({ users })
+    console.log(`Found ${users.length} users`)
+
+    return NextResponse.json({
+      success: true,
+      users,
+      count: users.length,
+    })
   } catch (error) {
     console.error("Error fetching users:", error)
-    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch users",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }

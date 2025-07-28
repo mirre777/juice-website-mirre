@@ -1,260 +1,156 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { joinWaitlist } from "@/actions/waitlist-actions"
-import { Loader2, CheckCircle } from "lucide-react"
-import { useTheme } from "@/components/theme-provider"
-import { motion } from "framer-motion"
-import { successAnimations } from "@/utils/animations"
+import { useToast } from "@/hooks/use-toast"
 
 interface WaitlistFormProps {
-  selectedPlan: string | null
-  showClientCounter?: boolean
+  userType: "client" | "trainer"
 }
 
-export function WaitlistForm({ selectedPlan, showClientCounter = true }: WaitlistFormProps) {
-  const { isCoach } = useTheme()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formStatus, setFormStatus] = useState<{
-    success?: boolean
-    message?: string
-    error?: string
-    alreadyExists?: boolean
-  }>({})
+export function WaitlistForm({ userType }: WaitlistFormProps) {
   const [email, setEmail] = useState("")
-  const [city, setCity] = useState("") // New state for city
-  const [phone, setPhone] = useState("") // New state for phone
-  const [clientCount, setClientCount] = useState(1) // New state for client count
-  const [buttonDisabled, setButtonDisabled] = useState(false)
+  const [phone, setPhone] = useState("")
+  const [city, setCity] = useState("")
+  const [numClients, setNumClients] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
 
-  async function handleSubmit(formData: FormData) {
-    // Add clientCount to formData only if showClientCounter is true
-    if (showClientCounter) {
-      formData.append("numClients", clientCount.toString())
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!email || !phone || !city) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
     }
-    formData.append("city", city) // Add city to formData
-    formData.append("phone", phone) // Add phone to formData
 
-    // Provide immediate visual feedback
-    setButtonDisabled(true)
-
-    // Small delay before showing the spinner to ensure the button click is visually acknowledged
-    setTimeout(() => {
-      if (buttonDisabled) {
-        setIsSubmitting(true)
-      }
-    }, 150)
+    setIsSubmitting(true)
 
     try {
-      console.log("Submitting form with plan:", selectedPlan)
-
-      // Check if we're using mock Firebase configuration
-      if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-        // Simulate a successful response in preview/development mode
-        setTimeout(() => {
-          setFormStatus({
-            success: true,
-            message: "You've been added to our waitlist! (Preview Mode)",
-          })
-          setIsSubmitting(false)
-          setButtonDisabled(false)
-        }, 1000)
-        return
+      const formData = new FormData()
+      formData.append("email", email)
+      formData.append("phone", phone)
+      formData.append("city", city)
+      formData.append("user_type", userType)
+      if (userType === "trainer" && numClients) {
+        formData.append("numClients", numClients)
       }
 
       const result = await joinWaitlist(formData)
-      console.log("Form submission result:", result)
-      setFormStatus(result)
 
       if (result.success) {
-        // Clear form if successful
+        toast({
+          title: "Success!",
+          description: "You've been added to the waitlist.",
+        })
+        // Clear form
         setEmail("")
-        setPhone("") // Clear phone field
-        setCity("") // Clear city field
-        if (showClientCounter) {
-          setClientCount(1) // Reset client count only if counter is shown
-        }
+        setPhone("")
+        setCity("")
+        setNumClients("")
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        })
       }
-
-      // Re-enable the button after 2 seconds
-      setTimeout(() => {
-        setButtonDisabled(false)
-      }, 2000)
     } catch (error) {
-      console.error("Form submission error:", error)
-      setFormStatus({
-        success: false,
-        message: "Something went wrong. Please try again.",
-        error: error instanceof Error ? error.message : String(error),
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
       })
-
-      // Re-enable the button after 2 seconds
-      setTimeout(() => {
-        setButtonDisabled(false)
-      }, 2000)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (formStatus.success) {
-    // Using the pulse animation from our animations utility
-    const animation = successAnimations.pulse
-
-    return (
-      <div className="py-4 text-center">
-        <motion.div
-          className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3"
-          initial={animation.container.initial}
-          animate={animation.container.animate}
-          transition={animation.container.transition}
-        >
-          <motion.div
-            initial={animation.icon.initial}
-            animate={animation.icon.animate}
-            transition={animation.icon.transition}
-          >
-            <CheckCircle className="h-6 w-6 text-green-500" />
-          </motion.div>
-        </motion.div>
-        <motion.div
-          initial={animation.text.initial}
-          animate={animation.text.animate}
-          transition={animation.text.transition}
-        >
-          <h3 className={`text-lg font-bold mb-1 text-white`}>Thank You!</h3>
-          <p className="text-zinc-400 text-sm">{formStatus.message}</p>
-          {formStatus.alreadyExists && (
-            <p className="text-zinc-400 text-sm mt-2">We'll keep you updated on our progress.</p>
-          )}
-        </motion.div>
-      </div>
-    )
-  }
-
   return (
-    <form action={handleSubmit} className="space-y-3 max-w-sm mx-auto">
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Email Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="email" className={`text-sm font-medium text-left block text-white`}>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
             Email
           </label>
-          <input
+          <Input
             id="email"
-            name="email"
             type="email"
+            placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
             required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
+            className="bg-black border-white text-white placeholder:text-gray-400"
           />
         </div>
 
-        {/* Phone Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="phone" className={`text-sm font-medium text-left block text-white`}>
+        <div className="flex-1">
+          <label htmlFor="phone" className="block text-sm font-medium text-white mb-2">
             Phone
           </label>
-          <input
+          <Input
             id="phone"
-            name="phone"
             type="tel"
+            placeholder="Your Phone Number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="+31 6 1234 5678"
             required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
+            minLength={8}
+            className="bg-black border-white text-white placeholder:text-gray-400"
           />
         </div>
 
-        {/* City Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="city" className={`text-sm font-medium text-left block text-white`}>
+        <div className="flex-1">
+          <label htmlFor="city" className="block text-sm font-medium text-white mb-2">
             City
           </label>
-          <input
+          <Input
             id="city"
-            name="city"
             type="text"
+            placeholder="Your City"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Your City"
             required
-            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
+            className="bg-black border-white text-white placeholder:text-gray-400"
           />
         </div>
+      </div>
 
-        {/* Client Count Stepper */}
-        {showClientCounter && (
-          <div className="space-y-1 flex-1">
-            <label htmlFor="numClients" className={`text-sm font-medium text-left block text-white`}>
-              Get clients
-            </label>
-            <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-              >
-                -
-              </Button>
-              <input
-                id="numClients"
-                name="numClients"
-                type="number"
-                value={clientCount}
-                onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                min="1"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setClientCount((prev) => prev + 1)}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-              >
-                +
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-      <input type="hidden" name="plan" value={selectedPlan || ""} />
-      <input type="hidden" name="user_type" value={isCoach ? "trainer" : "client"} />
-      {/* Moved the paragraph here */}
-      <p className="text-xs text-zinc-400 text-center mt-2">
-        By joining, you agree to receive updates about our launch. 💪
-      </p>
-      <div className="flex justify-center mt-6">
-        <Button
-          type="submit"
-          className="bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300"
-          disabled={isSubmitting || buttonDisabled}
-          id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
-          data-plan={selectedPlan || ""}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Enter waitlist now"
-          )}
-        </Button>
-      </div>
-      {formStatus.success === false && (
-        <div className="text-red-500 text-xs text-center mt-2">
-          <p>{formStatus.message}</p>
-          {formStatus.error && <p className="mt-1">Error details: {formStatus.error}</p>}
+      {userType === "trainer" && (
+        <div>
+          <label htmlFor="numClients" className="block text-sm font-medium text-white mb-2">
+            Number of Clients (Optional)
+          </label>
+          <Input
+            id="numClients"
+            type="number"
+            placeholder="How many clients do you currently have?"
+            value={numClients}
+            onChange={(e) => setNumClients(e.target.value)}
+            min="0"
+            className="bg-black border-white text-white placeholder:text-gray-400"
+          />
         </div>
       )}
+
+      <div className="text-center">
+        <p className="text-gray-400 text-sm mb-4">By joining, you agree to receive updates about our launch. 💪</p>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-white text-black hover:bg-gray-200 px-8 py-2 rounded-full font-medium"
+        >
+          {isSubmitting ? "Joining..." : "Enter waitlist now"}
+        </Button>
+      </div>
     </form>
   )
 }

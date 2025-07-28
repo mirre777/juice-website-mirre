@@ -11,6 +11,8 @@ import { ArrowLeft } from "lucide-react"
 interface PotentialUser {
   id: string
   email: string
+  phone?: string
+  city?: string
   user_type: string
   status: string
   created_at: string
@@ -71,7 +73,7 @@ export default function UserManagementPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gray-100 p-4 dark:bg-gray-950">
-      <div className="w-full max-w-6xl space-y-6">
+      <div className="w-full max-w-7xl space-y-6">
         <div className="flex items-center justify-between">
           <Link
             href="/"
@@ -112,6 +114,8 @@ export default function UserManagementPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>City</TableHead>
                     <TableHead>User Type</TableHead>
                     <TableHead>Clients</TableHead>
                     <TableHead>Status</TableHead>
@@ -122,7 +126,7 @@ export default function UserManagementPage() {
                 <TableBody>
                   {users.length === 0 && !loading && (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
+                      <TableCell colSpan={8} className="h-24 text-center">
                         No users found.
                       </TableCell>
                     </TableRow>
@@ -130,6 +134,8 @@ export default function UserManagementPage() {
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.email}</TableCell>
+                      <TableCell>{user.phone || "N/A"}</TableCell>
+                      <TableCell>{user.city || "N/A"}</TableCell>
                       <TableCell>{user.user_type}</TableCell>
                       <TableCell>{user.numClients || "N/A"}</TableCell>
                       <TableCell>
