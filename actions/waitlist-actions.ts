@@ -35,6 +35,9 @@ export async function joinWaitlist(formData: FormData) {
     const plan = formData.get("plan") as string
     const message = formData.get("message") as string
     const numClients = formData.get("numClients") as string
+    const userType = formData.get("user_type") as string
+
+    console.log("Extracted data:", { email, city, phone, plan, userType, numClients })
 
     // Get origin if possible
     let origin = ""
@@ -73,6 +76,15 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
+    // Validate user type
+    if (!userType || !["client", "trainer"].includes(userType)) {
+      console.log("User type validation failed:", userType)
+      return {
+        success: false,
+        message: "Please select whether you're a client or trainer.",
+      }
+    }
+
     // If we don't have real Firebase config, simulate success
     if (!hasRealFirebaseConfig || !db) {
       console.log("Using mock Firebase configuration - simulating success")
@@ -98,7 +110,7 @@ export async function joinWaitlist(formData: FormData) {
     // Check if email already exists in the waitlist
     try {
       const potentialUsersRef = collection(db, "potential_users")
-      const emailQuery = query(potentialUsersRef, where("email", "==", email))
+      const emailQuery = query(potentialUsersRef, where("email", "==", email.toLowerCase().trim()))
       const querySnapshot = await getDocs(emailQuery)
 
       if (!querySnapshot.empty) {
@@ -114,23 +126,19 @@ export async function joinWaitlist(formData: FormData) {
       // Continue with registration if query fails
     }
 
-    // Get user_type from form or determine based on plan
-    const formUserType = formData.get("user_type") as string
-    const user_type = formUserType || (plan === "coach" ? "trainer" : "client")
-
-    console.log("Setting user_type to:", user_type)
+    console.log("Setting user_type to:", userType)
 
     // Create waitlist entry with additional metadata
     const waitlistData: { [key: string]: any } = {
       email: email.toLowerCase().trim(),
       phone: phone.trim(),
       city: city.trim(),
-      plan: standardizePlan(plan || "unknown", user_type),
+      plan: standardizePlan(plan || "unknown", userType),
       message: message || "",
       createdAt: serverTimestamp(),
       status: "waitlist",
       source: "website_waitlist",
-      user_type,
+      user_type: userType,
       signUpDate: new Date().toISOString(),
       origin,
       fromWaitlist: true,
