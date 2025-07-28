@@ -24,6 +24,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }>({})
   const [email, setEmail] = useState("")
   const [city, setCity] = useState("") // New state for city
+  const [phone, setPhone] = useState("") // New state for phone
   const [clientCount, setClientCount] = useState(1) // New state for client count
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
@@ -33,6 +34,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       formData.append("numClients", clientCount.toString())
     }
     formData.append("city", city) // Add city to formData
+    formData.append("phone", phone) // Add phone to formData
 
     // Provide immediate visual feedback
     setButtonDisabled(true)
@@ -68,6 +70,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       if (result.success) {
         // Clear form if successful
         setEmail("")
+        setPhone("") // Clear phone field
         setCity("") // Clear city field
         if (showClientCounter) {
           setClientCount(1) // Reset client count only if counter is shown
@@ -145,6 +148,23 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
+            required
+            className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
+          />
+        </div>
+
+        {/* Phone Input */}
+        <div className="space-y-1 flex-1">
+          <label htmlFor="phone" className={`text-sm font-medium text-left block text-white`}>
+            Phone
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+31 6 1234 5678"
             required
             className={`w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm`}
           />

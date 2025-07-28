@@ -31,6 +31,7 @@ export async function joinWaitlist(formData: FormData) {
     // Extract form data
     const email = formData.get("email") as string
     const city = formData.get("city") as string // New: Get city
+    const phone = formData.get("phone") as string // New: Get phone
     const plan = formData.get("plan") as string
     const message = formData.get("message") as string
     const numClients = formData.get("numClients") as string // New: Get numClients
@@ -51,6 +52,15 @@ export async function joinWaitlist(formData: FormData) {
       return {
         success: false,
         message: "Please provide a valid email address.",
+      }
+    }
+
+    // Validate phone
+    if (!phone || phone.trim().length < 8) {
+      console.log("Phone validation failed")
+      return {
+        success: false,
+        message: "Please provide a valid phone number.",
       }
     }
 
@@ -90,6 +100,7 @@ export async function joinWaitlist(formData: FormData) {
     const waitlistData: { [key: string]: any } = {
       // Use index signature for dynamic properties
       email,
+      phone: phone || "", // Add phone to waitlist data
       city: city || "", // Add city to waitlist data
       plan: standardizePlan(plan || "unknown", user_type),
       message: message || "",
