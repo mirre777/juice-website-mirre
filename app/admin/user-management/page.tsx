@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, RefreshCw, ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, RefreshCw, Users, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
 interface PotentialUser {
@@ -12,56 +12,57 @@ interface PotentialUser {
   email: string
   phone?: string
   city?: string
-  user_type?: string
+  user_type: string
   numClients?: number
   status: string
-  created_at?: any
+  created_at: string | null
+  plan?: string
+}
+
+interface ApiResponse {
+  success: boolean
+  users: PotentialUser[]
+  count: number
+  error?: string
+  mock?: boolean
 }
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<PotentialUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isMockData, setIsMockData] = useState(false)
 
   const fetchUsers = async () => {
+    console.log("Fetching users...")
+    setLoading(true)
+    setError(null)
+
     try {
-      setLoading(true)
-      setError(null)
+      const response = await fetch("/api/admin/users")
+      const data: ApiResponse = await response.json()
 
-      console.log("Fetching users from API...")
-      const response = await fetch("/api/admin/users", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
       console.log("API response:", data)
 
-      if (data.error) {
-        console.warn("API returned error:", data.error)
-        setError(data.error)
+      if (data.success) {
+        setUsers(data.users)
+        setIsMockData(data.mock || false)
+      } else {
+        setError(data.error || "Failed to fetch users")
+        setUsers(data.users || []) // Use mock data if available
+        setIsMockData(true)
       }
-
-      setUsers(data.users || [])
     } catch (err) {
       console.error("Error fetching users:", err)
-      setError(err instanceof Error ? err.message : "Failed to fetch users")
+      setError("Network error occurred")
+      setUsers([])
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const handleAcceptUser = async (userId: string) => {
+  const acceptUser = async (userId: string) => {
+    console.log("Accepting user:", userId)
     try {
       const response = await fetch("/api/admin/users/accept", {
         method: "POST",
@@ -72,7 +73,7 @@ export default function UserManagementPage() {
       })
 
       if (response.ok) {
-        // Refresh the users list
+        // Refresh the user list
         fetchUsers()
       } else {
         console.error("Failed to accept user")
@@ -82,20 +83,20 @@ export default function UserManagementPage() {
     }
   }
 
-  const formatDate = (date: any) => {
-    if (!date) return "N/A"
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A"
     try {
-      if (date.toDate) {
-        return date.toDate().toLocaleString()
-      }
-      return new Date(date).toLocaleString()
+      return new Date(dateString).toLocaleString()
     } catch {
       return "Invalid Date"
     }
   }
 
-  const getUserTypeBadge = (userType?: string) => {
+  const getUserTypeBadge = (userType: string) => {
     switch (userType) {
       case "trainer":
         return (
@@ -110,7 +111,11 @@ export default function UserManagementPage() {
           </Badge>
         )
       default:
-        return <Badge variant="outline">Unknown</Badge>
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-600">
+            undefined
+          </Badge>
+        )
     }
   }
 
@@ -119,7 +124,7 @@ export default function UserManagementPage() {
       case "waitlist":
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-            Waitlist
+            waitlist (potential_users)
           </Badge>
         )
       case "pending":
@@ -144,96 +149,91 @@ export default function UserManagementPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+          <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+            ← Back to Home
           </Link>
-
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-              <p className="text-gray-600 mt-2">
-                Manage potential users and convert them from waitlist to pending status.
-              </p>
-            </div>
-
-            <Button onClick={fetchUsers} disabled={loading} variant="outline">
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-              Refresh List
-            </Button>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-600 mt-2">Manage potential users and convert them from waitlist to pending status.</p>
         </div>
 
-        {/* Firebase Environment Info */}
+        {/* Waitlist Users Section */}
         <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Firebase Environment</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Waitlist Users
+            </CardTitle>
+            <Button onClick={fetchUsers} disabled={loading} variant="outline" size="sm">
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Refresh List
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="bg-gray-100 p-4 rounded-md font-mono text-sm">
-              <div>Project ID: {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "Not configured"}</div>
-              <div>Auth Domain: {process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "Not configured"}</div>
+            {/* Firebase Environment Info */}
+            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+              <h3 className="font-semibold mb-2">Firebase Environment</h3>
+              <div className="text-sm text-gray-600 font-mono">
+                <div>Project ID: {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "Not configured"}</div>
+                <div>Auth Domain: {process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "Not configured"}</div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Waitlist Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
+            {/* Loading State */}
+            {loading && (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                Loading users...
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Loading users...</span>
               </div>
-            ) : error ? (
-              <div className="text-center py-8">
-                <p className="text-red-600 mb-4">Error: {error}</p>
-                <Button onClick={fetchUsers} variant="outline">
-                  Try Again
-                </Button>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+              <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+                <div>
+                  <p className="text-red-800 font-medium">Error loading users</p>
+                  <p className="text-red-600 text-sm">{error}</p>
+                  {isMockData && <p className="text-red-600 text-sm mt-1">Showing mock data instead.</p>}
+                </div>
               </div>
-            ) : users.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No users found in the waitlist.</p>
-              </div>
-            ) : (
+            )}
+
+            {/* Users Table */}
+            {!loading && users.length > 0 && (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse border border-gray-300">
                   <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-3 font-medium">Email</th>
-                      <th className="text-left p-3 font-medium">Phone</th>
-                      <th className="text-left p-3 font-medium">City</th>
-                      <th className="text-left p-3 font-medium">User Type</th>
-                      <th className="text-left p-3 font-medium">Clients</th>
-                      <th className="text-left p-3 font-medium">Status</th>
-                      <th className="text-left p-3 font-medium">Created At</th>
-                      <th className="text-left p-3 font-medium">Actions</th>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Phone</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">City</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">User Type</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Clients</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Created At</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map((user) => (
-                      <tr key={user.id} className="border-b hover:bg-gray-50">
-                        <td className="p-3">{user.email}</td>
-                        <td className="p-3">{user.phone || "N/A"}</td>
-                        <td className="p-3">{user.city || "N/A"}</td>
-                        <td className="p-3">{getUserTypeBadge(user.user_type)}</td>
-                        <td className="p-3">{user.user_type === "trainer" ? user.numClients || 0 : "-"}</td>
-                        <td className="p-3">{getStatusBadge(user.status)}</td>
-                        <td className="p-3">{formatDate(user.created_at)}</td>
-                        <td className="p-3">
-                          {user.status === "waitlist" && (
-                            <Button
-                              onClick={() => handleAcceptUser(user.id)}
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              Accept
-                            </Button>
-                          )}
+                      <tr key={user.id} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2">{user.email}</td>
+                        <td className="border border-gray-300 px-4 py-2">{user.phone || "N/A"}</td>
+                        <td className="border border-gray-300 px-4 py-2">{user.city || "N/A"}</td>
+                        <td className="border border-gray-300 px-4 py-2">{getUserTypeBadge(user.user_type)}</td>
+                        <td className="border border-gray-300 px-4 py-2">
+                          {user.user_type === "trainer" ? user.numClients || "N/A" : "-"}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2">{getStatusBadge(user.status)}</td>
+                        <td className="border border-gray-300 px-4 py-2">{formatDate(user.created_at)}</td>
+                        <td className="border border-gray-300 px-4 py-2">
+                          <Button
+                            onClick={() => acceptUser(user.id)}
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Accept
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -241,24 +241,57 @@ export default function UserManagementPage() {
                 </table>
               </div>
             )}
+
+            {/* No Users State */}
+            {!loading && users.length === 0 && !error && (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No users found in the waitlist.</p>
+              </div>
+            )}
+
+            {/* Mock Data Warning */}
+            {isMockData && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm">⚠️ Showing mock data because Firebase connection failed.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Debug Info */}
-        {users.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Debug Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-100 p-4 rounded-md">
-                <p className="text-sm">Total users loaded: {users.length}</p>
-                <p className="text-sm">Last refresh: {new Date().toLocaleString()}</p>
-                {error && <p className="text-sm text-red-600">Last error: {error}</p>}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Firebase Security Rules Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Firebase Security Rules</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              If you're experiencing permission errors when converting users, make sure your Firebase security rules
+              allow writing to the users collection:
+            </p>
+            <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
+              {`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /potential_users/{document=**} {
+      allow read, write: if true;
+    }
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    match /profile/{document=**} {
+      allow read, write: if true;
+    }
+    
+    match /notifications/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`}
+            </pre>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

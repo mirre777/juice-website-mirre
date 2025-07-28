@@ -70,16 +70,23 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
+    console.log("All validations passed")
+
     // Get origin
     let origin = ""
     try {
       const headersList = headers()
       origin = headersList.get("origin") || ""
+      console.log("Origin:", origin)
     } catch (e) {
       console.error("Could not get headers:", e)
     }
 
     // Check if we have real Firebase config
+    console.log("Checking Firebase config...")
+    console.log("hasRealFirebaseConfig:", hasRealFirebaseConfig)
+    console.log("db exists:", !!db)
+
     if (!hasRealFirebaseConfig || !db) {
       console.log("Using mock Firebase configuration - simulating success")
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -92,6 +99,8 @@ export async function joinWaitlist(formData: FormData) {
     // Check if db is properly initialized
     if (!db || typeof db.app === "undefined") {
       console.error("Firebase database not properly initialized")
+      console.error("db:", db)
+      console.error("db.app:", db?.app)
       return {
         success: false,
         message: "Database connection error. Please try again later.",
@@ -102,10 +111,16 @@ export async function joinWaitlist(formData: FormData) {
     console.log("Firebase database is initialized, proceeding...")
 
     // Check for existing email
+    console.log("Checking for existing email...")
     try {
       const potentialUsersRef = collection(db, "potential_users")
+      console.log("Created collection reference")
+
       const emailQuery = query(potentialUsersRef, where("email", "==", email.toLowerCase().trim()))
+      console.log("Created email query")
+
       const querySnapshot = await getDocs(emailQuery)
+      console.log("Executed query, found", querySnapshot.size, "documents")
 
       if (!querySnapshot.empty) {
         console.log("Email already exists in waitlist:", email)
@@ -117,7 +132,15 @@ export async function joinWaitlist(formData: FormData) {
       }
     } catch (queryError) {
       console.error("Error checking existing email:", queryError)
+      console.error("Query error details:", {
+        name: queryError.name,
+        message: queryError.message,
+        stack: queryError.stack,
+      })
+      // Continue with registration if query fails
     }
+
+    console.log("Preparing data for Firestore...")
 
     // Prepare data for Firestore
     const waitlistData: any = {
@@ -126,7 +149,7 @@ export async function joinWaitlist(formData: FormData) {
       city: city.trim(),
       plan: standardizePlan(plan || "unknown", userType),
       message: message || "",
-      createdAt: serverTimestamp(),
+      created_at: serverTimestamp(),
       status: "waitlist",
       source: "website_waitlist",
       user_type: userType,
@@ -142,19 +165,43 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
-    console.log("Saving to Firebase:", waitlistData)
+    console.log("Data prepared for saving:", waitlistData)
 
     // Add to Firebase
-    const docRef = await addDoc(collection(db, "potential_users"), waitlistData)
-    console.log("Document written with ID:", docRef.id)
+    console.log("Attempting to save to Firebase...")
+    try {
+      const potentialUsersRef = collection(db, "potential_users")
+      console.log("Collection reference created successfully")
 
-    return {
-      success: true,
-      message: "You've been added to our waitlist! We'll notify you when we launch.",
+      const docRef = await addDoc(potentialUsersRef, waitlistData)
+      console.log("Document written successfully with ID:", docRef.id)
+
+      return {
+        success: true,
+        message: "You've been added to our waitlist! We'll notify you when we launch.",
+      }
+    } catch (addDocError) {
+      console.error("Error adding document to Firestore:", addDocError)
+      console.error("AddDoc error details:", {
+        name: addDocError.name,
+        message: addDocError.message,
+        code: addDocError.code,
+        stack: addDocError.stack,
+      })
+
+      return {
+        success: false,
+        message: "Failed to save to database. Please try again.",
+        error: `Database write error: ${addDocError.message}`,
+      }
     }
   } catch (error) {
     console.error("=== ERROR IN SERVER ACTION ===")
     console.error("Error details:", error)
+    console.error("Error type:", typeof error)
+    console.error("Error name:", error?.name)
+    console.error("Error message:", error?.message)
+    console.error("Error stack:", error?.stack)
 
     if (String(error).includes("collection") || String(error).includes("CollectionReference")) {
       return {
