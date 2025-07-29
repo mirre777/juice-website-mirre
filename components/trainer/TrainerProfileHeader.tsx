@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Edit, ExternalLink, X, Clock } from "lucide-react"
+import { Eye, Edit, ExternalLink, X, Clock, Save } from "lucide-react"
 
 interface TrainerProfileHeaderProps {
   mode: "live" | "temp"
@@ -48,13 +48,47 @@ export default function TrainerProfileHeader({
             <span className="font-medium">Preview Mode - Expires in: {timeLeft}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Button onClick={onEdit} variant="secondary" size="sm" className="bg-white text-black hover:bg-gray-100">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Preview
-            </Button>
-            <Button onClick={onActivate} size="sm" className="bg-black text-[#D2FF28] hover:bg-gray-800 font-medium">
-              Activate Now - {activationPrice}
-            </Button>
+            {!isEditing ? (
+              <>
+                <Button
+                  onClick={onEdit}
+                  variant="secondary"
+                  size="sm"
+                  className="bg-white text-black hover:bg-gray-100"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Preview
+                </Button>
+                <Button
+                  onClick={onActivate}
+                  size="sm"
+                  className="bg-black text-[#D2FF28] hover:bg-gray-800 font-medium"
+                >
+                  Activate Now - {activationPrice}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={onCancel}
+                  variant="secondary"
+                  size="sm"
+                  className="bg-white text-black hover:bg-gray-100"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={onSave}
+                  size="sm"
+                  className="bg-black text-[#D2FF28] hover:bg-gray-800 font-medium"
+                  disabled={saving}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -104,9 +138,10 @@ export default function TrainerProfileHeader({
                 </Button>
                 <Button
                   onClick={onSave}
-                  disabled={saving || !hasUnsavedChanges}
+                  disabled={saving}
                   className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
                 >
+                  <Save className="h-4 w-4" />
                   <span>{saving ? "Saving..." : "Save Changes"}</span>
                 </Button>
               </>

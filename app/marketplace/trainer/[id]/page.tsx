@@ -23,7 +23,7 @@ export default function TrainerPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
   const router = useRouter()
 
@@ -109,33 +109,15 @@ export default function TrainerPage({ params }: PageProps) {
     }
   }
 
-  // Handle content updates
-  const handleContentUpdate = (section: string, field: string, value: any) => {
-    if (!editingContent) return
+  // Handle edit mode
+  const handleEdit = () => {
+    setIsEditing(true)
+    setEditingContent({ ...content! })
+  }
 
-    const updatedContent = { ...editingContent }
-
-    // Handle nested field updates
-    if (section === "hero" || section === "about" || section === "contact") {
-      updatedContent[section] = {
-        ...updatedContent[section],
-        [field]: value,
-      }
-    } else if (section === "services") {
-      // Handle service updates (e.g., "0.title", "1.price")
-      const [index, serviceField] = field.split(".")
-      const serviceIndex = Number.parseInt(index)
-
-      if (updatedContent.services[serviceIndex]) {
-        updatedContent.services[serviceIndex] = {
-          ...updatedContent.services[serviceIndex],
-          [serviceField]: serviceField === "price" ? Number.parseFloat(value) || 0 : value,
-        }
-      }
-    }
-
+  // Handle content changes
+  const handleContentChange = (updatedContent: TrainerContent) => {
     setEditingContent(updatedContent)
-    setHasUnsavedChanges(true)
   }
 
   // Save changes
@@ -155,7 +137,7 @@ export default function TrainerPage({ params }: PageProps) {
       }
 
       setContent(editingContent)
-      setHasUnsavedChanges(false)
+      setIsEditing(false)
     } catch (err) {
       console.error("Error saving changes:", err)
       setError("Failed to save changes. Please try again.")
@@ -167,7 +149,7 @@ export default function TrainerPage({ params }: PageProps) {
   // Cancel changes
   const handleCancel = () => {
     setEditingContent(content)
-    setHasUnsavedChanges(false)
+    setIsEditing(false)
   }
 
   // Toggle public view
@@ -256,6 +238,8 @@ export default function TrainerPage({ params }: PageProps) {
     )
   }
 
+  const hasUnsavedChanges = isEditing && JSON.stringify(content) !== JSON.stringify(editingContent)
+
   // Edit mode
   return (
     <div className="min-h-screen bg-gray-50">
@@ -263,8 +247,10 @@ export default function TrainerPage({ params }: PageProps) {
       <TrainerProfileHeader
         mode="live"
         onViewLive={handleViewLive}
+        onEdit={handleEdit}
         onSave={handleSave}
         onCancel={handleCancel}
+        isEditing={isEditing}
         hasUnsavedChanges={hasUnsavedChanges}
         saving={saving}
       />
@@ -272,11 +258,14 @@ export default function TrainerPage({ params }: PageProps) {
       {/* Main display component */}
       <TrainerProfileDisplay
         trainer={trainer}
-        content={editingContent}
+        content={content}
+        editingContent={editingContent}
         mode="live-edit"
-        onContentUpdate={handleContentUpdate}
+        isEditing={isEditing}
+        onEdit={handleEdit}
         onSave={handleSave}
         onCancel={handleCancel}
+        onContentChange={handleContentChange}
         hasUnsavedChanges={hasUnsavedChanges}
         saving={saving}
         onBookConsultation={handleBookConsultation}

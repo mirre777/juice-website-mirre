@@ -24,7 +24,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
 
   // Fetch temp trainer data
@@ -153,33 +153,15 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     }
   }
 
-  // Handle content updates
-  const handleContentUpdate = (section: string, field: string, value: any) => {
-    if (!editingContent) return
+  // Handle edit mode
+  const handleEdit = () => {
+    setIsEditing(true)
+    setEditingContent({ ...content! })
+  }
 
-    const updatedContent = { ...editingContent }
-
-    // Handle nested field updates
-    if (section === "hero" || section === "about" || section === "contact") {
-      updatedContent[section] = {
-        ...updatedContent[section],
-        [field]: value,
-      }
-    } else if (section === "services") {
-      // Handle service updates (e.g., "0.title", "1.price")
-      const [index, serviceField] = field.split(".")
-      const serviceIndex = Number.parseInt(index)
-
-      if (updatedContent.services[serviceIndex]) {
-        updatedContent.services[serviceIndex] = {
-          ...updatedContent.services[serviceIndex],
-          [serviceField]: serviceField === "price" ? Number.parseFloat(value) || 0 : value,
-        }
-      }
-    }
-
+  // Handle content changes
+  const handleContentChange = (updatedContent: TrainerContent) => {
     setEditingContent(updatedContent)
-    setHasUnsavedChanges(true)
   }
 
   // Save changes
@@ -199,7 +181,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
       }
 
       setContent(editingContent)
-      setHasUnsavedChanges(false)
+      setIsEditing(false)
     } catch (err) {
       console.error("Error saving changes:", err)
       setError("Failed to save changes. Please try again.")
@@ -211,7 +193,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   // Cancel changes
   const handleCancel = () => {
     setEditingContent(content)
-    setHasUnsavedChanges(false)
+    setIsEditing(false)
   }
 
   // Handle activation
@@ -279,6 +261,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     )
   }
 
+  const hasUnsavedChanges = isEditing && JSON.stringify(content) !== JSON.stringify(editingContent)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with temp-specific controls */}
@@ -286,8 +270,10 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         mode="temp"
         timeLeft={formatTimeLeft(timeLeft)}
         onActivate={handleActivate}
+        onEdit={handleEdit}
         onSave={handleSave}
         onCancel={handleCancel}
+        isEditing={isEditing}
         hasUnsavedChanges={hasUnsavedChanges}
         saving={saving}
         activationPrice="€70"
@@ -296,11 +282,14 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
       {/* Main display component */}
       <TrainerProfileDisplay
         trainer={trainer}
-        content={editingContent}
+        content={content}
+        editingContent={editingContent}
         mode="temp-edit"
-        onContentUpdate={handleContentUpdate}
+        isEditing={isEditing}
+        onEdit={handleEdit}
         onSave={handleSave}
         onCancel={handleCancel}
+        onContentChange={handleContentChange}
         hasUnsavedChanges={hasUnsavedChanges}
         saving={saving}
         onBookConsultation={handleBookConsultation}

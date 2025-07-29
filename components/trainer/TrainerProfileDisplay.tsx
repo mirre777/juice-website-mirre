@@ -1,6 +1,4 @@
 "use client"
-
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -18,9 +16,8 @@ import {
   Calendar,
   CheckCircle,
   MessageCircle,
-  Edit2,
-  Save,
-  X,
+  Plus,
+  Trash2,
 } from "lucide-react"
 
 // Unified interfaces
@@ -75,12 +72,15 @@ export type DisplayMode = "temp-edit" | "live-edit" | "public"
 export interface TrainerProfileDisplayProps {
   trainer: TrainerData
   content?: TrainerContent
+  editingContent?: TrainerContent
   mode: DisplayMode
 
-  // Editing callbacks
-  onContentUpdate?: (section: string, field: string, value: any) => void
+  // Global edit state
+  isEditing?: boolean
+  onEdit?: () => void
   onSave?: () => void
   onCancel?: () => void
+  onContentChange?: (content: TrainerContent) => void
   hasUnsavedChanges?: boolean
   saving?: boolean
 
@@ -96,83 +96,16 @@ export interface TrainerProfileDisplayProps {
   activationPrice?: string
 }
 
-interface EditableFieldProps {
-  value: string
-  onSave: (value: string) => void
-  multiline?: boolean
-  placeholder?: string
-  className?: string
-}
-
-function EditableField({ value, onSave, multiline = false, placeholder, className = "" }: EditableFieldProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState(value)
-
-  const handleSave = () => {
-    onSave(editValue)
-    setIsEditing(false)
-  }
-
-  const handleCancel = () => {
-    setEditValue(value)
-    setIsEditing(false)
-  }
-
-  if (!isEditing) {
-    return (
-      <div className={`group relative ${className}`}>
-        <div className="pr-8">
-          {multiline ? (
-            <p className="whitespace-pre-line">{value || placeholder}</p>
-          ) : (
-            <span>{value || placeholder}</span>
-          )}
-        </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => setIsEditing(true)}
-        >
-          <Edit2 className="h-3 w-3" />
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-2">
-      {multiline ? (
-        <Textarea
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          placeholder={placeholder}
-          className="min-h-[100px]"
-        />
-      ) : (
-        <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder={placeholder} />
-      )}
-      <div className="flex gap-2">
-        <Button size="sm" onClick={handleSave}>
-          <Save className="h-3 w-3 mr-1" />
-          Save
-        </Button>
-        <Button size="sm" variant="outline" onClick={handleCancel}>
-          <X className="h-3 w-3 mr-1" />
-          Cancel
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 export default function TrainerProfileDisplay({
   trainer,
   content,
+  editingContent,
   mode,
-  onContentUpdate,
+  isEditing = false,
+  onEdit,
   onSave,
   onCancel,
+  onContentChange,
   hasUnsavedChanges = false,
   saving = false,
   onBookConsultation,
@@ -183,22 +116,22 @@ export default function TrainerProfileDisplay({
   isExpired = false,
   activationPrice = "€70",
 }: TrainerProfileDisplayProps) {
-  const isEditable = mode === "temp-edit" || mode === "live-edit"
   const isPublic = mode === "public"
+  const currentContent = isEditing ? editingContent : content
 
   // Safe access to content with fallbacks
-  const heroContent = content?.hero || {
+  const heroContent = currentContent?.hero || {
     title: `Transform Your Fitness with ${trainer.fullName}`,
     subtitle: `Professional ${trainer.specialty} trainer`,
     description: trainer.bio || "Professional fitness training services tailored to your goals.",
   }
 
-  const aboutContent = content?.about || {
+  const aboutContent = currentContent?.about || {
     title: "About Me",
     bio: trainer.bio || "Professional trainer dedicated to helping clients achieve their fitness goals.",
   }
 
-  const contactContent = content?.contact || {
+  const contactContent = currentContent?.contact || {
     title: mode === "temp-edit" ? "Let's Start Your Fitness Journey" : "Contact",
     description:
       mode === "temp-edit"
@@ -209,7 +142,7 @@ export default function TrainerProfileDisplay({
     location: trainer.city && trainer.district ? `${trainer.city}, ${trainer.district}` : trainer.city || "Location",
   }
 
-  const servicesContent = Array.isArray(content?.services) ? content.services : []
+  const servicesContent = Array.isArray(currentContent?.services) ? currentContent.services : []
 
   const getInitials = (name: string) => {
     return name
@@ -220,10 +153,63 @@ export default function TrainerProfileDisplay({
       .slice(0, 2)
   }
 
-  const handleFieldUpdate = (section: string, field: string, value: string) => {
-    if (onContentUpdate) {
-      onContentUpdate(section, field, value)
+  // Handle content updates
+  const updateContent = (section: string, field: string, value: any) => {
+    if (!editingContent || !onContentChange) return
+
+    const updatedContent = { ...editingContent }
+
+    if (section === "hero" || section === "about" || section === "contact") {
+      updatedContent[section] = {
+        ...updatedContent[section],
+        [field]: value,
+      }
+    } else if (section === "services") {
+      const [index, serviceField] = field.split(".")
+      const serviceIndex = Number.parseInt(index)
+
+      if (updatedContent.services[serviceIndex]) {
+        updatedContent.services[serviceIndex] = {
+          ...updatedContent.services[serviceIndex],
+          [serviceField]: serviceField === "price" ? Number.parseFloat(value) || 0 : value,
+        }
+      }
     }
+
+    onContentChange(updatedContent)
+  }
+
+  // Add new service
+  const addService = () => {
+    if (!editingContent || !onContentChange) return
+
+    const newService: TrainerService = {
+      id: Date.now().toString(),
+      title: "New Service",
+      description: "Service description",
+      price: 60,
+      duration: "60 minutes",
+      featured: false,
+    }
+
+    const updatedContent = {
+      ...editingContent,
+      services: [...editingContent.services, newService],
+    }
+
+    onContentChange(updatedContent)
+  }
+
+  // Remove service
+  const removeService = (index: number) => {
+    if (!editingContent || !onContentChange) return
+
+    const updatedContent = {
+      ...editingContent,
+      services: editingContent.services.filter((_, i) => i !== index),
+    }
+
+    onContentChange(updatedContent)
   }
 
   return (
@@ -242,13 +228,13 @@ export default function TrainerProfileDisplay({
           </div>
 
           {/* Hero Title */}
-          {isEditable ? (
+          {isEditing ? (
             <div className="mb-4">
-              <EditableField
+              <Input
                 value={heroContent.title}
-                onSave={(value) => handleFieldUpdate("hero", "title", value)}
+                onChange={(e) => updateContent("hero", "title", e.target.value)}
+                className="text-4xl md:text-5xl font-bold text-white bg-transparent border-white/30 text-center placeholder:text-white/70 focus:border-white/60"
                 placeholder="Enter hero title"
-                className="text-4xl md:text-5xl font-bold text-white"
               />
             </div>
           ) : (
@@ -256,13 +242,13 @@ export default function TrainerProfileDisplay({
           )}
 
           {/* Hero Subtitle */}
-          {isEditable ? (
+          {isEditing ? (
             <div className="mb-6">
-              <EditableField
+              <Input
                 value={heroContent.subtitle}
-                onSave={(value) => handleFieldUpdate("hero", "subtitle", value)}
+                onChange={(e) => updateContent("hero", "subtitle", e.target.value)}
+                className="text-xl bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60"
                 placeholder="Enter subtitle"
-                className="text-xl opacity-90"
               />
             </div>
           ) : (
@@ -270,14 +256,13 @@ export default function TrainerProfileDisplay({
           )}
 
           {/* Hero Description */}
-          {isEditable ? (
+          {isEditing ? (
             <div className="mb-6">
-              <EditableField
+              <Textarea
                 value={heroContent.description}
-                onSave={(value) => handleFieldUpdate("hero", "description", value)}
+                onChange={(e) => updateContent("hero", "description", e.target.value)}
+                className="text-lg bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60 min-h-[80px] resize-none"
                 placeholder="Enter description"
-                multiline
-                className="text-lg opacity-80 max-w-3xl mx-auto"
               />
             </div>
           ) : (
@@ -321,10 +306,11 @@ export default function TrainerProfileDisplay({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                {isEditable ? (
-                  <EditableField
+                {isEditing ? (
+                  <Input
                     value={aboutContent.title}
-                    onSave={(value) => handleFieldUpdate("about", "title", value)}
+                    onChange={(e) => updateContent("about", "title", e.target.value)}
+                    className="bg-transparent border-gray-200 focus:border-blue-500 font-semibold text-lg"
                     placeholder="About section title"
                   />
                 ) : (
@@ -333,13 +319,12 @@ export default function TrainerProfileDisplay({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isEditable ? (
-                <EditableField
+              {isEditing ? (
+                <Textarea
                   value={aboutContent.bio}
-                  onSave={(value) => handleFieldUpdate("about", "bio", value)}
+                  onChange={(e) => updateContent("about", "bio", e.target.value)}
+                  className="bg-transparent border-gray-200 focus:border-blue-500 min-h-[120px] text-gray-600 leading-relaxed resize-none"
                   placeholder="Tell your story..."
-                  multiline
-                  className="text-gray-600 leading-relaxed"
                 />
               ) : (
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
@@ -352,12 +337,12 @@ export default function TrainerProfileDisplay({
                     Certifications
                   </h4>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    {isEditable ? (
-                      <EditableField
+                    {isEditing ? (
+                      <Textarea
                         value={trainer.certifications}
-                        onSave={(value) => handleFieldUpdate("trainer", "certifications", value)}
+                        onChange={(e) => updateContent("trainer", "certifications", e.target.value)}
+                        className="bg-transparent border-gray-200 focus:border-blue-500 text-gray-700 min-h-[60px] resize-none"
                         placeholder="List your certifications"
-                        className="text-gray-700"
                       />
                     ) : (
                       <p className="text-gray-700">{trainer.certifications}</p>
@@ -371,9 +356,17 @@ export default function TrainerProfileDisplay({
           {/* Services Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Dumbbell className="h-5 w-5 mr-2" />
-                Services Offered
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Dumbbell className="h-5 w-5 mr-2" />
+                  Services Offered
+                </div>
+                {isEditing && (
+                  <Button onClick={addService} size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Service
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -382,16 +375,18 @@ export default function TrainerProfileDisplay({
                   servicesContent.map((service, index) => (
                     <div
                       key={service.id || index}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                      className={`border border-gray-200 rounded-lg p-4 transition-shadow ${
+                        isEditing ? "bg-gray-50/50" : "hover:shadow-sm"
+                      }`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          {isEditable ? (
-                            <EditableField
+                        <div className="flex items-center gap-2 flex-1">
+                          {isEditing ? (
+                            <Input
                               value={service.title}
-                              onSave={(value) => handleFieldUpdate("services", `${index}.title`, value)}
+                              onChange={(e) => updateContent("services", `${index}.title`, e.target.value)}
+                              className="bg-transparent border-gray-200 focus:border-blue-500 font-semibold"
                               placeholder="Service title"
-                              className="font-semibold"
                             />
                           ) : (
                             <h3 className="font-semibold">{service.title}</h3>
@@ -401,14 +396,26 @@ export default function TrainerProfileDisplay({
                               Featured
                             </Badge>
                           )}
+                          {isEditing && (
+                            <Button
+                              onClick={() => removeService(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-blue-600">
+                        <div className="text-right ml-4">
+                          <div className="text-lg font-bold text-blue-600 flex items-center">
                             €
-                            {isEditable ? (
-                              <EditableField
-                                value={service.price.toString()}
-                                onSave={(value) => handleFieldUpdate("services", `${index}.price`, value)}
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                value={service.price}
+                                onChange={(e) => updateContent("services", `${index}.price`, e.target.value)}
+                                className="bg-transparent border-gray-200 focus:border-blue-500 w-20 ml-1 text-center"
                                 placeholder="Price"
                               />
                             ) : (
@@ -416,10 +423,11 @@ export default function TrainerProfileDisplay({
                             )}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {isEditable ? (
-                              <EditableField
+                            {isEditing ? (
+                              <Input
                                 value={service.duration}
-                                onSave={(value) => handleFieldUpdate("services", `${index}.duration`, value)}
+                                onChange={(e) => updateContent("services", `${index}.duration`, e.target.value)}
+                                className="bg-transparent border-gray-200 focus:border-blue-500 text-sm text-center"
                                 placeholder="Duration"
                               />
                             ) : (
@@ -428,18 +436,17 @@ export default function TrainerProfileDisplay({
                           </div>
                         </div>
                       </div>
-                      {isEditable ? (
-                        <EditableField
+                      {isEditing ? (
+                        <Textarea
                           value={service.description}
-                          onSave={(value) => handleFieldUpdate("services", `${index}.description`, value)}
+                          onChange={(e) => updateContent("services", `${index}.description`, e.target.value)}
+                          className="bg-transparent border-gray-200 focus:border-blue-500 text-gray-600 text-sm mb-3 min-h-[60px] resize-none"
                           placeholder="Service description"
-                          multiline
-                          className="text-gray-600 text-sm mb-3"
                         />
                       ) : (
                         <p className="text-gray-600 text-sm mb-3">{service.description}</p>
                       )}
-                      {!isPublic && (
+                      {!isPublic && !isEditing && (
                         <Button className="w-full bg-transparent" variant="outline" onClick={onScheduleSession}>
                           Book This Service
                         </Button>
@@ -464,10 +471,11 @@ export default function TrainerProfileDisplay({
           <Card>
             <CardHeader>
               <CardTitle>
-                {isEditable ? (
-                  <EditableField
+                {isEditing ? (
+                  <Input
                     value={contactContent.title}
-                    onSave={(value) => handleFieldUpdate("contact", "title", value)}
+                    onChange={(e) => updateContent("contact", "title", e.target.value)}
+                    className="bg-transparent border-gray-200 focus:border-blue-500 font-semibold"
                     placeholder="Contact section title"
                   />
                 ) : (
@@ -476,13 +484,12 @@ export default function TrainerProfileDisplay({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isEditable ? (
-                <EditableField
+              {isEditing ? (
+                <Textarea
                   value={contactContent.description}
-                  onSave={(value) => handleFieldUpdate("contact", "description", value)}
+                  onChange={(e) => updateContent("contact", "description", e.target.value)}
+                  className="bg-transparent border-gray-200 focus:border-blue-500 text-gray-600 text-sm min-h-[80px] resize-none"
                   placeholder="Contact description"
-                  multiline
-                  className="text-gray-600 text-sm"
                 />
               ) : (
                 <p className="text-gray-600 text-sm">{contactContent.description}</p>
@@ -510,7 +517,7 @@ export default function TrainerProfileDisplay({
               <Separator />
 
               {/* Mode-specific contact buttons */}
-              {!isPublic && (
+              {!isPublic && !isEditing && (
                 <div className="space-y-2">
                   {mode === "temp-edit" ? (
                     <Button
@@ -566,7 +573,7 @@ export default function TrainerProfileDisplay({
           </Card>
 
           {/* Temp Mode - Activation CTA */}
-          {mode === "temp-edit" && !isExpired && (
+          {mode === "temp-edit" && !isExpired && !isEditing && (
             <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -597,26 +604,6 @@ export default function TrainerProfileDisplay({
                   <Button variant="outline" className="w-full border-red-300 text-red-700 bg-transparent">
                     Create New Profile
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Save Changes Panel - Only for editing modes */}
-          {isEditable && hasUnsavedChanges && (
-            <Card className="bg-orange-50 border-orange-200">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <h3 className="font-semibold text-orange-900 mb-2">Unsaved Changes</h3>
-                  <p className="text-sm text-orange-600 mb-4">You have unsaved changes to your profile.</p>
-                  <div className="flex gap-2">
-                    <Button className="flex-1" onClick={onSave} disabled={saving}>
-                      {saving ? "Saving..." : "Save Changes"}
-                    </Button>
-                    <Button variant="outline" className="flex-1 bg-transparent" onClick={onCancel} disabled={saving}>
-                      Cancel
-                    </Button>
-                  </div>
                 </div>
               </CardContent>
             </Card>
