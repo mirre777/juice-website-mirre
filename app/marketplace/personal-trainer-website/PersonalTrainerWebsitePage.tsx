@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, Zap, ArrowDown } from "lucide-react"
+import { CheckCircle, Clock, Star, Shield, ArrowDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface FormData {
@@ -198,7 +198,7 @@ export default function PersonalTrainerWebsitePage() {
           <div className="text-left max-w-4xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-white border border-black rounded-full">
-                <Zap className="w-8 h-8 text-black" />
+                <Shield className="w-8 h-8 text-black" />
               </div>
               <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
                 No coding required
