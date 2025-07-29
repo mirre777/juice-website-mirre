@@ -39,6 +39,13 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         }
 
         if (data.success && data.trainer) {
+          // Check if trainer is already activated - redirect to live trainer page
+          if (data.trainer.status === "active" && data.trainer.isPaid) {
+            console.log("Trainer already activated, redirecting to live trainer page...")
+            router.push(`/marketplace/trainer/${data.trainer.id}`)
+            return
+          }
+
           setTrainer(data.trainer)
 
           // Use existing content or generate default
@@ -46,11 +53,13 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           setContent(trainerContent)
           setEditingContent(trainerContent)
 
-          // Calculate initial time left
-          const expiresAt = new Date(data.trainer.expiresAt).getTime()
-          const now = Date.now()
-          const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
-          setTimeLeft(remaining)
+          // Calculate initial time left (only for temp trainers)
+          if (data.trainer.expiresAt) {
+            const expiresAt = new Date(data.trainer.expiresAt).getTime()
+            const now = Date.now()
+            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+            setTimeLeft(remaining)
+          }
         } else {
           throw new Error("Trainer preview not found")
         }
@@ -65,7 +74,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     if (tempId) {
       fetchTempTrainer()
     }
-  }, [tempId])
+  }, [tempId, router])
 
   // Countdown timer
   useEffect(() => {
@@ -176,15 +185,24 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         body: JSON.stringify({ content: editingContent }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to save changes")
+        // Handle redirect case for activated trainers
+        if (data.redirectTo) {
+          console.log("Trainer activated during editing, redirecting...")
+          router.push(data.redirectTo)
+          return
+        }
+        throw new Error(data.error || "Failed to save changes")
       }
 
       setContent(editingContent)
       setIsEditing(false)
+      setError(null) // Clear any previous errors
     } catch (err) {
       console.error("Error saving changes:", err)
-      setError("Failed to save changes. Please try again.")
+      setError(err instanceof Error ? err.message : "Failed to save changes. Please try again.")
     } finally {
       setSaving(false)
     }
