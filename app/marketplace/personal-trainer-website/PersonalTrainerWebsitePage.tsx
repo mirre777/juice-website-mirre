@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, Zap, ArrowDown } from "lucide-react"
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface FormData {
@@ -60,9 +60,35 @@ const serviceOptions = [
   "Rehabilitation",
 ]
 
+// Define form steps
+const formSteps = [
+  { id: "basic", fields: ["fullName", "email"], title: "Basic Information" },
+  { id: "contact", fields: ["phone", "specialty"], title: "Contact & Specialty" },
+  { id: "location", fields: ["city", "district"], title: "Location" },
+  { id: "bio", fields: ["bio"], title: "Professional Bio" },
+  { id: "certifications", fields: ["certifications"], title: "Certifications" },
+  { id: "services", fields: ["services"], title: "Services Offered" },
+]
+
+// Trust Shield SVG Component
+const TrustShield = ({ className = "w-8 h-8" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M12 2L3 7V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V7L12 2Z"
+      fill="#000000"
+      stroke="#000000"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M9 12L11 14L15 10" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 export default function PersonalTrainerWebsitePage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -86,55 +112,101 @@ export default function PersonalTrainerWebsitePage() {
     }
   }
 
-  const validateForm = (): boolean => {
+  // Calculate progress
+  const getFieldValue = (field: string) => {
+    if (field === "services") {
+      return formData.services.length > 0
+    }
+    return formData[field as keyof FormData] !== ""
+  }
+
+  const getTotalFilledFields = () => {
+    const allFields = [
+      "fullName",
+      "email",
+      "phone",
+      "specialty",
+      "city",
+      "district",
+      "bio",
+      "certifications",
+      "services",
+    ]
+    return allFields.filter((field) => {
+      if (field === "services") {
+        return formData.services.length > 0
+      }
+      if (field === "bio" || field === "certifications" || field === "phone") {
+        // Optional fields
+        return true
+      }
+      return formData[field as keyof FormData] !== ""
+    }).length
+  }
+
+  const getRequiredFieldsCount = () => {
+    return 6 // fullName, email, specialty, city, district + at least one optional field
+  }
+
+  const validateCurrentStep = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
     const newErrors: FormErrors = {}
 
-    // Required field validations
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required"
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = "City is required"
-    }
-
-    if (!formData.district.trim()) {
-      newErrors.district = "District is required"
-    }
-
-    if (!formData.specialty) {
-      newErrors.specialty = "Please select your primary specialty"
-    }
-
-    // Optional bio validation - only validate if provided
-    if (formData.bio.trim() && formData.bio.trim().length < 20) {
-      newErrors.bio = "Bio must be at least 20 characters if provided"
-    }
-
-    if (formData.bio.trim() && formData.bio.trim().length > 500) {
-      newErrors.bio = "Bio must be less than 500 characters"
-    }
+    currentFields.forEach((field) => {
+      if (field === "fullName" && !formData.fullName.trim()) {
+        newErrors.fullName = "Full name is required"
+      }
+      if (field === "email") {
+        if (!formData.email.trim()) {
+          newErrors.email = "Email is required"
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = "Please enter a valid email address"
+        }
+      }
+      if (field === "city" && !formData.city.trim()) {
+        newErrors.city = "City is required"
+      }
+      if (field === "district" && !formData.district.trim()) {
+        newErrors.district = "District is required"
+      }
+      if (field === "specialty" && !formData.specialty) {
+        newErrors.specialty = "Please select your primary specialty"
+      }
+      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length < 20) {
+        newErrors.bio = "Bio must be at least 20 characters if provided"
+      }
+      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length > 500) {
+        newErrors.bio = "Bio must be less than 500 characters"
+      }
+    })
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const isFormValid = (): boolean => {
-    return (
-      formData.fullName.trim() !== "" &&
-      formData.email.trim() !== "" &&
-      formData.city.trim() !== "" &&
-      formData.district.trim() !== "" &&
-      formData.specialty !== "" &&
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
-      (formData.bio.trim() === "" || formData.bio.trim().length >= 20)
-    )
+  const canProceedToNext = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
+
+    // For required fields steps
+    if (currentStep === 0) {
+      // Basic info
+      return (
+        formData.fullName.trim() !== "" &&
+        formData.email.trim() !== "" &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      )
+    }
+    if (currentStep === 1) {
+      // Contact & Specialty
+      return formData.specialty !== ""
+    }
+    if (currentStep === 2) {
+      // Location
+      return formData.city.trim() !== "" && formData.district.trim() !== ""
+    }
+
+    // Optional steps can always proceed
+    return true
   }
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -145,7 +217,13 @@ export default function PersonalTrainerWebsitePage() {
     }
   }
 
-  const handleServiceToggle = (service: string) => {
+  const handleServiceToggle = (service: string, event?: React.MouseEvent) => {
+    // Prevent any event bubbling that might trigger form submission
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
     setFormData((prev) => ({
       ...prev,
       services: prev.services.includes(service)
@@ -154,10 +232,28 @@ export default function PersonalTrainerWebsitePage() {
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const nextStep = () => {
+    if (validateCurrentStep() && canProceedToNext() && currentStep < formSteps.length - 1) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
 
-    if (!validateForm()) {
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only submit if we're on the last step
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    if (!validateCurrentStep()) {
       return
     }
 
@@ -175,11 +271,9 @@ export default function PersonalTrainerWebsitePage() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Redirect to temp trainer page
         router.push(data.redirectUrl)
       } else {
         console.error("Form submission failed:", data.error)
-        // Handle error - could show toast or error message
         alert(data.error || "Failed to create trainer profile. Please try again.")
       }
     } catch (error) {
@@ -187,6 +281,254 @@ export default function PersonalTrainerWebsitePage() {
       alert("An unexpected error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleExplicitSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only submit if we're on the last step
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    if (!validateCurrentStep()) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/trainer/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        router.push(data.redirectUrl)
+      } else {
+        console.error("Form submission failed:", data.error)
+        alert(data.error || "Failed to create trainer profile. Please try again.")
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+      alert("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const renderCurrentStepFields = () => {
+    const step = formSteps[currentStep]
+
+    switch (step.id) {
+      case "basic":
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="fullName" className="text-base font-medium">
+                Full Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="fullName"
+                value={formData.fullName}
+                onChange={(e) => handleInputChange("fullName", e.target.value)}
+                placeholder="John Smith"
+                className={`mt-2 h-12 ${errors.fullName ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
+              />
+              {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="email" className="text-base font-medium">
+                Email Address <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                placeholder="john@example.com"
+                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            </div>
+          </div>
+        )
+
+      case "contact":
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="phone" className="text-base font-medium">
+                Phone Number
+              </Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                className="mt-2 h-12"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="specialty" className="text-base font-medium">
+                Primary Specialty <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.specialty}
+                onValueChange={(value) => handleInputChange("specialty", value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className={`mt-2 h-12 ${errors.specialty ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder="Select your specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {specialties.map((specialty) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
+            </div>
+          </div>
+        )
+
+      case "location":
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="city" className="text-base font-medium">
+                City <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => handleInputChange("city", e.target.value)}
+                placeholder="Vienna"
+                className={`mt-2 h-12 ${errors.city ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
+              />
+              {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="district" className="text-base font-medium">
+                District <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="district"
+                value={formData.district}
+                onChange={(e) => handleInputChange("district", e.target.value)}
+                placeholder="Innere Stadt"
+                className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
+              />
+              {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
+            </div>
+          </div>
+        )
+
+      case "bio":
+        return (
+          <div>
+            <Label htmlFor="bio" className="text-base font-medium">
+              Professional Bio
+            </Label>
+            <p className="text-sm text-gray-600 mt-1 mb-2">
+              Tell potential clients about your background, training philosophy, and what makes you unique. (Optional)
+            </p>
+            <Textarea
+              id="bio"
+              value={formData.bio}
+              onChange={(e) => handleInputChange("bio", e.target.value)}
+              placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
+              className={`mt-2 min-h-32 ${errors.bio ? "border-red-500" : ""}`}
+              disabled={isSubmitting}
+            />
+            <div className="flex justify-between items-center mt-2">
+              {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
+              <div className="ml-auto">
+                <span
+                  className={`text-sm ${formData.bio.length > 450 ? "text-red-500" : formData.bio.length > 400 ? "text-yellow-600" : "text-gray-500"}`}
+                >
+                  {formData.bio.length}/500 characters
+                </span>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "certifications":
+        return (
+          <div>
+            <Label htmlFor="certifications" className="text-base font-medium">
+              Certifications & Qualifications
+            </Label>
+            <p className="text-sm text-gray-600 mt-1 mb-2">
+              List your certifications, degrees, or other qualifications (comma-separated).
+            </p>
+            <Input
+              id="certifications"
+              value={formData.certifications}
+              onChange={(e) => handleInputChange("certifications", e.target.value)}
+              placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
+              className="mt-2 h-12"
+              disabled={isSubmitting}
+            />
+          </div>
+        )
+
+      case "services":
+        return (
+          <div>
+            <Label className="text-base font-medium">Services Offered</Label>
+            <p className="text-sm text-gray-600 mt-1 mb-4">
+              Select the services you provide to your clients. (Optional)
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {serviceOptions.map((service) => (
+                <div key={service} className="flex items-center space-x-3">
+                  <Checkbox
+                    id={service}
+                    checked={formData.services?.includes(service) || false}
+                    onCheckedChange={(checked) => {
+                      // Only update the state, don't trigger any form submission
+                      handleServiceToggle(service)
+                    }}
+                    disabled={isSubmitting}
+                  />
+                  <Label
+                    htmlFor={service}
+                    className="text-sm font-medium cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleServiceToggle(service, e)
+                    }}
+                  >
+                    {service}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      default:
+        return null
     }
   }
 
@@ -198,7 +540,7 @@ export default function PersonalTrainerWebsitePage() {
           <div className="text-left max-w-4xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-white border border-black rounded-full">
-                <Zap className="w-8 h-8 text-black" />
+                <TrustShield className="w-8 h-8" />
               </div>
               <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
                 No coding required
@@ -211,7 +553,7 @@ export default function PersonalTrainerWebsitePage() {
                 Trainer Website
                 <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
               </span>{" "}
-              in 10 minutes
+              <span className="bg-black text-white px-3 py-1 rounded leading-none inline-block">in 10 minutes</span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
@@ -260,9 +602,7 @@ export default function PersonalTrainerWebsitePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="bg-gray-50 p-6 rounded-lg">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center font-bold text-black text-lg">
-                  L
-                </div>
+                <img src="/images/laner.png" alt="Laner" className="w-12 h-12 rounded-full object-cover" />
                 <div>
                   <p className="text-gray-800 font-medium mb-2">"Super smooth, I had my website in 3 minutes."</p>
                   <p className="text-gray-600 text-sm">- Laner</p>
@@ -272,9 +612,7 @@ export default function PersonalTrainerWebsitePage() {
 
             <div className="bg-gray-50 p-6 rounded-lg">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center font-bold text-black text-lg">
-                  R
-                </div>
+                <img src="/images/rici.png" alt="Rici" className="w-12 h-12 rounded-full object-cover" />
                 <div>
                   <p className="text-gray-800 font-medium mb-2">
                     "I never knew a website could be made this fast and good"
@@ -333,212 +671,79 @@ export default function PersonalTrainerWebsitePage() {
           <Card className="shadow-xl border-0">
             <CardHeader className="bg-gray-50 rounded-t-lg">
               <CardTitle className="text-2xl text-center">Create Your Trainer Profile</CardTitle>
+
+              {/* Progress Indicator */}
+              <div className="mt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">
+                    Step {currentStep + 1} of {formSteps.length}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    {getTotalFilledFields()} of {getRequiredFieldsCount()} fields completed
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-[#D2FF28] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
+              </div>
             </CardHeader>
+
             <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Personal Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="fullName" className="text-base font-medium">
-                      Full Name <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="fullName"
-                      value={formData.fullName}
-                      onChange={(e) => handleInputChange("fullName", e.target.value)}
-                      placeholder="John Smith"
-                      className={`mt-2 h-12 ${errors.fullName ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
-                    />
-                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-                  </div>
+              <form onSubmit={handleFormSubmit}>
+                <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
 
-                  <div>
-                    <Label htmlFor="email" className="text-base font-medium">
-                      Email Address <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      placeholder="john@example.com"
-                      className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
-                    />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="phone" className="text-base font-medium">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange("phone", e.target.value)}
-                      placeholder="+1 (555) 123-4567"
-                      className="mt-2 h-12"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="specialty" className="text-base font-medium">
-                      Primary Specialty <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={formData.specialty}
-                      onValueChange={(value) => handleInputChange("specialty", value)}
-                      disabled={isSubmitting}
-                    >
-                      <SelectTrigger className={`mt-2 h-12 ${errors.specialty ? "border-red-500" : ""}`}>
-                        <SelectValue placeholder="Select your specialty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {specialties.map((specialty) => (
-                          <SelectItem key={specialty} value={specialty}>
-                            {specialty}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
-                  </div>
-                </div>
-
-                {/* Location Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="city" className="text-base font-medium">
-                      City <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder="Vienna"
-                      className={`mt-2 h-12 ${errors.city ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
-                    />
-                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="district" className="text-base font-medium">
-                      District <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="district"
-                      value={formData.district}
-                      onChange={(e) => handleInputChange("district", e.target.value)}
-                      placeholder="Innere Stadt"
-                      className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}
-                      disabled={isSubmitting}
-                    />
-                    {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
-                  </div>
-                </div>
-
-                {/* Bio - Optional */}
-                <div>
-                  <Label htmlFor="bio" className="text-base font-medium">
-                    Professional Bio
-                  </Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-2">
-                    Tell potential clients about your background, training philosophy, and what makes you unique.
-                    (Optional)
-                  </p>
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange("bio", e.target.value)}
-                    placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
-                    className={`mt-2 min-h-32 ${errors.bio ? "border-red-500" : ""}`}
-                    disabled={isSubmitting}
-                  />
-                  <div className="flex justify-between items-center mt-2">
-                    {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
-                    <div className="ml-auto">
-                      <span
-                        className={`text-sm ${formData.bio.length > 450 ? "text-red-500" : formData.bio.length > 400 ? "text-yellow-600" : "text-gray-500"}`}
-                      >
-                        {formData.bio.length}/500 characters
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Certifications */}
-                <div>
-                  <Label htmlFor="certifications" className="text-base font-medium">
-                    Certifications & Qualifications
-                  </Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-2">
-                    List your certifications, degrees, or other qualifications (comma-separated).
-                  </p>
-                  <Input
-                    id="certifications"
-                    value={formData.certifications}
-                    onChange={(e) => handleInputChange("certifications", e.target.value)}
-                    placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
-                    className="mt-2 h-12"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                {/* Services - Optional */}
-                <div>
-                  <Label className="text-base font-medium">Services Offered</Label>
-                  <p className="text-sm text-gray-600 mt-1 mb-4">
-                    Select the services you provide to your clients. (Optional)
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {serviceOptions.map((service) => (
-                      <div key={service} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={service}
-                          checked={formData.services?.includes(service) || false}
-                          onCheckedChange={() => handleServiceToggle(service)}
-                          disabled={isSubmitting}
-                        />
-                        <Label htmlFor={service} className="text-sm font-medium cursor-pointer">
-                          {service}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="pt-6">
+                {/* Navigation Buttons */}
+                <div className="flex justify-between items-center pt-8 mt-8 border-t">
                   <Button
-                    type="submit"
-                    disabled={!isFormValid() || isSubmitting}
-                    className="w-full h-14 text-lg font-semibold bg-[#D2FF28] hover:bg-[#B8E625] text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
+                    variant="outline"
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="flex items-center gap-2 bg-transparent"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                        Creating Your Website...
-                      </>
-                    ) : (
-                      <>
-                        Create My Website
-                        <ArrowDown className="w-5 h-5 ml-2 rotate-[-90deg]" />
-                      </>
-                    )}
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
                   </Button>
 
-                  <p className="text-center text-sm text-gray-600 mt-4">
-                    Your website will be generated <strong>instantly</strong>. You can edit and activate it for{" "}
-                    <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span> No one's
-                    forcing you.
-                  </p>
+                  {currentStep < formSteps.length - 1 ? (
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      disabled={!canProceedToNext()}
+                      className="bg-[#D2FF28] hover:bg-[#B8E625] text-black flex items-center gap-2"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={handleExplicitSubmit}
+                      disabled={isSubmitting}
+                      className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-3"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                          Creating...
+                        </>
+                      ) : (
+                        "Show Preview"
+                      )}
+                    </Button>
+                  )}
                 </div>
               </form>
+
+              <p className="text-center text-sm text-gray-600 mt-4">
+                Your website will be generated instantly. You can edit and activate it for{" "}
+                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>{" "}
+                <strong>You will not be charged anything by creating the Preview.</strong>
+              </p>
             </CardContent>
           </Card>
         </div>
