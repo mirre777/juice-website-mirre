@@ -56,9 +56,7 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: 7000, // €70.00 in cents
-            currency: "eur",
-            tempTrainerId: tempTrainer.id,
+            tempId: tempTrainer.id, // ✅ Correct parameter name
             email: email,
           }),
         })
