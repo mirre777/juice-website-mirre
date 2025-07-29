@@ -211,7 +211,7 @@ export default function PersonalTrainerWebsitePage() {
                 Trainer Website
                 <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
               </span>{" "}
-              in 10 minutes
+              <span className="bg-black text-white px-3 py-1 rounded">in 10 minutes</span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
