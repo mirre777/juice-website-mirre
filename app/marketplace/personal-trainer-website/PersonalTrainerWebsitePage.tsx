@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, Shield, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface FormData {
   fullName: string
@@ -462,7 +463,13 @@ export default function PersonalTrainerWebsitePage() {
           <div className="text-left max-w-4xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-white border border-black rounded-full">
-                <Shield className="w-8 h-8 text-black" />
+                <Image
+                  src="/images/trust-shield.png"
+                  alt="Trust and Security"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8"
+                />
               </div>
               <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
                 No coding required
@@ -475,7 +482,7 @@ export default function PersonalTrainerWebsitePage() {
                 Trainer Website
                 <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
               </span>{" "}
-              <span className="bg-black text-white px-3 py-2 rounded">in 10 minutes</span>
+              <span className="bg-black text-white px-3 py-1 rounded leading-none inline-block">in 10 minutes</span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
