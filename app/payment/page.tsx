@@ -31,53 +31,19 @@ interface TempTrainerData {
   createdAt: string
 }
 
-function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
+function CheckoutForm({
+  tempTrainer,
+  email,
+  setEmail,
+}: {
+  tempTrainer: TempTrainerData
+  email: string
+  setEmail: (email: string) => void
+}) {
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
   const [processing, setProcessing] = useState(false)
-  const [email, setEmail] = useState(tempTrainer?.email || "")
-  const [country, setCountry] = useState("AT")
-  const [clientSecret, setClientSecret] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Create payment intent on component mount
-  useEffect(() => {
-    const createPaymentIntent = async () => {
-      try {
-        console.log("=== CREATING PAYMENT INTENT ===")
-        console.log("Temp Trainer:", tempTrainer)
-        console.log("Email:", email)
-
-        const response = await fetch("/api/create-payment-intent", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            tempId: tempTrainer.id, // ✅ Correct parameter name
-            email: email,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret)
-          setLoading(false)
-        } else {
-          throw new Error("Failed to create payment intent")
-        }
-      } catch (error) {
-        console.error("Payment intent creation error:", error)
-        setError("Failed to initialize payment. Please try again.")
-        setLoading(false)
-      }
-    }
-
-    createPaymentIntent()
-  }, [tempTrainer, email]) // Updated dependency array
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -118,6 +84,122 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
       setProcessing(false)
     }
   }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+        <Shield className="h-4 w-4" />
+        <span>Secure, 1-click checkout with Link</span>
+      </div>
+
+      <div className="space-y-4">
+        {/* PaymentElement will automatically include discount code input */}
+        <div>
+          <Label htmlFor="payment">Payment information</Label>
+          <div className="mt-1">
+            <PaymentElement
+              options={{
+                layout: "tabs",
+                promotionCodes: {
+                  enabled: true,
+                },
+                fields: {
+                  billingDetails: {
+                    email: "auto",
+                    name: "auto",
+                    address: {
+                      country: "auto",
+                      line1: "auto",
+                      line2: "auto",
+                      city: "auto",
+                      state: "auto",
+                      postalCode: "auto",
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="email">Email for receipt</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your.email@example.com"
+            required
+          />
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        disabled={!stripe || processing}
+        className="w-full bg-[#D2FF28] text-black hover:bg-[#c5f01f] text-lg py-6"
+      >
+        {processing ? (
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+            <span>Processing...</span>
+          </div>
+        ) : (
+          `Pay €70`
+        )}
+      </Button>
+
+      <p className="text-xs text-gray-500 text-center">
+        By completing your purchase, you agree to our terms of service.
+      </p>
+    </form>
+  )
+}
+
+function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
+  const router = useRouter()
+  const [email, setEmail] = useState(tempTrainer?.email || "")
+  const [clientSecret, setClientSecret] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Create payment intent on component mount
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      try {
+        console.log("=== CREATING PAYMENT INTENT ===")
+        console.log("Temp Trainer:", tempTrainer)
+        console.log("Email:", email)
+
+        const response = await fetch("/api/create-payment-intent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tempId: tempTrainer.id,
+            email: email,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (data.clientSecret) {
+          setClientSecret(data.clientSecret)
+          setLoading(false)
+        } else {
+          throw new Error("Failed to create payment intent")
+        }
+      } catch (error) {
+        console.error("Payment intent creation error:", error)
+        setError("Failed to initialize payment. Please try again.")
+        setLoading(false)
+      }
+    }
+
+    createPaymentIntent()
+  }, [tempTrainer]) // Updated to use the entire tempTrainer object
 
   if (loading) {
     return (
@@ -237,74 +319,22 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
                 <p className="text-sm text-gray-600">Secure payment powered by Stripe</p>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
-                    <Shield className="h-4 w-4" />
-                    <span>Secure, 1-click checkout with Link</span>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* PaymentElement will automatically include discount code input */}
-                    <div>
-                      <Label htmlFor="payment">Payment information</Label>
-                      <div className="mt-1">
-                        <PaymentElement
-                          options={{
-                            layout: "tabs",
-                            promotionCodes: {
-                              enabled: true,
-                            },
-                            fields: {
-                              billingDetails: {
-                                email: "auto",
-                                name: "auto",
-                                address: {
-                                  country: "auto",
-                                  line1: "auto",
-                                  line2: "auto",
-                                  city: "auto",
-                                  state: "auto",
-                                  postalCode: "auto",
-                                },
-                              },
-                            },
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="email">Email for receipt</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="your.email@example.com"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={!stripe || processing}
-                    className="w-full bg-[#D2FF28] text-black hover:bg-[#c5f01f] text-lg py-6"
+                {clientSecret && (
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      clientSecret,
+                      appearance: {
+                        theme: "stripe",
+                        variables: {
+                          colorPrimary: "#D2FF28",
+                        },
+                      },
+                    }}
                   >
-                    {processing ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-                        <span>Processing...</span>
-                      </div>
-                    ) : (
-                      `Pay €70`
-                    )}
-                  </Button>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    By completing your purchase, you agree to our terms of service.
-                  </p>
-                </form>
+                    <CheckoutForm tempTrainer={tempTrainer} email={email} setEmail={setEmail} />
+                  </Elements>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -323,16 +353,8 @@ function PaymentPageContent() {
 
   const tempId = searchParams.get("tempId")
 
-  console.log("=== PAYMENT PAGE CONTENT COMPONENT ===")
-  console.log("Search params:", searchParams.toString())
-  console.log("TempId from params:", tempId)
-
   useEffect(() => {
-    console.log("=== PAYMENT PAGE USEEFFECT ===")
-    console.log("TempId:", tempId)
-
     if (!tempId) {
-      console.log("❌ No tempId provided")
       setError("No trainer ID provided")
       setLoading(false)
       return
@@ -340,52 +362,27 @@ function PaymentPageContent() {
 
     const fetchTempTrainer = async () => {
       try {
-        console.log("=== FETCHING TEMP TRAINER FOR PAYMENT ===")
-        console.log("Temp ID:", tempId)
-
-        // Use absolute URL to avoid parsing issues
         const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
         const apiUrl = `${baseUrl}/api/trainer/temp/${tempId}`
 
-        console.log("API URL:", apiUrl)
-
         const response = await fetch(apiUrl)
-
-        console.log("Response status:", response.status)
-        console.log("Response ok:", response.ok)
-        console.log("Response headers:", Object.fromEntries(response.headers.entries()))
-
         const data = await response.json()
 
-        console.log("=== API RESPONSE DATA ===")
-        console.log("Full response:", data)
-        console.log("Response success:", data.success)
-        console.log("Response error:", data.error)
-        console.log("Response trainer:", data.trainer)
-
         if (!response.ok) {
-          console.log("❌ Response not ok")
-          console.log("Status:", response.status)
-          console.log("Error:", data.error || "Unknown error")
           setError(data.error || "Failed to load trainer data")
           setLoading(false)
           return
         }
 
         if (data.success && data.trainer) {
-          console.log("✅ Success and trainer data found")
-          console.log("Setting temp trainer for payment:", data.trainer)
           setTempTrainer(data.trainer)
         } else {
-          console.log("❌ No success or no trainer data")
-          console.log("Success:", data.success)
-          console.log("Trainer:", data.trainer)
           setError(data.error || "Failed to load trainer data")
         }
 
         setLoading(false)
       } catch (err) {
-        console.error("❌ Error fetching temp trainer:", err)
+        console.error("Error fetching temp trainer:", err)
         setError("Failed to load trainer data")
         setLoading(false)
       }
@@ -393,11 +390,6 @@ function PaymentPageContent() {
 
     fetchTempTrainer()
   }, [tempId])
-
-  console.log("=== PAYMENT PAGE RENDER STATE ===")
-  console.log("Loading:", loading)
-  console.log("Error:", error)
-  console.log("TempTrainer:", tempTrainer)
 
   if (loading) {
     return (
@@ -411,10 +403,6 @@ function PaymentPageContent() {
   }
 
   if (error || !tempTrainer) {
-    console.log("=== SHOWING ERROR STATE ===")
-    console.log("Error:", error)
-    console.log("TempTrainer:", tempTrainer)
-
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -438,25 +426,22 @@ function PaymentPageContent() {
     )
   }
 
-  console.log("=== SHOWING PAYMENT FORM ===")
   return <PaymentForm tempTrainer={tempTrainer} />
 }
 
 export default function PaymentPage() {
   return (
-    <Elements stripe={stripePromise}>
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading payment page...</p>
-            </div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading payment page...</p>
           </div>
-        }
-      >
-        <PaymentPageContent />
-      </Suspense>
-    </Elements>
+        </div>
+      }
+    >
+      <PaymentPageContent />
+    </Suspense>
   )
 }
