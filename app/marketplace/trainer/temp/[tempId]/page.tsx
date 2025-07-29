@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
-import type { DisplayTrainerData, DisplayTrainerContent } from "@/components/trainer/TrainerProfileDisplay"
+import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Clock } from "lucide-react"
@@ -15,29 +15,16 @@ interface TempTrainerPageProps {
   }
 }
 
-interface TempTrainerData {
-  tempId: string
-  fullName: string
-  email: string
-  phone?: string
-  city?: string
-  district?: string
-  specialty: string
-  bio?: string
-  certifications?: string
-  services: string[]
-  createdAt: string
-  expiresAt: string
-  isExpired: boolean
-}
-
 export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const { tempId } = params
-  const [trainer, setTrainer] = useState<TempTrainerData | null>(null)
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+  const [content, setContent] = useState<TrainerContent | null>(null)
+  const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
-  const [isEditing, setIsEditing] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const router = useRouter()
 
   // Fetch temp trainer data
@@ -53,6 +40,11 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
 
         if (data.success && data.trainer) {
           setTrainer(data.trainer)
+
+          // Use existing content or generate default
+          const trainerContent = data.content || generateDefaultContent(data.trainer)
+          setContent(trainerContent)
+          setEditingContent(trainerContent)
 
           // Calculate initial time left
           const expiresAt = new Date(data.trainer.expiresAt).getTime()
@@ -95,6 +87,55 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     return () => clearInterval(interval)
   }, [timeLeft, router])
 
+  // Generate default content for new trainers
+  const generateDefaultContent = (trainerData: any): TrainerContent => {
+    const location =
+      trainerData.city && trainerData.district
+        ? `${trainerData.city}, ${trainerData.district}`
+        : trainerData.location || "Location not specified"
+
+    return {
+      hero: {
+        title: `Transform Your Fitness with ${trainerData.fullName}`,
+        subtitle: `Professional ${trainerData.specialty} trainer in ${location}`,
+        description:
+          trainerData.bio ||
+          "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+      },
+      about: {
+        title: `About ${trainerData.fullName}`,
+        bio:
+          trainerData.bio ||
+          "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+      },
+      services: trainerData.services?.map((service: string, index: number) => ({
+        id: String(index + 1),
+        title: service,
+        description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+        price: 60,
+        duration: "60 minutes",
+        featured: index === 0,
+      })) || [
+        {
+          id: "1",
+          title: "Personal Training",
+          description: "Personalized training sessions tailored to your goals",
+          price: 60,
+          duration: "60 minutes",
+          featured: true,
+        },
+      ],
+      contact: {
+        title: "Let's Start Your Fitness Journey",
+        description:
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        email: trainerData.email,
+        phone: trainerData.phone || "",
+        location: location,
+      },
+    }
+  }
+
   // Format time for display
   const formatTimeLeft = (seconds: number): string => {
     if (seconds <= 0) return "Expired"
@@ -112,69 +153,65 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     }
   }
 
-  // Transform temp trainer data to display format
-  const transformToDisplayFormat = (
-    tempTrainer: TempTrainerData,
-  ): {
-    displayTrainer: DisplayTrainerData
-    displayContent: DisplayTrainerContent
-  } => {
-    // Parse location
-    const locationParts = tempTrainer.city ? tempTrainer.city.split(", ") : []
-    const city = locationParts[0] || ""
-    const district = locationParts[1] || tempTrainer.district || ""
+  // Handle content updates
+  const handleContentUpdate = (section: string, field: string, value: any) => {
+    if (!editingContent) return
 
-    const displayTrainer: DisplayTrainerData = {
-      id: tempTrainer.tempId,
-      fullName: tempTrainer.fullName,
-      email: tempTrainer.email,
-      phone: tempTrainer.phone,
-      city: city,
-      district: district,
-      specialty: tempTrainer.specialty,
-      bio: tempTrainer.bio,
-      certifications: tempTrainer.certifications,
-      services: tempTrainer.services,
-      status: "temp",
-      isActive: false,
-      isPaid: false,
+    const updatedContent = { ...editingContent }
+
+    // Handle nested field updates
+    if (section === "hero" || section === "about" || section === "contact") {
+      updatedContent[section] = {
+        ...updatedContent[section],
+        [field]: value,
+      }
+    } else if (section === "services") {
+      // Handle service updates (e.g., "0.title", "1.price")
+      const [index, serviceField] = field.split(".")
+      const serviceIndex = Number.parseInt(index)
+
+      if (updatedContent.services[serviceIndex]) {
+        updatedContent.services[serviceIndex] = {
+          ...updatedContent.services[serviceIndex],
+          [serviceField]: serviceField === "price" ? Number.parseFloat(value) || 0 : value,
+        }
+      }
     }
 
-    // Generate enhanced services from string array
-    const enhancedServices = tempTrainer.services.map((service, index) => ({
-      id: `service-${index}`,
-      title: service,
-      description: `Professional ${service.toLowerCase()} service tailored to your fitness goals`,
-      price: index === 0 ? 75 : 60, // First service is premium
-      duration: "60 minutes",
-      featured: index === 0,
-    }))
+    setEditingContent(updatedContent)
+    setHasUnsavedChanges(true)
+  }
 
-    const displayContent: DisplayTrainerContent = {
-      hero: {
-        title: `Transform Your Fitness with ${tempTrainer.fullName}`,
-        subtitle: `Professional ${tempTrainer.specialty} Trainer`,
-        description:
-          tempTrainer.bio ||
-          `Get personalized ${tempTrainer.specialty.toLowerCase()} training and achieve your fitness goals with expert guidance.`,
-      },
-      about: {
-        title: "About Me",
-        bio:
-          tempTrainer.bio ||
-          `I'm a certified ${tempTrainer.specialty} trainer passionate about helping clients achieve their fitness goals. With personalized training programs and dedicated support, I'll help you transform your health and fitness journey.`,
-      },
-      contact: {
-        title: "Ready to Start Your Fitness Journey?",
-        description: "This is a preview of your trainer profile. Activate now to start accepting clients and bookings!",
-        phone: tempTrainer.phone || "",
-        email: tempTrainer.email,
-        location: city && district ? `${city}, ${district}` : city || "Location",
-      },
-      services: enhancedServices,
+  // Save changes
+  const handleSave = async () => {
+    if (!editingContent || !trainer) return
+
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/trainer/temp/${tempId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editingContent }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save changes")
+      }
+
+      setContent(editingContent)
+      setHasUnsavedChanges(false)
+    } catch (err) {
+      console.error("Error saving changes:", err)
+      setError("Failed to save changes. Please try again.")
+    } finally {
+      setSaving(false)
     }
+  }
 
-    return { displayTrainer, displayContent }
+  // Cancel changes
+  const handleCancel = () => {
+    setEditingContent(content)
+    setHasUnsavedChanges(false)
   }
 
   // Handle activation
@@ -190,21 +227,6 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   // Handle consultation booking (preview only)
   const handleBookConsultation = () => {
     alert("This is a preview! Activate your profile to enable client bookings.")
-  }
-
-  // Handle edit mode
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
-
-  const handleCancelEdit = () => {
-    setIsEditing(false)
-  }
-
-  const handleSaveEdit = () => {
-    // For temp mode, we don't actually save - just exit edit mode
-    setIsEditing(false)
-    alert("This is a preview. Changes are not saved. Activate your profile to enable editing!")
   }
 
   if (loading) {
@@ -236,7 +258,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   }
 
   // Check if expired
-  const isExpired = timeLeft <= 0 || trainer.isExpired
+  const isExpired = timeLeft <= 0
 
   if (isExpired) {
     return (
@@ -257,34 +279,35 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     )
   }
 
-  // Transform data for display component
-  const { displayTrainer, displayContent } = transformToDisplayFormat(trainer)
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Shared Header Component */}
+      {/* Header with temp-specific controls */}
       <TrainerProfileHeader
         mode="temp"
         timeLeft={formatTimeLeft(timeLeft)}
         onActivate={handleActivate}
-        onEdit={handleEdit}
-        isEditing={isEditing}
-        onSave={handleSaveEdit}
-        onCancel={handleCancelEdit}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        hasUnsavedChanges={hasUnsavedChanges}
+        saving={saving}
         activationPrice="€70"
       />
 
-      {/* Shared Display Component */}
+      {/* Main display component */}
       <TrainerProfileDisplay
-        trainer={displayTrainer}
-        content={displayContent}
-        mode="temp"
+        trainer={trainer}
+        content={editingContent}
+        mode="temp-edit"
+        onContentUpdate={handleContentUpdate}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        hasUnsavedChanges={hasUnsavedChanges}
+        saving={saving}
+        onBookConsultation={handleBookConsultation}
+        onActivate={handleActivate}
         timeLeft={formatTimeLeft(timeLeft)}
         isExpired={isExpired}
         activationPrice="€70"
-        onActivate={handleActivate}
-        onBookConsultation={handleBookConsultation}
-        isEditable={isEditing}
       />
     </div>
   )
