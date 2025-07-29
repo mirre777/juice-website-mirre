@@ -25,6 +25,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [isEditing, setIsEditing] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const router = useRouter()
 
   // Fetch temp trainer data
@@ -42,6 +43,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           // Check if trainer is already activated - redirect to live trainer page
           if (data.trainer.status === "active" && data.trainer.isPaid) {
             console.log("Trainer already activated, redirecting to live trainer page...")
+            setIsRedirecting(true)
+            // Keep loading state active and redirect
             router.push(`/marketplace/trainer/${data.trainer.id}`)
             return
           }
@@ -67,14 +70,17 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         console.error("Error fetching temp trainer:", err)
         setError(err instanceof Error ? err.message : "Failed to load trainer preview")
       } finally {
-        setLoading(false)
+        // Only set loading to false if we're not redirecting
+        if (!isRedirecting) {
+          setLoading(false)
+        }
       }
     }
 
     if (tempId) {
       fetchTempTrainer()
     }
-  }, [tempId, router])
+  }, [tempId, router, isRedirecting])
 
   // Countdown timer
   useEffect(() => {
@@ -191,6 +197,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         // Handle redirect case for activated trainers
         if (data.redirectTo) {
           console.log("Trainer activated during editing, redirecting...")
+          setIsRedirecting(true)
           router.push(data.redirectTo)
           return
         }
@@ -229,12 +236,15 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     alert("This is a preview! Activate your profile to enable client bookings.")
   }
 
-  if (loading) {
+  // Show loading animation when initially loading or redirecting
+  if (loading || isRedirecting) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading trainer preview...</p>
+          <p className="text-gray-600">
+            {isRedirecting ? "Redirecting to your live trainer page..." : "Loading trainer preview..."}
+          </p>
         </div>
       </div>
     )
