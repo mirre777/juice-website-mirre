@@ -7,7 +7,7 @@ import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Clock, CheckCircle } from "lucide-react"
+import { AlertCircle, Clock } from "lucide-react"
 
 interface TempTrainerPageProps {
   params: {
@@ -25,7 +25,6 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [isEditing, setIsEditing] = useState(false)
-  const [isRedirecting, setIsRedirecting] = useState(false)
   const router = useRouter()
 
   // Fetch temp trainer data
@@ -40,15 +39,10 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         }
 
         if (data.success && data.trainer) {
-          // Check if trainer is already activated - show redirect message
+          // Check if trainer is already activated - redirect to live trainer page
           if (data.trainer.status === "active" && data.trainer.isPaid) {
             console.log("Trainer already activated, redirecting to live trainer page...")
-            setIsRedirecting(true)
-
-            // Redirect after showing the message for 2 seconds
-            setTimeout(() => {
-              router.push(`/marketplace/trainer/${data.trainer.id}`)
-            }, 2000)
+            router.push(`/marketplace/trainer/${data.trainer.id}`)
             return
           }
 
@@ -197,10 +191,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         // Handle redirect case for activated trainers
         if (data.redirectTo) {
           console.log("Trainer activated during editing, redirecting...")
-          setIsRedirecting(true)
-          setTimeout(() => {
-            router.push(data.redirectTo)
-          }, 2000)
+          router.push(data.redirectTo)
           return
         }
         throw new Error(data.error || "Failed to save changes")
@@ -236,30 +227,6 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   // Handle consultation booking (preview only)
   const handleBookConsultation = () => {
     alert("This is a preview! Activate your profile to enable client bookings.")
-  }
-
-  // Show redirecting message for activated trainers
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Already Live!</h2>
-              <p className="text-gray-600 mb-4">
-                Great news! Your trainer profile is already activated and live. We're redirecting you to your live
-                trainer page...
-              </p>
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-sm text-gray-500">Redirecting...</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
   }
 
   if (loading) {

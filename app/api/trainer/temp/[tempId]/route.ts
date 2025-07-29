@@ -1,34 +1,34 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { TrainerService } from "@/lib/firebase-trainer"
 import { db } from "@/firebase"
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   try {
     const { tempId } = params
 
+    console.log("=== TEMP TRAINER API ENDPOINT ===")
+    console.log("Temp ID:", tempId)
+
     if (!tempId) {
+      console.log("❌ No temp ID provided")
       return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
     }
 
-    // Get trainer document
-    const trainerDoc = await db.collection("trainers").doc(tempId).get()
+    const trainer = await TrainerService.getTempTrainer(tempId)
 
-    if (!trainerDoc.exists) {
-      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
+    console.log("=== TRAINER SERVICE RESULT ===")
+    console.log("Trainer found:", !!trainer)
+    console.log("Trainer data:", trainer)
+
+    if (!trainer) {
+      console.log("❌ Trainer not found or expired")
+      return NextResponse.json({ success: false, error: "Trainer not found or expired" }, { status: 404 })
     }
 
-    const trainerData = trainerDoc.data()
-
-    // Return trainer data (including activated trainers - let page controller handle redirect)
-    return NextResponse.json({
-      success: true,
-      trainer: {
-        id: trainerDoc.id,
-        ...trainerData,
-      },
-      content: trainerData?.content || null,
-    })
+    console.log("✅ Returning trainer data with success: true")
+    return NextResponse.json({ success: true, trainer })
   } catch (error) {
-    console.error("Error fetching temp trainer:", error)
+    console.error("❌ Error fetching temp trainer:", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
@@ -38,31 +38,36 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
     const { tempId } = params
     const { content } = await request.json()
 
+    console.log("=== TEMP TRAINER PUT ENDPOINT ===")
+    console.log("Temp ID:", tempId)
+    console.log("Content update:", content)
+
     if (!tempId) {
+      console.log("❌ No temp ID provided")
       return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
     }
 
     if (!content) {
+      console.log("❌ No content provided")
       return NextResponse.json({ success: false, error: "Content is required" }, { status: 400 })
     }
 
-    // Get current trainer status
-    const trainerDoc = await db.collection("trainers").doc(tempId).get()
+    // Get current trainer to check status
+    const trainer = await TrainerService.getTempTrainer(tempId)
 
-    if (!trainerDoc.exists) {
+    if (!trainer) {
+      console.log("❌ Trainer not found")
       return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainerData = trainerDoc.data()
-
-    // If trainer is activated, they should use live trainer endpoint
-    if (trainerData?.status === "active" && trainerData?.isPaid) {
-      console.log(`Trainer ${tempId} is already activated, suggesting redirect`)
+    // Check if trainer is already activated
+    if (trainer.status === "active" && trainer.isPaid) {
+      console.log("❌ Trainer already activated, should use live endpoint")
       return NextResponse.json(
         {
           success: false,
           error: "Trainer already activated",
-          redirectTo: `/marketplace/trainer/${tempId}`,
+          redirectTo: `/marketplace/trainer/${trainer.id}`,
         },
         { status: 400 },
       )
@@ -74,14 +79,10 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       updatedAt: new Date().toISOString(),
     })
 
-    console.log(`Successfully updated content for temp trainer: ${tempId}`)
-
-    return NextResponse.json({
-      success: true,
-      message: "Content updated successfully",
-    })
+    console.log("✅ Temp trainer content updated successfully")
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error updating temp trainer content:", error)
-    return NextResponse.json({ success: false, error: "Failed to update content" }, { status: 500 })
+    console.error("❌ Error updating temp trainer:", error)
+    return NextResponse.json({ success: false, error: "Failed to update trainer content" }, { status: 500 })
   }
 }
