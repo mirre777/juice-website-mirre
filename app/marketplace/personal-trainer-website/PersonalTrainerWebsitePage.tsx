@@ -740,9 +740,9 @@ export default function PersonalTrainerWebsitePage() {
               </form>
 
               <p className="text-center text-sm text-gray-600 mt-4">
-                Your website will be generated <strong>instantly</strong>. You can edit and activate it for{" "}
-                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span> You will not be
-                charged anything by creating the Preview.
+                Your website will be generated instantly. You can edit and activate it for{" "}
+                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>{" "}
+                <strong>You will not be charged anything by creating the Preview.</strong>
               </p>
             </CardContent>
           </Card>
