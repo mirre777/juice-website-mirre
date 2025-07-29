@@ -1,43 +1,27 @@
 "use client"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MapPin, Users, Dumbbell, Award, Phone, Mail, Calendar, CheckCircle, MessageCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  MapPin,
+  Users,
+  Dumbbell,
+  Award,
+  Phone,
+  Mail,
+  Calendar,
+  CheckCircle,
+  MessageCircle,
+  Plus,
+  Trash2,
+} from "lucide-react"
 
-// Shared interfaces for the display component
-export interface DisplayService {
-  id: string
-  title: string
-  description: string
-  price: number
-  duration: string
-  featured: boolean
-}
-
-export interface DisplayTrainerContent {
-  hero: {
-    title: string
-    subtitle: string
-    description: string
-  }
-  about: {
-    title: string
-    bio: string
-  }
-  contact: {
-    title: string
-    description: string
-    phone: string
-    email: string
-    location: string
-  }
-  services: DisplayService[]
-}
-
-export interface DisplayTrainerData {
+// Unified interfaces
+export interface TrainerData {
   id: string
   fullName: string
   email: string
@@ -54,57 +38,103 @@ export interface DisplayTrainerData {
   isPaid?: boolean
 }
 
-export interface TrainerProfileDisplayProps {
-  trainer: DisplayTrainerData
-  content?: DisplayTrainerContent
-  mode: "live" | "temp"
+export interface TrainerContent {
+  hero: {
+    title: string
+    subtitle: string
+    description: string
+  }
+  about: {
+    title: string
+    bio: string
+  }
+  contact: {
+    title: string
+    description: string
+    phone: string
+    email: string
+    location: string
+  }
+  services: TrainerService[]
+}
 
-  // Mode-specific props
+export interface TrainerService {
+  id: string
+  title: string
+  description: string
+  price: number
+  duration: string
+  featured: boolean
+}
+
+export type DisplayMode = "temp-edit" | "live-edit" | "public"
+
+export interface TrainerProfileDisplayProps {
+  trainer: TrainerData
+  content?: TrainerContent
+  editingContent?: TrainerContent
+  mode: DisplayMode
+
+  // Global edit state
+  isEditing?: boolean
+  onEdit?: () => void
+  onSave?: () => void
+  onCancel?: () => void
+  onContentChange?: (content: TrainerContent) => void
+  hasUnsavedChanges?: boolean
+  saving?: boolean
+
+  // Action callbacks
   onBookConsultation?: () => void
   onScheduleSession?: () => void
   onSendMessage?: () => void
+  onActivate?: () => void
 
   // Temp mode specific
-  onActivate?: () => void
   timeLeft?: string
   isExpired?: boolean
   activationPrice?: string
-
-  // Live mode specific
-  isEditable?: boolean
-  onEdit?: () => void
 }
 
 export default function TrainerProfileDisplay({
   trainer,
   content,
+  editingContent,
   mode,
+  isEditing = false,
+  onEdit,
+  onSave,
+  onCancel,
+  onContentChange,
+  hasUnsavedChanges = false,
+  saving = false,
   onBookConsultation,
   onScheduleSession,
   onSendMessage,
   onActivate,
   timeLeft,
-  isExpired,
+  isExpired = false,
   activationPrice = "€70",
-  isEditable = false,
-  onEdit,
 }: TrainerProfileDisplayProps) {
+  const isPublic = mode === "public"
+  const currentContent = isEditing ? editingContent : content
+
   // Safe access to content with fallbacks
-  const heroContent = content?.hero || {
+  const heroContent = currentContent?.hero || {
     title: `Transform Your Fitness with ${trainer.fullName}`,
     subtitle: `Professional ${trainer.specialty} trainer`,
     description: trainer.bio || "Professional fitness training services tailored to your goals.",
   }
 
-  const aboutContent = content?.about || {
+  const aboutContent = currentContent?.about || {
     title: "About Me",
     bio: trainer.bio || "Professional trainer dedicated to helping clients achieve their fitness goals.",
   }
 
-  const contactContent = content?.contact || {
-    title: mode === "temp" ? "Let's Start Your Fitness Journey" : "Contact",
+  const contactContent = currentContent?.contact || {
+    title: mode === "temp-edit" ? "Let's Start Your Fitness Journey" : "Contact",
     description:
-      mode === "temp"
+      mode === "temp-edit"
         ? "Get in touch to schedule your consultation"
         : "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
     phone: trainer.phone || "",
@@ -112,7 +142,7 @@ export default function TrainerProfileDisplay({
     location: trainer.city && trainer.district ? `${trainer.city}, ${trainer.district}` : trainer.city || "Location",
   }
 
-  const servicesContent = Array.isArray(content?.services) ? content.services : []
+  const servicesContent = Array.isArray(currentContent?.services) ? currentContent.services : []
 
   const getInitials = (name: string) => {
     return name
@@ -121,6 +151,65 @@ export default function TrainerProfileDisplay({
       .join("")
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  // Handle content updates
+  const updateContent = (section: string, field: string, value: any) => {
+    if (!editingContent || !onContentChange) return
+
+    const updatedContent = { ...editingContent }
+
+    if (section === "hero" || section === "about" || section === "contact") {
+      updatedContent[section] = {
+        ...updatedContent[section],
+        [field]: value,
+      }
+    } else if (section === "services") {
+      const [index, serviceField] = field.split(".")
+      const serviceIndex = Number.parseInt(index)
+
+      if (updatedContent.services[serviceIndex]) {
+        updatedContent.services[serviceIndex] = {
+          ...updatedContent.services[serviceIndex],
+          [serviceField]: serviceField === "price" ? Number.parseFloat(value) || 0 : value,
+        }
+      }
+    }
+
+    onContentChange(updatedContent)
+  }
+
+  // Add new service
+  const addService = () => {
+    if (!editingContent || !onContentChange) return
+
+    const newService: TrainerService = {
+      id: Date.now().toString(),
+      title: "New Service",
+      description: "Service description",
+      price: 60,
+      duration: "60 minutes",
+      featured: false,
+    }
+
+    const updatedContent = {
+      ...editingContent,
+      services: [...editingContent.services, newService],
+    }
+
+    onContentChange(updatedContent)
+  }
+
+  // Remove service
+  const removeService = (index: number) => {
+    if (!editingContent || !onContentChange) return
+
+    const updatedContent = {
+      ...editingContent,
+      services: editingContent.services.filter((_, i) => i !== index),
+    }
+
+    onContentChange(updatedContent)
   }
 
   return (
@@ -138,9 +227,47 @@ export default function TrainerProfileDisplay({
             </Avatar>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
-          <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
-          <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
+          {/* Hero Title */}
+          {isEditing ? (
+            <div className="mb-4">
+              <Input
+                value={heroContent.title}
+                onChange={(e) => updateContent("hero", "title", e.target.value)}
+                className="text-4xl md:text-5xl font-bold text-white bg-transparent border-white/30 text-center placeholder:text-white/70 focus:border-white/60"
+                placeholder="Enter hero title"
+              />
+            </div>
+          ) : (
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
+          )}
+
+          {/* Hero Subtitle */}
+          {isEditing ? (
+            <div className="mb-6">
+              <Input
+                value={heroContent.subtitle}
+                onChange={(e) => updateContent("hero", "subtitle", e.target.value)}
+                className="text-xl bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60"
+                placeholder="Enter subtitle"
+              />
+            </div>
+          ) : (
+            <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
+          )}
+
+          {/* Hero Description */}
+          {isEditing ? (
+            <div className="mb-6">
+              <Textarea
+                value={heroContent.description}
+                onChange={(e) => updateContent("hero", "description", e.target.value)}
+                className="text-lg bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60 min-h-[80px] resize-none"
+                placeholder="Enter description"
+              />
+            </div>
+          ) : (
+            <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
+          )}
 
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             <Badge variant="secondary" className="text-blue-600 bg-white/90">
@@ -159,7 +286,7 @@ export default function TrainerProfileDisplay({
             )}
           </div>
 
-          {/* CTA Button - Mode Specific */}
+          {/* CTA Button */}
           <Button
             size="lg"
             variant="secondary"
@@ -179,11 +306,30 @@ export default function TrainerProfileDisplay({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                {aboutContent.title}
+                {isEditing ? (
+                  <Input
+                    value={aboutContent.title}
+                    onChange={(e) => updateContent("about", "title", e.target.value)}
+                    className="bg-transparent border-gray-200 focus:border-blue-500 font-semibold text-lg"
+                    placeholder="About section title"
+                  />
+                ) : (
+                  aboutContent.title
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+              {isEditing ? (
+                <Textarea
+                  value={aboutContent.bio}
+                  onChange={(e) => updateContent("about", "bio", e.target.value)}
+                  className="bg-transparent border-gray-200 focus:border-blue-500 min-h-[120px] text-gray-600 leading-relaxed resize-none"
+                  placeholder="Tell your story..."
+                />
+              ) : (
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+              )}
+
               {trainer.certifications && (
                 <div className="mt-6">
                   <h4 className="font-semibold mb-3 flex items-center">
@@ -191,7 +337,16 @@ export default function TrainerProfileDisplay({
                     Certifications
                   </h4>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-700">{trainer.certifications}</p>
+                    {isEditing ? (
+                      <Textarea
+                        value={trainer.certifications}
+                        onChange={(e) => updateContent("trainer", "certifications", e.target.value)}
+                        className="bg-transparent border-gray-200 focus:border-blue-500 text-gray-700 min-h-[60px] resize-none"
+                        placeholder="List your certifications"
+                      />
+                    ) : (
+                      <p className="text-gray-700">{trainer.certifications}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -201,9 +356,17 @@ export default function TrainerProfileDisplay({
           {/* Services Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Dumbbell className="h-5 w-5 mr-2" />
-                Services Offered
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Dumbbell className="h-5 w-5 mr-2" />
+                  Services Offered
+                </div>
+                {isEditing && (
+                  <Button onClick={addService} size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Service
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -212,26 +375,82 @@ export default function TrainerProfileDisplay({
                   servicesContent.map((service, index) => (
                     <div
                       key={service.id || index}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                      className={`border border-gray-200 rounded-lg p-4 transition-shadow ${
+                        isEditing ? "bg-gray-50/50" : "hover:shadow-sm"
+                      }`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{service.title}</h3>
+                        <div className="flex items-center gap-2 flex-1">
+                          {isEditing ? (
+                            <Input
+                              value={service.title}
+                              onChange={(e) => updateContent("services", `${index}.title`, e.target.value)}
+                              className="bg-transparent border-gray-200 focus:border-blue-500 font-semibold"
+                              placeholder="Service title"
+                            />
+                          ) : (
+                            <h3 className="font-semibold">{service.title}</h3>
+                          )}
                           {service.featured && (
                             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                               Featured
                             </Badge>
                           )}
+                          {isEditing && (
+                            <Button
+                              onClick={() => removeService(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-blue-600">€{service.price}</div>
-                          <div className="text-sm text-gray-500">{service.duration}</div>
+                        <div className="text-right ml-4">
+                          <div className="text-lg font-bold text-blue-600 flex items-center">
+                            €
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                value={service.price}
+                                onChange={(e) => updateContent("services", `${index}.price`, e.target.value)}
+                                className="bg-transparent border-gray-200 focus:border-blue-500 w-20 ml-1 text-center"
+                                placeholder="Price"
+                              />
+                            ) : (
+                              service.price
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {isEditing ? (
+                              <Input
+                                value={service.duration}
+                                onChange={(e) => updateContent("services", `${index}.duration`, e.target.value)}
+                                className="bg-transparent border-gray-200 focus:border-blue-500 text-sm text-center"
+                                placeholder="Duration"
+                              />
+                            ) : (
+                              service.duration
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3">{service.description}</p>
-                      <Button className="w-full bg-transparent" variant="outline" onClick={onScheduleSession}>
-                        Book This Service
-                      </Button>
+                      {isEditing ? (
+                        <Textarea
+                          value={service.description}
+                          onChange={(e) => updateContent("services", `${index}.description`, e.target.value)}
+                          className="bg-transparent border-gray-200 focus:border-blue-500 text-gray-600 text-sm mb-3 min-h-[60px] resize-none"
+                          placeholder="Service description"
+                        />
+                      ) : (
+                        <p className="text-gray-600 text-sm mb-3">{service.description}</p>
+                      )}
+                      {!isPublic && !isEditing && (
+                        <Button className="w-full bg-transparent" variant="outline" onClick={onScheduleSession}>
+                          Book This Service
+                        </Button>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -251,10 +470,30 @@ export default function TrainerProfileDisplay({
           {/* Contact Card */}
           <Card>
             <CardHeader>
-              <CardTitle>{contactContent.title}</CardTitle>
+              <CardTitle>
+                {isEditing ? (
+                  <Input
+                    value={contactContent.title}
+                    onChange={(e) => updateContent("contact", "title", e.target.value)}
+                    className="bg-transparent border-gray-200 focus:border-blue-500 font-semibold"
+                    placeholder="Contact section title"
+                  />
+                ) : (
+                  contactContent.title
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-600 text-sm">{contactContent.description}</p>
+              {isEditing ? (
+                <Textarea
+                  value={contactContent.description}
+                  onChange={(e) => updateContent("contact", "description", e.target.value)}
+                  className="bg-transparent border-gray-200 focus:border-blue-500 text-gray-600 text-sm min-h-[80px] resize-none"
+                  placeholder="Contact description"
+                />
+              ) : (
+                <p className="text-gray-600 text-sm">{contactContent.description}</p>
+              )}
 
               <div className="space-y-3">
                 <div className="flex items-center">
@@ -278,29 +517,31 @@ export default function TrainerProfileDisplay({
               <Separator />
 
               {/* Mode-specific contact buttons */}
-              <div className="space-y-2">
-                {mode === "temp" ? (
-                  <Button
-                    className="w-full"
-                    style={{ backgroundColor: "#D2FF28", color: "black" }}
-                    onClick={onBookConsultation}
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Book Consultation
-                  </Button>
-                ) : (
-                  <>
-                    <Button className="w-full" onClick={onScheduleSession}>
+              {!isPublic && !isEditing && (
+                <div className="space-y-2">
+                  {mode === "temp-edit" ? (
+                    <Button
+                      className="w-full"
+                      style={{ backgroundColor: "#D2FF28", color: "black" }}
+                      onClick={onBookConsultation}
+                    >
                       <Calendar className="w-4 h-4 mr-2" />
-                      Schedule Session
+                      Book Consultation
                     </Button>
-                    <Button variant="outline" className="w-full bg-transparent" onClick={onSendMessage}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Send Message
-                    </Button>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <>
+                      <Button className="w-full" onClick={onScheduleSession}>
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Schedule Session
+                      </Button>
+                      <Button variant="outline" className="w-full bg-transparent" onClick={onSendMessage}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Send Message
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -324,15 +565,15 @@ export default function TrainerProfileDisplay({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Status</span>
-                <Badge variant={mode === "live" ? "default" : "secondary"}>
-                  {mode === "live" ? "Active" : "Preview"}
+                <Badge variant={mode === "public" ? "default" : "secondary"}>
+                  {mode === "public" ? "Active" : mode === "temp-edit" ? "Preview" : "Live"}
                 </Badge>
               </div>
             </CardContent>
           </Card>
 
           {/* Temp Mode - Activation CTA */}
-          {mode === "temp" && !isExpired && (
+          {mode === "temp-edit" && !isExpired && !isEditing && (
             <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -352,7 +593,7 @@ export default function TrainerProfileDisplay({
           )}
 
           {/* Expired State */}
-          {mode === "temp" && isExpired && (
+          {mode === "temp-edit" && isExpired && (
             <Card className="bg-red-50 border-red-200">
               <CardContent className="pt-6">
                 <div className="text-center">
