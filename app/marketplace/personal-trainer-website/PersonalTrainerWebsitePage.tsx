@@ -217,8 +217,13 @@ export default function PersonalTrainerWebsitePage() {
     }
   }
 
-  const handleServiceToggle = (service: string) => {
-    // Prevent form submission when toggling checkboxes
+  const handleServiceToggle = (service: string, event?: React.MouseEvent) => {
+    // Prevent any event bubbling that might trigger form submission
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
     setFormData((prev) => ({
       ...prev,
       services: prev.services.includes(service)
@@ -239,10 +244,51 @@ export default function PersonalTrainerWebsitePage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
 
-    // Only submit if we're on the last step and user explicitly clicked submit
+    // Only submit if we're on the last step
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    if (!validateCurrentStep()) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/trainer/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        router.push(data.redirectUrl)
+      } else {
+        console.error("Form submission failed:", data.error)
+        alert(data.error || "Failed to create trainer profile. Please try again.")
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+      alert("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleExplicitSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only submit if we're on the last step
     if (currentStep !== formSteps.length - 1) {
       return
     }
@@ -459,16 +505,20 @@ export default function PersonalTrainerWebsitePage() {
                     id={service}
                     checked={formData.services?.includes(service) || false}
                     onCheckedChange={(checked) => {
-                      // Prevent any form submission when checkbox changes
-                      if (checked) {
-                        handleServiceToggle(service)
-                      } else {
-                        handleServiceToggle(service)
-                      }
+                      // Only update the state, don't trigger any form submission
+                      handleServiceToggle(service)
                     }}
                     disabled={isSubmitting}
                   />
-                  <Label htmlFor={service} className="text-sm font-medium cursor-pointer">
+                  <Label
+                    htmlFor={service}
+                    className="text-sm font-medium cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleServiceToggle(service, e)
+                    }}
+                  >
                     {service}
                   </Label>
                 </div>
@@ -643,7 +693,7 @@ export default function PersonalTrainerWebsitePage() {
             </CardHeader>
 
             <CardContent className="p-8">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleFormSubmit}>
                 <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
 
                 {/* Navigation Buttons */}
@@ -671,7 +721,8 @@ export default function PersonalTrainerWebsitePage() {
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={handleExplicitSubmit}
                       disabled={isSubmitting}
                       className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-3"
                     >
