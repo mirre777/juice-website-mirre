@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 
 interface FormData {
   fullName: string
@@ -70,6 +69,21 @@ const formSteps = [
   { id: "certifications", fields: ["certifications"], title: "Certifications" },
   { id: "services", fields: ["services"], title: "Services Offered" },
 ]
+
+// Trust Shield SVG Component
+const TrustShield = ({ className = "w-8 h-8" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M12 2L3 7V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V7L12 2Z"
+      fill="#000000"
+      stroke="#000000"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M9 12L11 14L15 10" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
 
 export default function PersonalTrainerWebsitePage() {
   const router = useRouter()
@@ -476,13 +490,7 @@ export default function PersonalTrainerWebsitePage() {
           <div className="text-left max-w-4xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-white border border-black rounded-full">
-                <Image
-                  src="/images/trust-shield.png"
-                  alt="Trust and Security"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8"
-                />
+                <TrustShield className="w-8 h-8" />
               </div>
               <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
                 No coding required
