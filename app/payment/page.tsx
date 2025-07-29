@@ -10,10 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CheckCircle, CreditCard, Shield, ArrowLeft } from "lucide-react"
 import { loadStripe } from "@stripe/stripe-js"
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -39,6 +38,48 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
   const [processing, setProcessing] = useState(false)
   const [email, setEmail] = useState(tempTrainer?.email || "")
   const [country, setCountry] = useState("AT")
+  const [clientSecret, setClientSecret] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Create payment intent on component mount
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      try {
+        console.log("=== CREATING PAYMENT INTENT ===")
+        console.log("Temp Trainer:", tempTrainer)
+        console.log("Email:", email)
+
+        const response = await fetch("/api/create-payment-intent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: 7000, // €70.00 in cents
+            currency: "eur",
+            tempTrainerId: tempTrainer.id,
+            email: email,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (data.clientSecret) {
+          setClientSecret(data.clientSecret)
+          setLoading(false)
+        } else {
+          throw new Error("Failed to create payment intent")
+        }
+      } catch (error) {
+        console.error("Payment intent creation error:", error)
+        setError("Failed to initialize payment. Please try again.")
+        setLoading(false)
+      }
+    }
+
+    createPaymentIntent()
+  }, [tempTrainer, email]) // Updated dependency array
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -54,38 +95,21 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
       console.log("Temp Trainer:", tempTrainer)
       console.log("Email:", email)
 
-      // Create payment intent
-      const response = await fetch("/api/create-payment-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // Confirm payment using PaymentElement
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/payment/success?payment_intent_id={PAYMENT_INTENT_ID}&tempId=${tempTrainer.id}`,
+          receipt_email: email,
         },
-        body: JSON.stringify({
-          amount: 7000, // €70.00 in cents
-          currency: "eur",
-          tempTrainerId: tempTrainer.id,
-          email: email,
-        }),
-      })
-
-      const { client_secret } = await response.json()
-
-      // Confirm payment
-      const { error, paymentIntent } = await stripe.confirmCardPayment(client_secret, {
-        payment_method: {
-          card: elements.getElement(CardElement)!,
-          billing_details: {
-            email: email,
-          },
-        },
+        redirect: "if_required",
       })
 
       if (error) {
         console.error("Payment failed:", error)
         alert("Payment failed: " + error.message)
-      } else if (paymentIntent.status === "succeeded") {
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("Payment succeeded:", paymentIntent)
-
         // Redirect to success page
         router.push(`/payment/success?payment_intent=${paymentIntent.id}`)
       }
@@ -95,6 +119,32 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
     } finally {
       setProcessing(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading payment form...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -196,39 +246,33 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
                   </div>
 
                   <div className="space-y-4">
+                    {/* PaymentElement will automatically include discount code input */}
                     <div>
-                      <Label htmlFor="card">Card information</Label>
-                      <div className="mt-1 p-3 border border-gray-300 rounded-md">
-                        <CardElement
+                      <Label htmlFor="payment">Payment information</Label>
+                      <div className="mt-1">
+                        <PaymentElement
                           options={{
-                            style: {
-                              base: {
-                                fontSize: "16px",
-                                color: "#424770",
-                                "::placeholder": {
-                                  color: "#aab7c4",
+                            layout: "tabs",
+                            promotionCodes: {
+                              enabled: true,
+                            },
+                            fields: {
+                              billingDetails: {
+                                email: "auto",
+                                name: "auto",
+                                address: {
+                                  country: "auto",
+                                  line1: "auto",
+                                  line2: "auto",
+                                  city: "auto",
+                                  state: "auto",
+                                  postalCode: "auto",
                                 },
                               },
                             },
                           }}
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="country">Country</Label>
-                      <Select value={country} onValueChange={setCountry}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="AT">Austria</SelectItem>
-                          <SelectItem value="DE">Germany</SelectItem>
-                          <SelectItem value="CH">Switzerland</SelectItem>
-                          <SelectItem value="NL">Netherlands</SelectItem>
-                          <SelectItem value="BE">Belgium</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
 
                     <div>
