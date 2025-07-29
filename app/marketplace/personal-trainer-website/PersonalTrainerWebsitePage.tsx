@@ -204,6 +204,7 @@ export default function PersonalTrainerWebsitePage() {
   }
 
   const handleServiceToggle = (service: string) => {
+    // Prevent form submission when toggling checkboxes
     setFormData((prev) => ({
       ...prev,
       services: prev.services.includes(service)
@@ -226,6 +227,11 @@ export default function PersonalTrainerWebsitePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Only submit if we're on the last step and user explicitly clicked submit
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
 
     if (!validateCurrentStep()) {
       return
@@ -438,7 +444,14 @@ export default function PersonalTrainerWebsitePage() {
                   <Checkbox
                     id={service}
                     checked={formData.services?.includes(service) || false}
-                    onCheckedChange={() => handleServiceToggle(service)}
+                    onCheckedChange={(checked) => {
+                      // Prevent any form submission when checkbox changes
+                      if (checked) {
+                        handleServiceToggle(service)
+                      } else {
+                        handleServiceToggle(service)
+                      }
+                    }}
                     disabled={isSubmitting}
                   />
                   <Label htmlFor={service} className="text-sm font-medium cursor-pointer">
@@ -651,7 +664,7 @@ export default function PersonalTrainerWebsitePage() {
                   ) : (
                     <Button
                       type="submit"
-                      disabled={!canProceedToNext() || isSubmitting}
+                      disabled={isSubmitting}
                       className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-3"
                     >
                       {isSubmitting ? (
