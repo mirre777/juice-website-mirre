@@ -7,7 +7,7 @@ import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Clock } from "lucide-react"
+import { AlertCircle, Clock, CheckCircle } from "lucide-react"
 
 interface TempTrainerPageProps {
   params: {
@@ -40,12 +40,15 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         }
 
         if (data.success && data.trainer) {
-          // Check if trainer is already activated - redirect to live trainer page
+          // Check if trainer is already activated - show redirect message
           if (data.trainer.status === "active" && data.trainer.isPaid) {
             console.log("Trainer already activated, redirecting to live trainer page...")
             setIsRedirecting(true)
-            // Keep loading state active and redirect
-            router.push(`/marketplace/trainer/${data.trainer.id}`)
+
+            // Redirect after showing the message for 2 seconds
+            setTimeout(() => {
+              router.push(`/marketplace/trainer/${data.trainer.id}`)
+            }, 2000)
             return
           }
 
@@ -70,17 +73,14 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         console.error("Error fetching temp trainer:", err)
         setError(err instanceof Error ? err.message : "Failed to load trainer preview")
       } finally {
-        // Only set loading to false if we're not redirecting
-        if (!isRedirecting) {
-          setLoading(false)
-        }
+        setLoading(false)
       }
     }
 
     if (tempId) {
       fetchTempTrainer()
     }
-  }, [tempId, router, isRedirecting])
+  }, [tempId, router])
 
   // Countdown timer
   useEffect(() => {
@@ -198,7 +198,9 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         if (data.redirectTo) {
           console.log("Trainer activated during editing, redirecting...")
           setIsRedirecting(true)
-          router.push(data.redirectTo)
+          setTimeout(() => {
+            router.push(data.redirectTo)
+          }, 2000)
           return
         }
         throw new Error(data.error || "Failed to save changes")
@@ -236,15 +238,36 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     alert("This is a preview! Activate your profile to enable client bookings.")
   }
 
-  // Show loading animation when initially loading or redirecting
-  if (loading || isRedirecting) {
+  // Show redirecting message for activated trainers
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Already Live!</h2>
+              <p className="text-gray-600 mb-4">
+                Great news! Your trainer profile is already activated and live. We're redirecting you to your live
+                trainer page...
+              </p>
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-sm text-gray-500">Redirecting...</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {isRedirecting ? "Redirecting to your live trainer page..." : "Loading trainer preview..."}
-          </p>
+          <p className="text-gray-600">Loading trainer preview...</p>
         </div>
       </div>
     )

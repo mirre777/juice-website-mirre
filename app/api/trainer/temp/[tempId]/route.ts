@@ -5,6 +5,10 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
   try {
     const { tempId } = params
 
+    if (!tempId) {
+      return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
+    }
+
     // Get trainer document
     const trainerDoc = await db.collection("trainers").doc(tempId).get()
 
@@ -14,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
 
     const trainerData = trainerDoc.data()
 
-    // Return trainer data regardless of status (let page controller handle redirect)
+    // Return trainer data (including activated trainers - let page controller handle redirect)
     return NextResponse.json({
       success: true,
       trainer: {
@@ -25,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: { tempId: 
     })
   } catch (error) {
     console.error("Error fetching temp trainer:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch trainer" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
 
@@ -33,6 +37,14 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
   try {
     const { tempId } = params
     const { content } = await request.json()
+
+    if (!tempId) {
+      return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
+    }
+
+    if (!content) {
+      return NextResponse.json({ success: false, error: "Content is required" }, { status: 400 })
+    }
 
     // Get current trainer status
     const trainerDoc = await db.collection("trainers").doc(tempId).get()
@@ -62,11 +74,14 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       updatedAt: new Date().toISOString(),
     })
 
-    console.log(`Successfully updated content for temp trainer ${tempId}`)
+    console.log(`Successfully updated content for temp trainer: ${tempId}`)
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      message: "Content updated successfully",
+    })
   } catch (error) {
-    console.error("Error updating temp trainer:", error)
-    return NextResponse.json({ success: false, error: "Failed to update trainer content" }, { status: 500 })
+    console.error("Error updating temp trainer content:", error)
+    return NextResponse.json({ success: false, error: "Failed to update content" }, { status: 500 })
   }
 }
