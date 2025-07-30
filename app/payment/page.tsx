@@ -93,20 +93,42 @@ function CheckoutForm({
       </div>
 
       <div className="space-y-4">
-        {/* PaymentElement will automatically include discount code input */}
+        {/* PaymentElement with enhanced options */}
         <div>
           <Label htmlFor="payment">Payment information</Label>
           <div className="mt-1">
             <PaymentElement
               options={{
-                layout: "tabs",
+                layout: {
+                  type: "tabs",
+                  defaultCollapsed: false,
+                  radios: false,
+                  spacedAccordionItems: false,
+                },
+                // Enable promotion codes
                 promotionCodes: {
                   enabled: true,
                 },
+                // Configure payment method creation
+                paymentMethodCreation: "manual",
+                // Enable all available payment methods
+                paymentMethodOrder: [
+                  "card",
+                  "paypal",
+                  "ideal",
+                  "sofort",
+                  "bancontact",
+                  "giropay",
+                  "eps",
+                  "p24",
+                  "sepa_debit",
+                ],
+                // Configure fields
                 fields: {
                   billingDetails: {
-                    email: "auto",
                     name: "auto",
+                    email: "auto",
+                    phone: "auto",
                     address: {
                       country: "auto",
                       line1: "auto",
@@ -116,6 +138,23 @@ function CheckoutForm({
                       postalCode: "auto",
                     },
                   },
+                },
+                // Configure terms
+                terms: {
+                  card: "auto",
+                  ideal: "auto",
+                  sepaDebit: "auto",
+                  sofort: "auto",
+                  bancontact: "auto",
+                  giropay: "auto",
+                  eps: "auto",
+                  p24: "auto",
+                  paypal: "auto",
+                },
+                // Enable wallets
+                wallets: {
+                  applePay: "auto",
+                  googlePay: "auto",
                 },
               }}
             />
@@ -199,7 +238,7 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
     }
 
     createPaymentIntent()
-  }, [tempTrainer]) // Updated to use the entire tempTrainer object
+  }, [tempTrainer])
 
   if (loading) {
     return (
@@ -328,8 +367,16 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
                         theme: "stripe",
                         variables: {
                           colorPrimary: "#D2FF28",
+                          colorBackground: "#ffffff",
+                          colorText: "#000000",
+                          colorDanger: "#df1b41",
+                          fontFamily: "system-ui, sans-serif",
+                          spacingUnit: "4px",
+                          borderRadius: "8px",
                         },
                       },
+                      // Enable locale for better UX
+                      locale: "auto",
                     }}
                   >
                     <CheckoutForm tempTrainer={tempTrainer} email={email} setEmail={setEmail} />

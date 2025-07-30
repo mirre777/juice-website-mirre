@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    // Create payment intent with €69 (6900 cents)
+    // Create payment intent with €69 (6900 cents) and enable multiple payment methods
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 6900, // €69 in cents
       currency: "eur",
@@ -32,6 +32,10 @@ export async function POST(request: NextRequest) {
         enabled: true,
         allow_redirects: "never", // Prevent redirects for better UX
       },
+      // Enable multiple payment method types
+      payment_method_types: ["card", "paypal", "ideal", "sofort", "bancontact", "giropay", "eps", "p24", "sepa_debit"],
+      // Enable promotion codes at the payment intent level
+      setup_future_usage: null, // Don't save payment method for future use
     })
 
     console.log("Payment intent created successfully:", paymentIntent.id)
