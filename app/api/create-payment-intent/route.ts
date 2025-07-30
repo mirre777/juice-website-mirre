@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
     }
 
-    // Create payment intent with €69 (6900 cents) and enable promotion codes
+    // Create payment intent with €69 (6900 cents)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 6900, // €69 in cents
       currency: "eur",
@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
         enabled: true,
         allow_redirects: "never", // Prevent redirects for better UX
       },
-      // ENABLE PROMOTION CODES IN PAYMENT INTENT
-      allow_promotion_codes: true,
+      // REMOVED: allow_promotion_codes - this parameter doesn't exist for PaymentIntents
+      // Promotion codes are handled by the PaymentElement frontend configuration
     })
 
     console.log("Payment intent created successfully:", paymentIntent.id)
