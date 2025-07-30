@@ -71,17 +71,14 @@ function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
               type: "tabs",
               defaultCollapsed: false,
               radios: false,
-              spacedAccordionItems: true,
+              spacedAccordionItems: false,
             },
-            promotionCodes: {
-              enabled: true,
-            },
-            paymentMethodOrder: ["card", "paypal", "ideal", "sofort"],
+            // Remove paymentMethodOrder to let Stripe decide the best order
             fields: {
               billingDetails: {
                 name: "auto",
                 email: "auto",
-                phone: "auto",
+                phone: "never", // Simplify the form
                 address: {
                   country: "auto",
                   line1: "never",
@@ -92,9 +89,14 @@ function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
                 },
               },
             },
+            // Enable all wallet options
             wallets: {
               applePay: "auto",
               googlePay: "auto",
+            },
+            // Enable business name for better UX
+            business: {
+              name: "Juice Fitness",
             },
           }}
         />
@@ -136,7 +138,7 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            tempId: tempTrainer.id, // Make sure we're using the correct ID
+            tempId: tempTrainer.id,
             email: tempTrainer.email,
           }),
         })
