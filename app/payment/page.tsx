@@ -85,6 +85,9 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
               address: "auto",
             },
           },
+          promotionCodes: {
+            enabled: true,
+          },
         }}
       />
 
