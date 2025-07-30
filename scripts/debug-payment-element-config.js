@@ -8,7 +8,6 @@ console.log("==============================================")
 console.log("\n1️⃣ CHECKING STRIPE API VERSION")
 console.log("------------------------------")
 
-// Check what API version is being used
 const checkApiVersion = () => {
   try {
     // Look for Stripe API version in network requests
