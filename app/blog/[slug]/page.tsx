@@ -11,6 +11,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, Tag } from "lucide-react"
+import type { Metadata } from "next"
 
 // Force dynamic rendering to ensure content is always fresh and logs appear
 export const dynamic = "force-dynamic"
@@ -26,6 +27,107 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }))
 }
 
+// Generate metadata for SEO
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const post = await getPostBySlug(params.slug)
+
+  if (!post) {
+    return {
+      title: "Post Not Found | Juice Fitness Blog",
+      description: "The requested blog post could not be found.",
+    }
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
+  const fullUrl = `${baseUrl}/blog/${params.slug}`
+
+  // Get the appropriate image
+  const getPlaceholderImage = (category: string) => {
+    const placeholders = {
+      coaching: "/fitness-coaching-session.png",
+      technology: "/fitness-tech-digital-health.png",
+      fitness: "/gym-dumbbells.png",
+      nutrition: "/healthy-meal-prep.png",
+      visibility: "/seo-tips-fitness-coaches-europe.png",
+      default: "/fitness-equipment.png",
+    }
+    const categoryKey = category?.toLowerCase() as keyof typeof placeholders
+    return placeholders[categoryKey] || placeholders.default
+  }
+
+  const imageUrl = post.frontmatter.image
+    ? `${baseUrl}${post.frontmatter.image}`
+    : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`
+
+  return {
+    title: `${post.frontmatter.title} | Juice Fitness Blog`,
+    description: post.frontmatter.excerpt,
+    keywords: [
+      "fitness coaching",
+      "personal trainer",
+      "SEO for fitness",
+      "fitness marketing",
+      "trainer website",
+      "fitness business",
+      "Europe fitness",
+      "Berlin fitness",
+      post.frontmatter.category.toLowerCase(),
+    ],
+    authors: [{ name: "Juice Team" }],
+    creator: "Juice Fitness",
+    publisher: "Juice Fitness",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: fullUrl,
+    },
+    openGraph: {
+      title: post.frontmatter.title,
+      description: post.frontmatter.excerpt,
+      url: fullUrl,
+      siteName: "Juice Fitness",
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.frontmatter.title,
+        },
+      ],
+      locale: "en_US",
+      type: "article",
+      publishedTime: post.frontmatter.date,
+      authors: ["Juice Team"],
+      section: post.frontmatter.category,
+      tags: ["fitness", "coaching", "personal trainer", post.frontmatter.category.toLowerCase()],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.frontmatter.title,
+      description: post.frontmatter.excerpt,
+      images: [imageUrl],
+      creator: "@JuiceFitness",
+      site: "@JuiceFitness",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    category: post.frontmatter.category,
+  }
+}
+
 // Fitness-related placeholder images for blog posts
 const getPlaceholderImage = (category: string) => {
   const placeholders = {
@@ -33,6 +135,7 @@ const getPlaceholderImage = (category: string) => {
     technology: "/fitness-tech-digital-health.png",
     fitness: "/gym-dumbbells.png",
     nutrition: "/healthy-meal-prep.png",
+    visibility: "/seo-tips-fitness-coaches-europe.png",
     default: "/fitness-equipment.png",
   }
 
@@ -71,7 +174,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     dateModified: post.frontmatter.date,
     author: {
       "@type": "Person",
-      name: post.frontmatter.author || "Juice Team",
+      name: "Juice Team",
+      url: `${baseUrl}/about`,
     },
     publisher: {
       "@type": "Organization",
@@ -79,13 +183,33 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       logo: {
         "@type": "ImageObject",
         url: `${baseUrl}/images/juiceNewLogoPrime.png`,
+        width: 400,
+        height: 400,
       },
+      url: baseUrl,
     },
     description: post.frontmatter.excerpt,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": fullUrl,
     },
+    articleSection: post.frontmatter.category,
+    keywords: [
+      "fitness coaching",
+      "personal trainer",
+      "SEO for fitness",
+      "fitness marketing",
+      "trainer website",
+      "fitness business",
+      post.frontmatter.category.toLowerCase(),
+    ].join(", "),
+    wordCount: post.content?.split(" ").length || 0,
+    inLanguage: "en-US",
+    copyrightHolder: {
+      "@type": "Organization",
+      name: "Juice Fitness",
+    },
+    copyrightYear: new Date(post.frontmatter.date).getFullYear(),
   }
 
   return (
@@ -111,7 +235,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Calendar className="w-4 h-4" />
-                <span>{post.frontmatter.date}</span>
+                <time dateTime={post.frontmatter.date}>
+                  {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
               </div>
 
               <div className="flex items-center gap-2">
@@ -144,6 +274,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 fill
                 className="object-cover"
                 priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             </div>
@@ -151,7 +282,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* Article Content */}
           <div className="relative">
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-juice prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
               <MdxRenderer source={post.serializedContent} />
             </div>
           </div>
