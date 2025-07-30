@@ -12,6 +12,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, Tag } from "lucide-react"
 import type { Metadata } from "next"
+import { RelatedArticles } from "@/components/blog/related-articles"
 
 // Force dynamic rendering to ensure content is always fresh and logs appear
 export const dynamic = "force-dynamic"
@@ -311,6 +312,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </div>
             </div>
           </footer>
+
+          {/* Related Articles */}
+          <RelatedArticles currentSlug={params.slug} currentCategory={post.frontmatter.category} />
         </article>
 
         <TableOfContents />

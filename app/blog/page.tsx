@@ -183,6 +183,9 @@ export default async function BlogPage() {
             Coaching
           </Button>
           <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
+            Marketing
+          </Button>
+          <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
             Nutrition
           </Button>
         </div>
