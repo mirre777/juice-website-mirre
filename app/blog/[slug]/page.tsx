@@ -11,6 +11,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, Tag } from "lucide-react"
+import type { Metadata } from "next"
 
 // Force dynamic rendering to ensure content is always fresh and logs appear
 export const dynamic = "force-dynamic"
@@ -33,11 +34,134 @@ const getPlaceholderImage = (category: string) => {
     technology: "/fitness-tech-digital-health.png",
     fitness: "/gym-dumbbells.png",
     nutrition: "/healthy-meal-prep.png",
+    visibility: "/seo-tips-fitness-coaches-europe.png",
+    marketing: "/personal-trainer-booking-page-mobile.png",
     default: "/fitness-equipment.png",
   }
 
   const categoryKey = category?.toLowerCase() as keyof typeof placeholders
   return placeholders[categoryKey] || placeholders.default
+}
+
+// Generate metadata for SEO - applies to ALL blog posts
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const post = await getPostBySlug(params.slug)
+
+  if (!post) {
+    return {
+      title: "Post Not Found | Juice Fitness Blog",
+      description: "The requested blog post could not be found.",
+    }
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
+  const fullUrl = `${baseUrl}/blog/${params.slug}`
+
+  const imageUrl = post.frontmatter.image
+    ? `${baseUrl}${post.frontmatter.image}`
+    : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`
+
+  // Generate SEO-optimized keywords based on post content and category
+  const generateKeywords = (title: string, category: string, excerpt: string) => {
+    const baseKeywords = [
+      "fitness coaching",
+      "personal trainer",
+      "fitness business",
+      "trainer marketing",
+      "fitness SEO",
+      "personal training",
+      "fitness coach",
+      "trainer website",
+      "fitness industry",
+      "Europe fitness",
+      "Berlin fitness",
+      category.toLowerCase(),
+    ]
+
+    // Add specific keywords based on title content
+    const titleLower = title.toLowerCase()
+    if (titleLower.includes("seo")) baseKeywords.push("SEO for fitness", "fitness SEO tips", "trainer SEO")
+    if (titleLower.includes("website")) baseKeywords.push("trainer website", "fitness website", "website builder")
+    if (titleLower.includes("booking")) baseKeywords.push("online booking", "fitness booking", "trainer booking")
+    if (titleLower.includes("marketing"))
+      baseKeywords.push("fitness marketing", "trainer marketing", "digital marketing")
+    if (titleLower.includes("tools")) baseKeywords.push("fitness tools", "trainer tools", "fitness software")
+    if (titleLower.includes("berlin")) baseKeywords.push("Berlin fitness", "Berlin trainer", "Germany fitness")
+    if (titleLower.includes("nutrition")) baseKeywords.push("nutrition coaching", "fitness nutrition", "meal planning")
+
+    return baseKeywords.slice(0, 15) // Limit to 15 keywords
+  }
+
+  return {
+    title: `${post.frontmatter.title} | Juice Fitness Blog`,
+    description: post.frontmatter.excerpt,
+    keywords: generateKeywords(post.frontmatter.title, post.frontmatter.category, post.frontmatter.excerpt),
+    authors: [{ name: "Juice Team" }],
+    creator: "Juice Fitness",
+    publisher: "Juice Fitness",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: fullUrl,
+    },
+    openGraph: {
+      title: post.frontmatter.title,
+      description: post.frontmatter.excerpt,
+      url: fullUrl,
+      siteName: "Juice Fitness",
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.frontmatter.title,
+        },
+      ],
+      locale: "en_US",
+      type: "article",
+      publishedTime: post.frontmatter.date,
+      modifiedTime: post.frontmatter.date,
+      authors: ["Juice Team"],
+      section: post.frontmatter.category,
+      tags: [
+        "fitness",
+        "coaching",
+        "personal trainer",
+        post.frontmatter.category.toLowerCase(),
+        "business growth",
+        "marketing",
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.frontmatter.title,
+      description: post.frontmatter.excerpt,
+      images: [imageUrl],
+      creator: "@JuiceFitness",
+      site: "@JuiceFitness",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    other: {
+      "article:author": "Juice Team",
+      "article:publisher": "Juice Fitness",
+      "article:section": post.frontmatter.category,
+      "article:tag": post.frontmatter.category.toLowerCase(),
+    },
+  }
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
@@ -60,13 +184,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
+  // JSON-LD structured data for this specific article
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.frontmatter.title,
-    image: post.frontmatter.image
-      ? `${baseUrl}${post.frontmatter.image}`
-      : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`,
+    description: post.frontmatter.excerpt,
+    image: {
+      "@type": "ImageObject",
+      url: post.frontmatter.image
+        ? `${baseUrl}${post.frontmatter.image}`
+        : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`,
+      width: 1200,
+      height: 630,
+    },
     datePublished: post.frontmatter.date,
     dateModified: post.frontmatter.date,
     author: {
@@ -90,13 +221,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ReadingProgress />
       <main className="min-h-screen bg-white text-black">
         <Navbar isCoach={true} className="bg-white" />
 
         <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
           {/* Back to Blog */}
           <Link
             href="/blog"

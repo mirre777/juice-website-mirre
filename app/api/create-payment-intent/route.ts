@@ -32,6 +32,8 @@ export async function POST(request: NextRequest) {
         enabled: true,
         allow_redirects: "never", // Prevent redirects for better UX
       },
+      // REMOVED: allow_promotion_codes - this parameter doesn't exist for PaymentIntents
+      // Promotion codes are handled by the PaymentElement frontend configuration
     })
 
     console.log("Payment intent created successfully:", paymentIntent.id)
