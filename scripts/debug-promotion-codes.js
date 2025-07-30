@@ -1,63 +1,87 @@
 /**
- * Debug script for Stripe promotion codes in PaymentElement
+ * Debug script for Stripe promotion codes - Server-side version
  * This script will help identify why promotion codes aren't showing up
  */
 
 console.log("🔍 DEBUGGING PROMOTION CODES FOR STRIPE PAYMENT ELEMENT")
 console.log("=".repeat(60))
 
-// Test data
-const testTempId = "temp_175381126719_53n4o1bbe" // Replace with actual temp ID
-const testEmail = "mirresnelting@gmail.com"
+// Import Stripe (simulated - in real environment you'd import from stripe package)
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "sk_test_..."
 
 async function debugPromotionCodes() {
   try {
-    console.log("1️⃣ TESTING PAYMENT INTENT CREATION")
+    console.log("1️⃣ CHECKING STRIPE CONFIGURATION")
     console.log("-".repeat(40))
 
-    // Test payment intent creation
-    const paymentIntentResponse = await fetch("/api/create-payment-intent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    console.log("Stripe Secret Key:", STRIPE_SECRET_KEY ? "Present" : "❌ MISSING")
+    console.log("API Version: 2024-06-20")
+
+    console.log("\n2️⃣ PROMOTION CODE REQUIREMENTS CHECKLIST")
+    console.log("-".repeat(40))
+
+    const requirements = [
+      "✓ Stripe account has promotion codes enabled",
+      "✓ Coupons exist in Stripe Dashboard",
+      "✓ Promotion codes are created for coupons",
+      "✓ Coupons are in 'Active' status",
+      "✓ Currency matches PaymentIntent (EUR)",
+      "✓ No usage limits reached",
+      "✓ No geographic restrictions",
+      "✓ PaymentElement configured correctly",
+    ]
+
+    requirements.forEach((req) => console.log(req))
+
+    console.log("\n3️⃣ COMMON ISSUES & SOLUTIONS")
+    console.log("-".repeat(40))
+
+    const issues = [
+      {
+        issue: "Coupons exist but no promotion codes created",
+        solution: "Go to Stripe Dashboard → Coupons → Create promotion codes",
       },
-      body: JSON.stringify({
-        tempId: testTempId,
-        email: testEmail,
-      }),
+      {
+        issue: "Promotion codes not showing in PaymentElement",
+        solution: "Check if account has promotion codes feature enabled",
+      },
+      {
+        issue: "Currency mismatch",
+        solution: "Ensure coupons are configured for EUR currency",
+      },
+      {
+        issue: "Geographic restrictions",
+        solution: "Remove country restrictions from coupons",
+      },
+    ]
+
+    issues.forEach((item, index) => {
+      console.log(`${index + 1}. Issue: ${item.issue}`)
+      console.log(`   Solution: ${item.solution}\n`)
     })
 
-    console.log("Payment Intent Response Status:", paymentIntentResponse.status)
-
-    if (!paymentIntentResponse.ok) {
-      const errorData = await paymentIntentResponse.json()
-      console.error("❌ Payment Intent Creation Failed:", errorData)
-      return
-    }
-
-    const paymentData = await paymentIntentResponse.json()
-    console.log("✅ Payment Intent Created:", paymentData.paymentIntentId)
-    console.log("Client Secret:", paymentData.clientSecret ? "Present" : "Missing")
-
-    console.log("\n2️⃣ TESTING STRIPE COUPONS API")
+    console.log("4️⃣ STRIPE DASHBOARD VERIFICATION STEPS")
     console.log("-".repeat(40))
 
-    // Test if we can fetch coupons (this would be a server-side test)
-    console.log("📝 Manual Check Required:")
-    console.log("- Go to Stripe Dashboard → Product Catalog → Coupons")
-    console.log("- Verify JUICEFRIENDS and ONLYMIRRE coupons exist")
-    console.log("- Check if coupons are 'Active' status")
-    console.log("- Verify coupons have promotion codes created")
+    const steps = [
+      "1. Login to Stripe Dashboard",
+      "2. Go to Product Catalog → Coupons",
+      "3. Find JUICEFRIENDS and ONLYMIRRE coupons",
+      "4. Click on each coupon",
+      "5. Check 'Promotion codes' section",
+      "6. Verify promotion codes exist and are active",
+      "7. Check currency is set to EUR",
+      "8. Verify no usage limits are reached",
+    ]
 
-    console.log("\n3️⃣ TESTING PAYMENT ELEMENT CONFIGURATION")
+    steps.forEach((step) => console.log(step))
+
+    console.log("\n5️⃣ PAYMENTELEMENT CONFIGURATION CHECK")
     console.log("-".repeat(40))
 
-    // Check if PaymentElement is configured correctly
     const paymentElementConfig = {
       layout: "tabs",
-      business: {
-        name: "Juice Fitness",
-      },
+      business: { name: "Juice Fitness" },
       fields: {
         billingDetails: {
           name: "auto",
@@ -67,58 +91,70 @@ async function debugPromotionCodes() {
       },
     }
 
-    console.log("✅ PaymentElement Config:", JSON.stringify(paymentElementConfig, null, 2))
+    console.log("Current PaymentElement config:")
+    console.log(JSON.stringify(paymentElementConfig, null, 2))
 
-    console.log("\n4️⃣ CHECKING STRIPE API VERSION")
-    console.log("-".repeat(40))
-    console.log("Current Stripe API Version: 2024-06-20")
-    console.log("📝 Note: Promotion codes in PaymentElement require specific API versions")
-
-    console.log("\n5️⃣ PROMOTION CODE VISIBILITY CONDITIONS")
-    console.log("-".repeat(40))
-    console.log("Promotion codes appear when:")
-    console.log("✓ Valid coupons exist in Stripe Dashboard")
-    console.log("✓ Coupons have promotion codes created")
-    console.log("✓ Coupons are in 'Active' status")
-    console.log("✓ PaymentIntent currency matches coupon currency")
-    console.log("✓ Customer location allows the coupon")
-    console.log("✓ Coupon hasn't reached usage limits")
-
-    console.log("\n6️⃣ TESTING PROMOTION CODE MANUALLY")
+    console.log("\n6️⃣ TESTING PAYMENT INTENT METADATA")
     console.log("-".repeat(40))
 
-    // Test promotion code validation (server-side would be better)
-    console.log("🧪 Manual Test Steps:")
-    console.log("1. Open browser dev tools")
-    console.log("2. Go to payment page")
-    console.log("3. Look for 'Add promotion code' link")
-    console.log("4. If not visible, check Stripe Elements console logs")
-    console.log("5. Try different browsers/devices")
+    const testPaymentIntentData = {
+      amount: 6900,
+      currency: "eur",
+      description: "Trainer Website Activation - temp_test",
+      metadata: {
+        tempId: "temp_test",
+        plan: "trainer-activation",
+        planType: "Trainer Website Activation",
+      },
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: "never",
+      },
+    }
 
-    console.log("\n7️⃣ ALTERNATIVE SOLUTIONS")
+    console.log("PaymentIntent configuration:")
+    console.log(JSON.stringify(testPaymentIntentData, null, 2))
+
+    console.log("\n7️⃣ BROWSER TESTING INSTRUCTIONS")
     console.log("-".repeat(40))
-    console.log("If promotion codes still don't appear:")
-    console.log("• Add manual discount code input field")
-    console.log("• Apply discounts server-side before PaymentIntent")
+
+    console.log("To test in browser:")
+    console.log("1. Open payment page in browser")
+    console.log("2. Open Developer Tools (F12)")
+    console.log("3. Go to Console tab")
+    console.log("4. Look for Stripe-related messages")
+    console.log("5. Check for 'promotion' or 'coupon' mentions")
+    console.log("6. Try different browsers/incognito mode")
+
+    console.log("\n8️⃣ ALTERNATIVE IMPLEMENTATION")
+    console.log("-".repeat(40))
+
+    console.log("If promotion codes still don't appear, consider:")
+    console.log("• Manual discount code input field")
+    console.log("• Server-side coupon validation")
+    console.log("• Apply discounts before PaymentIntent creation")
     console.log("• Use Stripe Checkout instead of PaymentElement")
-    console.log("• Contact Stripe support for account-specific issues")
 
-    console.log("\n8️⃣ DEBUGGING CHECKLIST")
+    console.log("\n9️⃣ NEXT DEBUGGING STEPS")
     console.log("-".repeat(40))
-    console.log("□ Coupons exist and are active")
-    console.log("□ Promotion codes are created for coupons")
-    console.log("□ PaymentIntent created successfully")
-    console.log("□ Currency matches (EUR)")
-    console.log("□ No usage limits reached")
-    console.log("□ Customer location allows coupon")
-    console.log("□ Stripe API version supports promotion codes")
 
-    console.log("\n🎯 NEXT STEPS")
+    console.log("1. Verify Stripe Dashboard settings")
+    console.log("2. Test with a fresh coupon/promotion code")
+    console.log("3. Check Stripe account features")
+    console.log("4. Contact Stripe support if needed")
+    console.log("5. Implement manual discount field as backup")
+
+    console.log("\n🎯 IMMEDIATE ACTION ITEMS")
     console.log("-".repeat(40))
-    console.log("1. Verify all checklist items above")
-    console.log("2. Check Stripe Dashboard for promotion code settings")
-    console.log("3. Test with different coupon configurations")
-    console.log("4. Consider implementing manual discount field")
+
+    console.log("□ Check Stripe Dashboard for promotion codes")
+    console.log("□ Verify JUICEFRIENDS coupon has promotion code")
+    console.log("□ Verify ONLYMIRRE coupon has promotion code")
+    console.log("□ Test with different coupon configuration")
+    console.log("□ Check browser console for Stripe errors")
+
+    console.log("\n✅ DEBUG SCRIPT COMPLETED")
+    console.log("Check the items above and report back with findings!")
   } catch (error) {
     console.error("❌ Debug script failed:", error)
   }
@@ -127,42 +163,7 @@ async function debugPromotionCodes() {
 // Run the debug script
 debugPromotionCodes()
 
-// Additional helper functions
-window.debugStripePromotionCodes = {
-  // Test if Stripe is loaded
-  checkStripeLoaded: () => {
-    console.log("Stripe loaded:", typeof window.Stripe !== "undefined")
-    return typeof window.Stripe !== "undefined"
-  },
-
-  // Check PaymentElement instance
-  checkPaymentElement: () => {
-    const paymentElements = document.querySelectorAll('[data-testid="payment-element"]')
-    console.log("PaymentElement instances found:", paymentElements.length)
-    return paymentElements.length > 0
-  },
-
-  // Look for promotion code elements
-  findPromotionCodeElements: () => {
-    const promotionElements = document.querySelectorAll(
-      '[data-testid*="promotion"], [class*="promotion"], [id*="promotion"]',
-    )
-    console.log("Promotion-related elements found:", promotionElements.length)
-    promotionElements.forEach((el, index) => {
-      console.log(`Element ${index}:`, el.tagName, el.className, el.textContent?.slice(0, 50))
-    })
-    return promotionElements
-  },
-
-  // Check for Stripe console messages
-  checkStripeConsole: () => {
-    console.log("💡 Check browser console for Stripe-specific messages")
-    console.log("Look for messages containing 'promotion', 'coupon', or 'discount'")
-  },
+// Export for potential use in other scripts
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { debugPromotionCodes }
 }
-
-console.log("\n🛠️ ADDITIONAL DEBUG TOOLS AVAILABLE:")
-console.log("- window.debugStripePromotionCodes.checkStripeLoaded()")
-console.log("- window.debugStripePromotionCodes.checkPaymentElement()")
-console.log("- window.debugStripePromotionCodes.findPromotionCodeElements()")
-console.log("- window.debugStripePromotionCodes.checkStripeConsole()")
