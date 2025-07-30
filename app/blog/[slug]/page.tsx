@@ -71,17 +71,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
-  // Ensure absolute URLs for Open Graph images
-  const getAbsoluteImageUrl = (imagePath: string) => {
-    if (imagePath.startsWith("http")) {
-      return imagePath // Already absolute
-    }
-    return `${baseUrl}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`
-  }
-
   const imageUrl = post.frontmatter.image
-    ? getAbsoluteImageUrl(post.frontmatter.image)
-    : getAbsoluteImageUrl(getPlaceholderImage(post.frontmatter.category))
+    ? `${baseUrl}${post.frontmatter.image}`
+    : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`
 
   // Generate SEO-optimized keywords based on post content and category
   const generateKeywords = (title: string, category: string, excerpt: string) => {
@@ -137,7 +129,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       siteName: "Juice Fitness",
       images: [
         {
-          url: imageUrl, // Now using absolute URL
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: post.frontmatter.title,
@@ -162,7 +154,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       card: "summary_large_image",
       title: post.frontmatter.title,
       description: post.frontmatter.excerpt,
-      images: [imageUrl], // Now using absolute URL
+      images: [imageUrl],
       creator: "@JuiceFitness",
       site: "@JuiceFitness",
     },
@@ -209,14 +201,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Get related articles
   const relatedArticles = await getRelatedArticles(params.slug, 2)
 
-  // Helper function to ensure absolute URLs
-  const getAbsoluteImageUrl = (imagePath: string) => {
-    if (imagePath.startsWith("http")) {
-      return imagePath // Already absolute
-    }
-    return `${baseUrl}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`
-  }
-
   // JSON-LD structured data for this specific article
   const jsonLd = {
     "@context": "https://schema.org",
@@ -226,8 +210,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     image: {
       "@type": "ImageObject",
       url: post.frontmatter.image
-        ? getAbsoluteImageUrl(post.frontmatter.image)
-        : getAbsoluteImageUrl(getPlaceholderImage(post.frontmatter.category)),
+        ? `${baseUrl}${post.frontmatter.image}`
+        : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`,
       width: 1200,
       height: 630,
     },

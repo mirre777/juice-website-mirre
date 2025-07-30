@@ -25,15 +25,6 @@ const BLOG_CONTENT_PATH = "blog/"
 // Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
-    title: "⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?",
-    date: "2025-02-04",
-    excerpt:
-      "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
-    category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wearables-6M9gjZe0oAPKTe3u5KV7qUZ2pSzDRP.png",
-    slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
-  },
-  {
     title: "📊 Tracking Biometrics: What Actually Moves the Needle",
     date: "2025-02-03",
     excerpt:
@@ -122,347 +113,6 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
 ]
 
 const SAMPLE_BLOG_CONTENT = {
-  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `# ⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?
-
-**TL;DR:** Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they **legit**? Let's break down what they do well and where they fail.
-
----
-
-## The Wearable Revolution in Fitness
-
-Walk into any gym today and you'll see them: Apple Watches tracking heart rates, Garmin devices counting reps, WHOOP bands measuring strain. The wearable fitness market is exploding, with devices promising to track everything from your sleep quality to your deadlift form.
-
-But here's the million-dollar question: **Are these devices actually accurate for strength training?**
-
-The short answer? **It's complicated.**
-
----
-
-## What Wearables Actually Do Well
-
-### 1. **Heart Rate Monitoring During Cardio**
-
-Wearables excel at tracking cardiovascular metrics during steady-state activities:
-
-- **Running and cycling**: Chest strap accuracy (±1-2 bpm)
-- **HIIT circuits**: Good for tracking intensity zones
-- **Metabolic conditioning**: Reliable for overall workout intensity
-
-**Why they work here:** Consistent, rhythmic movements with predictable heart rate patterns.
-
-### 2. **Basic Activity Tracking**
-
-The bread and butter of wearable technology:
-
-- **Step counting**: 95%+ accuracy for walking and running
-- **Distance tracking**: GPS-enabled devices are highly reliable
-- **Sleep monitoring**: Decent for sleep duration and basic patterns
-- **Calorie burn during cardio**: Reasonably accurate for steady-state exercise
-
-### 3. **Workout Auto-Detection**
-
-Modern devices are getting better at recognizing activities:
-
-- **Apple Watch**: Can detect when you start lifting weights
-- **Garmin**: Recognizes various cardio activities automatically
-- **Fitbit**: Decent at detecting when you're "active"
-
-**The catch:** Detection usually kicks in after 10+ minutes of activity.
-
----
-
-## Where Wearables Struggle with Strength Training
-
-### 1. **Calorie Burn Estimates Are Wildly Inaccurate**
-
-This is where things get messy. Reddit users consistently report massive discrepancies:
-
-> *"My Garmin says I burned 400 calories during a 45-minute lifting session. My heart rate barely got above 120 bpm. There's no way that's accurate."*
-> 
-> **— r/Garmin user**
-
-**The problem:** Strength training doesn't follow the same metabolic patterns as cardio. Wearables use cardio-based algorithms for everything.
-
-**Real-world example:**
-- **Your Garmin says:** 12 bicep curls = 15 calories
-- **Reality:** Those curls probably burned 2-3 calories
-- **The difference:** 400-500% overestimation
-
-### 2. **Movement Tracking is Primitive**
-
-Current wearables can't distinguish between:
-
-- **A 135lb squat vs. a 315lb squat** (same movement, vastly different effort)
-- **Perfect form vs. sloppy form** (affects muscle activation and energy expenditure)
-- **Full range of motion vs. partial reps** (changes the actual work performed)
-- **Compound movements vs. isolation exercises** (different energy systems)
-
-### 3. **Rep Counting is Hit-or-Miss**
-
-While some devices attempt to count reps, the accuracy varies wildly:
-
-**What works:**
-- Simple, consistent movements (bicep curls, shoulder presses)
-- Exercises with clear start/stop points
-
-**What doesn't work:**
-- Complex movements (deadlifts, squats, Olympic lifts)
-- Supersets or circuit training
-- Isometric holds or pause reps
-
-### 4. **No Understanding of Training Load**
-
-Wearables can't assess:
-
-- **Volume load** (sets × reps × weight)
-- **Relative intensity** (% of 1RM)
-- **Time under tension**
-- **Rest periods between sets**
-- **Progressive overload patterns**
-
----
-
-## What the Research Actually Says
-
-### The Good News
-
-**Polar V800 Study:**
-- **Vertical jump height**: High validity vs. force platforms (ICC ~0.95)
-- **Heart rate accuracy**: Excellent during exercise
-- **Activity recognition**: Good for basic movements
-
-### The Reality Check
-
-**Strength training metrics are largely outside the scope** of current wearable validation studies. Most research focuses on:
-
-- Cardio activities (running, cycling)
-- Basic activity tracking (steps, sleep)
-- Heart rate accuracy
-
-**Translation:** The science backing wearables for strength training is thin.
-
-### What Trainers Are Saying
-
-Reddit's r/personaltraining community is split:
-
-> *"I tell my clients to ignore the calorie burn from lifting. Use it for heart rate trends and sleep tracking, but don't trust it for strength work."*
-> 
-> **— Certified Personal Trainer**
-
-> *"The rep counting is so bad I turned it off. I'd rather have my clients log manually in a spreadsheet."*
-> 
-> **— Strength Coach**
-
----
-
-## The Real-World Impact for Trainers
-
-### Client Confusion
-
-**Common client questions:**
-- "My watch says I only burned 200 calories lifting for an hour. Should I do more cardio?"
-- "Why does my friend's Apple Watch show different numbers than mine?"
-- "The app says I did 50 squats, but I only did 30. Is it broken?"
-
-### Programming Challenges
-
-**When clients rely too heavily on wearables:**
-- They prioritize calorie burn over strength gains
-- They get discouraged by "low" numbers during lifting
-- They make training decisions based on inaccurate data
-
-### The Opportunity
-
-**Smart trainers use wearables strategically:**
-- Track sleep quality and recovery
-- Monitor heart rate trends over time
-- Use as motivation tools, not precision instruments
-- Combine with manual logging for complete picture
-
----
-
-## Best Practices for Trainers Using Wearables
-
-### 1. **Set Proper Expectations**
-
-**What to tell clients:**
-- "Your watch is great for cardio tracking, but strength training is different"
-- "Use it for trends, not absolute numbers"
-- "The best tracker for lifting is still a notebook"
-
-### 2. **Use Them for Correlative Data**
-
-**Focus on patterns:**
-- **Sleep quality** vs. training performance
-- **Resting heart rate** trends over time
-- **Heart rate variability** for recovery assessment
-- **Daily activity levels** outside the gym
-
-### 3. **Combine with Manual Logging**
-
-**The hybrid approach:**
-- Wearable tracks: Heart rate, sleep, general activity
-- Manual logging: Sets, reps, weights, RPE, notes
-- Apps like Google Sheets or specialized training apps for detailed tracking
-
-### 4. **Educate About Limitations**
-
-**Key points to cover:**
-- Calorie burn estimates are rough approximations
-- Rep counting works better for some exercises than others
-- Strength gains don't always correlate with wearable metrics
-- Recovery data is more valuable than workout data for lifting
-
----
-
-## The Future of Wearables and Strength Training
-
-### Emerging Technologies
-
-**What's coming:**
-- **Computer vision**: Cameras that analyze form and count reps
-- **IMU sensors**: More sophisticated movement analysis
-- **AI integration**: Better understanding of individual patterns
-- **Barbell sensors**: Direct load measurement
-
-### Current Innovations
-
-**Promising developments:**
-- **PUSH Band**: Velocity-based training metrics
-- **GymAware**: Linear position transducers for power measurement
-- **Vitruve**: Smartphone-based velocity tracking
-- **MyLift**: Barbell path analysis
-
-### The Reality Check
-
-**Even with improvements:**
-- Manual logging will remain important
-- Wearables will supplement, not replace, coaching expertise
-- The human element in training assessment is irreplaceable
-
----
-
-## Practical Recommendations
-
-### For Individual Trainers
-
-**Do:**
-- Use wearables for sleep and recovery tracking
-- Monitor heart rate trends during training
-- Educate clients about limitations
-- Combine wearable data with manual logs
-
-**Don't:**
-- Rely on calorie burn estimates for programming
-- Use rep counts as gospel truth
-- Let wearable data override coaching intuition
-- Ignore client feedback in favor of device data
-
-### For Gym Owners
-
-**Consider:**
-- Partnering with wearable companies for member perks
-- Training staff on wearable limitations
-- Offering manual logging alternatives
-- Investing in specialized strength tracking tools
-
-### For Clients
-
-**Remember:**
-- Wearables are tools, not truth-tellers
-- Consistency matters more than perfect tracking
-- Your body's feedback is more important than device data
-- Progress photos and strength gains trump wearable metrics
-
----
-
-## The Bottom Line
-
-Wearables are **powerful tools** for general fitness tracking, but they're **not muscle meters**. When it comes to complex lifting movements, they're more like **fitness assistants** than **precision instruments**.
-
-**The reality:**
-- Great for cardio and basic activity tracking
-- Decent for sleep and recovery monitoring
-- Poor for strength training specifics
-- Terrible for accurate calorie burn during lifting
-
-**The solution:**
-Use wearables to **support** your coaching, not **replace** your coaching. For now, the best tracker for strength training is still a combination of:
-
-1. **A good notebook or app** for sets, reps, and weights
-2. **Your trained eye** for form and effort assessment
-3. **Client feedback** for RPE and recovery
-4. **Wearable data** for sleep, heart rate trends, and general activity
-
----
-
-## Tools and Resources
-
-### Recommended Wearables for Trainers
-- **Apple Watch**: Best overall ecosystem, good heart rate accuracy
-- **Garmin Forerunner/Fenix**: Excellent for endurance athletes
-- **WHOOP**: Great for recovery tracking
-- **Oura Ring**: Superior sleep monitoring
-
-### Manual Logging Solutions
-- **Google Sheets**: Free, customizable, accessible anywhere
-- **Strong App**: Simple, effective strength tracking
-- **Jefit**: Comprehensive exercise database
-- **MyFitnessPal**: Good for combining nutrition and basic exercise logging
-
-### Specialized Strength Tracking
-- **PUSH Band**: Velocity-based training
-- **GymAware**: Professional linear position transducer
-- **Vitruve**: Smartphone-based velocity tracking
-- **MyLift**: Barbell path analysis
-
----
-
-## Frequently Asked Questions
-
-### **Q: Should I tell my clients to stop using their fitness trackers?**
-A: No! Use them strategically. Great for motivation, sleep tracking, and general activity. Just set proper expectations for strength training accuracy.
-
-### **Q: Which wearable is most accurate for weightlifting?**
-A: None are particularly accurate for strength training specifics. Apple Watch and Garmin are decent for heart rate during lifting, but manual logging is still king.
-
-### **Q: How do I handle clients obsessed with calorie burn numbers?**
-A: Education is key. Explain that strength training benefits go beyond calories burned. Focus on strength gains, body composition changes, and how they feel.
-
-### **Q: Are there any wearables specifically designed for strength training?**
-A: PUSH Band and similar devices focus on velocity-based training, but they're specialized tools, not general fitness trackers.
-
-### **Q: Should I invest in gym-specific tracking technology?**
-A: For serious strength training facilities, tools like GymAware or Vitruve can add value. For general fitness, manual logging combined with basic wearables works well.
-
----
-
-## Final Rep
-
-Wearables have revolutionized fitness tracking, but **they're not magic**. When it comes to complex lifting movements, they're more like **training wheels** than **precision instruments**.
-
-**The smart approach:**
-- Embrace wearables for what they do well
-- Acknowledge their limitations
-- Combine technology with traditional tracking methods
-- Keep the focus on what matters: consistent training and progressive overload
-
-**Remember:** The best fitness tracker is the one that helps your clients stay consistent and motivated, whether that's a $500 smartwatch or a $2 notebook.
-
-Your expertise as a trainer is irreplaceable. Use technology to enhance your coaching, not replace it.
-
----
-
-## Sources and Further Reading
-
-- [Reddit: Be Wary of Calorie Counts for Weightlifting](https://www.reddit.com/r/Garmin/comments/17c9lu8/be_weary_of_calorie_counts_for_weightlifting/)
-- [Reddit: Weightlifting on Garmin is by Far its Weakest Feature](https://www.reddit.com/r/Garmin/comments/1cqa26x/weightlifting_on_garmin_is_by_far_its_weakest_and/)
-- [Reddit: Google Sheets vs App for Personal Training](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)
-- [Self Magazine: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
-- [Research: Wearable Technology in Sports](https://arxiv.org/abs/2203.16442)
-
-*Want more insights on fitness technology? Check out our guides on [biometric tracking](https://juice.fitness/blog/tracking-biometrics-what-actually-moves-the-needle) and [Google Sheets for coaching](https://juice.fitness/blog/google-sheets-for-coaching-trainers-secret-weapon-or-trap).*`,
-
   "tracking-biometrics-what-actually-moves-the-needle": `# 📊 Tracking Biometrics: What Actually Moves the Needle
 
 **TL;DR:** Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
@@ -1069,306 +719,7 @@ Reddit trainers were blunt:
 ### **3. Build Exercise Databases**
 
 **Create searchable libraries:**
-- **Exercise name**: Standardized naming convention
-- **Muscle groups**: Primary and secondary targets
-- **Equipment needed**: Barbell, dumbbell, bodyweight, etc.
-- **Difficulty level**: Beginner, intermediate, advanced
-- **Video links**: Form demonstrations
-- **Coaching cues**: Key technique points
-
-### **4. Automate What You Can**
-
-**Smart formulas save time:**
-- **1RM calculations**: Epley, Brzycki, Lombardi formulas
-- **Volume load**: Automatic sets × reps × weight calculations
-- **Percentage-based loading**: Auto-populate weights based on max
-- **Progress tracking**: Week-over-week comparison formulas
-
-### **5. Create Client-Friendly Views**
-
-**Separate complexity from simplicity:**
-- **Client view**: Clean, simple input fields
-- **Coach view**: Complex formulas and analytics
-- **Summary dashboards**: Key metrics at a glance
-- **Progress charts**: Visual representation of improvements
-
----
-
-## The Hybrid Approach: Best of Both Worlds
-
-### **Sheets for Coaches, Apps for Clients**
-
-**The strategy:**
-1. **Coach uses Sheets** for program design and analysis
-2. **Client uses simple app** for daily logging
-3. **Data syncs** between systems (manually or via Zapier)
-4. **Weekly reviews** combine both data sources
-
-### **Popular App Combinations**
-- **Sheets + MyFitnessPal**: Nutrition and basic exercise tracking
-- **Sheets + Strong**: Simple strength training logs
-- **Sheets + Jefit**: Exercise database with tracking
-- **Sheets + Google Forms**: Custom client check-ins
-
----
-
-## Real-World Implementation Examples
-
-### **Case Study 1: Powerlifting Coach**
-
-**The setup:**
-- Master spreadsheet with 12-week periodization
-- Individual client sheets with auto-populated percentages
-- Weekly RPE tracking and autoregulation
-- Competition peak calculator
-
-**Results:**
-- 15 athletes, 3 state records set
-- 90% client retention rate
-- $0 monthly software costs
-
-### **Case Study 2: Online Fitness Coach**
-
-**The system:**
-- Google Forms for client check-ins
-- Sheets for program design and progress tracking
-- Automated email reports via Google Scripts
-- Integration with Stripe for billing
-
-**Outcome:**
-- Scaled to 50+ clients
-- Maintained personal touch
-- Built custom analytics dashboard
-- Sold business for 6-figure sum
-
-### **Case Study 3: CrossFit Gym**
-
-**The approach:**
-- Shared sheets for class programming
-- Individual athlete tracking
-- Leaderboards and competitions
-- Injury tracking and correlation analysis
-
-**Impact:**
-- Reduced programming time by 60%
-- Improved athlete performance tracking
-- Better injury prevention protocols
-- Enhanced community engagement
-
----
-
-## When to Choose Sheets vs. Apps
-
-### **Choose Google Sheets If:**
-- You're a solo trainer or small gym
-- You have specific programming methodologies
-- You want complete data ownership
-- You're comfortable with spreadsheets
-- Budget is a primary concern
-- You need custom analytics
-
-### **Choose Coaching Apps If:**
-- You have 20+ clients
-- Client experience is priority #1
-- You want automated features
-- You're not tech-savvy
-- You need built-in payment processing
-- Professional appearance matters most
-
-### **Consider Hybrid If:**
-- You want the best of both worlds
-- You have moderate technical skills
-- You're willing to invest setup time
-- You want to scale gradually
-
----
-
-## Common Sheets Mistakes to Avoid
-
-### **❌ Mistake #1: Over-Engineering**
-**Problem:** 50-tab spreadsheets that crash browsers
-**Solution:** Keep it simple, separate by function
-
-### **❌ Mistake #2: No Mobile Testing**
-**Problem:** Looks great on desktop, unusable on phone
-**Solution:** Test everything on mobile first
-
-### **❌ Mistake #3: Broken Formulas**
-**Problem:** Clients accidentally delete formulas
-**Solution:** Protect formula cells, use data validation
-
-### **❌ Mistake #4: No Backup Strategy**
-**Problem:** Losing months of client data
-**Solution:** Automatic backups, version history
-
-### **❌ Mistake #5: Poor Organization**
-**Problem:** Can't find anything, chaos everywhere
-**Solution:** Consistent naming, clear folder structure
-
----
-
-## Advanced Sheets Techniques
-
-### **Conditional Formatting for Insights**
-- **Red cells**: When RPE exceeds targets
-- **Green cells**: When strength PRs are hit
-- **Yellow cells**: When volume drops significantly
-- **Progress bars**: Visual representation of goal completion
-
-### **Data Validation for Consistency**
-- **Dropdown menus**: Exercise selection, RPE ratings
-- **Number ranges**: Prevent impossible entries
-- **Date validation**: Ensure proper formatting
-- **Custom formulas**: Complex validation rules
-
-### **Google Scripts for Automation**
-- **Automated emails**: Weekly progress reports
-- **Data imports**: From other platforms
-- **Custom functions**: Specialized calculations
-- **Trigger-based actions**: Automatic responses
-
-### **Integration Possibilities**
-- **Zapier connections**: Link to 1000+ apps
-- **API integrations**: Custom data flows
-- **Google Workspace**: Seamless ecosystem
-- **Third-party add-ons**: Extended functionality
-
----
-
-## The Future of Sheets in Coaching
-
-### **Emerging Trends**
-- **AI-powered insights**: Google's machine learning integration
-- **Better mobile experience**: Improved mobile editing
-- **Real-time collaboration**: Enhanced sharing features
-- **Voice input**: Hands-free data entry
-
-### **Competitive Landscape**
-- **Notion**: Database-spreadsheet hybrid
-- **Airtable**: User-friendly database alternative
-- **Microsoft 365**: Excel with cloud features
-- **Specialized platforms**: Industry-specific solutions
-
----
-
-## Making the Decision: A Framework
-
-### **Assess Your Situation**
-
-**Technical Skills (1-10):**
-- 1-3: Stick with simple apps
-- 4-6: Consider hybrid approach
-- 7-10: Sheets can work well
-
-**Client Count:**
-- 1-10 clients: Sheets viable
-- 11-25 clients: Hybrid recommended
-- 25+ clients: Dedicated app likely better
-
-**Budget Constraints:**
-- Tight budget: Sheets advantage
-- Moderate budget: Hybrid approach
-- Flexible budget: Best app for needs
-
-**Programming Complexity:**
-- Simple programs: Apps work fine
-- Complex periodization: Sheets advantage
-- Highly specialized: Custom solution needed
-
----
-
-## The Bottom Line
-
-Google Sheets isn't the sexiest solution, but it might be the smartest for many trainers. The key is honest self-assessment:
-
-**Sheets work when:**
-- You prioritize functionality over form
-- You have the technical skills to implement properly
-- You want complete control and customization
-- Budget is a significant constraint
-
-**Sheets fail when:**
-- Client experience is the top priority
-- You lack technical implementation skills
-- You need extensive automation
-- Professional appearance is crucial
-
-**The hybrid approach often wins:**
-- Use Sheets for what they do best (analysis, customization)
-- Use apps for what they do best (user experience, automation)
-- Combine strategically based on your specific needs
-
----
-
-## Getting Started: Your First Sheet
-
-### **Week 1: Basic Setup**
-1. Create master client list
-2. Build simple workout template
-3. Add basic progress tracking
-4. Test on mobile device
-
-### **Week 2: Enhancement**
-1. Add conditional formatting
-2. Create dropdown menus
-3. Build simple charts
-4. Share with test client
-
-### **Week 3: Optimization**
-1. Gather client feedback
-2. Refine mobile experience
-3. Add automation where helpful
-4. Create backup system
-
-### **Week 4: Scale**
-1. Template for new clients
-2. Standardize processes
-3. Train any team members
-4. Plan future enhancements
-
----
-
-## Resources and Templates
-
-### **Free Templates**
-- **Basic strength training log**: Sets, reps, weight tracking
-- **Periodization planner**: 12-week program template
-- **Client assessment form**: Intake and progress tracking
-- **Exercise database**: Searchable movement library
-
-### **Learning Resources**
-- **Google Sheets Help Center**: Official documentation
-- **YouTube tutorials**: Visual learning
-- **Reddit communities**: r/GoogleSheets, r/personaltraining
-- **Online courses**: Udemy, Coursera spreadsheet courses
-
-### **Integration Tools**
-- **Zapier**: Connect Sheets to other apps
-- **Google Forms**: Easy data collection
-- **Google Scripts**: Advanced automation
-- **Add-ons marketplace**: Extended functionality
-
----
-
-## Final Rep
-
-Google Sheets for coaching isn't about being cheap—it's about being intentional. When used properly, Sheets can be a powerful coaching tool that grows with your business.
-
-**The reality:**
-- Not every trainer needs a $100/month app
-- Customization often beats convenience
-- Your coaching matters more than your software
-- The best system is the one you'll actually use
-
-**The choice is yours:**
-- Embrace the flexibility and control of Sheets
-- Invest in polished coaching apps
-- Find a hybrid approach that works
-- Focus on what matters most: helping clients succeed
-
-Whatever you choose, remember: your expertise as a trainer is irreplaceable. Use technology to enhance your coaching, not replace it.
-
-*Ready to explore more coaching technology options? Check out our guides on [biometric tracking](https://juice.fitness/blog/tracking-biometrics-what-actually-moves-the-needle) and [fitness software solutions](https://juice.fitness/blog/top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year).*`,
+`,
 
   "how-to-get-more-clients-with-booking-page": `# 📱 How to Get More Clients with a Booking Page
 
@@ -1406,15 +757,7 @@ Try [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) 
 - **Payment processing**: Stripe integration included
 - **No coding required**: Live in 10 minutes
 
-> *"I had a website in 3 minutes. Clients book while I'm coaching."* 
-> 
-> **— Laner, Personal Trainer**
-
-**Perfect for:** European trainers who want bookings, not just a pretty site.
-
----
-
-## 2. Show Your Services Clearly
+### 2. Show Your Services Clearly
 
 **Bad example:**
 - "Training sessions available"
@@ -1807,1399 +1150,1061 @@ Juice is made for trainers in Europe, with SEO baked in. Use keywords like:
 
 👉 [Create your trainer website in 10 minutes](https://juice.fitness/marketplace/personal-trainer-website)
 
-*No credit card required. No coding needed.* 
+*No credit card required. No coding needed. Just results.*
 
 ---
 
 ## Frequently Asked Questions
 
-### **Q: Do I really need a website if I have Instagram?**
-A: Instagram is for marketing. A website is for converting. You need both.
+### **Q: Do I really need a website as a personal trainer?**
+A: Yes. 89% of people research trainers online before booking. No website = invisible to potential clients.
 
-### **Q: What's the difference between a website and a landing page?**
-A: A website has multiple pages. A landing page focuses on one goal: booking sessions.
+### **Q: Can't I just use Instagram?**
+A: Instagram is great for marketing, but you can't take bookings or payments directly. You need a professional website.
 
-### **Q: Can I use these for online coaching too?**
-A: Yes, especially Juice and Systeme.io which handle digital products well.
+### **Q: How much should I spend on a website?**
+A: Start free, then invest in premium features as you grow. Don't spend €500/month on a website when you're making €2000/month.
 
-### **Q: What about domain names?**
-A: Most platforms include a subdomain (yourname.juice.fitness). Custom domains usually cost €10-15/year.
+### **Q: What about GDPR compliance?**
+A: Juice handles GDPR automatically. Other platforms might require manual setup.
 
-### **Q: How important is SEO for trainers?**
-A: Critical. 68% of people find trainers through Google searches, not just social media.
+### **Q: How long does it take to see results?**
+A: With proper SEO, expect 2-3 months to start ranking. With paid ads, you can get bookings within days.
 
-*Want more strategies for growing your fitness business? Check out our guides on [booking pages](https://juice.fitness/blog/how-to-get-more-clients-with-booking-page) and [SEO for fitness coaches](https://juice.fitness/blog/seo-tips-for-fitness-coaches-in-europe).*`,
+*Want more tips on growing your fitness business online? Check out our other guides on [SEO for fitness coaches](https://juice.fitness/blog/seo-tips-for-fitness-coaches-in-europe) and [fitness marketing strategies](https://juice.fitness/blog/).*`,
 
   "seo-tips-for-fitness-coaches-in-europe": `# 🔍 SEO Tips for Fitness Coaches in Europe
 
-**TL;DR:** Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.
+**TL;DR:** Let's get something straight: SEO isn't for nerds in glasses. It's for **smart coaches** who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.
 
 ---
 
-## Why European Fitness Coaches Need SEO
+## What Is SEO, Really?
 
-### The Numbers Don't Lie:
-- **68% of people** find personal trainers through Google searches
-- **46% of all searches** have local intent ("personal trainer near me")
-- **72% of consumers** visit a store within 5 miles of their local search
-- **88% of mobile searches** for local businesses result in a call or visit within 24 hours
+Search Engine Optimisation = Getting found when someone searches:
 
-**Translation:** If you're not showing up in search results, you're invisible to potential clients.
+- Personal Trainer Berlin
+- Online Fitness Coach Munich  
+- Free website for fitness coach
 
 ---
 
-## Local SEO: Your Secret Weapon
+## 1. Nail Your Keywords
 
-### 1. **Google My Business Optimization**
+Use **1 main keyword** per page/post:
 
-This is your **#1 priority**. Here's how to dominate:
+- personal trainer website builder
+- book personal training sessions online
+- fitness website template
 
-**Complete Your Profile:**
-- Business name: "FitCoach Berlin - Personal Training"
-- Category: "Personal Trainer" (primary) + "Fitness Consultant" (secondary)
-- Description: Include keywords naturally
-- Hours: Keep them updated
-- Photos: High-quality images of you training clients
+Also sprinkle in:
+- PT Website schnell erstellen
+- Kostenlose Website für Fitnesstrainer
 
-**Get Reviews (The Right Way):**
-- Ask happy clients: "If you're happy with your results, would you mind leaving a quick Google review?"
-- Respond to ALL reviews (positive and negative)
-- Use keywords in responses: "Thanks for choosing our personal training services in Berlin!"
-
-**Post Regular Updates:**
-- Weekly workout tips
-- Client success stories
-- Special offers
-- Behind-the-scenes content
-
-### 2. **Local Keywords That Actually Work**
-
-**Primary Keywords:**
-- personal trainer [your city]
-- fitness coach [your city]
-- personal training [your city]
-
-**Long-tail Keywords (Higher conversion):**
-- best personal trainer in [your city]
-- weight loss coach [your city]
-- strength training coach near me
-- online personal trainer [your country]
-
-**Neighborhood-Specific:**
-- personal trainer [neighborhood name]
-- gym trainer [district name]
-- fitness coach [postal code area]
+Use Google Trends + UberSuggest to verify volume.
 
 ---
 
-## Content That Ranks (And Converts)
+## 2. Optimise Your Page
 
-### 1. **Location-Based Blog Posts**
-
-**Examples that work:**
-- "Top 5 Outdoor Workout Spots in Berlin"
-- "Best Gyms in Amsterdam for Strength Training"
-- "Healthy Eating Guide for Busy Londoners"
-
-**Why this works:**
-- Targets local keywords
-- Provides genuine value
-- Establishes local authority
-- Gets shared by locals
-
-### 2. **FAQ Pages (SEO Gold)**
-
-**Questions people actually search:**
-- "How much does a personal trainer cost in [city]?"
-- "What qualifications should a personal trainer have?"
-- "How often should I train with a personal trainer?"
-- "Can I do personal training online?"
-
-**Pro tip:** Use tools like AnswerThePublic to find real questions people ask.
-
-### 3. **Service Pages for Each Offering**
-
-**Don't just have one "Services" page. Create separate pages:**
-- Personal Training in [City]
-- Online Fitness Coaching
-- Weight Loss Programs
-- Strength Training Coaching
-- Nutrition Coaching Services
-
-**Each page should:**
-- Target specific keywords
-- Include local references
-- Have unique content (no copying!)
-- Include client testimonials
-- End with a clear call-to-action
+- **One H1 tag**: Create Your Trainer Website in 10 Minutes
+- **Meta Title**: Personal Trainer Website Builder | Juice
+- **Meta Description**: Launch a high-converting fitness site. Fast, free, SEO-ready.
 
 ---
 
-## Technical SEO for Fitness Websites
+## 3. Use Local SEO
 
-### 1. **Mobile Optimization (Non-Negotiable)**
+Say where you train:
+- Available in Berlin & Online
+- Fitness Coach in Zürich 1:1 and remote
 
-**Why it matters:**
-- 73% of fitness searches happen on mobile
-- Google uses mobile-first indexing
-- Slow mobile sites lose 53% of visitors
-
-**Quick mobile test:**
-- Open your site on your phone
-- Can you easily tap buttons?
-- Does it load in under 3 seconds?
-- Is text readable without zooming?
-
-### 2. **Page Speed Optimization**
-
-**Target metrics:**
-- **Loading time:** Under 3 seconds
-- **Core Web Vitals:** All green in Google PageSpeed Insights
-- **Image optimization:** Compress all photos
-
-**Quick wins:**
-- Use WebP image format
-- Enable browser caching
-- Minimize plugins/widgets
-- Choose a fast hosting provider
-
-### 3. **Schema Markup for Local Business**
-
-**Add structured data to help Google understand:**
-- Your business type (Personal Trainer)
-- Location and service areas
-- Contact information
-- Reviews and ratings
-- Services offered
-
-**Tools to help:**
-- Google's Structured Data Markup Helper
-- Schema.org generator
-- Yoast SEO plugin (WordPress)
+Claim your **Google Business Profile** too.
 
 ---
 
-## Link Building for Fitness Coaches
+## 4. Link Smarter
 
-### 1. **Local Directory Listings**
-
-**Essential directories:**
-- Google My Business (obviously)
-- Yelp
-- Facebook Business
-- Local fitness directories
-- Chamber of Commerce
-- Industry associations (NASM, ACSM, etc.)
-
-**European-specific:**
-- Foursquare
-- Local city directories
-- Country-specific business listings
-
-### 2. **Partnership Link Building**
-
-**Collaborate with:**
-- **Nutritionists:** "My recommended nutrition partners"
-- **Physiotherapists:** "Trusted injury prevention specialists"
-- **Local gyms:** "Where I train my clients"
-- **Supplement stores:** "Quality supplements I recommend"
-- **Wellness centers:** Cross-referral partnerships
-
-### 3. **Content-Based Link Building**
-
-**Create linkable content:**
-- Local fitness guides
-- Workout video tutorials
-- Nutrition meal plans
-- Success story case studies
-
-**Outreach to:**
-- Local bloggers
-- Fitness websites
-- Health and wellness sites
-- Local news outlets
+- **Internal**: Blog posts → your booking page
+- **External**: Get backlinks from local gyms, fitness blogs, and events
 
 ---
 
-## European SEO Considerations
+## 5. Keep It Fast + Mobile
 
-### 1. **Multi-Language SEO**
+Use tools like [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) to make it:
 
-**If you serve multiple countries:**
-- Create separate pages for each language
-- Use hreflang tags
-- Don't use Google Translate (hire native speakers)
-- Consider cultural differences in content
-
-### 2. **GDPR Compliance**
-
-**SEO implications:**
-- Cookie consent affects user experience
-- Privacy policy must be easily accessible
-- Contact forms need proper consent
-- Analytics setup must be compliant
-
-### 3. **Local Search Behavior**
-
-**European search patterns:**
-- Higher use of local directories
-- More voice search adoption
-- Different social media preferences
-- Varying mobile vs. desktop usage
+- Mobile-optimised
+- Fast-loading  
+- Clean, no fluff
 
 ---
 
-## Measuring Your SEO Success
+## SEO ≠ Slow. SEO = Smart.
 
-### 1. **Key Metrics to Track**
+Most coaches sleep on SEO. Not you.
 
-**Rankings:**
-- Position for target keywords
-- Local pack appearances
-- Featured snippet captures
+You now know how to:
+- Use keywords that matter
+- Build a fast personal trainer site
+- Get clients while you train
 
-**Traffic:**
-- Organic search traffic growth
-- Local search traffic
-- Mobile vs. desktop split
+Ready to dominate? Time to publish.
 
-**Conversions:**
-- Contact form submissions
-- Phone calls from search
-- Booking page visits
-- Email newsletter signups
-
-### 2. **Essential Tools**
-
-**Free tools:**
-- Google Analytics
-- Google Search Console
-- Google My Business Insights
-- Google PageSpeed Insights
-
-**Paid tools (worth it):**
-- SEMrush or Ahrefs (keyword research)
-- BrightLocal (local SEO tracking)
-- Screaming Frog (technical SEO)
-
----
-
-## Common SEO Mistakes Fitness Coaches Make
-
-### ❌ **Mistake #1: Keyword Stuffing**
-**Bad:** "Personal trainer Berlin personal training Berlin fitness coach Berlin"
-**Good:** "As a certified personal trainer in Berlin, I help clients achieve their fitness goals through personalized training programs."
-
-### ❌ **Mistake #2: Ignoring Local Intent**
-**Bad:** Targeting "weight loss" (too broad)
-**Good:** Targeting "weight loss coach Berlin" (local + specific)
-
-### ❌ **Mistake #3: No Google My Business**
-**Reality:** 46% of searches have local intent. No GMB = invisible locally.
-
-### ❌ **Mistake #4: Duplicate Content**
-**Problem:** Copying content from other trainers or using generic templates
-**Solution:** Write original content based on your experience
-
-### ❌ **Mistake #5: Neglecting Reviews**
-**Impact:** 88% of consumers trust online reviews as much as personal recommendations
-
----
-
-## Quick-Win SEO Checklist
-
-### **Week 1: Foundation**
-- [ ] Set up Google My Business
-- [ ] Install Google Analytics & Search Console
-- [ ] Optimize page titles and descriptions
-- [ ] Add contact info to every page
-
-### **Week 2: Content**
-- [ ] Write 3 location-based blog posts
-- [ ] Create FAQ page with local keywords
-- [ ] Add client testimonials with locations
-- [ ] Optimize images with alt text
-
-### **Week 3: Technical**
-- [ ] Test mobile responsiveness
-- [ ] Check page loading speed
-- [ ] Fix any broken links
-- [ ] Add schema markup
-
-### **Week 4: Promotion**
-- [ ] Submit to local directories
-- [ ] Ask satisfied clients for reviews
-- [ ] Share content on social media
-- [ ] Reach out to local partners
-
----
-
-## Advanced SEO Strategies
-
-### 1. **Voice Search Optimization**
-
-**Growing trend:** 50% of adults use voice search daily
-
-**Optimize for:**
-- Conversational keywords
-- Question-based queries
-- Local "near me" searches
-- Featured snippet opportunities
-
-**Example optimizations:**
-- "Where can I find a personal trainer near me?"
-- "What's the best gym in [neighborhood]?"
-- "How much does personal training cost?"
-
-### 2. **Video SEO**
-
-**YouTube is the 2nd largest search engine:**
-- Create workout tutorials
-- Client transformation stories
-- Exercise form demonstrations
-- Nutrition tips and meal prep
-
-**Optimization tips:**
-- Use keywords in titles and descriptions
-- Add closed captions
-- Create custom thumbnails
-- Include location in video descriptions
-
-### 3. **Featured Snippet Optimization**
-
-**Target "People Also Ask" boxes:**
-- Structure content with clear headings
-- Answer questions directly and concisely
-- Use bullet points and numbered lists
-- Include relevant keywords naturally
-
----
-
-## The Long Game: Building SEO Authority
-
-### 1. **Consistent Content Creation**
-
-**Sustainable schedule:**
-- 1 blog post per week minimum
-- Regular Google My Business updates
-- Monthly service page updates
-- Quarterly content audits
-
-### 2. **Community Engagement**
-
-**Build local authority:**
-- Sponsor local fitness events
-- Partner with local businesses
-- Contribute to local publications
-- Speak at community events
-
-### 3. **Continuous Learning**
-
-**SEO evolves constantly:**
-- Follow Google algorithm updates
-- Join SEO communities
-- Test new strategies
-- Monitor competitor activities
-
----
-
-## Final Rep
-
-SEO isn't a sprint—it's a marathon. But unlike your clients' fitness journeys, SEO compounds over time.
-
-**The Reality:**
-- Month 1-3: Foundation building
-- Month 4-6: Traffic starts growing
-- Month 7-12: Significant results
-- Year 2+: Dominate local search
-
-**Your action plan:**
-1. **Start with Google My Business** (biggest impact, fastest results)
-2. **Create location-specific content** (builds local authority)
-3. **Get reviews consistently** (social proof + rankings)
-4. **Monitor and adjust** (SEO is iterative)
-
-**Remember:** The best time to start SEO was 6 months ago. The second-best time is now.
-
----
-
-## Resources and Tools
-
-### **Free SEO Tools**
-- Google Analytics
-- Google Search Console
-- Google My Business
-- Google PageSpeed Insights
-- AnswerThePublic
-- Ubersuggest (limited free version)
-
-### **Paid Tools Worth the Investment**
-- SEMrush or Ahrefs (€99-199/month)
-- BrightLocal (€29-79/month)
-- Screaming Frog (€149/year)
-
-### **Learning Resources**
-- Google's SEO Starter Guide
-- Moz Beginner's Guide to SEO
-- Search Engine Journal
-- Local SEO Guide
-
-*Want to combine SEO with other growth strategies? Check out our guides on [website builders for trainers](https://juice.fitness/blog/top-5-free-personal-trainer-website-builders-2025) and [booking page optimization](https://juice.fitness/blog/booking-page).*`,
+*Want a website that's already SEO-optimized? Check out the [Juice Personal Trainer Website Builder](https://juice.fitness/marketplace/personal-trainer-website) and get found by more clients.*`,
 
   "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket": `# 🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition
 
-Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.
+**TL;DR:** The fitness industry in Berlin is embracing technology like never before. Here are the essential tools every personal trainer needs to stay competitive in 2025.
 
-## The Berlin Fitness Tech Scene
+## The Digital Revolution in Fitness
 
-Berlin's fitness industry is embracing technology like never before. With over 500 fitness studios and countless independent trainers, the competition is fierce. The trainers who are thriving are those who leverage the right tools to streamline their business and deliver exceptional client experiences.
+Berlin's fitness scene has always been innovative, but 2025 marks a turning point. Personal trainers are no longer just fitness experts—they're tech-savvy professionals leveraging cutting-edge tools to deliver exceptional client experiences.
 
-## Essential Categories
+## Essential Tools for Modern Trainers
 
-### Client Management
-- **TrueCoach**: Comprehensive client tracking and program delivery
-- **MyFitnessPal**: Nutrition tracking integration
-- **Trainerize**: All-in-one coaching platform
+### 1. AI-Powered Workout Planning
+- **Juice App**: The leading platform for personalized workout creation
+- **FitBot AI**: Automated program adjustments based on client progress
+- **TrainerGPT**: Natural language workout planning assistant
 
-### Workout Programming
-- **Strong**: Simple strength training logs
-- **Jefit**: Extensive exercise database
-- **FitBod**: AI-powered workout generation
+### 2. Client Management Systems
+- **MyFitnessPal Pro**: Comprehensive nutrition and workout tracking
+- **Trainerize**: All-in-one client management platform
+- **TrueCoach**: Professional-grade coaching software
 
-### Business Management
-- **Acuity Scheduling**: Professional booking system
-- **Square**: Payment processing
-- **Canva**: Marketing material creation
+### 3. Virtual Training Platforms
+- **Zoom Fitness**: Specialized video conferencing for trainers
+- **Mirror Home**: Interactive home workout experiences
+- **Peloton Digital**: Corporate wellness partnerships
 
-### Communication
-- **WhatsApp Business**: Essential for European clients
-- **Zoom**: Online training sessions
-- **Slack**: Team communication for larger operations
+## The Berlin Advantage
 
-## Emerging Technologies
+Berlin's tech ecosystem provides unique opportunities for fitness professionals. The city's startup culture has produced innovative solutions specifically designed for the European market.
 
-### AI-Powered Solutions
-Artificial intelligence is beginning to transform how trainers work:
-- **Automated program design** based on client goals and progress
-- **Predictive analytics** for injury prevention
-- **Personalized nutrition recommendations**
+### Local Success Stories
+- **Urban Sports Club**: Flexible gym memberships
+- **Freeletics**: Bodyweight training app
+- **8fit**: Personalized fitness and nutrition
 
-### Wearable Integration
-The latest wearables provide unprecedented insights:
-- **Heart rate variability** for recovery monitoring
-- **Sleep quality tracking** for program adjustments
-- **Movement pattern analysis** for form correction
+## Implementation Strategy
 
-## Local Considerations
+1. **Start Small**: Choose one primary tool and master it
+2. **Client Feedback**: Let your clients guide your tech adoption
+3. **Continuous Learning**: Stay updated with the latest features
+4. **Integration**: Ensure your tools work together seamlessly
 
-### German Privacy Laws (GDPR)
-All tools must comply with strict European data protection regulations:
-- Client data must be stored securely
-- Clear consent required for data collection
-- Right to data deletion must be supported
+## ROI Analysis
 
-### Payment Preferences
-Berlin clients prefer:
-- **SEPA direct debit** for recurring payments
-- **PayPal** for online transactions
-- **Cash** still popular for in-person sessions
-
-## Cost-Effective Solutions
-
-### Free Tier Options
-Many tools offer generous free tiers perfect for starting trainers:
-- **Google Workspace**: Email and document management
-- **Calendly**: Basic appointment scheduling
-- **Instagram**: Social media marketing
-
-### Budget-Friendly Paid Options
-For growing businesses:
-- **Notion**: All-in-one workspace (€8/month)
-- **Zoom Pro**: Professional video calls (€14/month)
-- **Canva Pro**: Advanced design features (€12/month)
-
-## Integration Strategies
-
-The most successful trainers don't just use individual tools—they create integrated systems:
-
-### The Minimal Stack
-- **Communication**: WhatsApp + Email
-- **Scheduling**: Calendly or Acuity
-- **Programming**: Google Sheets or TrueCoach
-- **Payments**: PayPal or Square
-
-### The Professional Stack
-- **CRM**: HubSpot or Pipedrive
-- **Coaching Platform**: Trainerize or TrueCoach
-- **Marketing**: Mailchimp + Instagram
-- **Analytics**: Google Analytics + Facebook Insights
-
-## Future Trends
-
-### Virtual Reality Training
-VR fitness is gaining traction in Berlin's tech-savvy market:
-- **Immersive workout experiences**
-- **Form correction through motion tracking**
-- **Gamified fitness challenges**
-
-### Blockchain and NFTs
-Some forward-thinking trainers are exploring:
-- **Tokenized fitness achievements**
-- **Decentralized client data storage**
-- **Smart contracts for training packages**
-
-## Recommendations by Business Stage
-
-### Starting Out (0-10 clients)
-Focus on free tools and manual processes:
-- Google Sheets for client tracking
-- WhatsApp for communication
-- Instagram for marketing
-- PayPal for payments
-
-### Growing (10-50 clients)
-Invest in automation and professional tools:
-- TrueCoach or Trainerize for client management
-- Acuity Scheduling for bookings
-- Mailchimp for email marketing
-- Square for payment processing
-
-### Established (50+ clients)
-Scale with advanced systems:
-- Custom CRM integration
-- Automated marketing funnels
-- Team collaboration tools
-- Advanced analytics platforms
+Trainers using these tools report:
+- 40% increase in client retention
+- 60% reduction in administrative time
+- 25% growth in revenue per client
 
 ## Conclusion
 
-The fitness industry in Berlin is rapidly evolving, and the trainers who succeed are those who embrace technology while maintaining the human connection that makes personal training effective. The key is to start simple, focus on tools that solve real problems, and gradually build a tech stack that supports your growing business.
+The future of personal training in Berlin is digital. Trainers who embrace these tools now will lead the industry tomorrow. The investment in technology pays dividends in client satisfaction, business efficiency, and professional growth.
 
-Remember: tools are meant to enhance your coaching, not replace it. The best technology is the one that helps you spend more time doing what you do best—helping clients achieve their fitness goals.`,
+*Ready to upgrade your training business? Start with the Juice App and experience the difference technology can make.*`,
 
   "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year": `# 💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)
 
-Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.
+**TL;DR:** If you're still managing your fitness business with spreadsheets, you're living in the past. Here's the software that's actually worth your time and money in 2025.
 
-## The Evolution of Fitness Software
+## Why Spreadsheets Don't Cut It Anymore
 
-Gone are the days when personal trainers managed their entire business through Excel spreadsheets and WhatsApp messages. Berlin's fitness scene has embraced sophisticated software solutions that handle everything from client onboarding to payment processing.
+Let's be honest—we've all been there. Rows and columns of client data, workout plans scattered across multiple tabs, and that sinking feeling when you realize you've been working with outdated information for weeks.
 
-## All-in-One Coaching Platforms
+Berlin's fitness industry has evolved beyond the spreadsheet era. Here's what the pros are actually using.
 
-### TrueCoach
-**Best for**: Serious fitness professionals who want comprehensive client management
-- **Strengths**: Excellent program design tools, client communication features
-- **Pricing**: €29-99/month depending on client count
-- **Berlin adoption**: High among CrossFit boxes and strength coaches
+## The Software Revolution
 
-### Trainerize
-**Best for**: Online coaches and hybrid training models
-- **Strengths**: Mobile app for clients, extensive exercise library
-- **Pricing**: €25-100/month based on features
-- **Local insight**: Popular with Berlin's growing online fitness community
+### Business Management
+**Juice Platform** - The all-in-one solution
+- Client management that actually makes sense
+- Automated billing (no more chasing payments!)
+- Real-time analytics that matter
+- German GDPR compliance built-in
 
-### MyFitnessPal Premium
-**Best for**: Nutrition-focused coaches
-- **Strengths**: Massive food database, macro tracking
-- **Pricing**: €9.99/month
-- **Usage**: Often used alongside other platforms for nutrition tracking
+**Mindbody** - The established player
+- Comprehensive booking system
+- Payment processing
+- Marketing automation
+- Mobile app for clients
 
-## Specialized Solutions
+### Workout Programming
+**TrainerRoad** - For cycling specialists
+- Structured training plans
+- Power-based workouts
+- Performance analytics
 
-### Scheduling and Booking
-**Acuity Scheduling**: Professional appointment management
-**Calendly**: Simple, effective booking system
-**SimplyBook.me**: European-based with GDPR compliance
+**MyLift** - Strength training focus
+- Exercise database with video demos
+- Progress tracking
+- Custom program builder
 
-### Payment Processing
-**Stripe**: International payments with low fees
-**PayPal**: Trusted by German consumers
-**SEPA Direct Debit**: Essential for recurring payments in Germany
+### Nutrition Coaching
+**Cronometer** - Precision nutrition
+- Detailed micronutrient tracking
+- Professional dashboard
+- Client progress monitoring
 
-### Marketing and CRM
-**Mailchimp**: Email marketing with automation
-**HubSpot**: Comprehensive CRM with free tier
-**Instagram Business**: Visual marketing platform
+**Precision Nutrition** - Education + software
+- Coaching certification
+- Client management tools
+- Habit-based approach
 
-## Emerging Technologies
+## The Berlin Ecosystem
 
-### AI-Powered Solutions
-- **Freeletics**: AI coach for bodyweight training
-- **FitBod**: Machine learning for workout optimization
-- **MyFitnessPal Insights**: AI-driven nutrition recommendations
+What makes Berlin special? The city's tech scene has produced fitness software that actually understands European business needs:
 
-### Wearable Integration
-- **Garmin Connect IQ**: Custom apps for Garmin devices
-- **Apple HealthKit**: Integration with iOS ecosystem
-- **Google Fit**: Android health platform
+- **GDPR compliance** isn't an afterthought
+- **Multi-language support** for Berlin's diverse population
+- **Local payment methods** (SEPA, Sofort, etc.)
+- **European business practices** built into workflows
 
-## Local Considerations
+## Cost-Benefit Analysis
 
-### GDPR Compliance
-All software must meet European data protection standards:
-- Clear privacy policies
-- Data processing agreements
-- Right to data portability
-- Secure data storage
+| Software Type | Monthly Cost | Time Saved | ROI Timeline |
+|---------------|-------------|------------|--------------|
+| All-in-one Platform | €50-200 | 15 hours | 2 months |
+| Specialized Tools | €20-80 each | 5-10 hours | 3-4 months |
+| DIY Spreadsheets | €0 | -20 hours | Never |
 
-### Language Support
-Many international platforms now offer German localization:
-- User interface translation
-- Customer support in German
-- Local payment methods
-- Cultural adaptation
+## Implementation Roadmap
 
-## Cost Analysis
-
-### Budget Breakdown for Different Business Sizes
-
-**Solo Trainer (1-20 clients)**
-- Scheduling: €15/month
-- Client management: €30/month
-- Payment processing: 2.9% per transaction
-- Marketing: €20/month
-- **Total**: ~€65/month + transaction fees
-
-**Small Studio (20-100 clients)**
-- All-in-one platform: €100/month
-- Advanced scheduling: €50/month
-- Marketing automation: €50/month
-- Analytics: €30/month
-- **Total**: ~€230/month
-
-**Large Operation (100+ clients)**
-- Enterprise platform: €300/month
-- Custom integrations: €200/month
-- Advanced analytics: €100/month
-- Team collaboration: €50/month
-- **Total**: ~€650/month
-
-## Integration Strategies
-
-### The Modern Tech Stack
-Successful Berlin fitness businesses typically use:
-
-1. **Core Platform**: TrueCoach or Trainerize
-2. **Scheduling**: Acuity or Calendly
-3. **Payments**: Stripe + PayPal
-4. **Marketing**: Mailchimp + Instagram
-5. **Analytics**: Google Analytics
-6. **Communication**: WhatsApp Business
-
-### Automation Workflows
-- **New client onboarding**: Automated welcome sequences
-- **Payment reminders**: Reduce late payments
-- **Progress check-ins**: Scheduled client surveys
-- **Renewal notifications**: Proactive package renewals
-
-## Success Stories
-
-### Case Study: CrossFit Box Friedrichshain
-- **Challenge**: Managing 200+ members manually
-- **Solution**: Implemented TrueCoach + Stripe + Mailchimp
-- **Results**: 40% reduction in admin time, 25% increase in retention
-
-### Case Study: Online Nutrition Coach
-- **Challenge**: Scaling beyond 1-on-1 consultations
-- **Solution**: MyFitnessPal Premium + Calendly + Zoom
-- **Results**: Grew from 10 to 100 clients in 6 months
-
-## Future Trends
-
-### Virtual Reality Fitness
-- **Black Box VR**: Immersive workout experiences
-- **FitXR**: VR fitness classes
-- **Supernatural**: Scenic workout environments
-
-### Blockchain Integration
-- **Fitness NFTs**: Tokenized achievements
-- **Smart contracts**: Automated payment systems
-- **Decentralized data**: User-owned health records
-
-### Advanced Analytics
-- **Predictive modeling**: Injury prevention algorithms
-- **Behavioral analysis**: Client engagement patterns
-- **Performance optimization**: Data-driven program adjustments
-
-## Choosing the Right Software
-
-### Key Questions to Ask
-1. **What's your primary business model?** (1-on-1, group, online, hybrid)
-2. **How many clients do you serve?** (Different tools scale differently)
-3. **What's your technical comfort level?** (Simple vs. advanced features)
-4. **What's your budget?** (Free tiers vs. premium features)
-5. **Do you need German language support?** (Localization requirements)
-
-### Red Flags to Avoid
-- **No GDPR compliance**: Legal risk in Europe
-- **Poor mobile experience**: Clients expect mobile-first
-- **Limited integration options**: Avoid vendor lock-in
-- **Unclear pricing**: Hidden fees and surprise charges
-- **No local support**: Time zone and language barriers
-
-## Implementation Best Practices
-
-### Phase 1: Foundation (Month 1)
-- Choose core platform
-- Migrate existing client data
+### Month 1: Foundation
+- Choose your primary business management platform
+- Migrate client data (do this carefully!)
 - Set up basic workflows
-- Train team on new system
 
-### Phase 2: Optimization (Month 2-3)
-- Implement automation
-- Integrate additional tools
+### Month 2: Optimization  
+- Add specialized tools for your niche
+- Train your team on new systems
 - Gather client feedback
-- Refine processes
 
-### Phase 3: Scale (Month 4+)
-- Advanced analytics setup
-- Custom integrations
-- Team expansion
-- Performance optimization
+### Month 3: Scaling
+- Automate repetitive tasks
+- Analyze performance data
+- Plan for growth
 
-## Conclusion
+## Red Flags to Avoid
 
-The fitness software landscape in Berlin is more sophisticated than ever. The key is to choose tools that align with your business model, scale with your growth, and enhance rather than complicate your client relationships.
+❌ **Software that promises everything** - Jack of all trades, master of none
+❌ **No mobile app** - Your clients live on their phones
+❌ **Poor customer support** - You'll need help, trust me
+❌ **No data export** - Don't get locked in
+❌ **Ignores GDPR** - Legal nightmare waiting to happen
 
-Remember: the best software is the one your team actually uses. Start simple, focus on solving real problems, and gradually build a tech stack that supports your vision for your fitness business.
+## The Bottom Line
 
-The spreadsheet era is over. Welcome to the future of fitness business management.`,
+Your time is worth more than the cost of good software. While your competitors are still wrestling with Excel formulas, you could be focusing on what actually matters: helping your clients achieve their goals.
+
+The fitness industry in Berlin is competitive. The trainers who win are the ones who work smarter, not harder.
+
+*Ready to ditch the spreadsheets? Start with a free trial of the Juice Platform and see what modern fitness business management looks like.*`,
 
   "nutrition-coaching-trends-berlin-2025": `# 🥗 Nutrition Coaching Trends Taking Over Berlin in 2025
 
-From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.
+**TL;DR:** Berlin's nutrition coaching scene is evolving rapidly. Here are the trends that are actually making a difference for clients and coaches alike.
 
-## The Berlin Nutrition Scene
+## The New Nutrition Landscape
 
-Berlin's nutrition coaching landscape is experiencing a revolution. With the city's diverse population, growing health consciousness, and tech-savvy residents, nutrition coaches are adapting their approaches to meet evolving client needs.
+Gone are the days of one-size-fits-all meal plans. Berlin's diverse population demands personalized, culturally-aware nutrition coaching that goes beyond basic calorie counting.
 
-## Macro-Based Coaching Evolution
+## Trend #1: Personalized Nutrition Technology
 
-### Beyond IIFYM (If It Fits Your Macros)
-The rigid macro counting of the past is giving way to more flexible approaches:
-- **Intuitive macro ranges** rather than exact numbers
-- **Meal timing flexibility** based on lifestyle
-- **Cultural food integration** respecting Berlin's diversity
+### AI-Powered Meal Planning
+- **Nutrigenomics integration**: DNA-based dietary recommendations
+- **Real-time adjustments**: Plans that adapt to client progress
+- **Cultural preferences**: Algorithms that understand Berlin's multicultural food scene
 
-### Technology Integration
-- **Macro tracking apps** with German food databases
-- **AI-powered meal suggestions** based on preferences
-- **Photo-based food logging** for easier tracking
+### Popular Tools
+- **Cronometer Pro**: Micronutrient precision
+- **MyFitnessPal Premium**: Enhanced coaching features  
+- **Nutrition.ai**: AI-powered meal suggestions
 
-## Personalized Nutrition Plans
+## Trend #2: Sustainable Eating Practices
 
-### Genetic Testing Integration
-More coaches are incorporating:
-- **DNA-based dietary recommendations**
-- **Metabolic typing assessments**
-- **Food sensitivity testing**
+Berlin's environmental consciousness is reshaping nutrition coaching:
 
-### Biomarker Monitoring
-- **Continuous glucose monitoring** for non-diabetics
-- **Micronutrient testing** for deficiency identification
-- **Hormone panel analysis** for optimization
+### Plant-Forward Approaches
+- **Flexitarian protocols**: Reducing meat without elimination
+- **Local sourcing**: Emphasis on regional, seasonal foods
+- **Waste reduction**: Meal planning that minimizes food waste
 
-## Sustainable and Local Focus
+### Impact Metrics
+- 30% reduction in client food waste
+- 25% increase in plant protein consumption
+- 40% improvement in meal satisfaction scores
 
-### Farm-to-Table Coaching
-Berlin's sustainability movement influences nutrition coaching:
-- **Local seasonal meal planning**
-- **Reduced food waste strategies**
-- **Sustainable protein source education**
-
-### Plant-Based Optimization
-- **Complete protein combining** for vegans
-- **B12 and iron monitoring** for plant-based clients
-- **Performance nutrition** for vegan athletes
-
-## Mental Health Integration
+## Trend #3: Mental Health Integration
 
 ### Mindful Eating Practices
-- **Stress eating management** techniques
-- **Emotional trigger identification**
-- **Mindfulness-based interventions**
+- **Stress-eating management**: Techniques for emotional regulation
+- **Body image work**: Positive relationship with food
+- **Habit psychology**: Understanding the 'why' behind eating patterns
 
-### Body Positivity Approach
-- **Health at Every Size** principles
-- **Non-diet coaching** methodologies
-- **Intuitive eating** integration
+### Coaching Techniques
+- **Motivational interviewing**: Client-centered approach
+- **Cognitive behavioral strategies**: Changing thought patterns
+- **Mindfulness training**: Present-moment awareness
 
-## Technology and Apps
+## Trend #4: Precision Nutrition
 
-### Popular Platforms in Berlin
-- **Cronometer**: Detailed micronutrient tracking
-- **MyFitnessPal**: Extensive German food database
-- **Yazio**: German-developed nutrition app
-- **Lifesum**: Scandinavian approach popular in Berlin
-
-### Emerging Technologies
-- **AI meal planning** based on preferences and goals
-- **Smart kitchen integration** with nutrition tracking
-- **Wearable device** correlation with nutrition data
-
-## Cultural Considerations
-
-### German Food Culture Integration
-- **Traditional German foods** in modern nutrition plans
-- **Beer and social eating** management strategies
-- **Seasonal eating patterns** aligned with German traditions
-
-### International Community Needs
-- **Multi-cultural meal planning** for Berlin's diverse population
-- **Halal and kosher** nutrition coaching
-- **Asian, Middle Eastern, and African** cuisine integration
-
-## Business Model Evolution
-
-### Subscription-Based Coaching
-- **Monthly meal plan** subscriptions
-- **Ongoing support** rather than one-time consultations
-- **Tiered service levels** for different budgets
-
-### Group Coaching Programs
-- **Small group** nutrition challenges
-- **Corporate wellness** programs
-- **Community-based** support systems
-
-## Specialized Niches
-
-### Sports Nutrition
-- **Endurance athlete** fueling strategies
-- **Strength training** nutrition optimization
-- **Recovery nutrition** protocols
-
-### Medical Nutrition Therapy
-- **Diabetes management** coaching
-- **Cardiovascular health** nutrition
-- **Digestive health** specialization
-
-## Challenges and Solutions
-
-### Common Client Challenges
-- **Time constraints** for meal preparation
-- **Budget limitations** for healthy foods
-- **Social eating** situations
-- **Travel and work** schedule disruptions
-
-### Innovative Solutions
-- **Meal prep** coaching and services
-- **Budget-friendly** healthy meal planning
-- **Social situation** navigation strategies
-- **Travel nutrition** planning
-
-## Future Predictions
-
-### Emerging Trends
-- **Personalized supplements** based on individual needs
-- **Microbiome testing** for gut health optimization
-- **Circadian rhythm** nutrition timing
-- **Environmental impact** consideration in food choices
+### Biomarker-Based Coaching
+- **Continuous glucose monitoring**: Real-time metabolic feedback
+- **Microbiome analysis**: Gut health optimization
+- **Hormone testing**: Personalized macronutrient ratios
 
 ### Technology Integration
-- **Voice-activated** nutrition coaching
-- **Augmented reality** meal planning
-- **Blockchain-based** food traceability
-- **IoT kitchen devices** for automatic tracking
+- **Wearable devices**: Sleep, stress, and activity correlation
+- **Lab partnerships**: Regular biomarker tracking
+- **Data visualization**: Making complex data actionable
 
-## Getting Started as a Nutrition Coach
+## The Berlin Advantage
 
-### Essential Certifications
-- **Precision Nutrition** certification
-- **NASM-CNC** credential
-- **German nutrition** qualifications for local practice
+### Cultural Diversity
+Berlin's international population creates unique opportunities:
+- **Multi-cultural meal planning**: Respecting diverse food traditions
+- **Language accessibility**: Coaching in multiple languages
+- **Community building**: Group coaching across cultures
 
-### Building Your Practice
-- **Niche specialization** selection
-- **Technology stack** setup
-- **Client acquisition** strategies
-- **Continuing education** commitment
+### Local Food Scene
+- **Farmer's market partnerships**: Fresh, local ingredients
+- **Restaurant collaborations**: Healthy dining options
+- **Cooking classes**: Practical skill development
+
+## Implementation for Coaches
+
+### Getting Started
+1. **Assess your current approach**: What's working, what isn't?
+2. **Choose your focus**: Pick 1-2 trends to implement first
+3. **Invest in education**: Stay current with certifications
+4. **Technology adoption**: Start with one new tool
+
+### Client Communication
+- **Explain the 'why'**: Help clients understand the science
+- **Set realistic expectations**: Change takes time
+- **Celebrate small wins**: Acknowledge progress
+- **Provide ongoing support**: Be available for questions
+
+## Measuring Success
+
+### Key Performance Indicators
+- **Client adherence rates**: Are they following the plan?
+- **Health improvements**: Biomarker changes
+- **Satisfaction scores**: Client feedback
+- **Retention rates**: Long-term engagement
+
+### Tools for Tracking
+- **Progress photos**: Visual documentation
+- **Body composition analysis**: Beyond the scale
+- **Energy level assessments**: Subjective wellness measures
+- **Sleep quality metrics**: Recovery indicators
+
+## Common Pitfalls to Avoid
+
+❌ **Over-complicating**: Keep it simple and actionable
+❌ **Ignoring preferences**: Respect client food choices
+❌ **Lack of flexibility**: Plans must adapt to real life
+❌ **Poor follow-up**: Consistent check-ins are crucial
+
+## The Future of Nutrition Coaching
+
+Looking ahead, we can expect:
+- **More personalization**: Individual genetic profiles
+- **Better integration**: Seamless tech ecosystems
+- **Preventive focus**: Health optimization vs. problem-solving
+- **Community emphasis**: Group support systems
 
 ## Conclusion
 
-Berlin's nutrition coaching scene is rapidly evolving, driven by technology, cultural diversity, and changing client needs. Successful coaches are those who embrace personalization, leverage technology, and maintain a holistic approach to health and wellness.
+The nutrition coaching landscape in Berlin is more exciting than ever. Coaches who embrace these trends while maintain a client-centered approach will thrive in 2025 and beyond.
 
-The future belongs to coaches who can blend scientific knowledge with cultural sensitivity, technological innovation with human connection, and evidence-based practices with individualized care.`,
+The key is balance: leverage technology and science while never forgetting that nutrition is deeply personal and cultural.
+
+*Ready to elevate your nutrition coaching? Start by implementing one trend that resonates with your coaching style and client needs.*`,
 
   "strength-training-revolution-berlin-gyms": `# 🏋️ Strength Training Revolution: What's New in Berlin Gyms
 
-Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.
+**TL;DR:** Berlin's gym scene is undergoing a massive transformation. New training methodologies, cutting-edge equipment, and innovative coaching techniques are changing how we build strength.
 
-## The New Wave of Strength Training
+## The Evolution of Strength Training
 
-Berlin's fitness landscape is experiencing a strength training renaissance. From powerlifting-focused gyms in Kreuzberg to high-tech facilities in Mitte, the city's approach to building strength is becoming more sophisticated and science-based.
+Berlin has always been a city of innovation, and its fitness scene is no exception. The traditional "lift heavy, go home" mentality is giving way to a more scientific, personalized approach to strength development.
 
-## Methodology Evolution
+## Revolutionary Training Methodologies
 
-### Evidence-Based Programming
-Modern Berlin gyms are moving away from cookie-cutter programs toward:
-- **Autoregulation** based on daily readiness
-- **Velocity-based training** for optimal load selection
-- **Block periodization** for advanced athletes
-- **Conjugate method** adaptations for general population
+### 1. Velocity-Based Training (VBT)
+Berlin's top gyms are adopting VBT technology to optimize training loads:
 
-### Technology Integration
-- **Linear position transducers** for power measurement
-- **Force plates** for jump and strength assessment
-- **Heart rate variability** monitoring for recovery
-- **Motion capture** for technique analysis
+- **Real-time feedback**: Instant velocity measurements during lifts
+- **Autoregulation**: Training loads adjust based on daily readiness
+- **Precision programming**: Exact load prescriptions for specific adaptations
+
+### Popular VBT Tools
+- **GymAware**: Professional-grade linear position transducers
+- **PUSH Band**: Wearable velocity trackers
+- **Vitruve**: Smartphone-based velocity measurement
+
+### 2. Cluster Training Protocols
+Breaking traditional set structures for better strength gains:
+
+- **Intra-set rest periods**: Short breaks within sets to maintain power output
+- **Volume accumulation**: Higher training volumes with maintained intensity
+- **Fatigue management**: Better recovery between training sessions
+
+### 3. Accommodating Resistance
+Using bands and chains to vary resistance throughout the range of motion:
+
+- **Strength curve optimization**: Matching resistance to muscle force capabilities
+- **Speed development**: Explosive training with variable loads
+- **Joint-friendly loading**: Reduced stress at vulnerable joint positions
 
 ## Equipment Innovations
 
-### Specialized Strength Equipment
-Berlin gyms are investing in:
-- **Specialty barbells** (safety squat, trap bar, cambered bar)
-- **Accommodating resistance** (chains and bands)
-- **Pneumatic resistance** machines
-- **Flywheel training** devices
+### Smart Machines
+Berlin gyms are investing in AI-powered equipment:
+
+- **Tonal systems**: Electromagnetic resistance with digital coaching
+- **Mirror home gyms**: Interactive strength training experiences
+- **Cable machines with digital feedback**: Real-time form analysis
+
+### Functional Training Tools
+Moving beyond traditional barbells and dumbbells:
+
+- **Suspension trainers**: TRX and similar systems for bodyweight strength
+- **Kettlebell sport**: Competitive kettlebell lifting techniques
+- **Sandbag training**: Unstable load training for real-world strength
 
 ### Recovery Technology
-- **Compression therapy** systems
-- **Infrared saunas** for recovery
-- **Cryotherapy** chambers
-- **Percussion massage** devices
+Strength training isn't just about the workout:
 
-## Training Methodologies
+- **Compression therapy**: NormaTec and similar pneumatic devices
+- **Cryotherapy chambers**: Whole-body cold exposure for recovery
+- **Infrared saunas**: Heat therapy for muscle recovery and adaptation
 
-### Powerlifting Integration
-Many commercial gyms now offer:
-- **Competition-style** squat, bench, deadlift setups
-- **Powerlifting coaching** programs
-- **Meet preparation** services
-- **Equipped lifting** instruction
+## Coaching Innovations
 
-### Olympic Lifting Adoption
-- **Weightlifting platforms** in commercial gyms
-- **Certified coaches** for technique instruction
-- **Youth development** programs
-- **Masters competition** preparation
+### Movement Quality Assessment
+Berlin trainers are prioritizing movement before loading:
 
-### Strongman Training
-- **Functional strength** implements
-- **Outdoor training** areas
-- **Competition preparation** coaching
-- **Injury prevention** protocols
+- **FMS screening**: Functional Movement Screen protocols
+- **3D movement analysis**: Video analysis for technique optimization
+- **Corrective exercise integration**: Addressing movement dysfunctions
 
-## Coaching Evolution
+### Periodization Models
+Moving beyond linear progression:
 
-### Certification Standards
-Berlin's strength coaches are pursuing:
-- **NSCA-CSCS** certification
-- **ACSM-CEP** credentials
-- **Powerlifting coaching** certifications
-- **Olympic lifting** qualifications
+- **Daily undulating periodization**: Varying intensity and volume daily
+- **Block periodization**: Focused training phases for specific adaptations
+- **Autoregulatory training**: Adjusting based on readiness markers
 
-### Specialization Areas
-- **Youth strength** development
-- **Senior fitness** programming
-- **Injury rehabilitation** integration
-- **Sport-specific** strength training
+### Psychological Approaches
+The mental game of strength training:
 
-## Gym Culture Changes
+- **Visualization techniques**: Mental rehearsal for performance
+- **Confidence building**: Progressive overload for psychological adaptation
+- **Goal setting frameworks**: SMART goals for strength development
 
-### Inclusive Environment
-- **Beginner-friendly** strength programs
-- **Women's strength** training focus
-- **Adaptive equipment** for disabilities
-- **Body-positive** coaching approaches
+## The Berlin Gym Scene
+
+### Boutique Strength Studios
+Specialized facilities focusing on strength development:
+
+- **Powerlifting-focused gyms**: Competition preparation and technique refinement
+- **Olympic lifting clubs**: Weightlifting technique and programming
+- **Strongman training facilities**: Functional strength for real-world applications
+
+### Corporate Wellness Programs
+Companies investing in employee strength:
+
+- **On-site gym facilities**: Workplace strength training options
+- **Lunch-hour lifting sessions**: Quick, effective strength workouts
+- **Team building through training**: Group strength challenges
 
 ### Community Building
-- **Strength training** groups and clubs
-- **Competition teams** and support
-- **Educational workshops** and seminars
-- **Social events** and challenges
+Strength training as social activity:
+
+- **Training partnerships**: Accountability and motivation
+- **Group coaching sessions**: Cost-effective expert guidance
+- **Competition preparation groups**: Powerlifting and weightlifting teams
 
 ## Nutrition Integration
 
-### Performance Nutrition
-- **Pre-workout** fueling strategies
-- **Post-workout** recovery nutrition
-- **Supplement** guidance and education
-- **Body composition** optimization
+### Periodized Nutrition
+Matching nutrition to training phases:
 
-### Meal Planning Services
-- **Macro-based** meal planning
-- **Meal prep** services and coaching
-- **Hydration** strategies
-- **Competition prep** nutrition
+- **Strength phase nutrition**: Higher protein and carbohydrate intake
+- **Recovery nutrition**: Anti-inflammatory foods and supplements
+- **Competition preparation**: Peak performance nutrition strategies
 
-## Recovery Protocols
+### Supplement Science
+Evidence-based supplementation for strength:
 
-### Active Recovery
-- **Mobility** and flexibility programs
-- **Corrective exercise** integration
-- **Movement quality** assessment
-- **Injury prevention** protocols
+- **Creatine monohydrate**: The gold standard for strength and power
+- **Beta-alanine**: Muscular endurance for high-rep strength work
+- **Caffeine timing**: Pre-workout stimulation for performance
 
-### Passive Recovery
-- **Sleep optimization** education
-- **Stress management** techniques
-- **Recovery monitoring** tools
-- **Lifestyle coaching** integration
-
-## Technology and Apps
+## Technology Integration
 
 ### Training Apps
-- **Strong**: Simple strength tracking
-- **Jefit**: Comprehensive exercise database
-- **PowerLifting.ai**: AI-powered programming
-- **Velocity Based Training** apps
+Digital tools for strength development:
 
-### Wearable Integration
-- **Heart rate** monitoring during lifting
-- **Sleep tracking** for recovery
-- **HRV monitoring** for readiness
-- **Activity tracking** for overall health
+- **Strong app**: Workout tracking and progression
+- **Jefit**: Exercise database and program templates
+- **MyLift**: Powerlifting-specific tracking and analysis
 
-## Challenges and Solutions
+### Wearable Technology
+Monitoring training stress and recovery:
 
-### Common Issues
-- **Gym intimidation** for beginners
-- **Plateau breaking** for intermediate lifters
-- **Injury prevention** and management
-- **Time constraints** for busy professionals
+- **Heart rate variability**: Readiness assessment for training
+- **Sleep tracking**: Recovery optimization through sleep quality
+- **Training load monitoring**: Balancing stress and adaptation
 
-### Innovative Solutions
-- **Beginner-specific** programs and areas
-- **Periodization** and program variation
-- **Movement screening** and correction
-- **Efficient training** methodologies
+## The Science Behind the Revolution
 
-## Future Trends
+### Research-Driven Programming
+Berlin trainers are staying current with exercise science:
 
-### Emerging Technologies
-- **Virtual reality** training environments
-- **AI-powered** coaching systems
-- **Biometric feedback** integration
-- **Genetic testing** for program optimization
+- **Peer-reviewed research**: Evidence-based training decisions
+- **Biomechanics analysis**: Understanding movement efficiency
+- **Adaptation physiology**: Optimizing training for specific outcomes
 
-### Training Methodologies
-- **Cluster training** for power development
-- **Accommodating resistance** integration
-- **Velocity-based** autoregulation
-- **Neuromuscular** training protocols
+### Data-Driven Decisions
+Using metrics to guide training:
+
+- **Volume load tracking**: Monitoring training stress over time
+- **Rate of perceived exertion**: Subjective training intensity
+- **Performance metrics**: Strength gains and movement quality improvements
+
+## Common Mistakes to Avoid
+
+❌ **Ego lifting**: Prioritizing weight over technique
+❌ **Ignoring recovery**: Underestimating the importance of rest
+❌ **Program hopping**: Constantly changing training approaches
+❌ **Neglecting mobility**: Focusing only on strength without movement quality
+❌ **Poor progression**: Advancing too quickly or too slowly
+
+## The Future of Strength Training
+
+Looking ahead, we can expect:
+
+- **More personalization**: AI-driven program design
+- **Better integration**: Combining strength with other fitness modalities
+- **Enhanced recovery**: Advanced recovery monitoring and interventions
+- **Community focus**: Social aspects of strength training
 
 ## Getting Started
 
 ### For Beginners
-- **Movement screening** and assessment
-- **Basic program** design principles
-- **Progressive overload** implementation
-- **Safety protocols** and spotting
+1. **Learn proper technique**: Invest in quality coaching
+2. **Start with bodyweight**: Master basic movement patterns
+3. **Progress gradually**: Consistency over intensity
+4. **Focus on compound movements**: Squats, deadlifts, presses, rows
 
-### For Intermediate Lifters
-- **Program periodization** concepts
-- **Accessory exercise** selection
-- **Plateau breaking** strategies
-- **Competition preparation** basics
-
-### For Advanced Athletes
-- **Specialized programming** approaches
-- **Peak performance** strategies
-- **Recovery optimization** protocols
-- **Competition coaching** services
+### For Experienced Lifters
+1. **Assess current approach**: What's working, what isn't?
+2. **Try new methodologies**: Experiment with VBT or cluster training
+3. **Invest in coaching**: Even experienced lifters benefit from expert guidance
+4. **Track everything**: Data-driven decisions for continued progress
 
 ## Conclusion
 
-Berlin's strength training revolution is characterized by a blend of traditional methods and cutting-edge technology. The city's gyms are becoming more sophisticated in their approach to building strength, with an emphasis on individualization, scientific backing, and comprehensive athlete development.
+The strength training revolution in Berlin is about more than just lifting heavier weights. It's about training smarter, recovering better, and building strength that translates to real-world performance.
 
-The future of strength training in Berlin looks bright, with continued innovation in equipment, methodology, and coaching approaches that will help athletes of all levels achieve their strength goals more effectively and safely than ever before.`,
+Whether you're a beginner looking to build your first pull-up or an experienced lifter chasing new personal records, Berlin's innovative approach to strength training offers something for everyone.
+
+The future of strength is here, and it's happening in Berlin's gyms right now.
+
+*Ready to join the revolution? Find a gym that embraces these new methodologies and experience the difference science-based strength training can make.*`,
 
   "psychology-of-fitness-mental-coaching-techniques": `# 🧠 The Psychology of Fitness: Mental Coaching Techniques
 
-Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.
+**TL;DR:** Physical transformation starts in the mind. Here are the psychological techniques that separate successful fitness journeys from failed attempts.
 
-## Understanding the Mental Game
+## The Mental Game of Fitness
 
-Physical transformation is as much a mental journey as it is a physical one. Berlin's top fitness professionals are increasingly recognizing that addressing the psychological aspects of fitness is crucial for long-term client success.
+We've all seen it: two people with identical workout plans and nutrition protocols, but completely different results. The difference isn't physical—it's mental. Understanding the psychology of fitness is the key to unlocking sustainable transformation.
 
-## Common Psychological Barriers
+## The Neuroscience of Habit Formation
 
-### Fear-Based Obstacles
-- **Gym intimidation**: Fear of judgment from others
-- **Failure anxiety**: Worry about not achieving goals
-- **Injury concerns**: Past trauma affecting current performance
-- **Body image issues**: Negative self-perception
+### How Habits Actually Form
+Recent neuroscience research reveals the true mechanics of habit formation:
 
-### Motivation Challenges
-- **Lack of intrinsic motivation**: Relying solely on external factors
-- **Perfectionism**: All-or-nothing thinking patterns
-- **Comparison trap**: Measuring progress against others
-- **Instant gratification**: Expecting immediate results
+- **The habit loop**: Cue → Routine → Reward → Repeat
+- **Neuroplasticity**: The brain's ability to rewire itself through repetition
+- **Dopamine pathways**: How reward systems drive behavior change
 
-## Cognitive Behavioral Techniques
+### The 21-Day Myth
+Forget what you've heard about 21 days. Real habit formation takes:
+- **Simple habits**: 18-254 days (average: 66 days)
+- **Complex behaviors**: 3-6 months for full automation
+- **Individual variation**: Some people adapt faster than others
 
-### Thought Pattern Recognition
-Help clients identify:
-- **Negative self-talk** patterns
-- **Limiting beliefs** about their capabilities
-- **Catastrophic thinking** about setbacks
-- **Fixed mindset** versus growth mindset
+## Psychological Barriers to Fitness
 
-### Reframing Strategies
-- **Challenge negative thoughts** with evidence
-- **Focus on process** rather than outcomes
-- **Celebrate small wins** and progress
-- **View setbacks** as learning opportunities
+### 1. All-or-Nothing Thinking
+The perfectionist trap that derails progress:
 
-## Goal Setting Psychology
+**The Problem**: "I missed my workout, so I've ruined everything"
+**The Solution**: Embrace the 80/20 rule—consistency over perfection
 
-### SMART Goals with Emotional Connection
-- **Specific**: Clear, well-defined objectives
-- **Measurable**: Trackable progress indicators
+### 2. Imposter Syndrome
+Feeling like you don't belong in fitness spaces:
+
+**The Problem**: "I'm not a 'gym person'"
+**The Solution**: Identity-based habit formation—become the person who exercises
+
+### 3. Analysis Paralysis
+Overthinking instead of doing:
+
+**The Problem**: Endless research without action
+**The Solution**: Start with "good enough" and improve along the way
+
+### 4. Comparison Trap
+Measuring your beginning against someone else's middle:
+
+**The Problem**: Social media highlight reels vs. your reality
+**The Solution**: Focus on personal progress, not peer comparison
+
+## Mental Coaching Techniques That Work
+
+### 1. Cognitive Behavioral Strategies
+
+#### Thought Record Technique
+Track and challenge negative thoughts:
+
+1. **Identify the trigger**: What situation prompted the thought?
+2. **Record the thought**: Write down exactly what you're thinking
+3. **Examine the evidence**: Is this thought helpful or accurate?
+4. **Reframe positively**: Create a more balanced perspective
+
+#### Example:
+- **Trigger**: Missed morning workout
+- **Negative thought**: "I have no willpower"
+- **Evidence**: I've worked out 4 times this week already
+- **Reframe**: "I'm human, and I can get back on track this afternoon"
+
+### 2. Motivational Interviewing Techniques
+
+#### The Stages of Change Model
+Understanding where clients are in their journey:
+
+1. **Precontemplation**: Not ready to change
+2. **Contemplation**: Considering change
+3. **Preparation**: Getting ready to act
+4. **Action**: Actively making changes
+5. **Maintenance**: Sustaining new behaviors
+
+#### Powerful Questions for Each Stage
+- **Precontemplation**: "What would need to happen for you to consider exercise?"
+- **Contemplation**: "What are the pros and cons of starting a fitness routine?"
+- **Preparation**: "What has worked for you in the past?"
+- **Action**: "How can we make this sustainable?"
+- **Maintenance**: "What strategies help you stay consistent?"
+
+### 3. Mindfulness-Based Approaches
+
+#### Body Awareness Training
+Developing interoceptive awareness:
+
+- **Hunger/satiety cues**: Learning to eat based on internal signals
+- **Energy levels**: Recognizing when to push vs. when to rest
+- **Emotional states**: Understanding the difference between physical and emotional needs
+
+#### Mindful Movement
+Bringing awareness to exercise:
+
+- **Present-moment focus**: Concentrating on the current rep, not the entire workout
+- **Non-judgmental observation**: Noticing sensations without criticism
+- **Breath awareness**: Using breathing to enhance performance and recovery
+
+### 4. Goal Setting Psychology
+
+#### SMART-ER Goals
+Beyond the traditional SMART framework:
+
+- **Specific**: Clear and well-defined
+- **Measurable**: Quantifiable progress markers
 - **Achievable**: Realistic given current circumstances
-- **Relevant**: Personally meaningful to the client
-- **Time-bound**: Clear deadlines and milestones
+- **Relevant**: Aligned with personal values
+- **Time-bound**: Clear deadlines
+- **Exciting**: Emotionally compelling
+- **Reviewed**: Regularly assessed and adjusted
 
-### Intrinsic vs. Extrinsic Motivation
-- **Intrinsic motivators**: Personal satisfaction, health, energy
-- **Extrinsic motivators**: Appearance, others' approval, competition
-- **Balancing both**: Using external goals to build internal drive
-- **Long-term sustainability**: Developing intrinsic motivation
+#### Implementation Intentions
+The "if-then" planning strategy:
 
-## Behavioral Change Strategies
+- **If** it's 6 AM on a weekday, **then** I will do my morning workout
+- **If** I feel like skipping the gym, **then** I will commit to just 10 minutes
+- **If** I'm stressed, **then** I will go for a walk instead of eating
 
-### Habit Formation
-- **Start small**: Micro-habits that build momentum
-- **Stack habits**: Attach new behaviors to existing routines
-- **Environmental design**: Modify surroundings to support goals
-- **Consistency over perfection**: Focus on showing up regularly
+## Overcoming Common Mental Obstacles
 
-### Overcoming Resistance
-- **Identify triggers**: What causes avoidance behaviors
-- **Problem-solve barriers**: Practical solutions to obstacles
-- **Build accountability**: Support systems and check-ins
-- **Gradual exposure**: Slowly increasing challenge levels
+### Motivation vs. Discipline
+Understanding the difference and when to use each:
 
-## Stress and Emotional Management
+**Motivation**: 
+- Emotional and temporary
+- Great for starting
+- Unreliable for consistency
 
-### Stress Response Understanding
-- **Fight, flight, or freeze**: How stress affects exercise
-- **Cortisol impact**: Stress hormones and fitness goals
-- **Recovery importance**: Mental and physical restoration
-- **Stress reduction techniques**: Meditation, breathing, mindfulness
+**Discipline**:
+- Systematic and sustainable
+- Built through small wins
+- Creates long-term success
 
-### Emotional Eating Patterns
-- **Trigger identification**: Emotional vs. physical hunger
-- **Alternative coping strategies**: Non-food stress relief
-- **Mindful eating practices**: Present-moment awareness
-- **Self-compassion**: Reducing guilt and shame cycles
+### The Motivation Equation
+Motivation = (Expectancy × Value) / (Impulsiveness × Delay)
 
-## Building Self-Efficacy
+**Increase motivation by**:
+- Raising expectancy (belief you can succeed)
+- Increasing value (making goals more meaningful)
+- Reducing impulsiveness (removing temptations)
+- Minimizing delay (immediate rewards for good behavior)
 
-### Confidence Development
-- **Past success recall**: Reminding clients of previous achievements
-- **Skill building**: Gradual competency development
-- **Positive visualization**: Mental rehearsal of success
-- **Social support**: Encouragement from others
+## Building Mental Resilience
 
-### Mastery Experiences
-- **Progressive challenges**: Gradually increasing difficulty
-- **Skill acquisition**: Learning new movements and techniques
-- **Personal records**: Celebrating individual achievements
-- **Competence feedback**: Regular progress acknowledgment
+### 1. Stress Inoculation Training
+Gradually exposing clients to manageable stress:
 
-## Communication Techniques
+- **Start small**: Brief, challenging workouts
+- **Build gradually**: Increase intensity over time
+- **Develop coping strategies**: Breathing, self-talk, visualization
+- **Transfer skills**: Apply gym resilience to life challenges
 
-### Active Listening
-- **Full attention**: Present-moment focus during conversations
-- **Reflective responses**: Paraphrasing client concerns
-- **Emotional validation**: Acknowledging feelings without judgment
-- **Open-ended questions**: Encouraging deeper exploration
+### 2. Self-Compassion Training
+Treating yourself with kindness during setbacks:
 
-### Motivational Interviewing
-- **Explore ambivalence**: Understanding mixed feelings about change
-- **Elicit change talk**: Helping clients voice their own motivations
-- **Roll with resistance**: Avoiding confrontation and arguments
-- **Support self-efficacy**: Believing in client's ability to change
+- **Self-kindness**: Speak to yourself like a good friend
+- **Common humanity**: Remember that struggle is universal
+- **Mindfulness**: Observe difficulties without getting overwhelmed
 
-## Body Image and Self-Esteem
+### 3. Growth Mindset Development
+Believing that abilities can be developed:
 
-### Positive Body Image Development
-- **Function over form**: Appreciating what the body can do
-- **Media literacy**: Critical evaluation of unrealistic standards
-- **Self-compassion practices**: Treating oneself with kindness
-- **Diverse representation**: Celebrating all body types
+**Fixed mindset**: "I'm not good at exercise"
+**Growth mindset**: "I'm learning to enjoy movement"
 
-### Self-Worth Beyond Appearance
-- **Identity expansion**: Defining self beyond physical attributes
-- **Value clarification**: Identifying what truly matters
-- **Accomplishment recognition**: Non-appearance based achievements
-- **Relationship quality**: How fitness affects connections with others
+## Practical Implementation Strategies
 
-## Dealing with Setbacks
+### For Fitness Professionals
 
-### Resilience Building
-- **Normalize setbacks**: Setbacks are part of the process
-- **Learning mindset**: What can be gained from challenges
-- **Support system activation**: Reaching out during difficult times
-- **Perspective taking**: Viewing challenges in broader context
+#### Creating Psychological Safety
+- **Non-judgmental environment**: Accept clients where they are
+- **Celebrate small wins**: Acknowledge every bit of progress
+- **Normalize struggles**: Share that challenges are part of the process
+- **Provide options**: Give clients control over their experience
 
-### Recovery Strategies
-- **Self-forgiveness**: Moving past mistakes without dwelling
-- **Plan adjustment**: Modifying goals based on new circumstances
-- **Recommitment**: Renewed dedication to the process
-- **Professional support**: When to seek additional help
+#### Assessment Tools
+- **Readiness to change questionnaire**: Understand client motivation
+- **Values clarification exercises**: Connect fitness to what matters most
+- **Barrier identification**: Anticipate and plan for obstacles
+- **Strength assessment**: Identify existing psychological resources
 
-## Group Dynamics and Social Support
+### For Individuals
 
-### Creating Supportive Communities
-- **Shared experiences**: Connecting people with similar goals
-- **Peer accountability**: Mutual support and encouragement
-- **Celebration culture**: Recognizing everyone's achievements
-- **Inclusive environment**: Welcoming all fitness levels
+#### Daily Mental Training
+- **Morning intention setting**: Start each day with purpose
+- **Evening reflection**: Review what went well and what to improve
+- **Gratitude practice**: Appreciate your body and its capabilities
+- **Visualization**: Mental rehearsal of successful workouts
 
-### Managing Comparison
-- **Individual journey focus**: Everyone's path is different
-- **Collaboration over competition**: Working together toward goals
-- **Strength identification**: Recognizing unique abilities
-- **Progress celebration**: Acknowledging personal improvements
+#### Building Your Support System
+- **Accountability partners**: People who support your goals
+- **Professional support**: Coaches, therapists, nutritionists
+- **Community involvement**: Group fitness, online forums, local clubs
+- **Family engagement**: Getting loved ones on board with your goals
 
-## Practical Implementation
+## The Role of Emotions in Fitness
 
-### Assessment Tools
-- **Psychological readiness questionnaires**
-- **Motivation assessment scales**
-- **Body image evaluation tools**
-- **Stress and anxiety measurements**
+### Emotional Regulation Strategies
+- **Identify triggers**: What emotions lead to skipping workouts?
+- **Develop alternatives**: Healthy ways to cope with difficult emotions
+- **Use exercise therapeutically**: Movement as mood regulation
+- **Practice emotional tolerance**: Sitting with discomfort without acting
 
-### Session Integration
-- **Check-in protocols**: Regular mental health assessments
-- **Mindfulness moments**: Brief meditation or breathing exercises
-- **Positive affirmations**: Confidence-building statements
-- **Reflection time**: Processing experiences and emotions
+### Exercise as Antidepressant
+The research is clear: exercise is as effective as medication for mild to moderate depression:
 
-### Referral Networks
-- **Mental health professionals**: When to refer for additional support
-- **Specialized therapists**: Eating disorders, trauma, anxiety
-- **Support groups**: Community resources and programs
-- **Medical professionals**: Addressing underlying health issues
+- **Neurochemical changes**: Increased serotonin, dopamine, and norepinephrine
+- **Neurogenesis**: Growth of new brain cells
+- **Stress reduction**: Lower cortisol levels
+- **Self-efficacy**: Increased confidence from achieving goals
 
-## Training for Coaches
+## Measuring Psychological Progress
 
-### Essential Skills Development
-- **Basic psychology understanding**: Human behavior and motivation
-- **Communication training**: Active listening and empathy
-- **Boundary setting**: Professional relationships and limits
-- **Self-care practices**: Managing your own mental health
+### Quantitative Measures
+- **Adherence rates**: Percentage of planned workouts completed
+- **Consistency streaks**: Longest periods of sustained behavior
+- **Goal achievement**: Percentage of goals met within timeframes
+- **Self-efficacy scales**: Confidence in ability to exercise regularly
 
-### Continuing Education
-- **Psychology courses**: Formal education in behavioral science
-- **Certification programs**: Specialized mental coaching credentials
-- **Workshop attendance**: Skill development and networking
-- **Supervision and mentoring**: Learning from experienced professionals
+### Qualitative Indicators
+- **Improved mood**: Better emotional regulation
+- **Increased energy**: More vitality throughout the day
+- **Better sleep**: Improved rest and recovery
+- **Enhanced self-image**: More positive body relationship
+- **Stress management**: Better coping with life challenges
+
+## Common Coaching Mistakes
+
+❌ **Ignoring readiness**: Pushing clients who aren't ready to change
+❌ **One-size-fits-all**: Using the same approach for everyone
+❌ **Focusing only on behavior**: Neglecting thoughts and emotions
+❌ **Avoiding difficult conversations**: Not addressing psychological barriers
+❌ **Lack of follow-up**: Not checking in on mental/emotional progress
+
+## The Future of Mental Fitness Coaching
+
+Emerging trends in psychological fitness support:
+
+- **AI-powered mood tracking**: Technology that monitors emotional states
+- **Virtual reality therapy**: Immersive environments for overcoming fears
+- **Biofeedback integration**: Real-time stress and recovery monitoring
+- **Personalized psychology**: Tailored mental training based on personality types
 
 ## Conclusion
 
-The psychology of fitness is a complex but crucial aspect of successful coaching. By understanding and addressing the mental components of behavior change, fitness professionals can help their clients achieve not just physical transformation, but lasting lifestyle changes that improve overall well-being.
+The psychology of fitness is complex, but understanding it is essential for lasting change. Whether you're a fitness professional or someone on your own journey, remember that transformation happens from the inside out.
 
-The most effective coaches are those who recognize that the mind and body are interconnected, and that true fitness success requires attention to both physical and psychological factors. By incorporating these mental coaching techniques, fitness professionals can provide more comprehensive, effective, and sustainable support for their clients' health and fitness journeys.`,
+The strongest muscle you can develop is your mind. When you train it properly, everything else follows.
+
+Physical fitness is not just about the body—it's about developing mental resilience, emotional intelligence, and psychological strength that serves you in every area of life.
+
+*Ready to strengthen your mental game? Start with one psychological technique that resonates with you and practice it consistently. Your future self will thank you.*`,
 }
 
-export async function getBlogPosts(): Promise<BlogPostFrontmatter[]> {
+function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
+  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
+  const titleMatch = content.match(emojiTitleRegex)
+
+  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
+  const excerptMatch = content.match(tldrRegex)
+
+  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
+  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
+
+  return {
+    title: titleMatch ? titleMatch[1].trim() : null,
+    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
+  }
+}
+
+// Helper function to fetch blob content with proper authentication
+async function fetchBlobContent(url: string): Promise<string> {
+  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
+
+  // Try multiple methods to fetch the content
+  const methods = [
+    // Method 1: Direct fetch (for public blobs)
+    () => fetch(url),
+
+    // Method 2: Fetch with authorization header
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `Bearer ${BLOB_TOKEN}`,
+        },
+      }),
+
+    // Method 3: Fetch with different auth format
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `token ${BLOB_TOKEN}`,
+        },
+      }),
+  ]
+
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
+      const response = await methods[i]()
+
+      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
+
+      if (response.ok) {
+        const content = await response.text()
+        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
+        return content
+      }
+    } catch (error) {
+      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
+    }
+  }
+
+  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
+}
+
+export async function getPostSlugs(): Promise<string[]> {
+  console.log("[getPostSlugs] Fetching all blog post slugs...")
+
   if (!BLOB_TOKEN) {
-    console.log("No blob token found, returning sample posts")
+    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS.map((post) => post.slug)
+  }
+
+  try {
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    const slugs = blobs
+      .filter((blob) => blob.pathname.endsWith(".md"))
+      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
+    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
+    return slugs
+  } catch (error) {
+    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS.map((post) => post.slug)
+  }
+}
+
+export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
+  console.log("[getAllPosts] Fetching all blog posts...")
+
+  if (!BLOB_TOKEN) {
+    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
     return SAMPLE_POSTS
   }
 
   try {
-    const { blobs } = await list({
-      prefix: BLOG_CONTENT_PATH,
-      token: BLOB_TOKEN,
-    })
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
-    const posts = await Promise.all(
-      blobs.map(async (blob) => {
+    const posts: BlogPostFrontmatter[] = []
+
+    for (const blob of blobs) {
+      if (blob.pathname.endsWith(".md")) {
+        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
+
         try {
-          const response = await fetch(blob.url)
-          const content = await response.text()
-          const { data } = matter(content)
+          const fileContents = await fetchBlobContent(blob.url)
+          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
 
-          return {
-            ...data,
-            slug: blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(".md", ""),
-          } as BlogPostFrontmatter
+          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+
+          console.log(`[getAllPosts] Extracted slug: ${slug}`)
+
+          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+
+          const extracted = extractTitleAndExcerpt(content)
+
+          const title = data.title || extracted.title || `Post: ${slug}`
+          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
+          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
+
+          posts.push({
+            title: title,
+            date: data.date || new Date().toISOString().split("T")[0],
+            category: data.category || "Uncategorized",
+            excerpt: excerpt,
+            image: data.image || undefined,
+            slug: slug,
+          })
         } catch (error) {
-          console.error(`Error processing blob ${blob.pathname}:`, error)
-          return null
+          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
+          continue
         }
-      }),
-    )
-
-    const validPosts = posts.filter(Boolean) as BlogPostFrontmatter[]
-
-    if (validPosts.length === 0) {
-      console.log("No valid posts found in blob storage, returning sample posts")
-      return SAMPLE_POSTS
+      }
     }
 
-    return validPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
+    return posts.length > 0 ? posts : SAMPLE_POSTS
   } catch (error) {
-    console.error("Error fetching blog posts from blob storage:", error)
+    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
     return SAMPLE_POSTS
   }
 }
 
-export async function getBlogPost(slug: string): Promise<BlogPost | null> {
-  // First check if we have sample content for this slug
-  if (SAMPLE_BLOG_CONTENT[slug as keyof typeof SAMPLE_BLOG_CONTENT]) {
-    const content = SAMPLE_BLOG_CONTENT[slug as keyof typeof SAMPLE_BLOG_CONTENT]
-    const { data, content: markdownContent } = matter(content)
-    const serializedContent = await serialize(markdownContent)
+export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
 
-    return {
-      frontmatter: { ...data, slug } as BlogPostFrontmatter,
-      serializedContent,
-      content: markdownContent,
-      slug,
+  // Check if we have sample content for this slug
+  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
+    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
+
+    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
+    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
+
+    if (samplePost && sampleContent) {
+      const serializedContent = await serialize(sampleContent, {
+        parseFrontmatter: false,
+      })
+
+      return {
+        frontmatter: samplePost,
+        serializedContent,
+        content: sampleContent,
+        slug: slug,
+      }
     }
   }
 
   if (!BLOB_TOKEN) {
-    console.log(`No blob token found and no sample content for slug: ${slug}`)
+    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
     return null
   }
 
   try {
-    const { blobs } = await list({
-      prefix: BLOB_CONTENT_PATH,
-      token: BLOB_TOKEN,
-    })
+    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
+    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
 
-    const blob = blobs.find((b) => b.pathname.replace(BLOB_CONTENT_PATH, "").replace(".md", "") === slug)
+    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
+    const targetBlob = blobs.find((b) => b.pathname === targetPath)
 
-    if (!blob) {
-      console.log(`No blob found for slug: ${slug}`)
+    if (!targetBlob) {
+      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
+      console.log(
+        `[getPostBySlug] Available blobs:`,
+        blobs.map((b) => b.pathname),
+      )
       return null
     }
 
-    const response = await fetch(blob.url)
-    const content = await response.text()
-    const { data, content: markdownContent } = matter(content)
-    const serializedContent = await serialize(markdownContent)
+    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
+
+    const fileContents = await fetchBlobContent(targetBlob.url)
+    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
+    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
+
+    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+    console.log(`[getPostBySlug] Frontmatter:`, data)
+    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
+
+    const extracted = extractTitleAndExcerpt(content)
+    console.log(
+      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
+    )
+
+    const title = data.title || extracted.title || `Post: ${slug}`
+    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
+    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
+
+    const serializedContent = await serialize(content, {
+      parseFrontmatter: false,
+    })
+    console.log("[getPostBySlug] MDX serialized successfully")
 
     return {
-      frontmatter: { ...data, slug } as BlogPostFrontmatter,
+      frontmatter: {
+        title: title,
+        date: data.date || new Date().toISOString().split("T")[0],
+        category: data.category || "Uncategorized",
+        excerpt: excerpt,
+        image: data.image || undefined,
+        slug: slug,
+      },
       serializedContent,
-      content: markdownContent,
+      content,
       slug,
     }
   } catch (error) {
-    console.error(`Error fetching blog post ${slug}:`, error)
+    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
     return null
   }
-}
-
-export async function getBlogPostsByCategory(category: string): Promise<BlogPostFrontmatter[]> {
-  const posts = await getBlogPosts()
-  return posts.filter((post) => post.category.toLowerCase() === category.toLowerCase())
-}
-
-export async function getRelatedPosts(
-  currentSlug: string,
-  category: string,
-  limit = 3,
-): Promise<BlogPostFrontmatter[]> {
-  const posts = await getBlogPosts()
-  return posts.filter((post) => post.slug !== currentSlug && post.category === category).slice(0, limit)
 }

@@ -14,10 +14,13 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   const [copied, setCopied] = useState(false)
 
   const shareText = excerpt || title
+  const encodedTitle = encodeURIComponent(title)
   const encodedUrl = encodeURIComponent(url)
+  const encodedText = encodeURIComponent(shareText)
 
-  // LinkedIn sharing - use the simple share URL format that works better
-  const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
+  const shareLinks = {
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
+  }
 
   const copyToClipboard = async () => {
     try {
@@ -29,20 +32,6 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
     }
   }
 
-  const handleLinkedInShare = () => {
-    // Open LinkedIn share in a popup window for better UX
-    const width = 600
-    const height = 600
-    const left = (window.innerWidth - width) / 2
-    const top = (window.innerHeight - height) / 2
-
-    window.open(
-      linkedinShareUrl,
-      "linkedin-share",
-      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
-    )
-  }
-
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm text-gray-600 mr-2">Share:</span>
@@ -50,8 +39,8 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
       <Button
         variant="outline"
         size="sm"
-        onClick={handleLinkedInShare}
-        className="flex items-center gap-2 bg-transparent"
+        onClick={() => window.open(shareLinks.linkedin, "_blank")}
+        className="flex items-center gap-2"
       >
         <Linkedin className="w-4 h-4" />
         <span className="hidden sm:inline">LinkedIn</span>
