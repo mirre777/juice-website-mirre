@@ -19,7 +19,7 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   const encodedText = encodeURIComponent(shareText)
 
   const shareLinks = {
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}&source=Juice%20Fitness`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
   }
 
   const copyToClipboard = async () => {
