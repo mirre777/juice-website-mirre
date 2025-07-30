@@ -73,6 +73,10 @@ function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
               radios: false,
               spacedAccordionItems: false,
             },
+            // Enable promotion codes
+            promotionCodes: {
+              enabled: true,
+            },
             // Remove paymentMethodOrder to let Stripe decide the best order
             fields: {
               billingDetails: {
@@ -113,7 +117,16 @@ function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
       </Button>
 
       <p className="text-xs text-gray-500 text-center">
-        By completing your purchase, you agree to our terms of service.
+        By completing your purchase, you agree to our{" "}
+        <a
+          href="https://www.juice.fitness/legal?tab=terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline"
+        >
+          terms of service
+        </a>
+        .
       </p>
     </form>
   )
