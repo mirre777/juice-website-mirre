@@ -8,7 +8,7 @@ import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, CreditCard, Mail, Phone, MapPin, QrCode, Smartphone } from "lucide-react"
+import { CheckCircle, CreditCard, Mail, Phone, MapPin } from "lucide-react"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -32,113 +32,6 @@ interface TempTrainer {
   }
   createdAt: string
   status: "pending" | "active"
-}
-
-// Hook to detect if user is on mobile
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(
-        window.innerWidth < 768 ||
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-      )
-    }
-
-    checkIsMobile()
-    window.addEventListener("resize", checkIsMobile)
-
-    return () => window.removeEventListener("resize", checkIsMobile)
-  }, [])
-
-  return isMobile
-}
-
-// Component for QR Code generation
-function QRCodeDisplay({ url }: { url: string }) {
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`
-
-  return (
-    <div className="flex flex-col items-center space-y-3">
-      <img
-        src={qrCodeUrl || "/placeholder.svg"}
-        alt="QR Code for payment"
-        className="w-48 h-48 border-2 border-gray-200 rounded-lg"
-      />
-      <p className="text-sm text-gray-600 text-center">Scan with your phone to pay with promotion codes</p>
-    </div>
-  )
-}
-
-// Alternative payment section
-function AlternativePayment({ tempId }: { tempId: string }) {
-  const isMobile = useIsMobile()
-  const paymentUrl = `https://buy.stripe.com/9B67sMehnfgObBd9xefMA01?client_reference_id=${tempId}`
-
-  if (isMobile) {
-    return (
-      <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center space-x-3 mb-4">
-          <Smartphone className="w-6 h-6 text-blue-600" />
-          <div>
-            <h3 className="font-semibold text-blue-900">Pay with Promotion Codes</h3>
-            <p className="text-sm text-blue-700">Use Stripe's checkout page to apply discount codes</p>
-          </div>
-        </div>
-
-        <Button
-          onClick={() => window.open(paymentUrl, "_blank")}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Pay with Stripe Checkout (Supports Promo Codes)
-        </Button>
-
-        <p className="text-xs text-blue-600 mt-2 text-center">
-          Opens in a new tab • Same secure payment • Promotion codes available
-        </p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-      <div className="flex items-center space-x-3 mb-4">
-        <QrCode className="w-6 h-6 text-blue-600" />
-        <div>
-          <h3 className="font-semibold text-blue-900">Pay with Promotion Codes</h3>
-          <p className="text-sm text-blue-700">Scan QR code to access Stripe checkout with discount codes</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row items-center space-y-4 lg:space-y-0 lg:space-x-6">
-        <QRCodeDisplay url={paymentUrl} />
-
-        <div className="flex-1 space-y-3">
-          <div className="flex items-center space-x-2 text-sm text-blue-700">
-            <CheckCircle className="w-4 h-4" />
-            <span>Same secure payment process</span>
-          </div>
-          <div className="flex items-center space-x-2 text-sm text-blue-700">
-            <CheckCircle className="w-4 h-4" />
-            <span>Promotion codes available</span>
-          </div>
-          <div className="flex items-center space-x-2 text-sm text-blue-700">
-            <CheckCircle className="w-4 h-4" />
-            <span>Mobile-optimized checkout</span>
-          </div>
-
-          <Button
-            onClick={() => window.open(paymentUrl, "_blank")}
-            variant="outline"
-            className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
-          >
-            Or click here to open checkout page
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
 }
 
 function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
@@ -238,55 +131,50 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
   console.log("🚀 About to render PaymentElement with promotion codes")
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {elementError && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-600 text-sm">{elementError}</p>
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {elementError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm">{elementError}</p>
+        </div>
+      )}
 
-        {(() => {
-          try {
-            return <PaymentElement options={paymentElementOptions} />
-          } catch (error) {
-            console.error("❌ Error rendering PaymentElement:", error)
-            setElementError(error instanceof Error ? error.message : "Unknown error")
-            return null
-          }
-        })()}
+      {(() => {
+        try {
+          return <PaymentElement options={paymentElementOptions} />
+        } catch (error) {
+          console.error("❌ Error rendering PaymentElement:", error)
+          setElementError(error instanceof Error ? error.message : "Unknown error")
+          return null
+        }
+      })()}
 
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
 
-        <Button
-          type="submit"
-          disabled={!stripe || isLoading}
-          className="w-full bg-[#9EFF00] hover:bg-[#8FE600] text-black font-semibold py-3 text-lg"
+      <Button
+        type="submit"
+        disabled={!stripe || isLoading}
+        className="w-full bg-[#9EFF00] hover:bg-[#8FE600] text-black font-semibold py-3 text-lg"
+      >
+        {isLoading ? "Processing..." : "Pay €70"}
+      </Button>
+
+      <p className="text-sm text-gray-600 text-center">
+        By completing your purchase, you agree to our{" "}
+        <a
+          href="https://www.juice.fitness/legal?tab=terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline"
         >
-          {isLoading ? "Processing..." : "Pay €70"}
-        </Button>
-
-        <p className="text-sm text-gray-600 text-center">
-          By completing your purchase, you agree to our{" "}
-          <a
-            href="https://www.juice.fitness/legal?tab=terms"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline"
-          >
-            terms of service
-          </a>
-          .
-        </p>
-      </form>
-
-      {/* Alternative payment option with QR code */}
-      <AlternativePayment tempId={tempTrainer.id} />
-    </div>
+          terms of service
+        </a>
+        .
+      </p>
+    </form>
   )
 }
 

@@ -1,7 +1,3 @@
-import { list } from "@vercel/blob"
-import matter from "gray-matter"
-import { serialize } from "next-mdx-remote/serialize"
-
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 
 export interface BlogPostFrontmatter {
@@ -24,6 +20,33 @@ const BLOG_CONTENT_PATH = "blog/"
 
 // Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
+  {
+    title: "📱 How to Get More Clients with a Booking Page",
+    date: "2025-02-01",
+    excerpt:
+      "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
+    category: "Marketing",
+    image: "/personal-trainer-booking-page-mobile.png",
+    slug: "how-to-get-more-clients-with-booking-page",
+  },
+  {
+    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
+    date: "2025-01-31",
+    excerpt:
+      "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
+    category: "Technology",
+    image: "/personal-trainer-website-builders-laptops.png",
+    slug: "top-5-free-personal-trainer-website-builders-2025",
+  },
+  {
+    title: "🔍 SEO Tips for Fitness Coaches in Europe",
+    date: "2025-01-30",
+    excerpt:
+      "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
+    category: "Visibility",
+    image: "/seo-tips-fitness-coaches-europe.png",
+    slug: "seo-tips-for-fitness-coaches-in-europe",
+  },
   {
     title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
     date: "2025-01-15",
@@ -67,6 +90,538 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
 ]
 
 const SAMPLE_BLOG_CONTENT = {
+  "how-to-get-more-clients-with-booking-page": `# 📱 How to Get More Clients with a Booking Page
+
+**TL;DR:** Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A **booking page** converts scrolls into sessions while you sleep.
+
+---
+
+## Why Booking Pages Work (Especially for Fitness Coaches)
+
+### The Problem with Manual Booking
+- **Endless back-and-forth**: "What times work?" "How about Tuesday?" "Actually, Wednesday is better..."
+- **Missed opportunities**: Clients book with competitors while you're training
+- **Unprofessional appearance**: DMs make you look like a side hustle, not a business
+- **Time vampire**: Hours spent on scheduling instead of coaching
+
+### The Booking Page Solution
+✅ **Removes friction**: No back-and-forth messaging
+✅ **Looks professional**: Shows you're serious about your business  
+✅ **SEO-friendly**: Rank for "book personal training sessions online"
+✅ **Works 24/7**: Converts clients while you sleep
+✅ **Mobile-optimized**: 73% of bookings happen on phones
+
+---
+
+## Step-by-Step: Build a High-Converting Booking Page
+
+### 1. Use a Tool Made for Trainers
+
+**Don't use generic booking tools.** They're not built for fitness.
+
+Try [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) - built specifically for trainers:
+- **SEO-ready**: Optimized for fitness keywords
+- **Mobile-friendly**: Perfect on all devices
+- **WhatsApp-integrated**: European clients expect this
+- **Payment processing**: Stripe integration included
+- **No coding required**: Live in 10 minutes
+
+### 2. Show Your Services Clearly
+
+**Bad example:**
+- "Training sessions available"
+
+**Good example:**
+- **Personal Training (1-on-1)** - €80/session
+- **Small Group Training (2-4 people)** - €35/person  
+- **Online Coaching** - €120/month
+
+Use phrases that convert:
+- "Train with me in Berlin or online"
+- "Flexible session times - book instantly"
+- "Free intro session for new clients"
+
+### 3. Integrate Payments (or At Least Confirmations)
+
+**Option A: Full Payment Integration**
+- Stripe or PayPal for instant payment
+- Reduces no-shows by 60%
+- Professional appearance
+
+**Option B: Confirmation System**
+- Send confirmations via WhatsApp or email
+- Collect payment details for security
+- Follow up automatically
+
+### 4. Mobile-First Design
+
+Your booking page MUST work perfectly on mobile:
+- **Large buttons**: Easy to tap with thumbs
+- **Simple forms**: Minimal fields required
+- **Fast loading**: Under 3 seconds
+- **Clear pricing**: No hidden costs
+
+---
+
+## Copywriting That Converts
+
+### ❌ What NOT to Say:
+- "Contact me to train"
+- "Send me a message"
+- "Available for sessions"
+- "Reach out for pricing"
+
+### ✅ What TO Say:
+- "Book your free intro session now - no commitment"
+- "Reserve your spot - limited availability"
+- "Start your transformation today"
+- "Join 200+ clients who've achieved their goals"
+
+### Power Words for Fitness Booking Pages:
+- **Transform** (not "improve")
+- **Guaranteed** (not "might help")
+- **Exclusive** (not "available")
+- **Instant** (not "quick")
+- **Proven** (not "effective")
+
+### SEO Keywords to Include:
+- fitness coach booking page
+- PT website fast
+- book fitness session online
+- personal trainer [your city]
+- online fitness coaching
+
+---
+
+## Add Social Proof That Actually Works
+
+### 1. Client Testimonials with Headshots
+> *"I lost 15kg in 3 months with Sarah's program. The booking system made it so easy to stay consistent!"*
+> 
+> **— Maria K., Berlin**
+
+### 2. Transformation Photos (with Consent)
+- Before/after comparisons
+- Progress photos over time
+- Video testimonials work even better
+
+### 3. Trust Badges
+- "Trusted by 500+ trainers" (if using Juice)
+- Certification logos (NASM, ACSM, etc.)
+- "5-star rated on Google"
+- "Featured in [Local Magazine]"
+
+### 4. Real-Time Social Proof
+- "3 people booked sessions today"
+- "Next available slot: Tomorrow 2 PM"
+- "92% of clients renew their packages"
+
+---
+
+## Technical Must-Haves
+
+### Essential Features:
+✅ **Calendar integration**: Sync with Google/Apple Calendar
+✅ **Automated reminders**: Reduce no-shows
+✅ **Package deals**: Sell multiple sessions
+✅ **Waitlist functionality**: Capture demand
+✅ **Cancellation policy**: Clear terms
+✅ **GDPR compliance**: Required in Europe
+
+### Nice-to-Have Features:
+- **Video call integration**: For online sessions
+- **Nutrition tracking**: Added value
+- **Progress photos**: Client engagement
+- **Workout library**: Bonus content
+
+---
+
+## Common Booking Page Mistakes (And How to Fix Them)
+
+### ❌ Mistake #1: Too Many Options
+**Problem**: 15 different session types confuse clients
+**Solution**: Offer 3 clear options max
+
+### ❌ Mistake #2: Hidden Pricing
+**Problem**: "Contact for pricing" kills conversions
+**Solution**: Show prices upfront, explain value
+
+### ❌ Mistake #3: Complicated Forms
+**Problem**: 20 fields to fill out
+**Solution**: Name, email, phone, preferred time - that's it
+
+### ❌ Mistake #4: No Mobile Optimization
+**Problem**: Tiny buttons, slow loading
+**Solution**: Test on your phone first
+
+### ❌ Mistake #5: Generic Design
+**Problem**: Looks like every other booking page
+**Solution**: Add your personality, photos, brand colors
+
+---
+
+## The Psychology of Booking
+
+### Scarcity Creates Action
+- "Only 3 spots left this week"
+- "Limited time: Free consultation"
+- "Next opening: Friday 4 PM"
+
+### Social Proof Builds Trust
+- "Join 200+ successful clients"
+- "Rated #1 trainer in Berlin"
+- "Featured in Fitness Magazine"
+
+### Clear Value Proposition
+**Don't say:** "I'm a personal trainer"
+**Say:** "I help busy professionals lose 10kg in 90 days without giving up their social life"
+
+---
+
+## Measuring Success: Key Metrics
+
+### Conversion Metrics:
+- **Page views to bookings**: Aim for 15-25%
+- **Form starts to completions**: Should be 80%+
+- **Mobile vs desktop bookings**: Track the split
+- **Time on page**: 2+ minutes is good
+
+### Business Metrics:
+- **Average session value**: Track increases
+- **Client lifetime value**: Measure retention
+- **No-show rate**: Should decrease with booking pages
+- **Referral rate**: Happy clients refer more
+
+### Tools for Tracking:
+- Google Analytics (free)
+- Hotjar for user behavior
+- Built-in analytics (if using Juice)
+
+---
+
+## Advanced Booking Page Strategies
+
+### 1. Dynamic Pricing
+- Peak hours cost more
+- Off-peak discounts
+- Package deals for bulk bookings
+
+### 2. Automated Follow-Up Sequences
+- Welcome email after booking
+- Reminder 24 hours before
+- Post-session feedback request
+- Rebooking offer
+
+### 3. Seasonal Campaigns
+- "New Year, New You" packages
+- Summer body preparation
+- Holiday fitness maintenance
+
+### 4. Referral Integration
+- "Refer a friend, get 1 free session"
+- Automatic tracking
+- Reward both parties
+
+---
+
+## Final Rep
+
+You don't need a whole website. You need a **booking machine**.
+
+**The Reality Check:**
+- Your competitors are still using DMs
+- Clients want instant booking
+- Professional appearance = higher prices
+- Automation = more time for actual training
+
+**Action Steps:**
+1. **Get your fitness coach booking page live in 10 minutes**
+2. **SEO optimize it** for local searches
+3. **Link it everywhere** - Instagram bio, Google My Business, email signature
+4. **Let it work while you train**
+
+**Ready to stop losing clients to manual booking?**
+
+👉 [Create your booking page now](https://juice.fitness/marketplace/personal-trainer-website)
+
+*No credit card required. No technical skills needed. Just more clients.*
+
+---
+
+## Frequently Asked Questions
+
+### **Q: Do I really need a booking page if I have Instagram?**
+A: Instagram is for marketing. A booking page is for converting. You need both.
+
+### **Q: What if clients prefer to call or text?**
+A: 67% of people under 35 prefer online booking. Don't limit yourself to the 33%.
+
+### **Q: How much should I charge for online booking?**
+A: Same as in-person, or 10-20% less. The convenience justifies the price.
+
+### **Q: What about no-shows?**
+A: Booking pages with payment integration reduce no-shows by 60%. Require deposits.
+
+### **Q: Can I use this for group classes too?**
+A: Absolutely. Group bookings are even more important - you need to manage capacity.
+
+### **Q: What about GDPR compliance?**
+A: Juice handles this automatically. DIY solutions require legal setup.
+
+*Want more strategies for growing your fitness business? Check out our guides on [website builders for trainers](https://juice.fitness/blog/top-5-free-personal-trainer-website-builders-2025) and [SEO for fitness coaches](https://juice.fitness/blog/seo-tips-for-fitness-coaches-in-europe).*`,
+
+  "top-5-free-personal-trainer-website-builders-2025": `# 🏆 Top 5 Free Personal Trainer Website Builders (2025)
+
+**TL;DR:** Let's cut the fluff. You're a personal trainer, not a web developer. You need a **high-converting website** that books sessions while you're smashing reps with clients. So here are the 5 best free website builders made *for trainers* in 2025.
+
+---
+
+## 1. Juice (🥇 Best for Booking + Branding)
+
+**Website:** [juice.fitness/marketplace/personal-trainer-website](https://juice.fitness/marketplace/personal-trainer-website)
+
+✅ **What makes it special:**
+- Create your Personal Trainer Website in **10 minutes**
+- Includes WhatsApp, mobile bookings, and trainer branding
+- SEO-optimised for "personal trainer website builder" and "fitness coach online booking"
+- No coding. Just fill the form and boom—you're live.
+
+> *"I had a website in 3 minutes. Clients book while I'm coaching."* 
+> 
+> **— Laner, Personal Trainer**
+
+**Perfect for:** European trainers who want bookings, not just a pretty site.
+
+---
+
+## 2. Wix
+
+✅ **Pros:**
+- Good for visual design and fitness templates
+- Drag-and-drop interface
+- App marketplace for add-ons
+
+❌ **Cons:**
+- Slower load times, weaker on SEO
+- Need to manually set up forms + payments
+- Can get expensive with premium features
+
+**Perfect for:** Trainers who prioritize design over functionality.
+
+---
+
+## 3. Carrd
+
+✅ **Pros:**
+- Simple landing page builder
+- Super fast and lightweight
+- Great if you just want a link-in-bio with your offer
+
+❌ **Cons:**
+- No fitness-specific templates
+- Limited functionality for complex booking systems
+- One-page limitation on free plan
+
+**Perfect for:** Minimalist trainers who want a simple online presence.
+
+---
+
+## 4. Squarespace
+
+✅ **Pros:**
+- Beautiful templates
+- Strong design capabilities
+- Good for content-heavy sites
+
+❌ **Cons:**
+- Better for studios than solo trainers
+- No WhatsApp or custom automations
+- Steeper learning curve
+
+**Perfect for:** Fitness studios or trainers who blog frequently.
+
+---
+
+## 5. Systeme.io
+
+✅ **Pros:**
+- Free funnels and lead magnets
+- Built-in email marketing
+- Solid for email + ebook offers
+
+❌ **Cons:**
+- Clunky design for fitness sites
+- Not fitness-specific
+- Limited customization on free plan
+
+**Perfect for:** Trainers focused on digital products and email marketing.
+
+---
+
+## The Comparison Table
+
+| Platform | Setup Time | Booking System | SEO | Mobile | WhatsApp | Price |
+|----------|------------|----------------|-----|---------|----------|-------|
+| **Juice** | 10 min | ✅ Built-in | ✅ Optimized | ✅ Perfect | ✅ Integrated | Free |
+| **Wix** | 30 min | ⚠️ Manual setup | ⚠️ Basic | ✅ Good | ❌ No | Free-€25/mo |
+| **Carrd** | 15 min | ❌ External | ⚠️ Limited | ✅ Great | ❌ No | Free-€19/mo |
+| **Squarespace** | 60 min | ⚠️ Manual setup | ✅ Good | ✅ Good | ❌ No | €16-€35/mo |
+| **Systeme.io** | 45 min | ⚠️ Basic | ⚠️ Limited | ⚠️ Okay | ❌ No | Free-€47/mo |
+
+---
+
+## What Actually Matters for Trainer Websites
+
+### 1. **Mobile-First Design**
+73% of your clients will book on mobile. If your site doesn't work on phones, you're losing money.
+
+### 2. **WhatsApp Integration**
+European clients expect WhatsApp booking. It's not optional—it's essential.
+
+### 3. **SEO Optimization**
+You need to rank for:
+- "personal trainer [your city]"
+- "fitness coach near me"
+- "online personal training"
+
+### 4. **Fast Loading Speed**
+Google penalizes slow sites. Your clients won't wait 5 seconds for your page to load.
+
+### 5. **Booking System**
+If clients can't book instantly, they'll find someone who lets them.
+
+---
+
+## The Real Talk: Why Most Trainer Websites Fail
+
+❌ **They look pretty but don't convert**
+❌ **No clear call-to-action**
+❌ **Missing contact information**
+❌ **No social proof or testimonials**
+❌ **Complicated booking process**
+
+Your website isn't a portfolio—it's a **booking machine**.
+
+---
+
+## Final Rep
+
+Use a tool that **books clients**, not just shows your muscles.
+
+Juice is made for trainers in Europe, with SEO baked in. Use keywords like:
+- free website for fitness coach
+- personal trainer landing page  
+- book personal training sessions online
+
+...and let your site lift the weight.
+
+**Ready to get started?** 
+
+👉 [Create your trainer website in 10 minutes](https://juice.fitness/marketplace/personal-trainer-website)
+
+*No credit card required. No coding needed. Just results.*
+
+---
+
+## Frequently Asked Questions
+
+### **Q: Do I really need a website as a personal trainer?**
+A: Yes. 89% of people research trainers online before booking. No website = invisible to potential clients.
+
+### **Q: Can't I just use Instagram?**
+A: Instagram is great for marketing, but you can't take bookings or payments directly. You need a professional website.
+
+### **Q: How much should I spend on a website?**
+A: Start free, then invest in premium features as you grow. Don't spend €500/month on a website when you're making €2000/month.
+
+### **Q: What about GDPR compliance?**
+A: Juice handles GDPR automatically. Other platforms might require manual setup.
+
+### **Q: How long does it take to see results?**
+A: With proper SEO, expect 2-3 months to start ranking. With paid ads, you can get bookings within days.
+
+*Want more tips on growing your fitness business online? Check out our other guides on [SEO for fitness coaches](https://juice.fitness/blog/seo-tips-for-fitness-coaches-in-europe) and [fitness marketing strategies](https://juice.fitness/blog).*`,
+
+  "seo-tips-for-fitness-coaches-in-europe": `# 🔍 SEO Tips for Fitness Coaches in Europe
+
+**TL;DR:** Let's get something straight: SEO isn't for nerds in glasses. It's for **smart coaches** who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.
+
+---
+
+## What Is SEO, Really?
+
+Search Engine Optimisation = Getting found when someone searches:
+
+- Personal Trainer Berlin
+- Online Fitness Coach Munich  
+- Free website for fitness coach
+
+---
+
+## 1. Nail Your Keywords
+
+Use **1 main keyword** per page/post:
+
+- personal trainer website builder
+- book personal training sessions online
+- fitness website template
+
+Also sprinkle in:
+- PT Website schnell erstellen
+- Kostenlose Website für Fitnesstrainer
+
+Use Google Trends + UberSuggest to verify volume.
+
+---
+
+## 2. Optimise Your Page
+
+- **One H1 tag**: Create Your Trainer Website in 10 Minutes
+- **Meta Title**: Personal Trainer Website Builder | Juice
+- **Meta Description**: Launch a high-converting fitness site. Fast, free, SEO-ready.
+
+---
+
+## 3. Use Local SEO
+
+Say where you train:
+- Available in Berlin & Online
+- Fitness Coach in Zürich 1:1 and remote
+
+Claim your **Google Business Profile** too.
+
+---
+
+## 4. Link Smarter
+
+- **Internal**: Blog posts → your booking page
+- **External**: Get backlinks from local gyms, fitness blogs, and events
+
+---
+
+## 5. Keep It Fast + Mobile
+
+Use tools like [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) to make it:
+
+- Mobile-optimised
+- Fast-loading  
+- Clean, no fluff
+
+---
+
+## SEO ≠ Slow. SEO = Smart.
+
+Most coaches sleep on SEO. Not you.
+
+You now know how to:
+- Use keywords that matter
+- Build a fast personal trainer site
+- Get clients while you train
+
+Ready to dominate? Time to publish.
+
+*Want a website that's already SEO-optimized? Check out the [Juice Personal Trainer Website Builder](https://juice.fitness/marketplace/personal-trainer-website) and get found by more clients.*`,
+
   "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket": `# 🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition
 
 **TL;DR:** The fitness industry in Berlin is embracing technology like never before. Here are the essential tools every personal trainer needs to stay competitive in 2025.
@@ -495,11 +1050,11 @@ Using metrics to guide training:
 
 ## Common Mistakes to Avoid
 
-❌ **Ego lifting**: Prioritizing weight over technique
-❌ **Ignoring recovery**: Underestimating the importance of rest
-❌ **Program hopping**: Constantly changing training approaches
-❌ **Neglecting mobility**: Focusing only on strength without movement quality
-❌ **Poor progression**: Advancing too quickly or too slowly
+❌ **Ego lifting**: Prioritizing weight over technique  
+❌ **Ignoring recovery**: Underestimating the importance of rest  
+❌ **Program hopping**: Constantly changing training approaches  
+❌ **Neglecting mobility**: Focusing only on strength without movement quality  
+❌ **Poor progression**: Advancing too quickly or too slowly  
 
 ## The Future of Strength Training
 
@@ -532,493 +1087,4 @@ Whether you're a beginner looking to build your first pull-up or an experienced 
 
 The future of strength is here, and it's happening in Berlin's gyms right now.
 
-*Ready to join the revolution? Find a gym that embraces these new methodologies and experience the difference science-based strength training can make.*`,
-
-  "psychology-of-fitness-mental-coaching-techniques": `# 🧠 The Psychology of Fitness: Mental Coaching Techniques
-
-**TL;DR:** Physical transformation starts in the mind. Here are the psychological techniques that separate successful fitness journeys from failed attempts.
-
-## The Mental Game of Fitness
-
-We've all seen it: two people with identical workout plans and nutrition protocols, but completely different results. The difference isn't physical—it's mental. Understanding the psychology of fitness is the key to unlocking sustainable transformation.
-
-## The Neuroscience of Habit Formation
-
-### How Habits Actually Form
-Recent neuroscience research reveals the true mechanics of habit formation:
-
-- **The habit loop**: Cue → Routine → Reward → Repeat
-- **Neuroplasticity**: The brain's ability to rewire itself through repetition
-- **Dopamine pathways**: How reward systems drive behavior change
-
-### The 21-Day Myth
-Forget what you've heard about 21 days. Real habit formation takes:
-- **Simple habits**: 18-254 days (average: 66 days)
-- **Complex behaviors**: 3-6 months for full automation
-- **Individual variation**: Some people adapt faster than others
-
-## Psychological Barriers to Fitness
-
-### 1. All-or-Nothing Thinking
-The perfectionist trap that derails progress:
-
-**The Problem**: "I missed my workout, so I've ruined everything"
-**The Solution**: Embrace the 80/20 rule—consistency over perfection
-
-### 2. Imposter Syndrome
-Feeling like you don't belong in fitness spaces:
-
-**The Problem**: "I'm not a 'gym person'"
-**The Solution**: Identity-based habit formation—become the person who exercises
-
-### 3. Analysis Paralysis
-Overthinking instead of doing:
-
-**The Problem**: Endless research without action
-**The Solution**: Start with "good enough" and improve along the way
-
-### 4. Comparison Trap
-Measuring your beginning against someone else's middle:
-
-**The Problem**: Social media highlight reels vs. your reality
-**The Solution**: Focus on personal progress, not peer comparison
-
-## Mental Coaching Techniques That Work
-
-### 1. Cognitive Behavioral Strategies
-
-#### Thought Record Technique
-Track and challenge negative thoughts:
-
-1. **Identify the trigger**: What situation prompted the thought?
-2. **Record the thought**: Write down exactly what you're thinking
-3. **Examine the evidence**: Is this thought helpful or accurate?
-4. **Reframe positively**: Create a more balanced perspective
-
-#### Example:
-- **Trigger**: Missed morning workout
-- **Negative thought**: "I have no willpower"
-- **Evidence**: I've worked out 4 times this week already
-- **Reframe**: "I'm human, and I can get back on track this afternoon"
-
-### 2. Motivational Interviewing Techniques
-
-#### The Stages of Change Model
-Understanding where clients are in their journey:
-
-1. **Precontemplation**: Not ready to change
-2. **Contemplation**: Considering change
-3. **Preparation**: Getting ready to act
-4. **Action**: Actively making changes
-5. **Maintenance**: Sustaining new behaviors
-
-#### Powerful Questions for Each Stage
-- **Precontemplation**: "What would need to happen for you to consider exercise?"
-- **Contemplation**: "What are the pros and cons of starting a fitness routine?"
-- **Preparation**: "What has worked for you in the past?"
-- **Action**: "How can we make this sustainable?"
-- **Maintenance**: "What strategies help you stay consistent?"
-
-### 3. Mindfulness-Based Approaches
-
-#### Body Awareness Training
-Developing interoceptive awareness:
-
-- **Hunger/satiety cues**: Learning to eat based on internal signals
-- **Energy levels**: Recognizing when to push vs. when to rest
-- **Emotional states**: Understanding the difference between physical and emotional needs
-
-#### Mindful Movement
-Bringing awareness to exercise:
-
-- **Present-moment focus**: Concentrating on the current rep, not the entire workout
-- **Non-judgmental observation**: Noticing sensations without criticism
-- **Breath awareness**: Using breathing to enhance performance and recovery
-
-### 4. Goal Setting Psychology
-
-#### SMART-ER Goals
-Beyond the traditional SMART framework:
-
-- **Specific**: Clear and well-defined
-- **Measurable**: Quantifiable progress markers
-- **Achievable**: Realistic given current circumstances
-- **Relevant**: Aligned with personal values
-- **Time-bound**: Clear deadlines
-- **Exciting**: Emotionally compelling
-- **Reviewed**: Regularly assessed and adjusted
-
-#### Implementation Intentions
-The "if-then" planning strategy:
-
-- **If** it's 6 AM on a weekday, **then** I will do my morning workout
-- **If** I feel like skipping the gym, **then** I will commit to just 10 minutes
-- **If** I'm stressed, **then** I will go for a walk instead of eating
-
-## Overcoming Common Mental Obstacles
-
-### Motivation vs. Discipline
-Understanding the difference and when to use each:
-
-**Motivation**: 
-- Emotional and temporary
-- Great for starting
-- Unreliable for consistency
-
-**Discipline**:
-- Systematic and sustainable
-- Built through small wins
-- Creates long-term success
-
-### The Motivation Equation
-Motivation = (Expectancy × Value) / (Impulsiveness × Delay)
-
-**Increase motivation by**:
-- Raising expectancy (belief you can succeed)
-- Increasing value (making goals more meaningful)
-- Reducing impulsiveness (removing temptations)
-- Minimizing delay (immediate rewards for good behavior)
-
-## Building Mental Resilience
-
-### 1. Stress Inoculation Training
-Gradually exposing clients to manageable stress:
-
-- **Start small**: Brief, challenging workouts
-- **Build gradually**: Increase intensity over time
-- **Develop coping strategies**: Breathing, self-talk, visualization
-- **Transfer skills**: Apply gym resilience to life challenges
-
-### 2. Self-Compassion Training
-Treating yourself with kindness during setbacks:
-
-- **Self-kindness**: Speak to yourself like a good friend
-- **Common humanity**: Remember that struggle is universal
-- **Mindfulness**: Observe difficulties without getting overwhelmed
-
-### 3. Growth Mindset Development
-Believing that abilities can be developed:
-
-**Fixed mindset**: "I'm not good at exercise"
-**Growth mindset**: "I'm learning to enjoy movement"
-
-## Practical Implementation Strategies
-
-### For Fitness Professionals
-
-#### Creating Psychological Safety
-- **Non-judgmental environment**: Accept clients where they are
-- **Celebrate small wins**: Acknowledge every bit of progress
-- **Normalize struggles**: Share that challenges are part of the process
-- **Provide options**: Give clients control over their experience
-
-#### Assessment Tools
-- **Readiness to change questionnaire**: Understand client motivation
-- **Values clarification exercises**: Connect fitness to what matters most
-- **Barrier identification**: Anticipate and plan for obstacles
-- **Strength assessment**: Identify existing psychological resources
-
-### For Individuals
-
-#### Daily Mental Training
-- **Morning intention setting**: Start each day with purpose
-- **Evening reflection**: Review what went well and what to improve
-- **Gratitude practice**: Appreciate your body and its capabilities
-- **Visualization**: Mental rehearsal of successful workouts
-
-#### Building Your Support System
-- **Accountability partners**: People who support your goals
-- **Professional support**: Coaches, therapists, nutritionists
-- **Community involvement**: Group fitness, online forums, local clubs
-- **Family engagement**: Getting loved ones on board with your goals
-
-## The Role of Emotions in Fitness
-
-### Emotional Regulation Strategies
-- **Identify triggers**: What emotions lead to skipping workouts?
-- **Develop alternatives**: Healthy ways to cope with difficult emotions
-- **Use exercise therapeutically**: Movement as mood regulation
-- **Practice emotional tolerance**: Sitting with discomfort without acting
-
-### Exercise as Antidepressant
-The research is clear: exercise is as effective as medication for mild to moderate depression:
-
-- **Neurochemical changes**: Increased serotonin, dopamine, and norepinephrine
-- **Neurogenesis**: Growth of new brain cells
-- **Stress reduction**: Lower cortisol levels
-- **Self-efficacy**: Increased confidence from achieving goals
-
-## Measuring Psychological Progress
-
-### Quantitative Measures
-- **Adherence rates**: Percentage of planned workouts completed
-- **Consistency streaks**: Longest periods of sustained behavior
-- **Goal achievement**: Percentage of goals met within timeframes
-- **Self-efficacy scales**: Confidence in ability to exercise regularly
-
-### Qualitative Indicators
-- **Improved mood**: Better emotional regulation
-- **Increased energy**: More vitality throughout the day
-- **Better sleep**: Improved rest and recovery
-- **Enhanced self-image**: More positive body relationship
-- **Stress management**: Better coping with life challenges
-
-## Common Coaching Mistakes
-
-❌ **Ignoring readiness**: Pushing clients who aren't ready to change
-❌ **One-size-fits-all**: Using the same approach for everyone
-❌ **Focusing only on behavior**: Neglecting thoughts and emotions
-❌ **Avoiding difficult conversations**: Not addressing psychological barriers
-❌ **Lack of follow-up**: Not checking in on mental/emotional progress
-
-## The Future of Mental Fitness Coaching
-
-Emerging trends in psychological fitness support:
-
-- **AI-powered mood tracking**: Technology that monitors emotional states
-- **Virtual reality therapy**: Immersive environments for overcoming fears
-- **Biofeedback integration**: Real-time stress and recovery monitoring
-- **Personalized psychology**: Tailored mental training based on personality types
-
-## Conclusion
-
-The psychology of fitness is complex, but understanding it is essential for lasting change. Whether you're a fitness professional or someone on your own journey, remember that transformation happens from the inside out.
-
-The strongest muscle you can develop is your mind. When you train it properly, everything else follows.
-
-Physical fitness is not just about the body—it's about developing mental resilience, emotional intelligence, and psychological strength that serves you in every area of life.
-
-*Ready to strengthen your mental game? Start with one psychological technique that resonates with you and practice it consistently. Your future self will thank you.*`,
-}
-
-function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
-  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
-  const titleMatch = content.match(emojiTitleRegex)
-
-  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
-  const excerptMatch = content.match(tldrRegex)
-
-  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
-  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
-
-  return {
-    title: titleMatch ? titleMatch[1].trim() : null,
-    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
-  }
-}
-
-// Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(url: string): Promise<string> {
-  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
-
-  // Try multiple methods to fetch the content
-  const methods = [
-    // Method 1: Direct fetch (for public blobs)
-    () => fetch(url),
-
-    // Method 2: Fetch with authorization header
-    () =>
-      fetch(url, {
-        headers: {
-          Authorization: `Bearer ${BLOB_TOKEN}`,
-        },
-      }),
-
-    // Method 3: Fetch with different auth format
-    () =>
-      fetch(url, {
-        headers: {
-          Authorization: `token ${BLOB_TOKEN}`,
-        },
-      }),
-  ]
-
-  for (let i = 0; i < methods.length; i++) {
-    try {
-      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
-      const response = await methods[i]()
-
-      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
-
-      if (response.ok) {
-        const content = await response.text()
-        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
-        return content
-      }
-    } catch (error) {
-      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
-    }
-  }
-
-  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
-}
-
-export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] Fetching all blog post slugs...")
-
-  if (!BLOB_TOKEN) {
-    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS.map((post) => post.slug)
-  }
-
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    const slugs = blobs
-      .filter((blob) => blob.pathname.endsWith(".md"))
-      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
-    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
-    return slugs
-  } catch (error) {
-    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS.map((post) => post.slug)
-  }
-}
-
-export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] Fetching all blog posts...")
-
-  if (!BLOB_TOKEN) {
-    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS
-  }
-
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
-
-    const posts: BlogPostFrontmatter[] = []
-
-    for (const blob of blobs) {
-      if (blob.pathname.endsWith(".md")) {
-        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
-
-        try {
-          const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
-
-          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-
-          console.log(`[getAllPosts] Extracted slug: ${slug}`)
-
-          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-
-          const extracted = extractTitleAndExcerpt(content)
-
-          const title = data.title || extracted.title || `Post: ${slug}`
-          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
-
-          posts.push({
-            title: title,
-            date: data.date || new Date().toISOString().split("T")[0],
-            category: data.category || "Uncategorized",
-            excerpt: excerpt,
-            image: data.image || undefined,
-            slug: slug,
-          })
-        } catch (error) {
-          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
-          continue
-        }
-      }
-    }
-
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
-    return posts.length > 0 ? posts : SAMPLE_POSTS
-  } catch (error) {
-    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS
-  }
-}
-
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
-
-  // Check if we have sample content for this slug
-  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
-    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
-
-    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
-
-    if (samplePost && sampleContent) {
-      const serializedContent = await serialize(sampleContent, {
-        parseFrontmatter: false,
-      })
-
-      return {
-        frontmatter: samplePost,
-        serializedContent,
-        content: sampleContent,
-        slug: slug,
-      }
-    }
-  }
-
-  if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
-    return null
-  }
-
-  try {
-    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
-    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
-
-    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
-    const targetBlob = blobs.find((b) => b.pathname === targetPath)
-
-    if (!targetBlob) {
-      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
-      console.log(
-        `[getPostBySlug] Available blobs:`,
-        blobs.map((b) => b.pathname),
-      )
-      return null
-    }
-
-    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
-
-    const fileContents = await fetchBlobContent(targetBlob.url)
-    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
-
-    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] Frontmatter:`, data)
-    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
-
-    const extracted = extractTitleAndExcerpt(content)
-    console.log(
-      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
-    )
-
-    const title = data.title || extracted.title || `Post: ${slug}`
-    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
-
-    const serializedContent = await serialize(content, {
-      parseFrontmatter: false,
-    })
-    console.log("[getPostBySlug] MDX serialized successfully")
-
-    return {
-      frontmatter: {
-        title: title,
-        date: data.date || new Date().toISOString().split("T")[0],
-        category: data.category || "Uncategorized",
-        excerpt: excerpt,
-        image: data.image || undefined,
-        slug: slug,
-      },
-      serializedContent,
-      content,
-      slug,
-    }
-  } catch (error) {
-    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
-    return null
-  }
-}
+*Ready to join the revolution? Find a gym that embraces these new methodologies and experience the difference science-based strength training can make.*
