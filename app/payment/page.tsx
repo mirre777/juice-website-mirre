@@ -39,6 +39,35 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [elementError, setElementError] = useState<string | null>(null)
+
+  useEffect(() => {
+    console.log("💳 PaymentForm component mounted")
+    console.log("🔑 Stripe instance:", !!stripe)
+    console.log("🧩 Elements instance:", !!elements)
+
+    // Check if promotion codes are working after a delay
+    const timer = setTimeout(() => {
+      console.log("🔍 Checking for promotion code elements in DOM...")
+      const promoElements = document.querySelectorAll(
+        '[data-testid*="promo"], [class*="promo"], [class*="coupon"], [class*="discount"]',
+      )
+      console.log("📋 Found promotion-related elements:", promoElements.length)
+      promoElements.forEach((el, index) => {
+        console.log(`Element ${index}:`, el)
+      })
+
+      // Check for "Add promotion code" text
+      const addPromoText = document.querySelector('*:contains("Add promotion code")')
+      console.log("🏷️ Found 'Add promotion code' text:", !!addPromoText)
+
+      // Check Stripe Elements iframe
+      const stripeFrames = document.querySelectorAll('iframe[name^="__privateStripeFrame"]')
+      console.log("🖼️ Stripe iframes found:", stripeFrames.length)
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [stripe, elements])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -72,24 +101,59 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement
-        options={{
-          layout: "tabs",
-          business: {
-            name: "Juice Fitness",
+      {console.log("🔍 PaymentElement Options:", {
+        layout: "tabs",
+        business: {
+          name: "Juice Fitness",
+        },
+        fields: {
+          billingDetails: {
+            name: "auto",
+            email: "auto",
+            address: "auto",
           },
-          fields: {
-            billingDetails: {
-              name: "auto",
-              email: "auto",
-              address: "auto",
-            },
-          },
-          promotionCodes: {
-            enabled: true,
-          },
-        }}
-      />
+        },
+        promotionCodes: {
+          enabled: true,
+        },
+      })}
+
+      {console.log("🎯 Promotion codes should be enabled:", true)}
+      {console.log("🚀 About to render PaymentElement with promotion codes enabled")}
+      {elementError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm">{elementError}</p>
+        </div>
+      )}
+
+      {(() => {
+        try {
+          return (
+            <PaymentElement
+              options={{
+                layout: "tabs",
+                business: {
+                  name: "Juice Fitness",
+                },
+                fields: {
+                  billingDetails: {
+                    name: "auto",
+                    email: "auto",
+                    address: "auto",
+                  },
+                },
+                promotionCodes: {
+                  enabled: true,
+                },
+              }}
+            />
+          )
+        } catch (error) {
+          console.error("❌ Error rendering PaymentElement:", error)
+          setElementError(error.message)
+          return null // Or some fallback UI
+        }
+      })()}
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
@@ -258,6 +322,8 @@ function PaymentPageContent() {
       },
     },
   }
+  console.log("🎨 Stripe Elements options:", stripeOptions)
+  console.log("🔐 Client secret exists:", !!clientSecret)
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
