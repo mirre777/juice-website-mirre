@@ -25,6 +25,15 @@ const BLOG_CONTENT_PATH = "blog/"
 // Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
+    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
+    date: "2025-01-31",
+    excerpt:
+      "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
+    category: "Technology",
+    image: "/personal-trainer-website-builders-laptops.png",
+    slug: "top-5-free-personal-trainer-website-builders-2025",
+  },
+  {
     title: "🔍 SEO Tips for Fitness Coaches in Europe",
     date: "2025-01-30",
     excerpt:
@@ -76,6 +85,178 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
 ]
 
 const SAMPLE_BLOG_CONTENT = {
+  "top-5-free-personal-trainer-website-builders-2025": `# 🏆 Top 5 Free Personal Trainer Website Builders (2025)
+
+**TL;DR:** Let's cut the fluff. You're a personal trainer, not a web developer. You need a **high-converting website** that books sessions while you're smashing reps with clients. So here are the 5 best free website builders made *for trainers* in 2025.
+
+---
+
+## 1. Juice (🥇 Best for Booking + Branding)
+
+**Website:** [juice.fitness/marketplace/personal-trainer-website](https://juice.fitness/marketplace/personal-trainer-website)
+
+✅ **What makes it special:**
+- Create your Personal Trainer Website in **10 minutes**
+- Includes WhatsApp, mobile bookings, and trainer branding
+- SEO-optimised for "personal trainer website builder" and "fitness coach online booking"
+- No coding. Just fill the form and boom—you're live.
+
+> *"I had a website in 3 minutes. Clients book while I'm coaching."* 
+> 
+> **— Laner, Personal Trainer**
+
+**Perfect for:** European trainers who want bookings, not just a pretty site.
+
+---
+
+## 2. Wix
+
+✅ **Pros:**
+- Good for visual design and fitness templates
+- Drag-and-drop interface
+- App marketplace for add-ons
+
+❌ **Cons:**
+- Slower load times, weaker on SEO
+- Need to manually set up forms + payments
+- Can get expensive with premium features
+
+**Perfect for:** Trainers who prioritize design over functionality.
+
+---
+
+## 3. Carrd
+
+✅ **Pros:**
+- Simple landing page builder
+- Super fast and lightweight
+- Great if you just want a link-in-bio with your offer
+
+❌ **Cons:**
+- No fitness-specific templates
+- Limited functionality for complex booking systems
+- One-page limitation on free plan
+
+**Perfect for:** Minimalist trainers who want a simple online presence.
+
+---
+
+## 4. Squarespace
+
+✅ **Pros:**
+- Beautiful templates
+- Strong design capabilities
+- Good for content-heavy sites
+
+❌ **Cons:**
+- Better for studios than solo trainers
+- No WhatsApp or custom automations
+- Steeper learning curve
+
+**Perfect for:** Fitness studios or trainers who blog frequently.
+
+---
+
+## 5. Systeme.io
+
+✅ **Pros:**
+- Free funnels and lead magnets
+- Built-in email marketing
+- Solid for email + ebook offers
+
+❌ **Cons:**
+- Clunky design for fitness sites
+- Not fitness-specific
+- Limited customization on free plan
+
+**Perfect for:** Trainers focused on digital products and email marketing.
+
+---
+
+## The Comparison Table
+
+| Platform | Setup Time | Booking System | SEO | Mobile | WhatsApp | Price |
+|----------|------------|----------------|-----|---------|----------|-------|
+| **Juice** | 10 min | ✅ Built-in | ✅ Optimized | ✅ Perfect | ✅ Integrated | Free |
+| **Wix** | 30 min | ⚠️ Manual setup | ⚠️ Basic | ✅ Good | ❌ No | Free-€25/mo |
+| **Carrd** | 15 min | ❌ External | ⚠️ Limited | ✅ Great | ❌ No | Free-€19/mo |
+| **Squarespace** | 60 min | ⚠️ Manual setup | ✅ Good | ✅ Good | ❌ No | €16-€35/mo |
+| **Systeme.io** | 45 min | ⚠️ Basic | ⚠️ Limited | ⚠️ Okay | ❌ No | Free-€47/mo |
+
+---
+
+## What Actually Matters for Trainer Websites
+
+### 1. **Mobile-First Design**
+73% of your clients will book on mobile. If your site doesn't work on phones, you're losing money.
+
+### 2. **WhatsApp Integration**
+European clients expect WhatsApp booking. It's not optional—it's essential.
+
+### 3. **SEO Optimization**
+You need to rank for:
+- "personal trainer [your city]"
+- "fitness coach near me"
+- "online personal training"
+
+### 4. **Fast Loading Speed**
+Google penalizes slow sites. Your clients won't wait 5 seconds for your page to load.
+
+### 5. **Booking System**
+If clients can't book instantly, they'll find someone who lets them.
+
+---
+
+## The Real Talk: Why Most Trainer Websites Fail
+
+❌ **They look pretty but don't convert**
+❌ **No clear call-to-action**
+❌ **Missing contact information**
+❌ **No social proof or testimonials**
+❌ **Complicated booking process**
+
+Your website isn't a portfolio—it's a **booking machine**.
+
+---
+
+## Final Rep
+
+Use a tool that **books clients**, not just shows your muscles.
+
+Juice is made for trainers in Europe, with SEO baked in. Use keywords like:
+- free website for fitness coach
+- personal trainer landing page  
+- book personal training sessions online
+
+...and let your site lift the weight.
+
+**Ready to get started?** 
+
+👉 [Create your trainer website in 10 minutes](https://juice.fitness/marketplace/personal-trainer-website)
+
+*No credit card required. No coding needed. Just results.*
+
+---
+
+## Frequently Asked Questions
+
+### **Q: Do I really need a website as a personal trainer?**
+A: Yes. 89% of people research trainers online before booking. No website = invisible to potential clients.
+
+### **Q: Can't I just use Instagram?**
+A: Instagram is great for marketing, but you can't take bookings or payments directly. You need a professional website.
+
+### **Q: How much should I spend on a website?**
+A: Start free, then invest in premium features as you grow. Don't spend €500/month on a website when you're making €2000/month.
+
+### **Q: What about GDPR compliance?**
+A: Juice handles GDPR automatically. Other platforms might require manual setup.
+
+### **Q: How long does it take to see results?**
+A: With proper SEO, expect 2-3 months to start ranking. With paid ads, you can get bookings within days.
+
+*Want more tips on growing your fitness business online? Check out our other guides on [SEO for fitness coaches](https://juice.fitness/blog/seo-tips-for-fitness-coaches-in-europe) and [fitness marketing strategies](https://juice.fitness/blog).*`,
+
   "seo-tips-for-fitness-coaches-in-europe": `# 🔍 SEO Tips for Fitness Coaches in Europe
 
 **TL;DR:** Let's get something straight: SEO isn't for nerds in glasses. It's for **smart coaches** who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.
