@@ -64,6 +64,10 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
       // Check Stripe Elements iframe
       const stripeFrames = document.querySelectorAll('iframe[name^="__privateStripeFrame"]')
       console.log("🖼️ Stripe iframes found:", stripeFrames.length)
+
+      // Check current domain
+      console.log("🌐 Current domain:", window.location.hostname)
+      console.log("⚠️ Make sure this domain is added to Stripe Dashboard > Payment method domains")
     }, 2000)
 
     return () => clearTimeout(timer)
@@ -99,27 +103,28 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
     }
   }
 
+  const paymentElementOptions = {
+    layout: "tabs" as const,
+    business: {
+      name: "Juice Fitness",
+    },
+    fields: {
+      billingDetails: {
+        name: "auto" as const,
+        email: "auto" as const,
+        address: "auto" as const,
+      },
+    },
+    promotionCodes: {
+      enabled: true,
+    },
+  }
+
+  console.log("🎯 Promotion codes enabled:", paymentElementOptions.promotionCodes.enabled)
+  console.log("🚀 About to render PaymentElement with promotion codes")
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {console.log("🔍 PaymentElement Options:", {
-        layout: "tabs",
-        business: {
-          name: "Juice Fitness",
-        },
-        fields: {
-          billingDetails: {
-            name: "auto",
-            email: "auto",
-            address: "auto",
-          },
-        },
-        promotionCodes: {
-          enabled: true,
-        },
-      })}
-
-      {console.log("🎯 Promotion codes should be enabled:", true)}
-      {console.log("🚀 About to render PaymentElement with promotion codes enabled")}
       {elementError && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600 text-sm">{elementError}</p>
@@ -128,30 +133,11 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
 
       {(() => {
         try {
-          return (
-            <PaymentElement
-              options={{
-                layout: "tabs",
-                business: {
-                  name: "Juice Fitness",
-                },
-                fields: {
-                  billingDetails: {
-                    name: "auto",
-                    email: "auto",
-                    address: "auto",
-                  },
-                },
-                promotionCodes: {
-                  enabled: true,
-                },
-              }}
-            />
-          )
+          return <PaymentElement options={paymentElementOptions} />
         } catch (error) {
           console.error("❌ Error rendering PaymentElement:", error)
-          setElementError(error.message)
-          return null // Or some fallback UI
+          setElementError(error instanceof Error ? error.message : "Unknown error")
+          return null
         }
       })()}
 
@@ -254,7 +240,7 @@ function PaymentPageContent() {
         }
 
         const paymentData = await paymentResponse.json()
-        console.log("Payment intent created:", paymentData.paymentIntentId)
+        console.log("Payment intent created successfully")
         setClientSecret(paymentData.clientSecret)
       } catch (err) {
         console.error("Error in fetchTrainerAndCreatePaymentIntent:", err)
@@ -322,8 +308,8 @@ function PaymentPageContent() {
       },
     },
   }
-  console.log("🎨 Stripe Elements options:", stripeOptions)
-  console.log("🔐 Client secret exists:", !!clientSecret)
+
+  console.log("🎨 Stripe Elements initialized")
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

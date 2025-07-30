@@ -25,14 +25,6 @@ const BLOG_CONTENT_PATH = "blog/"
 // Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
-    title: "🔍 SEO Tips for Fitness Coaches in Europe",
-    date: "2025-01-30",
-    excerpt:
-      "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
-    category: "Visibility",
-    slug: "seo-tips-for-fitness-coaches-in-europe",
-  },
-  {
     title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
     date: "2025-01-15",
     excerpt:
@@ -75,86 +67,6 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
 ]
 
 const SAMPLE_BLOG_CONTENT = {
-  "seo-tips-for-fitness-coaches-in-europe": `# 🔍 SEO Tips for Fitness Coaches in Europe
-
-**TL;DR:** Let's get something straight: SEO isn't for nerds in glasses. It's for **smart coaches** who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.
-
----
-
-## What Is SEO, Really?
-
-Search Engine Optimisation = Getting found when someone searches:
-
-- Personal Trainer Berlin
-- Online Fitness Coach Munich  
-- Free website for fitness coach
-
----
-
-## 1. Nail Your Keywords
-
-Use **1 main keyword** per page/post:
-
-- personal trainer website builder
-- book personal training sessions online
-- fitness website template
-
-Also sprinkle in:
-- PT Website schnell erstellen
-- Kostenlose Website für Fitnesstrainer
-
-Use Google Trends + UberSuggest to verify volume.
-
----
-
-## 2. Optimise Your Page
-
-- **One H1 tag**: Create Your Trainer Website in 10 Minutes
-- **Meta Title**: Personal Trainer Website Builder | Juice
-- **Meta Description**: Launch a high-converting fitness site. Fast, free, SEO-ready.
-
----
-
-## 3. Use Local SEO
-
-Say where you train:
-- Available in Berlin & Online
-- Fitness Coach in Zürich 1:1 and remote
-
-Claim your **Google Business Profile** too.
-
----
-
-## 4. Link Smarter
-
-- **Internal**: Blog posts → your booking page
-- **External**: Get backlinks from local gyms, fitness blogs, and events
-
----
-
-## 5. Keep It Fast + Mobile
-
-Use tools like [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) to make it:
-
-- Mobile-optimised
-- Fast-loading  
-- Clean, no fluff
-
----
-
-## SEO ≠ Slow. SEO = Smart.
-
-Most coaches sleep on SEO. Not you.
-
-You now know how to:
-- Use keywords that matter
-- Build a fast personal trainer site
-- Get clients while you train
-
-Ready to dominate? Time to publish.
-
-*Want a website that's already SEO-optimized? Check out the [Juice Personal Trainer Website Builder](https://juice.fitness/marketplace/personal-trainer-website) and get found by more clients.*`,
-
   "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket": `# 🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition
 
 **TL;DR:** The fitness industry in Berlin is embracing technology like never before. Here are the essential tools every personal trainer needs to stay competitive in 2025.
