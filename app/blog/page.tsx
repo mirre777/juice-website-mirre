@@ -7,79 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
-import type { Metadata } from "next"
 
 // Force dynamic rendering to ensure fresh content
 export const dynamic = "force-dynamic"
-
-// SEO Metadata for blog listing page
-export const metadata: Metadata = {
-  title: "Fitness Blog | SEO Tips, Marketing & Business Growth for Personal Trainers",
-  description:
-    "Discover proven strategies for fitness coaches and personal trainers. Learn SEO, marketing, client booking, and business growth tactics that actually work in Europe.",
-  keywords: [
-    "fitness blog",
-    "personal trainer marketing",
-    "SEO for fitness coaches",
-    "trainer website tips",
-    "fitness business growth",
-    "personal trainer SEO",
-    "fitness coach marketing",
-    "trainer booking system",
-    "fitness industry trends",
-    "Berlin fitness coaching",
-    "Europe personal training",
-  ],
-  authors: [{ name: "Juice Team" }],
-  creator: "Juice Fitness",
-  publisher: "Juice Fitness",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"),
-  alternates: {
-    canonical: "/blog",
-  },
-  openGraph: {
-    title: "Fitness Blog | Marketing & SEO Tips for Personal Trainers",
-    description:
-      "Proven strategies for fitness coaches and personal trainers. Learn SEO, marketing, and business growth tactics that work.",
-    url: "/blog",
-    siteName: "Juice Fitness",
-    images: [
-      {
-        url: "/fitness-coaching-motivation-gym.png",
-        width: 1200,
-        height: 630,
-        alt: "Fitness Blog - Marketing and SEO Tips for Personal Trainers",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Fitness Blog | Marketing & SEO Tips for Personal Trainers",
-    description:
-      "Proven strategies for fitness coaches and personal trainers. Learn SEO, marketing, and business growth tactics that work.",
-    images: ["/fitness-coaching-motivation-gym.png"],
-    creator: "@JuiceFitness",
-    site: "@JuiceFitness",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-}
 
 // Fitness-related placeholder images for blog posts
 const getPlaceholderImage = (category: string) => {
@@ -88,8 +18,6 @@ const getPlaceholderImage = (category: string) => {
     technology: "/fitness-tech-digital-health.png",
     fitness: "/gym-dumbbells.png",
     nutrition: "/healthy-meal-prep.png",
-    visibility: "/seo-tips-fitness-coaches-europe.png",
-    marketing: "/personal-trainer-booking-page-mobile.png",
     default: "/fitness-equipment.png",
   }
 
@@ -109,54 +37,8 @@ export default async function BlogPage() {
     posts = []
   }
 
-  // JSON-LD structured data for blog listing
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Blog",
-    name: "Juice Fitness Blog",
-    description:
-      "Proven strategies for fitness coaches and personal trainers. Learn SEO, marketing, and business growth tactics that work.",
-    url: `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/blog`,
-    publisher: {
-      "@type": "Organization",
-      name: "Juice Fitness",
-      logo: {
-        "@type": "ImageObject",
-        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/images/juiceNewLogoPrime.png`,
-      },
-    },
-    blogPost: posts.slice(0, 10).map((post) => ({
-      "@type": "BlogPosting",
-      headline: post.title,
-      description: post.excerpt,
-      image: post.image
-        ? `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}${post.image}`
-        : `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}${getPlaceholderImage(post.category)}`,
-      datePublished: post.date,
-      dateModified: post.date,
-      author: {
-        "@type": "Person",
-        name: "Juice Team",
-      },
-      publisher: {
-        "@type": "Organization",
-        name: "Juice Fitness",
-        logo: {
-          "@type": "ImageObject",
-          url: `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/images/juiceNewLogoPrime.png`,
-        },
-      },
-      mainEntityOfPage: {
-        "@type": "WebPage",
-        "@id": `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/blog/${post.slug}`,
-      },
-      keywords: [post.category.toLowerCase(), "fitness", "personal trainer", "coaching"],
-    })),
-  }
-
   return (
     <main className="min-h-screen bg-white text-black">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Navbar isCoach={true} className="bg-white" />
 
       <div className="container mx-auto px-4 md:px-6 py-20 pt-32">
