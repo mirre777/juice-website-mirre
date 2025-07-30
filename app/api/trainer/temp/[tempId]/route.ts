@@ -1,6 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { TrainerService } from "@/lib/firebase-trainer"
-import { db } from "@/firebase"
+import { getFirestore } from "firebase-admin/firestore"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+
+// Initialize Firebase Admin if not already initialized
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
+
+const db = getFirestore()
 
 export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
   try {
@@ -73,7 +87,7 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       )
     }
 
-    // Update temp trainer content
+    // Update temp trainer content using Firebase Admin
     await db.collection("trainers").doc(tempId).update({
       content: content,
       updatedAt: new Date().toISOString(),
