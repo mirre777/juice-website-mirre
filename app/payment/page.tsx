@@ -13,15 +13,22 @@ import Link from "next/link"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-interface TempTrainer {
+interface TempTrainerData {
   id: string
   fullName: string
   email: string
-  phone: string
-  city: string
+  phone?: string
+  location: string
+  specialty: string
+  experience: string
+  bio: string
+  certifications?: string
+  services: string[]
+  status: string
+  createdAt: string
 }
 
-function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
+function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
   const stripe = useStripe()
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
@@ -66,6 +73,9 @@ function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
               radios: false,
               spacedAccordionItems: true,
             },
+            promotionCodes: {
+              enabled: true,
+            },
             paymentMethodOrder: ["card", "paypal", "ideal", "sofort"],
             fields: {
               billingDetails: {
@@ -107,7 +117,7 @@ function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
   )
 }
 
-function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
+function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
   const [clientSecret, setClientSecret] = useState<string>("")
   const [isCreatingIntent, setIsCreatingIntent] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -117,6 +127,7 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
       try {
         console.log("=== CREATING PAYMENT INTENT ===")
         console.log("Temp Trainer:", tempTrainer)
+        console.log("Temp Trainer ID:", tempTrainer.id)
         console.log("Email:", tempTrainer.email)
 
         const response = await fetch("/api/create-payment-intent", {
@@ -125,13 +136,17 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            tempId: tempTrainer.id,
+            tempId: tempTrainer.id, // Make sure we're using the correct ID
             email: tempTrainer.email,
           }),
         })
 
+        console.log("Response status:", response.status)
+        console.log("Response ok:", response.ok)
+
         if (!response.ok) {
           const errorData = await response.json()
+          console.error("API Error:", errorData)
           throw new Error(errorData.error || "Failed to create payment intent")
         }
 
@@ -146,8 +161,12 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
       }
     }
 
-    if (tempTrainer) {
+    if (tempTrainer && tempTrainer.id) {
       createPaymentIntent()
+    } else {
+      console.error("No tempTrainer or tempTrainer.id:", tempTrainer)
+      setError("Missing trainer information")
+      setIsCreatingIntent(false)
     }
   }, [tempTrainer])
 
@@ -208,7 +227,7 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
 
 function PaymentPageContent() {
   const searchParams = useSearchParams()
-  const [tempTrainer, setTempTrainer] = useState<TempTrainer | null>(null)
+  const [tempTrainer, setTempTrainer] = useState<TempTrainerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -224,21 +243,37 @@ function PaymentPageContent() {
       }
 
       try {
-        console.log("=== PAYMENT PAGE RENDER STATE ===")
+        console.log("=== FETCHING TEMP TRAINER FOR PAYMENT ===")
         console.log("Search params: plan=" + plan + "&tempId=" + tempId)
         console.log("TempId from params:", tempId)
 
         const response = await fetch(`/api/trainer/temp/${tempId}`)
+
+        console.log("Response status:", response.status)
+        console.log("Response ok:", response.ok)
 
         if (!response.ok) {
           throw new Error("Failed to fetch trainer data")
         }
 
         const data = await response.json()
-        console.log("Success and trainer data found")
-        console.log("Setting temp trainer for payment:", data)
+        console.log("=== API RESPONSE DATA ===")
+        console.log("Full response:", data)
 
-        setTempTrainer(data)
+        // Check if the response has the expected structure
+        if (data.success && data.trainer) {
+          console.log("Success and trainer data found")
+          console.log("Setting temp trainer for payment:", data.trainer)
+          setTempTrainer(data.trainer)
+        } else if (data.id) {
+          // If the response is directly the trainer object
+          console.log("Direct trainer object found")
+          console.log("Setting temp trainer for payment:", data)
+          setTempTrainer(data)
+        } else {
+          console.error("Unexpected response structure:", data)
+          throw new Error("Invalid trainer data structure")
+        }
       } catch (err: any) {
         console.error("Error fetching temp trainer:", err)
         setError(err.message || "Failed to load trainer data")
@@ -306,8 +341,8 @@ function PaymentPageContent() {
                 <h3 className="font-semibold text-lg mb-2">{tempTrainer.fullName}</h3>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>📧 {tempTrainer.email}</p>
-                  <p>📱 {tempTrainer.phone}</p>
-                  <p>📍 {tempTrainer.city}</p>
+                  {tempTrainer.phone && <p>📱 {tempTrainer.phone}</p>}
+                  <p>📍 {tempTrainer.location}</p>
                 </div>
               </div>
 
