@@ -27,7 +27,7 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }))
 }
 
-// Generate metadata for SEO
+// Generate metadata for SEO - applies to ALL blog posts
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
 
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
-  // Get the appropriate image
+  // Get the appropriate image for each category
   const getPlaceholderImage = (category: string) => {
     const placeholders = {
       coaching: "/fitness-coaching-session.png",
@@ -60,20 +60,41 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     ? `${baseUrl}${post.frontmatter.image}`
     : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`
 
+  // Generate SEO-optimized keywords based on post content and category
+  const generateKeywords = (title: string, category: string, excerpt: string) => {
+    const baseKeywords = [
+      "fitness coaching",
+      "personal trainer",
+      "fitness business",
+      "trainer marketing",
+      "fitness SEO",
+      "personal training",
+      "fitness coach",
+      "trainer website",
+      "fitness industry",
+      "Europe fitness",
+      "Berlin fitness",
+      category.toLowerCase(),
+    ]
+
+    // Add specific keywords based on title content
+    const titleLower = title.toLowerCase()
+    if (titleLower.includes("seo")) baseKeywords.push("SEO for fitness", "fitness SEO tips", "trainer SEO")
+    if (titleLower.includes("website")) baseKeywords.push("trainer website", "fitness website", "website builder")
+    if (titleLower.includes("booking")) baseKeywords.push("online booking", "fitness booking", "trainer booking")
+    if (titleLower.includes("marketing"))
+      baseKeywords.push("fitness marketing", "trainer marketing", "digital marketing")
+    if (titleLower.includes("tools")) baseKeywords.push("fitness tools", "trainer tools", "fitness software")
+    if (titleLower.includes("berlin")) baseKeywords.push("Berlin fitness", "Berlin trainer", "Germany fitness")
+    if (titleLower.includes("nutrition")) baseKeywords.push("nutrition coaching", "fitness nutrition", "meal planning")
+
+    return baseKeywords.slice(0, 15) // Limit to 15 keywords
+  }
+
   return {
     title: `${post.frontmatter.title} | Juice Fitness Blog`,
     description: post.frontmatter.excerpt,
-    keywords: [
-      "fitness coaching",
-      "personal trainer",
-      "SEO for fitness",
-      "fitness marketing",
-      "trainer website",
-      "fitness business",
-      "Europe fitness",
-      "Berlin fitness",
-      post.frontmatter.category.toLowerCase(),
-    ],
+    keywords: generateKeywords(post.frontmatter.title, post.frontmatter.category, post.frontmatter.excerpt),
     authors: [{ name: "Juice Team" }],
     creator: "Juice Fitness",
     publisher: "Juice Fitness",
@@ -102,9 +123,17 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       locale: "en_US",
       type: "article",
       publishedTime: post.frontmatter.date,
+      modifiedTime: post.frontmatter.date,
       authors: ["Juice Team"],
       section: post.frontmatter.category,
-      tags: ["fitness", "coaching", "personal trainer", post.frontmatter.category.toLowerCase()],
+      tags: [
+        "fitness",
+        "coaching",
+        "personal trainer",
+        post.frontmatter.category.toLowerCase(),
+        "business growth",
+        "marketing",
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -125,6 +154,12 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
         "max-snippet": -1,
       },
     },
+    other: {
+      "article:author": "Juice Team",
+      "article:publisher": "Juice Fitness",
+      "article:section": post.frontmatter.category,
+      "article:tag": post.frontmatter.category.toLowerCase(),
+    },
   }
 }
 
@@ -140,7 +175,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   console.log(`[BlogPostPage] Successfully loaded post: ${post.frontmatter.title}`)
 
-  // Get the appropriate image
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
+  const fullUrl = `${baseUrl}/blog/${params.slug}`
+
+  // Get the appropriate image for each category
   const getPlaceholderImage = (category: string) => {
     const placeholders = {
       coaching: "/fitness-coaching-session.png",
@@ -157,8 +195,64 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const imageUrl = post.frontmatter.image || getPlaceholderImage(post.frontmatter.category)
 
+  // JSON-LD structured data for this specific article
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.frontmatter.title,
+    description: post.frontmatter.excerpt,
+    image: {
+      "@type": "ImageObject",
+      url: `${baseUrl}${imageUrl}`,
+      width: 1200,
+      height: 630,
+    },
+    datePublished: post.frontmatter.date,
+    dateModified: post.frontmatter.date,
+    author: {
+      "@type": "Person",
+      name: "Juice Team",
+      url: `${baseUrl}/about`,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Juice Fitness",
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/images/juiceNewLogoPrime.png`,
+        width: 200,
+        height: 60,
+      },
+      url: baseUrl,
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": fullUrl,
+    },
+    articleSection: post.frontmatter.category,
+    keywords: [
+      post.frontmatter.category.toLowerCase(),
+      "fitness",
+      "personal trainer",
+      "coaching",
+      "business growth",
+      "marketing",
+      "SEO",
+      "Europe",
+    ].join(", "),
+    wordCount: post.content.split(" ").length,
+    copyrightHolder: {
+      "@type": "Organization",
+      name: "Juice Fitness",
+    },
+    copyrightYear: new Date(post.frontmatter.date).getFullYear(),
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ReadingProgress />
       <div className="min-h-screen bg-white">
         <Navbar />
@@ -206,10 +300,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">{post.frontmatter.excerpt}</p>
 
               {/* Social Share */}
-              <SocialShare
-                url={`${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/blog/${params.slug}`}
-                title={post.frontmatter.title}
-              />
+              <SocialShare url={fullUrl} title={post.frontmatter.title} />
             </header>
 
             {/* Featured Image */}
@@ -217,10 +308,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <Image
                 src={imageUrl || "/placeholder.svg"}
                 alt={post.frontmatter.title}
-                width={800}
-                height={400}
+                width={1200}
+                height={630}
                 className="w-full h-64 md:h-96 object-cover"
                 priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               />
             </div>
 
@@ -235,13 +327,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
               {/* Main Content */}
               <div className="lg:col-span-3">
-                <div className="prose prose-lg max-w-none">
+                <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-lime-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-code:text-lime-600 prose-code:bg-lime-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
                   <MdxRenderer source={post.serializedContent} />
                 </div>
 
                 {/* Article Footer */}
                 <footer className="mt-12 pt-8 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
                       <p className="text-sm text-gray-600">
                         Published on{" "}
@@ -260,10 +352,29 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         </span>
                       </p>
                     </div>
-                    <SocialShare
-                      url={`${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/blog/${params.slug}`}
-                      title={post.frontmatter.title}
-                    />
+                    <SocialShare url={fullUrl} title={post.frontmatter.title} />
+                  </div>
+
+                  {/* Call to Action */}
+                  <div className="bg-gradient-to-r from-lime-50 to-green-50 p-8 rounded-2xl text-center">
+                    <h3 className="text-2xl font-bold mb-4 text-gray-900">Ready to Grow Your Fitness Business?</h3>
+                    <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
+                      Get a professional website that books clients while you train. No coding required, SEO-optimized,
+                      and ready in minutes.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link href="/marketplace/personal-trainer-website">
+                        <Button className="bg-lime-600 hover:bg-lime-700">Create Your Trainer Website</Button>
+                      </Link>
+                      <Link href="/findatrainer">
+                        <Button
+                          variant="outline"
+                          className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
+                        >
+                          Find a Trainer
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </footer>
               </div>
