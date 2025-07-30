@@ -34,8 +34,7 @@ export async function POST(request: NextRequest) {
       },
       // Enable multiple payment method types
       payment_method_types: ["card", "paypal", "ideal", "sofort", "bancontact", "giropay", "eps", "p24", "sepa_debit"],
-      // Enable promotion codes at the payment intent level
-      setup_future_usage: null, // Don't save payment method for future use
+      // Removed setup_future_usage to fix the error
     })
 
     console.log("Payment intent created successfully:", paymentIntent.id)

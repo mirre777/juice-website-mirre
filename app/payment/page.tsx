@@ -2,48 +2,30 @@
 
 import type React from "react"
 
-import { Suspense, useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { CheckCircle, CreditCard, Shield, ArrowLeft } from "lucide-react"
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, CreditCard, ArrowLeft } from "lucide-react"
+import Link from "next/link"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-interface TempTrainerData {
+interface TempTrainer {
   id: string
   fullName: string
   email: string
-  phone?: string
-  location: string
-  specialty: string
-  experience: string
-  bio: string
-  certifications?: string
-  services: string[]
-  status: string
-  createdAt: string
+  phone: string
+  city: string
 }
 
-function CheckoutForm({
-  tempTrainer,
-  email,
-  setEmail,
-}: {
-  tempTrainer: TempTrainerData
-  email: string
-  setEmail: (email: string) => void
-}) {
+function CheckoutForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
   const stripe = useStripe()
   const elements = useElements()
-  const router = useRouter()
-  const [processing, setProcessing] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -52,141 +34,70 @@ function CheckoutForm({
       return
     }
 
-    setProcessing(true)
+    setIsLoading(true)
 
-    try {
-      console.log("=== PROCESSING PAYMENT ===")
-      console.log("Temp Trainer:", tempTrainer)
-      console.log("Email:", email)
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/payment/success?tempId=${tempTrainer.id}`,
+      },
+    })
 
-      // Confirm payment using PaymentElement
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/payment/success?payment_intent_id={PAYMENT_INTENT_ID}&tempId=${tempTrainer.id}`,
-          receipt_email: email,
-        },
-        redirect: "if_required",
-      })
-
-      if (error) {
-        console.error("Payment failed:", error)
-        alert("Payment failed: " + error.message)
-      } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        console.log("Payment succeeded:", paymentIntent)
-        // Redirect to success page
-        router.push(`/payment/success?payment_intent=${paymentIntent.id}`)
+    if (error) {
+      if (error.type === "card_error" || error.type === "validation_error") {
+        setMessage(error.message || "An error occurred")
+      } else {
+        setMessage("An unexpected error occurred.")
       }
-    } catch (error) {
-      console.error("Payment error:", error)
-      alert("Payment failed. Please try again.")
-    } finally {
-      setProcessing(false)
     }
+
+    setIsLoading(false)
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
-        <Shield className="h-4 w-4" />
-        <span>Secure, 1-click checkout with Link</span>
-      </div>
-
       <div className="space-y-4">
-        {/* PaymentElement with enhanced options */}
-        <div>
-          <Label htmlFor="payment">Payment information</Label>
-          <div className="mt-1">
-            <PaymentElement
-              options={{
-                layout: {
-                  type: "tabs",
-                  defaultCollapsed: false,
-                  radios: false,
-                  spacedAccordionItems: false,
+        <h3 className="text-lg font-medium">Payment information</h3>
+        <PaymentElement
+          options={{
+            layout: {
+              type: "tabs",
+              defaultCollapsed: false,
+              radios: false,
+              spacedAccordionItems: true,
+            },
+            paymentMethodOrder: ["card", "paypal", "ideal", "sofort"],
+            fields: {
+              billingDetails: {
+                name: "auto",
+                email: "auto",
+                phone: "auto",
+                address: {
+                  country: "auto",
+                  line1: "never",
+                  line2: "never",
+                  city: "never",
+                  state: "never",
+                  postalCode: "never",
                 },
-                // Enable promotion codes
-                promotionCodes: {
-                  enabled: true,
-                },
-                // Configure payment method creation
-                paymentMethodCreation: "manual",
-                // Enable all available payment methods
-                paymentMethodOrder: [
-                  "card",
-                  "paypal",
-                  "ideal",
-                  "sofort",
-                  "bancontact",
-                  "giropay",
-                  "eps",
-                  "p24",
-                  "sepa_debit",
-                ],
-                // Configure fields
-                fields: {
-                  billingDetails: {
-                    name: "auto",
-                    email: "auto",
-                    phone: "auto",
-                    address: {
-                      country: "auto",
-                      line1: "auto",
-                      line2: "auto",
-                      city: "auto",
-                      state: "auto",
-                      postalCode: "auto",
-                    },
-                  },
-                },
-                // Configure terms
-                terms: {
-                  card: "auto",
-                  ideal: "auto",
-                  sepaDebit: "auto",
-                  sofort: "auto",
-                  bancontact: "auto",
-                  giropay: "auto",
-                  eps: "auto",
-                  p24: "auto",
-                  paypal: "auto",
-                },
-                // Enable wallets
-                wallets: {
-                  applePay: "auto",
-                  googlePay: "auto",
-                },
-              }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="email">Email for receipt</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your.email@example.com"
-            required
-          />
-        </div>
+              },
+            },
+            wallets: {
+              applePay: "auto",
+              googlePay: "auto",
+            },
+          }}
+        />
       </div>
+
+      {message && <div className="text-red-600 text-sm">{message}</div>}
 
       <Button
         type="submit"
-        disabled={!stripe || processing}
-        className="w-full bg-[#D2FF28] text-black hover:bg-[#c5f01f] text-lg py-6"
+        disabled={isLoading || !stripe || !elements}
+        className="w-full bg-[#c4ff4d] hover:bg-[#b8f041] text-black font-medium py-3 text-lg"
       >
-        {processing ? (
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-            <span>Processing...</span>
-          </div>
-        ) : (
-          `Pay €70`
-        )}
+        {isLoading ? "Processing..." : "Pay €70"}
       </Button>
 
       <p className="text-xs text-gray-500 text-center">
@@ -196,20 +107,17 @@ function CheckoutForm({
   )
 }
 
-function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
-  const router = useRouter()
-  const [email, setEmail] = useState(tempTrainer?.email || "")
-  const [clientSecret, setClientSecret] = useState("")
-  const [loading, setLoading] = useState(true)
+function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
+  const [clientSecret, setClientSecret] = useState<string>("")
+  const [isCreatingIntent, setIsCreatingIntent] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Create payment intent on component mount
   useEffect(() => {
     const createPaymentIntent = async () => {
       try {
         console.log("=== CREATING PAYMENT INTENT ===")
         console.log("Temp Trainer:", tempTrainer)
-        console.log("Email:", email)
+        console.log("Email:", tempTrainer.email)
 
         const response = await fetch("/api/create-payment-intent", {
           method: "POST",
@@ -218,36 +126,37 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
           },
           body: JSON.stringify({
             tempId: tempTrainer.id,
-            email: email,
+            email: tempTrainer.email,
           }),
         })
 
-        const data = await response.json()
-
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret)
-          setLoading(false)
-        } else {
-          throw new Error("Failed to create payment intent")
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to create payment intent")
         }
-      } catch (error) {
-        console.error("Payment intent creation error:", error)
-        setError("Failed to initialize payment. Please try again.")
-        setLoading(false)
+
+        const data = await response.json()
+        console.log("Payment intent created:", data.paymentIntentId)
+        setClientSecret(data.clientSecret)
+      } catch (err: any) {
+        console.error("Payment intent creation error:", err)
+        setError(err.message || "Failed to initialize payment")
+      } finally {
+        setIsCreatingIntent(false)
       }
     }
 
-    createPaymentIntent()
+    if (tempTrainer) {
+      createPaymentIntent()
+    }
   }, [tempTrainer])
 
-  if (loading) {
+  if (isCreatingIntent) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading payment form...</p>
-          </div>
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Preparing payment...</p>
         </div>
       </div>
     )
@@ -255,195 +164,98 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainerData }) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
-          </div>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-4 flex items-center space-x-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Preview</span>
-          </Button>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column - Trainer Info */}
-          <div>
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-                <div className="w-12 h-12 bg-[#D2FF28] rounded-full flex items-center justify-center mr-4">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">Activate Your Website</CardTitle>
-                  <p className="text-gray-600 text-sm">Complete your trainer profile activation</p>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{tempTrainer.fullName}</h3>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {tempTrainer.experience}
-                      </Badge>
-                      <span>•</span>
-                      <span>{tempTrainer.location}</span>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Professional website generated</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Custom content & testimonials</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Mobile-responsive design</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">SEO optimized</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Easy content editing</span>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-lg">One-time activation fee:</p>
-                        <p className="text-sm text-gray-600">No monthly fees • Lifetime access • Full ownership</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold text-[#D2FF28] bg-black px-3 py-1 rounded">€70</p>
-                        <p className="text-xs text-gray-500 mt-1">ONE-TIME</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Payment Form */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CreditCard className="h-5 w-5" />
-                  <span>Complete Your Payment</span>
-                </CardTitle>
-                <p className="text-sm text-gray-600">Secure payment powered by Stripe</p>
-              </CardHeader>
-              <CardContent>
-                {clientSecret && (
-                  <Elements
-                    stripe={stripePromise}
-                    options={{
-                      clientSecret,
-                      appearance: {
-                        theme: "stripe",
-                        variables: {
-                          colorPrimary: "#D2FF28",
-                          colorBackground: "#ffffff",
-                          colorText: "#000000",
-                          colorDanger: "#df1b41",
-                          fontFamily: "system-ui, sans-serif",
-                          spacingUnit: "4px",
-                          borderRadius: "8px",
-                        },
-                      },
-                      // Enable locale for better UX
-                      locale: "auto",
-                    }}
-                  >
-                    <CheckoutForm tempTrainer={tempTrainer} email={email} setEmail={setEmail} />
-                  </Elements>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+  if (!clientSecret) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600">Failed to initialize payment. Please try again.</p>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
       </div>
-    </div>
+    )
+  }
+
+  const appearance = {
+    theme: "stripe" as const,
+    variables: {
+      colorPrimary: "#c4ff4d",
+      colorBackground: "#ffffff",
+      colorText: "#000000",
+      colorDanger: "#df1b41",
+      fontFamily: "system-ui, sans-serif",
+      spacingUnit: "4px",
+      borderRadius: "8px",
+    },
+  }
+
+  const options = {
+    clientSecret,
+    appearance,
+    loader: "auto" as const,
+  }
+
+  return (
+    <Elements options={options} stripe={stripePromise}>
+      <CheckoutForm tempTrainer={tempTrainer} />
+    </Elements>
   )
 }
 
 function PaymentPageContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const [tempTrainer, setTempTrainer] = useState<TempTrainerData | null>(null)
+  const [tempTrainer, setTempTrainer] = useState<TempTrainer | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const plan = searchParams.get("plan")
   const tempId = searchParams.get("tempId")
 
   useEffect(() => {
-    if (!tempId) {
-      setError("No trainer ID provided")
-      setLoading(false)
-      return
-    }
-
     const fetchTempTrainer = async () => {
-      try {
-        const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
-        const apiUrl = `${baseUrl}/api/trainer/temp/${tempId}`
+      if (!tempId) {
+        setError("No trainer ID provided")
+        setLoading(false)
+        return
+      }
 
-        const response = await fetch(apiUrl)
-        const data = await response.json()
+      try {
+        console.log("=== PAYMENT PAGE RENDER STATE ===")
+        console.log("Search params: plan=" + plan + "&tempId=" + tempId)
+        console.log("TempId from params:", tempId)
+
+        const response = await fetch(`/api/trainer/temp/${tempId}`)
 
         if (!response.ok) {
-          setError(data.error || "Failed to load trainer data")
-          setLoading(false)
-          return
+          throw new Error("Failed to fetch trainer data")
         }
 
-        if (data.success && data.trainer) {
-          setTempTrainer(data.trainer)
-        } else {
-          setError(data.error || "Failed to load trainer data")
-        }
+        const data = await response.json()
+        console.log("Success and trainer data found")
+        console.log("Setting temp trainer for payment:", data)
 
-        setLoading(false)
-      } catch (err) {
+        setTempTrainer(data)
+      } catch (err: any) {
         console.error("Error fetching temp trainer:", err)
-        setError("Failed to load trainer data")
+        setError(err.message || "Failed to load trainer data")
+      } finally {
         setLoading(false)
       }
     }
 
     fetchTempTrainer()
-  }, [tempId])
+  }, [tempId, plan])
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading payment page...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )
@@ -452,28 +264,112 @@ function PaymentPageContent() {
   if (error || !tempTrainer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-red-500 text-5xl mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <div className="space-y-2">
-                <Button onClick={() => window.location.reload()} className="w-full">
-                  Try Again
-                </Button>
-                <Button variant="outline" onClick={() => router.push("/marketplace")} className="w-full">
-                  Back to Marketplace
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error || "Trainer not found"}</p>
+          <Link href="/marketplace/personal-trainer-website">
+            <Button>Back to Preview</Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
-  return <PaymentForm tempTrainer={tempTrainer} />
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="mb-6">
+          <Link
+            href={`/marketplace/trainer/temp/${tempTrainer.id}`}
+            className="inline-flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Preview
+          </Link>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column - Trainer Info */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-[#c4ff4d] rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-black" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Activate Your Website</CardTitle>
+                  <p className="text-gray-600">Complete your trainer profile activation</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{tempTrainer.fullName}</h3>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>📧 {tempTrainer.email}</p>
+                  <p>📱 {tempTrainer.phone}</p>
+                  <p>📍 {tempTrainer.city}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm">Professional website generated</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm">Custom content & testimonials</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm">Mobile-responsive design</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm">SEO optimized</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm">Easy content editing</span>
+                </div>
+              </div>
+
+              <div className="bg-black text-white p-4 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-gray-300">One-time activation fee:</p>
+                    <p className="text-xs text-gray-400">No monthly fees • Lifetime access • Full ownership</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#c4ff4d]">€70</div>
+                    <div className="text-xs text-gray-400">ONE-TIME</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Right Column - Payment Form */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-3">
+                <CreditCard className="w-6 h-6" />
+                <CardTitle className="text-xl">Complete Your Payment</CardTitle>
+              </div>
+              <p className="text-gray-600">Secure payment powered by Stripe</p>
+              <div className="flex items-center space-x-2 text-sm text-green-600">
+                <CheckCircle className="w-4 h-4" />
+                <span>Secure, 1-click checkout with Link</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <PaymentForm tempTrainer={tempTrainer} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function PaymentPage() {
@@ -481,10 +377,7 @@ export default function PaymentPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading payment page...</p>
-          </div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
       }
     >
