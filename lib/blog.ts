@@ -26,7 +26,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wearables2-0Am5X3Fd37fFNXPA3RGZr6w0V5AHOp.png",
+    image: "/images/wearables2.png",
     slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
   },
   {
@@ -80,7 +80,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dumbbells2-g61EuAb6uXxSbVZqWvduA32jt38ckf.png",
+    image: "/images/dumbbells2.png",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
   },
   {
@@ -89,7 +89,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee-7A1Mw6JluQKAYlQSzRWyY7iIn7oFN1.png",
+    image: "/images/coffee.png",
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
   },
   {
@@ -1404,7 +1404,15 @@ Try [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) 
 - **Payment processing**: Stripe integration included
 - **No coding required**: Live in 10 minutes
 
-### 2. Show Your Services Clearly
+> *"I had a website in 3 minutes. Clients book while I'm coaching."* 
+> 
+> **— Laner, Personal Trainer**
+
+**Perfect for:** European trainers who want bookings, not just a pretty site.
+
+---
+
+## 2. Show Your Services Clearly
 
 **Bad example:**
 - "Training sessions available"
@@ -1786,4 +1794,27 @@ Your website isn't a portfolio—it's a **booking machine**.
 
 Use a tool that **books clients**, not just shows your muscles.
 
-Juice is made
+Juice is made for trainers in Europe, with SEO baked in. Use keywords like:
+- free website for fitness coach
+- personal trainer landing page  
+- book personal training sessions online
+
+...and let your site lift the weight.
+
+**Ready to get started?** 
+
+👉 [Create your trainer website in 10 minutes](https://juice.fitness/marketplace/personal-trainer-website)
+
+*No credit card required. No coding needed.* 
+
+---
+
+## Frequently Asked Questions
+
+### **Q: Do I really need a website if I have Instagram?**
+A: Instagram is for marketing. A website is for converting. You need both.
+
+### **Q: What's the difference between a website and a landing page?**
+A: A website has multiple pages. A landing page focuses on one goal: booking sessions.
+
+### **
