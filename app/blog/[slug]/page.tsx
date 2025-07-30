@@ -27,6 +27,22 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }))
 }
 
+// Fitness-related placeholder images for blog posts
+const getPlaceholderImage = (category: string) => {
+  const placeholders = {
+    coaching: "/fitness-coaching-session.png",
+    technology: "/fitness-tech-digital-health.png",
+    fitness: "/gym-dumbbells.png",
+    nutrition: "/healthy-meal-prep.png",
+    visibility: "/seo-tips-fitness-coaches-europe.png",
+    marketing: "/personal-trainer-booking-page-mobile.png",
+    default: "/fitness-equipment.png",
+  }
+
+  const categoryKey = category?.toLowerCase() as keyof typeof placeholders
+  return placeholders[categoryKey] || placeholders.default
+}
+
 // Generate metadata for SEO - applies to ALL blog posts
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
@@ -40,21 +56,6 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
-
-  // Get the appropriate image for each category
-  const getPlaceholderImage = (category: string) => {
-    const placeholders = {
-      coaching: "/fitness-coaching-session.png",
-      technology: "/fitness-tech-digital-health.png",
-      fitness: "/gym-dumbbells.png",
-      nutrition: "/healthy-meal-prep.png",
-      visibility: "/seo-tips-fitness-coaches-europe.png",
-      marketing: "/personal-trainer-booking-page-mobile.png",
-      default: "/fitness-equipment.png",
-    }
-    const categoryKey = category?.toLowerCase() as keyof typeof placeholders
-    return placeholders[categoryKey] || placeholders.default
-  }
 
   const imageUrl = post.frontmatter.image
     ? `${baseUrl}${post.frontmatter.image}`
@@ -165,35 +166,23 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   console.log(`[BlogPostPage] Rendering page for slug: ${params.slug}`)
+  let post
 
-  const post = await getPostBySlug(params.slug)
+  try {
+    post = await getPostBySlug(params.slug)
+    console.log(`[BlogPostPage] Post fetched:`, post ? "SUCCESS" : "NOT FOUND")
+  } catch (error) {
+    console.error(`[BlogPostPage] Error fetching post for slug ${params.slug}:`, error)
+    notFound()
+  }
 
   if (!post) {
     console.log(`[BlogPostPage] Post not found for slug: ${params.slug}`)
     notFound()
   }
 
-  console.log(`[BlogPostPage] Successfully loaded post: ${post.frontmatter.title}`)
-
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
-
-  // Get the appropriate image for each category
-  const getPlaceholderImage = (category: string) => {
-    const placeholders = {
-      coaching: "/fitness-coaching-session.png",
-      technology: "/fitness-tech-digital-health.png",
-      fitness: "/gym-dumbbells.png",
-      nutrition: "/healthy-meal-prep.png",
-      visibility: "/seo-tips-fitness-coaches-europe.png",
-      marketing: "/personal-trainer-booking-page-mobile.png",
-      default: "/fitness-equipment.png",
-    }
-    const categoryKey = category?.toLowerCase() as keyof typeof placeholders
-    return placeholders[categoryKey] || placeholders.default
-  }
-
-  const imageUrl = post.frontmatter.image || getPlaceholderImage(post.frontmatter.category)
 
   // JSON-LD structured data for this specific article
   const jsonLd = {
@@ -203,7 +192,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     description: post.frontmatter.excerpt,
     image: {
       "@type": "ImageObject",
-      url: `${baseUrl}${imageUrl}`,
+      url: post.frontmatter.image
+        ? `${baseUrl}${post.frontmatter.image}`
+        : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`,
       width: 1200,
       height: 630,
     },
@@ -211,8 +202,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     dateModified: post.frontmatter.date,
     author: {
       "@type": "Person",
-      name: "Juice Team",
-      url: `${baseUrl}/about`,
+      name: post.frontmatter.author || "Juice Team",
     },
     publisher: {
       "@type": "Organization",
@@ -220,169 +210,112 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       logo: {
         "@type": "ImageObject",
         url: `${baseUrl}/images/juiceNewLogoPrime.png`,
-        width: 200,
-        height: 60,
       },
-      url: baseUrl,
     },
+    description: post.frontmatter.excerpt,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": fullUrl,
     },
-    articleSection: post.frontmatter.category,
-    keywords: [
-      post.frontmatter.category.toLowerCase(),
-      "fitness",
-      "personal trainer",
-      "coaching",
-      "business growth",
-      "marketing",
-      "SEO",
-      "Europe",
-    ].join(", "),
-    wordCount: post.content.split(" ").length,
-    copyrightHolder: {
-      "@type": "Organization",
-      name: "Juice Fitness",
-    },
-    copyrightYear: new Date(post.frontmatter.date).getFullYear(),
-    inLanguage: "en-US",
-    isAccessibleForFree: true,
   }
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ReadingProgress />
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <main className="pt-20">
-          <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Back to Blog */}
-            <div className="mb-8">
-              <Link href="/blog">
-                <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Blog
-                </Button>
-              </Link>
-            </div>
+      <main className="min-h-screen bg-white text-black">
+        <Navbar isCoach={true} className="bg-white" />
 
-            {/* Article Header */}
-            <header className="mb-8">
-              {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  <time dateTime={post.frontmatter.date}>
-                    {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </time>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Tag className="w-4 h-4" />
-                  <span className="bg-lime-100 text-lime-800 px-2 py-1 rounded-full text-xs font-medium">
-                    {post.frontmatter.category}
-                  </span>
-                </div>
-                <ReadingTime content={post.content} />
+        <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
+          {/* Back to Blog */}
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-juice transition-colors mb-8"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Blog
+          </Link>
+
+          {/* Article Header */}
+          <header className="mb-8">
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Calendar className="w-4 h-4" />
+                <span>{post.frontmatter.date}</span>
               </div>
 
-              {/* Title */}
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                {post.frontmatter.title}
-              </h1>
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-gray-500" />
+                <span className="px-3 py-1 bg-juice text-black text-sm font-semibold rounded-full">
+                  {post.frontmatter.category}
+                </span>
+              </div>
 
-              {/* Excerpt */}
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">{post.frontmatter.excerpt}</p>
+              <ReadingTime content={post.content || ""} />
+            </div>
 
-              {/* Social Share */}
-              <SocialShare url={fullUrl} title={post.frontmatter.title} />
-            </header>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
+              {post.frontmatter.title}
+            </h1>
 
-            {/* Featured Image */}
-            <div className="mb-8 rounded-lg overflow-hidden">
+            {post.frontmatter.excerpt && (
+              <p className="text-xl text-gray-600 leading-relaxed mb-6">{post.frontmatter.excerpt}</p>
+            )}
+
+            <SocialShare title={post.frontmatter.title} url={fullUrl} excerpt={post.frontmatter.excerpt} />
+          </header>
+
+          {/* Hero Image */}
+          {(post.frontmatter.image || post.frontmatter.category) && (
+            <div className="relative w-full h-96 mb-12 rounded-xl overflow-hidden shadow-lg">
               <Image
-                src={imageUrl || "/placeholder.svg"}
+                src={post.frontmatter.image || getPlaceholderImage(post.frontmatter.category)}
                 alt={post.frontmatter.title}
-                width={1200}
-                height={630}
-                className="w-full h-64 md:h-96 object-cover"
+                fill
+                className="object-cover"
                 priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+            </div>
+          )}
+
+          {/* Article Content */}
+          <div className="relative">
+            <div className="prose prose-lg max-w-none">
+              <MdxRenderer source={post.serializedContent} />
+            </div>
+          </div>
+
+          {/* Article Footer */}
+          <footer className="mt-16 pt-8 border-t border-gray-200">
+            <div className="mb-8">
+              <SocialShare title={post.frontmatter.title} url={fullUrl} excerpt={post.frontmatter.excerpt} />
             </div>
 
-            {/* Article Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Table of Contents - Desktop */}
-              <aside className="hidden lg:block lg:col-span-1">
-                <div className="sticky top-24">
-                  <TableOfContents content={post.content} />
-                </div>
-              </aside>
-
-              {/* Main Content */}
-              <div className="lg:col-span-3">
-                <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-lime-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-code:text-lime-600 prose-code:bg-lime-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
-                  <MdxRenderer source={post.serializedContent} />
-                </div>
-
-                {/* Article Footer */}
-                <footer className="mt-12 pt-8 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Published on{" "}
-                        <time dateTime={post.frontmatter.date}>
-                          {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </time>
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Category:{" "}
-                        <span className="bg-lime-100 text-lime-800 px-2 py-1 rounded-full text-xs font-medium">
-                          {post.frontmatter.category}
-                        </span>
-                      </p>
-                    </div>
-                    <SocialShare url={fullUrl} title={post.frontmatter.title} />
-                  </div>
-
-                  {/* Call to Action */}
-                  <div className="bg-gradient-to-r from-lime-50 to-green-50 p-8 rounded-2xl text-center">
-                    <h3 className="text-2xl font-bold mb-4 text-gray-900">Ready to Grow Your Fitness Business?</h3>
-                    <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
-                      Get a professional website that books clients while you train. No coding required, SEO-optimized,
-                      and ready in minutes.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Link href="/marketplace/personal-trainer-website">
-                        <Button className="bg-lime-600 hover:bg-lime-700">Create Your Trainer Website</Button>
-                      </Link>
-                      <Link href="/findatrainer">
-                        <Button
-                          variant="outline"
-                          className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
-                        >
-                          Find a Trainer
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </footer>
+            {/* Call to Action */}
+            <div className="bg-gradient-to-r from-juice/10 to-juice/5 p-8 rounded-2xl text-center">
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">Ready to elevate your fitness journey?</h3>
+              <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
+                Download the Juice app today and start tracking your progress, planning workouts, and achieving your
+                goals with the help of certified personal trainers!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/download-juice-app">
+                  <Button className="bg-juice text-juice-foreground hover:bg-juice/90">Download the Juice App</Button>
+                </Link>
+                <Link href="/findatrainer">
+                  <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
+                    Find a Trainer
+                  </Button>
+                </Link>
               </div>
             </div>
-          </article>
-        </main>
-        <Footer />
-      </div>
+          </footer>
+        </article>
+
+        <TableOfContents />
+      </main>
+      <Footer />
     </>
   )
 }
