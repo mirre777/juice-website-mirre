@@ -11,12 +11,12 @@ export default function NotFound() {
 
   return (
     <main className="min-h-screen relative overflow-hidden">
-      {/* Updated Background Image */}
+      {/* Animated GIF Background */}
       <div className="absolute inset-0 z-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url('https://sjc.microlink.io/D5v6Y6Ghbozqr1aq5PBUpXuIDMtez-4t8QDMJSYHPmHs51V_LanHSIAGvYzlQpWjNefySFAM2jSY40CnqiI1dg.jpeg')`,
+            backgroundImage: `url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-PIy2rtfcqfJjPSHTiCIlnGUs6PxJsX.png')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
