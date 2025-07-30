@@ -57,9 +57,16 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
         console.log(`Element ${index}:`, el)
       })
 
-      // Check for "Add promotion code" text
-      const addPromoText = document.querySelector('*:contains("Add promotion code")')
-      console.log("🏷️ Found 'Add promotion code' text:", !!addPromoText)
+      // Check for "Add promotion code" text using proper method
+      const allElements = document.querySelectorAll("*")
+      let foundPromoText = false
+      allElements.forEach((el) => {
+        if (el.textContent && el.textContent.includes("Add promotion code")) {
+          foundPromoText = true
+          console.log("🏷️ Found 'Add promotion code' element:", el)
+        }
+      })
+      console.log("🏷️ Found 'Add promotion code' text:", foundPromoText)
 
       // Check Stripe Elements iframe
       const stripeFrames = document.querySelectorAll('iframe[name^="__privateStripeFrame"]')
@@ -67,8 +74,8 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
 
       // Check current domain
       console.log("🌐 Current domain:", window.location.hostname)
-      console.log("⚠️ Make sure this domain is added to Stripe Dashboard > Payment method domains")
-    }, 2000)
+      console.log("✅ Domain should now be registered in Stripe Dashboard")
+    }, 3000)
 
     return () => clearTimeout(timer)
   }, [stripe, elements])

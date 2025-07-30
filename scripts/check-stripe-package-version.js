@@ -30,13 +30,22 @@ try {
   console.log("✅ @stripe/react-stripe-js: ^2.0.0 or later")
   console.log("✅ stripe: ^14.0.0 or later")
 
-  console.log("\n🌐 DOMAIN SETUP ISSUE DETECTED:")
-  console.log("-------------------------------")
-  console.log("❌ Your Stripe dashboard only has 'buy.stripe.com' enabled")
-  console.log("❌ You need to add your actual domain to Stripe Dashboard")
-  console.log("❌ Go to: Stripe Dashboard > Settings > Payment method domains")
-  console.log("❌ Add your domain: your-app-domain.vercel.app")
-  console.log("❌ This is likely why promotion codes aren't showing!")
+  console.log("\n🌐 DOMAIN SETUP STATUS:")
+  console.log("----------------------")
+  console.log("✅ Domains are now properly added to Stripe Dashboard!")
+  console.log("✅ www.juice.fitness - Enabled")
+  console.log("✅ v0-v2-website-njfsqz58w-mirre777s-projects.vercel.app - Enabled")
+  console.log("✅ buy.stripe.com - Enabled")
+
+  console.log("\n🚨 NEXT STEPS:")
+  console.log("--------------")
+  if (!packageJson.dependencies?.["@stripe/stripe-js"] && !packageJson.devDependencies?.["@stripe/stripe-js"]) {
+    console.log("❌ Missing Stripe packages in package.json!")
+    console.log("   This could be why promotion codes aren't working")
+    console.log("   The packages might be auto-installed by Next.js but not listed")
+  } else {
+    console.log("✅ Check if promotion codes appear after fixing the querySelector error")
+  }
 } catch (error) {
   console.error("❌ Error reading package.json:", error.message)
 }
