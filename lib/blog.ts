@@ -568,7 +568,7 @@ Berlin's personal training scene is competitive, but with the right tools, you c
     readingTime: "8 min read",
     tags: ["Personal Training", "Berlin", "Technology", "Fitness", "Tools"],
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dumbbells2%20%281%29-hPgb1H1OGLxgKaz93OKKd1FIFW8a45.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee%20%281%29-Ksk4c7bQl0eNUnhGiDUYQGzVhFZJJA.png",
     featured: true,
   },
   // /** rest of code here **/
