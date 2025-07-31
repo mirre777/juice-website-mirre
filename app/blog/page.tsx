@@ -136,7 +136,7 @@ export default async function BlogPage() {
       dateModified: post.date,
       author: {
         "@type": "Person",
-        name: post.author || "Juice Team",
+        name: "Juice Team",
       },
       publisher: {
         "@type": "Organization",
@@ -150,7 +150,7 @@ export default async function BlogPage() {
         "@type": "WebPage",
         "@id": `${process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"}/blog/${post.slug}`,
       },
-      keywords: post.keywords || [post.category.toLowerCase(), "fitness", "personal trainer", "coaching"],
+      keywords: [post.category.toLowerCase(), "fitness", "personal trainer", "coaching"],
     })),
   }
 
@@ -164,7 +164,7 @@ export default async function BlogPage() {
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">Juice Blog</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Insights, tips, and strategies from the world of fitness coaching and technology.
+            Insights, tips, and stories from the world of fitness coaching and technology.
           </p>
         </div>
 
@@ -174,10 +174,10 @@ export default async function BlogPage() {
             All Posts
           </Button>
           <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-            Technology
+            Fitness
           </Button>
           <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
-            Marketing
+            Technology
           </Button>
           <Button variant="outline" className="border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent">
             Coaching
@@ -200,9 +200,6 @@ export default async function BlogPage() {
                       width={400}
                       height={240}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                      priority={posts.indexOf(post) < 6} // Prioritize first 6 images
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     />
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>
@@ -213,17 +210,11 @@ export default async function BlogPage() {
                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        <span>
-                          {new Date(post.date).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
+                        <span>{post.date}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>{post.readingTime || "5 min read"}</span>
+                        <span>5 min read</span>
                       </div>
                     </div>
 
