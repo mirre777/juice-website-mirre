@@ -10,7 +10,7 @@ import { ReadingTime } from "@/components/blog/reading-time"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Calendar, Tag } from "lucide-react"
+import { ArrowLeft, Calendar, Tag, User } from "lucide-react"
 import type { Metadata } from "next"
 import type { BlogPostFrontmatter } from "@/lib/blog"
 
@@ -57,7 +57,7 @@ const getPlaceholderImage = (category: string) => {
   return placeholders[categoryKey] || placeholders.default
 }
 
-// Generate metadata for SEO - applies to ALL blog posts
+// Generate comprehensive metadata for SEO - applies to ALL blog posts
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
 
@@ -72,45 +72,32 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
   const imageUrl = post.frontmatter.image
-    ? `${baseUrl}${post.frontmatter.image}`
+    ? post.frontmatter.image.startsWith("http")
+      ? post.frontmatter.image
+      : `${baseUrl}${post.frontmatter.image}`
     : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`
 
-  // Generate SEO-optimized keywords based on post content and category
-  const generateKeywords = (title: string, category: string, excerpt: string) => {
-    const baseKeywords = [
-      "fitness coaching",
-      "personal trainer",
-      "fitness business",
-      "trainer marketing",
-      "fitness SEO",
-      "personal training",
-      "fitness coach",
-      "trainer website",
-      "fitness industry",
-      "Europe fitness",
-      "Berlin fitness",
-      category.toLowerCase(),
-    ]
-
-    // Add specific keywords based on title content
-    const titleLower = title.toLowerCase()
-    if (titleLower.includes("seo")) baseKeywords.push("SEO for fitness", "fitness SEO tips", "trainer SEO")
-    if (titleLower.includes("website")) baseKeywords.push("trainer website", "fitness website", "website builder")
-    if (titleLower.includes("booking")) baseKeywords.push("online booking", "fitness booking", "trainer booking")
-    if (titleLower.includes("marketing"))
-      baseKeywords.push("fitness marketing", "trainer marketing", "digital marketing")
-    if (titleLower.includes("tools")) baseKeywords.push("fitness tools", "trainer tools", "fitness software")
-    if (titleLower.includes("berlin")) baseKeywords.push("Berlin fitness", "Berlin trainer", "Germany fitness")
-    if (titleLower.includes("nutrition")) baseKeywords.push("nutrition coaching", "fitness nutrition", "meal planning")
-
-    return baseKeywords.slice(0, 15) // Limit to 15 keywords
-  }
+  // Use keywords from frontmatter or generate them
+  const keywords = post.frontmatter.keywords || [
+    "fitness coaching",
+    "personal trainer",
+    "fitness business",
+    "trainer marketing",
+    "fitness SEO",
+    "personal training",
+    "fitness coach",
+    "trainer website",
+    "fitness industry",
+    "Europe fitness",
+    "Berlin fitness",
+    post.frontmatter.category.toLowerCase(),
+  ]
 
   return {
     title: `${post.frontmatter.title} | Juice Fitness Blog`,
     description: post.frontmatter.excerpt,
-    keywords: generateKeywords(post.frontmatter.title, post.frontmatter.category, post.frontmatter.excerpt),
-    authors: [{ name: "Juice Team" }],
+    keywords: keywords,
+    authors: [{ name: post.frontmatter.author || "Juice Team" }],
     creator: "Juice Fitness",
     publisher: "Juice Fitness",
     formatDetection: {
@@ -139,16 +126,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       type: "article",
       publishedTime: post.frontmatter.date,
       modifiedTime: post.frontmatter.date,
-      authors: ["Juice Team"],
+      authors: [post.frontmatter.author || "Juice Team"],
       section: post.frontmatter.category,
-      tags: [
-        "fitness",
-        "coaching",
-        "personal trainer",
-        post.frontmatter.category.toLowerCase(),
-        "business growth",
-        "marketing",
-      ],
+      tags: keywords,
     },
     twitter: {
       card: "summary_large_image",
@@ -170,7 +150,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       },
     },
     other: {
-      "article:author": "Juice Team",
+      "article:author": post.frontmatter.author || "Juice Team",
       "article:publisher": "Juice Fitness",
       "article:section": post.frontmatter.category,
       "article:tag": post.frontmatter.category.toLowerCase(),
@@ -210,7 +190,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     image: {
       "@type": "ImageObject",
       url: post.frontmatter.image
-        ? `${baseUrl}${post.frontmatter.image}`
+        ? post.frontmatter.image.startsWith("http")
+          ? post.frontmatter.image
+          : `${baseUrl}${post.frontmatter.image}`
         : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`,
       width: 1200,
       height: 630,
@@ -229,11 +211,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         url: `${baseUrl}/images/juiceNewLogoPrime.png`,
       },
     },
-    description: post.frontmatter.excerpt,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": fullUrl,
     },
+    keywords: post.frontmatter.keywords || [
+      post.frontmatter.category.toLowerCase(),
+      "fitness",
+      "personal trainer",
+      "coaching",
+    ],
+    wordCount: post.content.split(" ").length,
+    timeRequired: post.frontmatter.readingTime || "5 min read",
   }
 
   return (
@@ -258,7 +247,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Calendar className="w-4 h-4" />
-                <span>{post.frontmatter.date}</span>
+                <span>
+                  {new Date(post.frontmatter.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -266,6 +261,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <span className="px-3 py-1 bg-juice text-black text-sm font-semibold rounded-full">
                   {post.frontmatter.category}
                 </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <User className="w-4 h-4" />
+                <span>{post.frontmatter.author || "Juice Team"}</span>
               </div>
 
               <ReadingTime content={post.content || ""} />
@@ -291,6 +291,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 fill
                 className="object-cover"
                 priority
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             </div>
@@ -298,7 +300,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* Article Content */}
           <div className="relative">
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-juice prose-strong:text-gray-900">
               <MdxRenderer source={post.serializedContent} />
             </div>
           </div>
@@ -326,6 +328,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                       </div>
@@ -334,7 +338,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                           <span className="px-2 py-1 bg-juice text-black text-xs font-semibold rounded-full">
                             {article.category}
                           </span>
-                          <span className="text-sm text-gray-500">{article.date}</span>
+                          <span className="text-sm text-gray-500">
+                            {new Date(article.date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
                         </div>
                         <h4 className="text-lg font-semibold text-gray-900 group-hover:text-juice transition-colors line-clamp-2 mb-2">
                           {article.title}

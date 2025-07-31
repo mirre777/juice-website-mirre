@@ -11,6 +11,9 @@ export interface BlogPostFrontmatter {
   category: string
   image?: string
   slug: string
+  author?: string
+  keywords?: string[]
+  readingTime?: string
 }
 
 export interface BlogPost {
@@ -22,64 +25,22 @@ export interface BlogPost {
 
 const BLOG_CONTENT_PATH = "blog/"
 
-// Sample blog posts for when blob storage is not available (like in v0)
-const SAMPLE_POSTS: BlogPostFrontmatter[] = [
-  {
-    title: "⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?",
-    date: "2025-02-04",
-    excerpt:
-      "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
-    category: "Technology",
-    image: "/wearables-strength-training-squat-gym.png",
-    slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
-  },
-  {
-    title: "📊 Tracking Biometrics: What Actually Moves the Needle",
-    date: "2025-02-03",
-    excerpt:
-      "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tracking%20biometrics%20%281%29-HWabjekyZFyyGIXge16oFoyfWB84nS.png",
-    slug: "tracking-biometrics-what-actually-moves-the-needle",
-  },
-  {
-    title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
-    date: "2025-02-02",
-    excerpt:
-      "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/max_LS%20%281%29-xJVZRoneLwWk1GoQiKXIjSrxdTuBWz.png",
-    slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
-  },
-  {
-    title: "📱 How to Get More Clients with a Booking Page",
-    date: "2025-02-01",
-    excerpt:
-      "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
-    category: "Marketing",
-    image: "/personal-trainer-booking-page-mobile.png",
-    slug: "how-to-get-more-clients-with-booking-page",
-  },
-  {
-    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
-    date: "2025-01-31",
-    excerpt:
-      "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
-    category: "Technology",
-    image: "/personal-trainer-website-builders-laptops.png",
-    slug: "top-5-free-personal-trainer-website-builders-2025",
-  },
-  {
-    title: "🔍 SEO Tips for Fitness Coaches in Europe",
-    date: "2025-01-30",
-    excerpt:
-      "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
-    category: "Visibility",
-    image: "/seo-tips-fitness-coaches-europe.png",
-    slug: "seo-tips-for-fitness-coaches-in-europe",
-  },
+// Import all blog posts from separate files
+const importBlogPosts = async () => {
+  const posts = [
+    (await import("@/content/blog/are-wearables-accurate-enough-to-track-complex-lifting-movements")).post,
+    (await import("@/content/blog/tracking-biometrics-what-actually-moves-the-needle")).post,
+    (await import("@/content/blog/google-sheets-for-coaching-trainers-secret-weapon-or-trap")).post,
+    (await import("@/content/blog/how-to-get-more-clients-with-booking-page")).post,
+    (await import("@/content/blog/top-5-free-personal-trainer-website-builders-2025")).post,
+    (await import("@/content/blog/seo-tips-for-fitness-coaches-in-europe")).post,
+  ]
+
+  return posts
+}
+
+// Additional blog posts metadata (for posts without full content yet)
+const ADDITIONAL_POSTS: BlogPostFrontmatter[] = [
   {
     title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
     date: "2025-01-15",
@@ -89,6 +50,20 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dumbbells2%20%281%29-hPgb1H1OGLxgKaz93OKKd1FIFW8a45.png",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+    author: "Juice Team",
+    keywords: [
+      "personal trainer tools",
+      "Berlin fitness",
+      "fitness technology",
+      "trainer apps",
+      "fitness software",
+      "Berlin personal training",
+      "fitness business tools",
+      "trainer productivity",
+      "fitness coaching tools",
+      "Berlin fitness industry",
+    ],
+    readingTime: "8 min read",
   },
   {
     title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
@@ -99,6 +74,20 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee%20%281%29-Ksk4c7bQl0eNUnhGiDUYQGzVhFZJJA.png",
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+    author: "Juice Team",
+    keywords: [
+      "fitness software",
+      "Berlin fitness tech",
+      "trainer software",
+      "fitness business software",
+      "gym management software",
+      "personal training software",
+      "fitness apps Berlin",
+      "trainer productivity tools",
+      "fitness technology",
+      "Berlin fitness industry",
+    ],
+    readingTime: "7 min read",
   },
   {
     title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
@@ -108,6 +97,20 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Nutrition",
     image: "/nutrition-coaching-trends-berlin-woman-phone.png",
     slug: "nutrition-coaching-trends-berlin-2025",
+    author: "Juice Team",
+    keywords: [
+      "nutrition coaching",
+      "Berlin nutrition trends",
+      "meal planning",
+      "nutrition technology",
+      "fitness nutrition",
+      "Berlin fitness",
+      "nutrition coaching software",
+      "healthy eating Berlin",
+      "nutrition coaching business",
+      "fitness nutrition trends",
+    ],
+    readingTime: "6 min read",
   },
   {
     title: "🏋️ Strength Training Revolution: What's New in Berlin Gyms",
@@ -115,7 +118,22 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
     category: "Fitness",
+    image: "/strength-training-barbell-gym.png",
     slug: "strength-training-revolution-berlin-gyms",
+    author: "Juice Team",
+    keywords: [
+      "strength training",
+      "Berlin gyms",
+      "fitness trends",
+      "gym equipment",
+      "strength coaching",
+      "Berlin fitness scene",
+      "powerlifting Berlin",
+      "strength training techniques",
+      "gym innovations",
+      "fitness technology",
+    ],
+    readingTime: "5 min read",
   },
   {
     title: "🧠 The Psychology of Fitness: Mental Coaching Techniques",
@@ -123,346 +141,24 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
     category: "Coaching",
+    image: "/fitness-coaching-session.png",
     slug: "psychology-of-fitness-mental-coaching-techniques",
+    author: "Juice Team",
+    keywords: [
+      "fitness psychology",
+      "mental coaching",
+      "fitness mindset",
+      "coaching techniques",
+      "fitness motivation",
+      "sports psychology",
+      "mental health fitness",
+      "coaching psychology",
+      "fitness behavior change",
+      "personal training psychology",
+    ],
+    readingTime: "7 min read",
   },
 ]
-
-const SAMPLE_BLOG_CONTENT = {
-  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `# ⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?
-
-**TL;DR:** Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.
-
----
-
-## The Wearable Revolution in Strength Training
-
-Walk into any gym today and you'll see them: Apple Watches tracking workouts, Garmin devices monitoring heart rates, WHOOP bands measuring strain. The fitness wearable market is booming, with devices promising to track everything from your morning run to your evening deadlift session.
-
-But here's the million-dollar question: **Are these devices actually accurate enough to track complex lifting movements?**
-
-The short answer? It's complicated.
-
----
-
-## What Wearables Actually Track Well
-
-### ✅ Cardiovascular Metrics
-Wearables excel at monitoring:
-
-- **Heart rate zones** during cardio or metabolic circuits
-- **Heart rate variability** for recovery assessment
-- **Workout duration** and basic timing
-- **Calorie burn estimates** for steady-state cardio
-
-### ✅ Basic Movement Patterns
-Most devices can reliably detect:
-
-- **Step counts** and distance for walking/running
-- **Stationary exercise metrics** like cycling
-- **Workout start/stop** with auto-detection (usually after 10+ minutes)
-- **Sleep patterns** and recovery metrics
-
-### ✅ General Activity Levels
-They're solid for:
-
-- **Daily activity tracking** and movement goals
-- **Sedentary time** monitoring
-- **Overall energy expenditure** trends
-- **Long-term activity patterns**
-
----
-
-## Where They Struggle with Strength Training
-
-### ❌ Calorie Burn Accuracy
-
-**The Reality Check:**
-Your Garmin cannot accurately determine how many calories a set of 12 bicep curls burned.
-
-**Why it fails:**
-- **Complex energy systems**: Strength training uses different metabolic pathways than cardio
-- **Individual variation**: Muscle mass, efficiency, and technique affect calorie burn
-- **Recovery periods**: Rest between sets creates irregular energy expenditure patterns
-- **Load variations**: 5 reps at 85% 1RM burns differently than 15 reps at 60% 1RM
-
-**Real user experience:**
-> *"My Apple Watch says I burned 400 calories during my powerlifting session. I did 5 sets of squats, 5 sets of bench, and 3 sets of deadlifts in 90 minutes. There's no way that's accurate."*
-> 
-> **— Reddit user on r/Garmin**
-
-### ❌ Movement Quality Assessment
-
-**What's missing:**
-- **Range of motion** tracking
-- **Movement velocity** during lifts
-- **Form breakdown** detection
-- **Eccentric vs. concentric** phase differentiation
-
-**The problem:**
-A wearable can't tell the difference between a perfect squat and a quarter-rep. It can't detect if you're compensating with your back during a deadlift or if your bench press bar path is optimal.
-
-### ❌ Load and Intensity Tracking
-
-**Manual input required:**
-- **Weight lifted** must be logged separately
-- **Sets and reps** need manual entry
-- **RPE (Rate of Perceived Exertion)** requires subjective input
-- **Rest periods** between sets aren't automatically tracked
-
-**The tedious reality:**
-Logging movements is tedious; often best to auto-track basic metrics and log the important stuff manually.
-
----
-
-## The Bottom Line
-
-**Wearables are powerful tools—but they're not your muscle's measure.**
-
-**What they do well:**
-- ✅ General activity and health monitoring
-- ✅ Heart rate and basic cardiovascular metrics
-- ✅ Sleep and recovery tracking
-- ✅ Motivation and consistency support
-
-**What they don't do well:**
-- ❌ Accurate calorie burn for strength training
-- ❌ Movement quality assessment
-- ❌ Load and intensity tracking
-- ❌ Complex exercise recognition
-
-**The smart approach:**
-Use wearables to support your coaching and training, not replace good fundamentals. The best tracker for strength training is still a combination of:
-
-1. **A notebook or app** for weights, sets, and reps
-2. **A spreadsheet** for trend analysis
-3. **An experienced eye** for form and technique assessment
-4. **Wearable data** for recovery and general health metrics
-
-**For trainers:** Educate your clients about what the data means and doesn't mean. Use wearables as engagement tools and trend indicators, not precision instruments.
-
-**For athletes:** Focus on performance metrics that matter—progressive overload, form quality, and how you feel. Let the wearable handle the background health monitoring.
-
-The future will bring better integration and accuracy, but for now, the most important sensor is still the one between your ears.
-
----
-
-## Sources and Further Reading
-
-- [Reddit: Be Wary of Calorie Counts for Weightlifting](https://www.reddit.com/r/Garmin/comments/17c9lu8/be_weary_of_calorie_counts_for_weightlifting/)
-- [Reddit: Weightlifting on Garmin is by Far its Weakest Feature](https://www.reddit.com/r/Garmin/comments/1cqa26x/weightlifting_on_garmin_is_by_far_its_weakest_and/)
-- [Self Magazine: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
-- [arXiv: Wearable Technology in Sports](https://arxiv.org/abs/2203.16442)`,
-
-  "tracking-biometrics-what-actually-moves-the-needle": `# 📊 Tracking Biometrics: What Actually Moves the Needle
-
-**TL;DR:** Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
-
----
-
-## Key Metrics to Track
-
-### Resting Heart Rate (RHR) & Heart Rate Variability (HRV)
-Your body's honest report card for training readiness. RHR and HRV give you real-time feedback on recovery status and whether your client is ready for intense training or needs a lighter day.
-
-### Sleep Quality & Duration
-The recovery window that makes or breaks progress. Sleep is when the magic happens—muscle repair, hormone regulation, and mental recovery all depend on quality rest.
-
-### Body Metrics
-- **Weight tracking**: Weekly averages, not daily fluctuations
-- **Circumference measurements**: Waist, hips, arms, thighs
-- **Performance markers**: Vertical jump, push-ups, plank hold times
-
-### Perceived Effort & Soreness
-Daily subjective feedback that complements objective data. How clients feel often tells you more than any device can measure.
-
----
-
-## How to Implement with Sheets or Apps
-
-### The Daily Check-In System
-Create a simple daily check-in tab where clients enter:
-- Sleep hours and quality rating
-- Morning energy/mood levels
-- Readiness to train (1-10 scale)
-
-### Technology Integration
-- **Oura Ring or wellness apps**: Sync sleep and HRV data into Sheets via CSV export
-- **Weight charts**: Use autorange formatting so both coach and client can see progress trends
-- **Automated data flows**: Connect apps to spreadsheets for seamless tracking
-
-### Visualization That Works
-Make data meaningful with:
-- Sparkline charts for quick trend visualization
-- Progress bars for goal tracking
-- Color-coded cells for at-a-glance status updates
-
----
-
-## Real-World Trainer & Client Use Cases
-
-### Baseline Tracking for Fatigue Prevention
-Collect baseline RHR and track weekly changes to anticipate fatigue before it becomes overtraining. A 5+ bpm increase in resting heart rate often signals the need for a recovery day.
-
-### Post-Session Feedback Loop
-After sessions, clients log perceived exertion (1-10 scale) to help program future training cycles. This subjective data helps coaches understand individual response patterns.
-
-### Performance Database Management
-One gym's spreadsheet includes jump test outputs in a filterable database, allowing coaches to track power development across multiple clients and identify trends.
-
----
-
-## Best Practices for Implementation
-
-### Keep It Simple
-- **Limit daily entries to under 3 inputs**—overwhelm kills compliance
-- Focus on metrics that actually influence your programming decisions
-- Make data entry as quick and painless as possible
-
-### Visual Feedback Systems
-- Use sparkline charts for trend visualization
-- Create progress bars for motivation
-- Implement color coding for quick status assessment
-
-### Smart Alert Systems
-Set up threshold alerts for concerning patterns:
-- Incomplete sleep three days in a row = automatic coach check-in
-- RHR elevated 10+ bpm = recovery day recommendation
-- Consistently low readiness scores = program adjustment needed
-
----
-
-## Turning Data Into Decisions
-
-The goal isn't to collect data—it's to make better coaching decisions. Use biometric trends to:
-
-- **Adjust training intensity** based on recovery markers
-- **Time deload weeks** when multiple metrics show fatigue
-- **Personalize programs** based on individual response patterns
-- **Prevent overtraining** by catching early warning signs
-
----
-
-## Conclusion
-
-Biometrics track more than calories—they track human performance. Use Sheets or apps smartly and turn data into decisions, not just data dumps.
-
-The most successful coaches aren't drowning in data; they're using the right metrics to make their clients' training more effective and sustainable.
-
----
-
-## Sources and Further Reading
-
-- [Reddit: Apple Watch Active Calories Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
-- [Self.com: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
-- [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
-- [Reddit: Google Sheets vs Apps for Personal Training](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)`,
-
-  "google-sheets-for-coaching-trainers-secret-weapon-or-trap": `# 📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
-
-**TL;DR:** Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.
-
----
-
-## Why Google Sheets Can Work for Coaches
-
-### Zero Software Cost
-As one Reddit trainer put it:
-> *"The price you can spend upwards of $800 every year on a coaching app, whereas Sheets is absolutely free."*
-
-For solo trainers or those just starting out, that's significant money that can go toward certifications, equipment, or marketing instead of monthly software subscriptions.
-
-### Custom Workflows That Match Your Style
-You control everything:
-- **Custom formulas** for 1RM calculations, volume tracking, RPE progression
-- **Your own tracking systems** that match your exact programming methodology
-- **Progression templates** that evolve with your coaching experience
-- **Complete data ownership** - no vendor lock-in or subscription cancellations
-
-### Templates That Evolve Over Time
-Like this trainer shared:
-> *"A functional fitness exercise database in Microsoft Excel and Google Sheets updated each month—filter by body region, push/pull, etc."*
-
-Your spreadsheets grow with your expertise. Add new exercises, refine formulas, build better tracking systems as you learn what works.
-
----
-
-## Client UX: Where It Breaks Down
-
-### Mobile Experience is Brutal
-The harsh reality from trainers:
-> *"A spreadsheet is a great way to enter info but a terrible way to navigate it on a tiny screen."*
-
-**The problems:**
-- Clients click cell-by-cell, scroll endlessly
-- Tiny text, accidental edits, formula breaks
-- Experience feels amateur compared to polished apps
-
-### Professional Perception Issues
-Reddit trainers were blunt:
-> *"App is significantly more professional. Unless you've got incredibly well designed sheets, you'll come off like some dollar store trainer."*
-
-**Client expectations in 2025:**
-- Sleek interfaces with progress photos
-- Push notifications for workouts
-- Social features and community aspects
-- Video exercise demonstrations built-in
-
----
-
-## Pro Tips If You Stick with Sheets
-
-### Optimize for Mobile Experience
-**Design for thumbs, not mice:**
-- **Large buttons/cells**: Minimum 44px touch targets
-- **Clear visual hierarchy**: Bold headers, color coding
-- **Separate sheets by week**: Reduce scrolling
-- **Dropdown menus**: For exercise selection, RPE ratings
-
-### Build Rich Exercise Databases
-**Make it interactive:**
-- **Exercise video links**: YouTube embeds or links to form demos
-- **Coaching cues**: Text boxes with technique reminders
-- **Progress photos**: Google Drive integration for visual tracking
-- **Filterable databases**: By body region, equipment, difficulty level
-
-### Create Professional Templates
-**Workout templates with:**
-- Embedded coaching cues and video links
-- Clear progression tracking
-- Visual progress indicators
-- Professional formatting and branding
-
-### Hybrid Approach Strategy
-**Use Sheets for what it does best:**
-- Personal training plans and detailed programming
-- Complex data analysis and trend tracking
-- Custom formulas and calculations
-
-**Switch to apps for:**
-- Client-facing interfaces
-- Group coaching and community features
-- Mobile-first experiences
-- Professional presentation
-
----
-
-## Conclusion
-
-For solo or niche athletes, Google Sheets is flexible, free, and powerful. But if you're scaling or want polish, pair it with an app—or hand your spreadsheet workflow off to someone who can style it like a pro.
-
-The best system is the one you'll actually use consistently. Whether that's Sheets, apps, or a combination depends on your skills, client base, and business goals.
-
----
-
-## Sources and Further Reading
-
-- [Reddit: Google Sheets vs Coaching Apps for Online Coaching](https://www.reddit.com/r/personaltraining/comments/1bjgeys/google_sheets_vs_coaching_apps_for_online_coaching/)
-- [Reddit: Functional Fitness Exercise Database in Excel/Sheets](https://www.reddit.com/r/personaltraining/comments/1cjxitz/functional_fitness_exercise_database_in_microsoft/)
-- [Reddit: Google Sheets vs App Discussion](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)
-- [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
-- [Reddit: Apple Watch Calorie Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
-- [Reddit: Online Coaching with Just Google Sheets](https://www.reddit.com/r/personaltraining/comments/13c9cga/has_anyone_done_online_coaching_with_just_google/)`,
-}
 
 function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
   const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
@@ -529,37 +225,56 @@ async function fetchBlobContent(url: string): Promise<string> {
 export async function getPostSlugs(): Promise<string[]> {
   console.log("[getPostSlugs] Fetching all blog post slugs...")
 
+  // Get slugs from local content files
+  const localPosts = await importBlogPosts()
+  const localSlugs = localPosts.map((post) => post.frontmatter.slug)
+
+  // Add additional post slugs
+  const additionalSlugs = ADDITIONAL_POSTS.map((post) => post.slug)
+
+  const allSlugs = [...localSlugs, ...additionalSlugs]
+
   if (!BLOB_TOKEN) {
-    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS.map((post) => post.slug)
+    console.log("[getPostSlugs] No BLOB_TOKEN, using local posts")
+    return allSlugs
   }
 
   try {
     const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    const slugs = blobs
+    const blobSlugs = blobs
       .filter((blob) => blob.pathname.endsWith(".md"))
       .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
-    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
-    return slugs
+
+    // Combine and deduplicate
+    const combinedSlugs = [...new Set([...allSlugs, ...blobSlugs])]
+    console.log(`[getPostSlugs] Found ${combinedSlugs.length} total slugs`)
+    return combinedSlugs
   } catch (error) {
-    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS.map((post) => post.slug)
+    console.error("[getPostSlugs] Error fetching from blob storage, using local posts:", error)
+    return allSlugs
   }
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log("[getAllPosts] Fetching all blog posts...")
 
+  // Get posts from local content files
+  const localPosts = await importBlogPosts()
+  const localPostsMetadata = localPosts.map((post) => post.frontmatter)
+
+  // Combine with additional posts
+  const allPosts = [...localPostsMetadata, ...ADDITIONAL_POSTS]
+
   if (!BLOB_TOKEN) {
-    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS
+    console.log("[getAllPosts] No BLOB_TOKEN, using local posts")
+    return allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
   try {
     const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
     console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
-    const posts: BlogPostFrontmatter[] = []
+    const blobPosts: BlogPostFrontmatter[] = []
 
     for (const blob of blobs) {
       if (blob.pathname.endsWith(".md")) {
@@ -567,28 +282,29 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 
         try {
           const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
-
           const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
 
-          console.log(`[getAllPosts] Extracted slug: ${slug}`)
+          // Skip if we already have this post locally
+          if (allPosts.some((post) => post.slug === slug)) {
+            continue
+          }
 
           const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-
           const extracted = extractTitleAndExcerpt(content)
 
           const title = data.title || extracted.title || `Post: ${slug}`
           const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
-
-          posts.push({
+          blobPosts.push({
             title: title,
             date: data.date || new Date().toISOString().split("T")[0],
             category: data.category || "Uncategorized",
             excerpt: excerpt,
             image: data.image || undefined,
             slug: slug,
+            author: data.author || "Juice Team",
+            keywords: data.keywords || [],
+            readingTime: data.readingTime || "5 min read",
           })
         } catch (error) {
           console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
@@ -597,42 +313,74 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
       }
     }
 
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    const combinedPosts = [...allPosts, ...blobPosts]
+    combinedPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
-    return posts.length > 0 ? posts : SAMPLE_POSTS
+    console.log(`[getAllPosts] Successfully processed ${combinedPosts.length} total posts`)
+    return combinedPosts
   } catch (error) {
-    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS
+    console.error("[getAllPosts] Error fetching from blob storage, using local posts:", error)
+    return allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
 
-  // Check if we have sample content for this slug
-  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
-    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
+  // Check local content files first
+  try {
+    const localPosts = await importBlogPosts()
+    const localPost = localPosts.find((post) => post.frontmatter.slug === slug)
 
-    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
+    if (localPost) {
+      console.log(`[getPostBySlug] Found local post for slug: ${slug}`)
 
-    if (samplePost && sampleContent) {
-      const serializedContent = await serialize(sampleContent, {
+      const serializedContent = await serialize(localPost.content, {
         parseFrontmatter: false,
       })
 
       return {
-        frontmatter: samplePost,
+        frontmatter: localPost.frontmatter,
         serializedContent,
-        content: sampleContent,
+        content: localPost.content,
         slug: slug,
       }
     }
+  } catch (error) {
+    console.error(`[getPostBySlug] Error loading local post ${slug}:`, error)
   }
 
+  // Check if it's in additional posts (metadata only)
+  const additionalPost = ADDITIONAL_POSTS.find((post) => post.slug === slug)
+  if (additionalPost) {
+    console.log(`[getPostBySlug] Found additional post metadata for slug: ${slug}`)
+
+    // Create placeholder content for posts without full content
+    const placeholderContent = `# ${additionalPost.title}
+
+${additionalPost.excerpt}
+
+---
+
+*This article is coming soon. Check back later for the full content.*
+
+In the meantime, explore our other articles or [contact us](mailto:hello@juice.fitness) if you have specific questions about this topic.`
+
+    const serializedContent = await serialize(placeholderContent, {
+      parseFrontmatter: false,
+    })
+
+    return {
+      frontmatter: additionalPost,
+      serializedContent,
+      content: placeholderContent,
+      slug: slug,
+    }
+  }
+
+  // Try blob storage if available
   if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
+    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no local content found")
     return null
   }
 
@@ -645,37 +393,19 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 
     if (!targetBlob) {
       console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
-      console.log(
-        `[getPostBySlug] Available blobs:`,
-        blobs.map((b) => b.pathname),
-      )
       return null
     }
 
-    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
-
     const fileContents = await fetchBlobContent(targetBlob.url)
-    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
-
     const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] Frontmatter:`, data)
-    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
-
     const extracted = extractTitleAndExcerpt(content)
-    console.log(
-      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
-    )
 
     const title = data.title || extracted.title || `Post: ${slug}`
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
-
     const serializedContent = await serialize(content, {
       parseFrontmatter: false,
     })
-    console.log("[getPostBySlug] MDX serialized successfully")
 
     return {
       frontmatter: {
@@ -685,6 +415,9 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         excerpt: excerpt,
         image: data.image || undefined,
         slug: slug,
+        author: data.author || "Juice Team",
+        keywords: data.keywords || [],
+        readingTime: data.readingTime || "5 min read",
       },
       serializedContent,
       content,
