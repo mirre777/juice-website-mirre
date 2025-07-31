@@ -1,116 +1,259 @@
-export const blogPosts = [
+import { list } from "@vercel/blob"
+import matter from "gray-matter"
+import { serialize } from "next-mdx-remote/serialize"
+
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
+
+export interface BlogPostFrontmatter {
+  title: string
+  date: string
+  excerpt: string
+  category: string
+  image?: string
+  slug: string
+}
+
+export interface BlogPost {
+  frontmatter: BlogPostFrontmatter
+  serializedContent: any
+  content: string
+  slug: string
+}
+
+const BLOG_CONTENT_PATH = "blog/"
+
+// Sample blog posts for when blob storage is not available (like in v0)
+const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
-    id: "wearables-strength-training-accuracy-2024",
-    title: "Wearables and Strength Training: Accuracy vs. Hype in 2024",
-    slug: "wearables-strength-training-accuracy-2024",
+    title: "⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?",
+    date: "2025-02-04",
     excerpt:
-      "A realistic look at what fitness wearables can and cannot accurately track for strength training, based on real user experiences and research.",
-    content: `# Wearables and Strength Training: Accuracy vs. Hype in 2024
+      "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
+    category: "Technology",
+    image: "/wearables-strength-training-squat-gym.png",
+    slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
+  },
+  {
+    title: "📊 Tracking Biometrics: What Actually Moves the Needle",
+    date: "2025-02-03",
+    excerpt:
+      "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.",
+    category: "Technology",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tracking%20biometrics%20%281%29-HWabjekyZFyyGIXge16oFoyfWB84nS.png",
+    slug: "tracking-biometrics-what-actually-moves-the-needle",
+  },
+  {
+    title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
+    date: "2025-02-02",
+    excerpt:
+      "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
+    category: "Technology",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/max_LS%20%281%29-xJVZRoneLwWk1GoQiKXIjSrxdTuBWz.png",
+    slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
+  },
+  {
+    title: "📱 How to Get More Clients with a Booking Page",
+    date: "2025-02-01",
+    excerpt:
+      "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
+    category: "Marketing",
+    image: "/personal-trainer-booking-page-mobile.png",
+    slug: "how-to-get-more-clients-with-booking-page",
+  },
+  {
+    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
+    date: "2025-01-31",
+    excerpt:
+      "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
+    category: "Technology",
+    image: "/personal-trainer-website-builders-laptops.png",
+    slug: "top-5-free-personal-trainer-website-builders-2025",
+  },
+  {
+    title: "🔍 SEO Tips for Fitness Coaches in Europe",
+    date: "2025-01-30",
+    excerpt:
+      "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
+    category: "Visibility",
+    image: "/seo-tips-fitness-coaches-europe.png",
+    slug: "seo-tips-for-fitness-coaches-in-europe",
+  },
+  {
+    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
+    date: "2025-01-15",
+    excerpt:
+      "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
+    category: "Technology",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dumbbells2%20%281%29-hPgb1H1OGLxgKaz93OKKd1FIFW8a45.png",
+    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+  },
+  {
+    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
+    date: "2025-01-10",
+    excerpt:
+      "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
+    category: "Technology",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee%20%281%29-Ksk4c7bQl0eNUnhGiDUYQGzVhFZJJA.png",
+    slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+  },
+  {
+    title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
+    date: "2025-01-05",
+    excerpt:
+      "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
+    category: "Nutrition",
+    image: "/nutrition-coaching-trends-berlin-woman-phone.png",
+    slug: "nutrition-coaching-trends-berlin-2025",
+  },
+  {
+    title: "🏋️ Strength Training Revolution: What's New in Berlin Gyms",
+    date: "2024-12-28",
+    excerpt:
+      "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
+    category: "Fitness",
+    slug: "strength-training-revolution-berlin-gyms",
+  },
+  {
+    title: "🧠 The Psychology of Fitness: Mental Coaching Techniques",
+    date: "2024-12-20",
+    excerpt:
+      "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
+    category: "Coaching",
+    slug: "psychology-of-fitness-mental-coaching-techniques",
+  },
+]
 
-The fitness wearable market is booming, with devices promising to track everything from your heart rate to your sleep quality. But how accurate are these devices really when it comes to strength training? Let's dive into what actually works and what's mostly marketing hype.
+const SAMPLE_BLOG_CONTENT = {
+  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `# ⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?
 
-## The Reality of Calorie Tracking
+**TL;DR:** Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.
 
-One of the most common questions about fitness wearables is their calorie tracking accuracy. The truth is more nuanced than most marketing materials suggest.
+---
 
-### Garmin's Calorie Accuracy: Mixed Results
+## The Wearable Revolution in Strength Training
 
-Garmin devices are often praised for their fitness tracking capabilities, but user experiences vary significantly. Many users report that Garmin tends to overestimate calories burned during strength training sessions. This is partly because most wearables are optimized for cardio activities rather than resistance training.
+Walk into any gym today and you'll see them: Apple Watches tracking workouts, Garmin devices monitoring heart rates, WHOOP bands measuring strain. The fitness wearable market is booming, with devices promising to track everything from your morning run to your evening deadlift session.
 
-The challenge with strength training is that it involves periods of high intensity followed by rest, making it difficult for wearables to accurately calculate energy expenditure using standard heart rate algorithms.
+But here's the million-dollar question: **Are these devices actually accurate enough to track complex lifting movements?**
 
-## Heart Rate Monitoring: The Foundation
+The short answer? It's complicated.
 
-Heart rate monitoring is where most wearables perform best, and it's the foundation for most other metrics.
+---
 
-### What Works Well
-- Resting heart rate trends
-- Cardio exercise heart rate zones
-- Recovery heart rate measurements
+## What Wearables Actually Track Well
 
-### What's Less Reliable
-- Heart rate during strength training (due to grip pressure and movement)
-- Instant heart rate readings during high-intensity intervals
-- Heart rate variability in some consumer devices
+### ✅ Cardiovascular Metrics
+Wearables excel at monitoring:
 
-## Sleep Tracking: Surprisingly Useful
+- **Heart rate zones** during cardio or metabolic circuits
+- **Heart rate variability** for recovery assessment
+- **Workout duration** and basic timing
+- **Calorie burn estimates** for steady-state cardio
 
-One area where wearables have shown genuine value is sleep tracking. While they may not be as accurate as medical-grade sleep studies, they provide useful trends and insights.
+### ✅ Basic Movement Patterns
+Most devices can reliably detect:
 
-### The Oura Ring Advantage
+- **Step counts** and distance for walking/running
+- **Stationary exercise metrics** like cycling
+- **Workout start/stop** with auto-detection (usually after 10+ minutes)
+- **Sleep patterns** and recovery metrics
 
-The Oura Ring has gained popularity among fitness enthusiasts for its focus on recovery metrics. Unlike wrist-worn devices, the ring format can provide more consistent readings since it's less affected by daily activities.
+### ✅ General Activity Levels
+They're solid for:
 
-Key benefits include:
-- Consistent overnight tracking
-- Detailed sleep stage analysis
-- Recovery recommendations based on multiple metrics
+- **Daily activity tracking** and movement goals
+- **Sedentary time** monitoring
+- **Overall energy expenditure** trends
+- **Long-term activity patterns**
 
-## The Science Behind the Claims
+---
 
-Recent research has shed light on the accuracy of consumer fitness wearables. Studies show that while these devices are getting better, they still have significant limitations, especially for strength training applications.
+## Where They Struggle with Strength Training
 
-### Research Findings
+### ❌ Calorie Burn Accuracy
 
-Academic research indicates that wearables perform best for:
-- Step counting (usually within 5-10% accuracy)
-- Heart rate during steady-state cardio
-- Sleep duration (though sleep stages are less accurate)
+**The Reality Check:**
+Your Garmin cannot accurately determine how many calories a set of 12 bicep curls burned.
 
-They struggle with:
-- Calorie burn during resistance training
-- Accurate rep counting for strength exercises
-- Precise heart rate during dynamic movements
+**Why it fails:**
+- **Complex energy systems**: Strength training uses different metabolic pathways than cardio
+- **Individual variation**: Muscle mass, efficiency, and technique affect calorie burn
+- **Recovery periods**: Rest between sets creates irregular energy expenditure patterns
+- **Load variations**: 5 reps at 85% 1RM burns differently than 15 reps at 60% 1RM
 
-## Practical Recommendations for Strength Trainers
+**Real user experience:**
+> *"My Apple Watch says I burned 400 calories during my powerlifting session. I did 5 sets of squats, 5 sets of bench, and 3 sets of deadlifts in 90 minutes. There's no way that's accurate."*
+> 
+> **— Reddit user on r/Garmin**
 
-Based on real-world usage and research, here's how to get the most value from fitness wearables:
+### ❌ Movement Quality Assessment
 
-### Use Them for Trends, Not Absolutes
-- Focus on week-to-week trends rather than daily numbers
-- Use calorie estimates as rough guidelines, not precise measurements
-- Pay attention to recovery metrics and sleep quality trends
+**What's missing:**
+- **Range of motion** tracking
+- **Movement velocity** during lifts
+- **Form breakdown** detection
+- **Eccentric vs. concentric** phase differentiation
 
-### Supplement with Traditional Methods
-- Keep a training log for actual weights and reps
-- Use perceived exertion scales alongside device metrics
-- Consider body composition changes over device-reported calorie burns
+**The problem:**
+A wearable can't tell the difference between a perfect squat and a quarter-rep. It can't detect if you're compensating with your back during a deadlift or if your bench press bar path is optimal.
 
-### Choose the Right Device for Your Goals
-- For general fitness: Most mainstream wearables work well
-- For serious strength training: Consider devices with better strength-specific features
-- For recovery focus: Devices like Oura Ring or Whoop may be more valuable
+### ❌ Load and Intensity Tracking
+
+**Manual input required:**
+- **Weight lifted** must be logged separately
+- **Sets and reps** need manual entry
+- **RPE (Rate of Perceived Exertion)** requires subjective input
+- **Rest periods** between sets aren't automatically tracked
+
+**The tedious reality:**
+Logging movements is tedious; often best to auto-track basic metrics and log the important stuff manually.
+
+---
 
 ## The Bottom Line
 
-Fitness wearables are useful tools, but they're not magic. They excel at providing motivation, tracking trends, and monitoring recovery. However, they shouldn't be your only source of fitness data, especially for strength training.
+**Wearables are powerful tools—but they're not your muscle's measure.**
 
-The key is understanding their limitations and using them as part of a broader approach to fitness tracking. Combine wearable data with traditional methods like training logs, progress photos, and how you feel day-to-day.
+**What they do well:**
+- ✅ General activity and health monitoring
+- ✅ Heart rate and basic cardiovascular metrics
+- ✅ Sleep and recovery tracking
+- ✅ Motivation and consistency support
 
-As the technology continues to improve, we can expect better accuracy, especially for strength training applications. But for now, a healthy dose of skepticism combined with smart usage will serve you best.
+**What they don't do well:**
+- ❌ Accurate calorie burn for strength training
+- ❌ Movement quality assessment
+- ❌ Load and intensity tracking
+- ❌ Complex exercise recognition
+
+**The smart approach:**
+Use wearables to support your coaching and training, not replace good fundamentals. The best tracker for strength training is still a combination of:
+
+1. **A notebook or app** for weights, sets, and reps
+2. **A spreadsheet** for trend analysis
+3. **An experienced eye** for form and technique assessment
+4. **Wearable data** for recovery and general health metrics
+
+**For trainers:** Educate your clients about what the data means and doesn't mean. Use wearables as engagement tools and trend indicators, not precision instruments.
+
+**For athletes:** Focus on performance metrics that matter—progressive overload, form quality, and how you feel. Let the wearable handle the background health monitoring.
+
+The future will bring better integration and accuracy, but for now, the most important sensor is still the one between your ears.
 
 ---
 
 ## Sources and Further Reading
 
-- [Reddit Discussion: Garmin Calorie Accuracy](https://www.reddit.com/r/Garmin/comments/15x8j2k/how_accurate_are_garmin_calories/)
-- [Self.com: Oura Ring Review](https://www.self.com/story/oura-ring-review)
-- [arXiv Research: Wearable Device Accuracy](https://arxiv.org/abs/2301.12234)
-- [Reddit: Real User Experiences with Fitness Trackers](https://www.reddit.com/r/fitness/comments/wearables_accuracy_discussion)`,
-    author: "Juice Team",
-    publishedAt: "2024-01-15",
-    readingTime: "6 min read",
-    tags: ["Wearables", "Strength Training", "Technology", "Fitness Tracking"],
-    image: "/wearables-strength-training-squat-gym.png",
-    featured: true,
-  },
-  {
-    id: "tracking-biometrics-what-actually-moves-the-needle",
-    title: "📊 Tracking Biometrics: What Actually Moves the Needle",
-    slug: "tracking-biometrics-what-actually-moves-the-needle",
-    excerpt:
-      "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.",
-    content: `# 📊 Tracking Biometrics: What Actually Moves the Needle
+- [Reddit: Be Wary of Calorie Counts for Weightlifting](https://www.reddit.com/r/Garmin/comments/17c9lu8/be_weary_of_calorie_counts_for_weightlifting/)
+- [Reddit: Weightlifting on Garmin is by Far its Weakest Feature](https://www.reddit.com/r/Garmin/comments/1cqa26x/weightlifting_on_garmin_is_by_far_its_weakest_and/)
+- [Self Magazine: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
+- [arXiv: Wearable Technology in Sports](https://arxiv.org/abs/2203.16442)`,
+
+  "tracking-biometrics-what-actually-moves-the-needle": `# 📊 Tracking Biometrics: What Actually Moves the Needle
 
 **TL;DR:** Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
 
@@ -211,23 +354,10 @@ The most successful coaches aren't drowning in data; they're using the right met
 
 - [Reddit: Apple Watch Active Calories Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
 - [Self.com: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
-- [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/com/1m0b65g/why_are_personal_trainers_still_stuck_using/)
-- [Reddit: Google Sheets vs Apps for Personal Training](https://www.reddit.com/r/personaltraining/com/10j13gy/google_sheets_vs_app/)`,
-    author: "Juice Team",
-    publishedAt: "2025-02-03",
-    readingTime: "7 min read",
-    tags: ["Biometrics", "Technology", "Fitness Tracking", "Coaching"],
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tracking%20biometrics%20%281%29-HWabjekyZFyyGIXge16oFoyfWB84nS.png",
-    featured: true,
-  },
-  {
-    id: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
-    title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
-    slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
-    excerpt:
-      "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
-    content: `# 📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
+- [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
+- [Reddit: Google Sheets vs Apps for Personal Training](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)`,
+
+  "google-sheets-for-coaching-trainers-secret-weapon-or-trap": `# 📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
 
 **TL;DR:** Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.
 
@@ -316,57 +446,6 @@ Reddit trainers were blunt:
 
 ---
 
-## Real-World Implementation Examples
-
-### Solo Trainer Success Story
-One trainer uses Sheets for:
-- Detailed program design with custom periodization formulas
-- Client progress tracking with automated charts
-- Exercise database with video links and coaching notes
-- Financial tracking and business metrics
-
-**Result:** Professional-level programming at zero software cost.
-
-### Hybrid Coaching Model
-Another trainer combines:
-- **Sheets backend**: Complex programming and data analysis
-- **App frontend**: Client-friendly interface and communication
-- **Best of both worlds**: Customization + user experience
-
----
-
-## When Sheets Make Sense (And When They Don't)
-
-### ✅ Great for:
-- **Solo trainers** with tech skills
-- **Niche programming** that apps don't support
-- **Complex data analysis** and custom metrics
-- **Budget-conscious** coaches starting out
-- **Powerlifters, Olympic lifters** with specific needs
-
-### ❌ Not ideal for:
-- **Large client bases** (50+ clients)
-- **Group coaching** and community features
-- **Mobile-first** client experiences
-- **Trainers without** spreadsheet skills
-- **Professional presentation** requirements
-
----
-
-## The Bottom Line
-
-Google Sheets isn't just a budget option—it's a powerful tool for trainers who want complete control over their systems. But it requires technical skills and design thinking to make it client-friendly.
-
-**The smart approach:**
-- Start with Sheets to understand your exact needs
-- Build custom systems that match your methodology
-- Consider hybrid approaches as you scale
-- Invest in professional design if you stick with Sheets
-
-For solo trainers or those with niche programming needs, Sheets can be incredibly powerful. But if you're scaling or want polish, you'll need to either invest in professional design or pair it with client-friendly apps.
-
----
-
 ## Conclusion
 
 For solo or niche athletes, Google Sheets is flexible, free, and powerful. But if you're scaling or want polish, pair it with an app—or hand your spreadsheet workflow off to someone who can style it like a pro.
@@ -383,193 +462,236 @@ The best system is the one you'll actually use consistently. Whether that's Shee
 - [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
 - [Reddit: Apple Watch Calorie Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
 - [Reddit: Online Coaching with Just Google Sheets](https://www.reddit.com/r/personaltraining/comments/13c9cga/has_anyone_done_online_coaching_with_just_google/)`,
-    author: "Juice Team",
-    publishedAt: "2025-02-02",
-    readingTime: "7 min read",
-    tags: ["Google Sheets", "Technology", "Fitness Tracking", "Coaching"],
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/max_LS%20%281%29-xJVZRoneLwWk1GoQiKXIjSrxdTuBWz.png",
-    featured: true,
-  },
-  {
-    id: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
-    title: "The Best Tools for Personal Trainers in Berlin (2025 Edition) 🚀",
-    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
-    excerpt:
-      "Berlin's fitness scene is booming. To stand out, you need more than just passion—you need the right tech. From client management to workout design, here's your 2025 toolkit.",
-    content: `# The Best Tools for Personal Trainers in Berlin (2025 Edition) 🚀
+}
 
-**TL;DR:** Berlin's fitness scene is booming. To stand out, you need more than just passion—you need the right tech. From client management to workout design, here's your 2025 toolkit.
+function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
+  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
+  const titleMatch = content.match(emojiTitleRegex)
 
----
+  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
+  const excerptMatch = content.match(tldrRegex)
 
-## Client Management & Communication
+  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
+  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
 
-### POCKETPT
-**Why it's essential:** Streamlines scheduling, payments, and client communication in one place.
+  return {
+    title: titleMatch ? titleMatch[1].trim() : null,
+    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
+  }
+}
 
-**Key features:**
-- Automated scheduling and reminders
-- Secure payment processing
-- Integrated messaging system
-- Progress tracking and reporting
+// Helper function to fetch blob content with proper authentication
+async function fetchBlobContent(url: string): Promise<string> {
+  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
 
-### TRAINERIZE
-**Why it's essential:** Offers advanced workout tracking and client engagement features.
+  // Try multiple methods to fetch the content
+  const methods = [
+    // Method 1: Direct fetch (for public blobs)
+    () => fetch(url),
 
-**Key features:**
-- Custom workout and nutrition plans
-- In-app messaging and video coaching
-- Progress tracking and analytics
-- Client community and challenges
+    // Method 2: Fetch with authorization header
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `Bearer ${BLOB_TOKEN}`,
+        },
+      }),
 
-### ACUITY SCHEDULING
-**Why it's essential:** Simplifies appointment booking and reduces no-shows.
+    // Method 3: Fetch with different auth format
+    () =>
+      fetch(url, {
+        headers: {
+          Authorization: `token ${BLOB_TOKEN}`,
+        },
+      }),
+  ]
 
-**Key features:**
-- Online appointment scheduling
-- Automated reminders and confirmations
-- Customizable booking pages
-- Integration with payment processors
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
+      const response = await methods[i]()
 
-## Workout Design & Delivery
+      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
 
-### TRUECOACH
-**Why it's essential:** Provides a comprehensive platform for creating and delivering personalized workout plans.
+      if (response.ok) {
+        const content = await response.text()
+        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
+        return content
+      }
+    } catch (error) {
+      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
+    }
+  }
 
-**Key features:**
-- Workout builder with exercise library
-- Progress tracking and analytics
-- Client communication tools
-- Integration with wearable devices
+  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
+}
 
-### GOOGLE SHEETS
-**Why it's essential:** Offers flexibility and customization for creating workout templates and tracking client progress.
+export async function getPostSlugs(): Promise<string[]> {
+  console.log("[getPostSlugs] Fetching all blog post slugs...")
 
-**Key features:**
-- Customizable workout templates
-- Data tracking and analysis
-- Collaboration and sharing
-- Integration with other Google services
+  if (!BLOB_TOKEN) {
+    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS.map((post) => post.slug)
+  }
 
-### EVERNOTE
-**Why it's essential:** Helps trainers organize and share workout plans, notes, and resources with clients.
+  try {
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    const slugs = blobs
+      .filter((blob) => blob.pathname.endsWith(".md"))
+      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
+    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
+    return slugs
+  } catch (error) {
+    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS.map((post) => post.slug)
+  }
+}
 
-**Key features:**
-- Note-taking and organization
-- File sharing and collaboration
-- Web clipping and research
-- Cross-platform access
+export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
+  console.log("[getAllPosts] Fetching all blog posts...")
 
-## Business & Marketing
+  if (!BLOB_TOKEN) {
+    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
+    return SAMPLE_POSTS
+  }
 
-### INSTAGRAM
-**Why it's essential:** Showcases your expertise, builds your brand, and attracts new clients.
+  try {
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
-**Key features:**
-- Visual content sharing
-- Storytelling and engagement
-- Hashtag marketing
-- Direct messaging and networking
+    const posts: BlogPostFrontmatter[] = []
 
-### CANVA
-**Why it's essential:** Creates professional-looking marketing materials and social media graphics.
+    for (const blob of blobs) {
+      if (blob.pathname.endsWith(".md")) {
+        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
 
-**Key features:**
-- Drag-and-drop design tools
-- Customizable templates
-- Stock photos and graphics
-- Brand kit and collaboration
+        try {
+          const fileContents = await fetchBlobContent(blob.url)
+          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
 
-### GOOGLE ADS
-**Why it's essential:** Targets potential clients in Berlin with personalized ads and promotions.
+          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
 
-**Key features:**
-- Keyword targeting
-- Location targeting
-- Ad scheduling and optimization
-- Conversion tracking and reporting
+          console.log(`[getAllPosts] Extracted slug: ${slug}`)
 
-## Wearable Tech & Fitness Trackers
+          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
 
-### APPLE WATCH
-**Why it's essential:** Monitors client activity levels, heart rate, and sleep patterns.
+          const extracted = extractTitleAndExcerpt(content)
 
-**Key features:**
-- Activity tracking and monitoring
-- Heart rate monitoring
-- Sleep tracking
-- Workout tracking
+          const title = data.title || extracted.title || `Post: ${slug}`
+          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-### OURA RING
-**Why it's essential:** Provides in-depth sleep analysis and recovery insights.
+          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
 
-**Key features:**
-- Sleep tracking and analysis
-- Heart rate variability (HRV) monitoring
-- Body temperature tracking
-- Activity tracking
+          posts.push({
+            title: title,
+            date: data.date || new Date().toISOString().split("T")[0],
+            category: data.category || "Uncategorized",
+            excerpt: excerpt,
+            image: data.image || undefined,
+            slug: slug,
+          })
+        } catch (error) {
+          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
+          continue
+        }
+      }
+    }
 
-### GARMIN
-**Why it's essential:** Offers a range of fitness trackers and smartwatches for various activities.
+    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-**Key features:**
-- Activity tracking and monitoring
-- GPS tracking
-- Heart rate monitoring
-- Workout tracking
+    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
+    return posts.length > 0 ? posts : SAMPLE_POSTS
+  } catch (error) {
+    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
+    return SAMPLE_POSTS
+  }
+}
 
-## Nutrition & Meal Planning
+export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
 
-### NUTRIBASE
-**Why it's essential:** Creates personalized meal plans and tracks client nutrition.
+  // Check if we have sample content for this slug
+  if (!BLOB_TOKEN || SAMPLE_BLOG_CONTENT[slug]) {
+    console.log(`[getPostBySlug] Using sample content for slug: ${slug}`)
 
-**Key features:**
-- Meal planning and recipe creation
-- Food database and tracking
-- Calorie and macronutrient tracking
-- Client communication tools
+    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
+    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
 
-### MYFITNESSPAL
-**Why it's essential:** Tracks client food intake and provides insights into their dietary habits.
+    if (samplePost && sampleContent) {
+      const serializedContent = await serialize(sampleContent, {
+        parseFrontmatter: false,
+      })
 
-**Key features:**
-- Food database and tracking
-- Calorie and macronutrient tracking
-- Recipe analysis
-- Integration with fitness trackers
+      return {
+        frontmatter: samplePost,
+        serializedContent,
+        content: sampleContent,
+        slug: slug,
+      }
+    }
+  }
 
-### PRECISION NUTRITION CALCULATOR
-**Why it's essential:** Determines client calorie and macronutrient needs based on their goals and activity levels.
+  if (!BLOB_TOKEN) {
+    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
+    return null
+  }
 
-**Key features:**
-- Calorie and macronutrient calculations
-- Personalized recommendations
-- Goal setting and tracking
-- Educational resources
+  try {
+    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
+    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
 
-## The Bottom Line
+    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
+    const targetBlob = blobs.find((b) => b.pathname === targetPath)
 
-Berlin's personal training scene is competitive, but with the right tools, you can stand out and thrive. Invest in the tech that streamlines your business, enhances your client experience, and helps you deliver exceptional results.
+    if (!targetBlob) {
+      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
+      console.log(
+        `[getPostBySlug] Available blobs:`,
+        blobs.map((b) => b.pathname),
+      )
+      return null
+    }
 
----
+    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
 
-## Sources and Further Reading
+    const fileContents = await fetchBlobContent(targetBlob.url)
+    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
+    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
 
-- [POCKETPT Official Website](https://www.pocketpt.com/)
-- [TRAINERIZE Official Website](https://www.trainerize.com/)
-- [ACUITY SCHEDULING Official Website](https://www.acuityscheduling.com/)
-- [TRUECOACH Official Website](https://truecoach.com/)
-- [Reddit: Best Software for Personal Trainers](https://www.reddit.com/r/personaltraining/comments/18p9h91/best_software_for_personal_trainers/)
-- [Reddit: Trainerize vs Other Apps](https://www.reddit.com/r/personaltraining/comments/1499c65/trainerize_vs_other_apps/)
-- [Reddit: Acuity Scheduling for Personal Trainers](https://www.reddit.com/r/personaltraining/comments/16x3c3s/acuity_scheduling_for_personal_trainers/)`,
-    author: "Juice Team",
-    publishedAt: "2025-02-14",
-    readingTime: "8 min read",
-    tags: ["Personal Training", "Berlin", "Technology", "Fitness", "Tools"],
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee%20%281%29-Ksk4c7bQl0eNUnhGiDUYQGzVhFZJJA.png",
-    featured: true,
-  },
-  // /** rest of code here **/
-]
+    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+    console.log(`[getPostBySlug] Frontmatter:`, data)
+    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
+
+    const extracted = extractTitleAndExcerpt(content)
+    console.log(
+      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
+    )
+
+    const title = data.title || extracted.title || `Post: ${slug}`
+    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
+    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
+
+    const serializedContent = await serialize(content, {
+      parseFrontmatter: false,
+    })
+    console.log("[getPostBySlug] MDX serialized successfully")
+
+    return {
+      frontmatter: {
+        title: title,
+        date: data.date || new Date().toISOString().split("T")[0],
+        category: data.category || "Uncategorized",
+        excerpt: excerpt,
+        image: data.image || undefined,
+        slug: slug,
+      },
+      serializedContent,
+      content,
+      slug,
+    }
+  } catch (error) {
+    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
+    return null
+  }
+}
