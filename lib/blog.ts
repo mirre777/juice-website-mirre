@@ -1,7 +1,3 @@
-import { list } from "@vercel/blob"
-import matter from "gray-matter"
-import { serialize } from "next-mdx-remote/serialize"
-
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 
 export interface BlogPostFrontmatter {
@@ -115,7 +111,6 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
     category: "Fitness",
-    image: "/strength-training-barbell-gym.png",
     slug: "strength-training-revolution-berlin-gyms",
   },
   {
@@ -124,7 +119,6 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
     category: "Coaching",
-    image: "/fitness-coaching-session.png",
     slug: "psychology-of-fitness-mental-coaching-techniques",
   },
 ]
@@ -464,332 +458,61 @@ The best system is the one you'll actually use consistently. Whether that's Shee
 - [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
 - [Reddit: Apple Watch Calorie Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
 - [Reddit: Online Coaching with Just Google Sheets](https://www.reddit.com/r/personaltraining/comments/13c9cga/has_anyone_done_online_coaching_with_just_google/)`,
-}
 
-// Function to generate placeholder content for posts without full content
-function generatePlaceholderContent(post: BlogPostFrontmatter): string {
-  return `# ${post.title}
+  "how-to-get-more-clients-with-booking-page": `# 📱 How to Get More Clients with a Booking Page
 
-${post.excerpt}
+**TL;DR:** Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.
 
 ---
 
-## Coming Soon!
+## The Problem with Manual Booking
 
-This article is currently being written and will be available soon. We're working hard to bring you high-quality, actionable content that will help you grow your fitness business.
+### The DM Dance
+We've all been there:
+- Client: "Hey, when are you free this week?"
+- You: "I have Tuesday 3pm or Thursday 6pm"
+- Client: "Actually, can we do Wednesday?"
+- You: "Let me check... Wednesday is booked, how about Friday?"
+- Client: *seen 2 hours ago*
 
-### What to Expect
+**Result:** Lost client, wasted time, and you're still refreshing Instagram hoping they'll respond.
 
-Based on the topic, this article will cover:
-
-${
-  post.category === "Technology"
-    ? `
-- **Latest tools and software** for fitness professionals
-- **Practical implementation tips** you can use immediately  
-- **Real-world examples** from successful trainers
-- **Cost-benefit analysis** to help you make smart decisions
-`
-    : post.category === "Marketing"
-      ? `
-- **Proven marketing strategies** that actually work
-- **Step-by-step implementation guides**
-- **Real case studies** from successful fitness businesses
-- **Budget-friendly tactics** for growing your client base
-`
-      : post.category === "Nutrition"
-        ? `
-- **Evidence-based nutrition strategies**
-- **Practical meal planning tips**
-- **Client communication techniques**
-- **Tools and resources** for nutrition coaching
-`
-        : post.category === "Coaching"
-          ? `
-- **Advanced coaching techniques**
-- **Client psychology insights**
-- **Communication strategies** that build trust
-- **Methods to improve client results**
-`
-          : post.category === "Fitness"
-            ? `
-- **Latest training methodologies**
-- **Equipment recommendations**
-- **Program design principles**
-- **Injury prevention strategies**
-`
-            : `
-- **Actionable strategies** you can implement today
-- **Expert insights** from industry professionals
-- **Practical tips** for your fitness business
-- **Real-world examples** and case studies
-`
-}
-
-### In the Meantime
-
-While you wait for this article, check out our other popular posts:
-
-- [⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?](/blog/are-wearables-accurate-enough-to-track-complex-lifting-movements)
-- [📊 Tracking Biometrics: What Actually Moves the Needle](/blog/tracking-biometrics-what-actually-moves-the-needle)
-- [📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)](/blog/google-sheets-for-coaching-trainers-secret-weapon-or-trap)
-
-### Stay Updated
-
-Want to be notified when this article is published? [Contact us](mailto:hello@juice.fitness) or follow us on social media for the latest updates.
+### The WhatsApp Trap
+WhatsApp feels personal, but it's a productivity killer:
+- Messages get buried in group chats
+- No payment processing
+- No automatic reminders
+- Clients forget to confirm
+- You're always "on" and available
 
 ---
 
-*This article is part of our ongoing series to help fitness professionals grow their businesses with practical, actionable advice.*`
-}
+## What a Booking Page Actually Does
 
-function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
-  const emojiTitleRegex = /^([\p{Emoji}\u200d]+.*?)[\r\n]/u
-  const titleMatch = content.match(emojiTitleRegex)
+### Converts Browsers into Bookers
+A booking page removes friction. Instead of:
+1. Finding your contact info
+2. Sending a message
+3. Waiting for your response
+4. Going back and forth on times
+5. Figuring out payment
 
-  const tldrRegex = /TL;DR:?\s*(.*?)[\r\n]/
-  const excerptMatch = content.match(tldrRegex)
+They just:
+1. Click your link
+2. Pick a time
+3. Pay
+4. Done
 
-  const firstParagraphRegex = /\n\n(.*?)(?:\n\n|$)/
-  const paragraphMatch = !excerptMatch ? content.match(firstParagraphRegex) : null
+### Works While You Sleep
+Your booking page is your 24/7 sales rep:
+- Takes bookings at 2am when you're sleeping
+- Handles international clients in different time zones
+- Processes payments automatically
+- Sends confirmation emails
+- Blocks out your calendar
 
-  return {
-    title: titleMatch ? titleMatch[1].trim() : null,
-    excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
-  }
-}
-
-// Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(url: string): Promise<string> {
-  console.log(`[fetchBlobContent] Attempting to fetch: ${url}`)
-
-  // Try multiple methods to fetch the content
-  const methods = [
-    // Method 1: Direct fetch (for public blobs)
-    () => fetch(url),
-
-    // Method 2: Fetch with authorization header
-    () =>
-      fetch(url, {
-        headers: {
-          Authorization: `Bearer ${BLOB_TOKEN}`,
-        },
-      }),
-
-    // Method 3: Fetch with different auth format
-    () =>
-      fetch(url, {
-        headers: {
-          Authorization: `token ${BLOB_TOKEN}`,
-        },
-      }),
-  ]
-
-  for (let i = 0; i < methods.length; i++) {
-    try {
-      console.log(`[fetchBlobContent] Trying method ${i + 1}...`)
-      const response = await methods[i]()
-
-      console.log(`[fetchBlobContent] Method ${i + 1} status: ${response.status}`)
-
-      if (response.ok) {
-        const content = await response.text()
-        console.log(`[fetchBlobContent] ✅ Success with method ${i + 1}, content length: ${content.length}`)
-        return content
-      }
-    } catch (error) {
-      console.log(`[fetchBlobContent] Method ${i + 1} failed: ${error.message}`)
-    }
-  }
-
-  throw new Error(`Failed to fetch blob content from ${url} with all methods`)
-}
-
-export async function getPostSlugs(): Promise<string[]> {
-  console.log("[getPostSlugs] Fetching all blog post slugs...")
-
-  if (!BLOB_TOKEN) {
-    console.log("[getPostSlugs] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS.map((post) => post.slug)
-  }
-
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    const slugs = blobs
-      .filter((blob) => blob.pathname.endsWith(".md"))
-      .map((blob) => blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, ""))
-    console.log(`[getPostSlugs] Found ${slugs.length} slugs from blob storage:`, slugs)
-    return slugs
-  } catch (error) {
-    console.error("[getPostSlugs] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS.map((post) => post.slug)
-  }
-}
-
-export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] Fetching all blog posts...")
-
-  if (!BLOB_TOKEN) {
-    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS
-  }
-
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
-
-    const posts: BlogPostFrontmatter[] = []
-
-    for (const blob of blobs) {
-      if (blob.pathname.endsWith(".md")) {
-        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
-
-        try {
-          const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
-
-          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-
-          console.log(`[getAllPosts] Extracted slug: ${slug}`)
-
-          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-
-          const extracted = extractTitleAndExcerpt(content)
-
-          const title = data.title || extracted.title || `Post: ${slug}`
-          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
-
-          posts.push({
-            title: title,
-            date: data.date || new Date().toISOString().split("T")[0],
-            category: data.category || "Uncategorized",
-            excerpt: excerpt,
-            image: data.image || undefined,
-            slug: slug,
-          })
-        } catch (error) {
-          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
-          continue
-        }
-      }
-    }
-
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
-    return posts.length > 0 ? posts : SAMPLE_POSTS
-  } catch (error) {
-    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS
-  }
-}
-
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
-
-  // First, check if we have full content for this slug
-  if (SAMPLE_BLOG_CONTENT[slug]) {
-    console.log(`[getPostBySlug] Using full content for slug: ${slug}`)
-
-    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-    const sampleContent = SAMPLE_BLOG_CONTENT[slug]
-
-    if (samplePost && sampleContent) {
-      const serializedContent = await serialize(sampleContent, {
-        parseFrontmatter: false,
-      })
-
-      return {
-        frontmatter: samplePost,
-        serializedContent,
-        content: sampleContent,
-        slug: slug,
-      }
-    }
-  }
-
-  // If no full content, check if we have metadata for this slug
-  const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-  if (samplePost) {
-    console.log(`[getPostBySlug] Using placeholder content for slug: ${slug}`)
-
-    const placeholderContent = generatePlaceholderContent(samplePost)
-    const serializedContent = await serialize(placeholderContent, {
-      parseFrontmatter: false,
-    })
-
-    return {
-      frontmatter: samplePost,
-      serializedContent,
-      content: placeholderContent,
-      slug: slug,
-    }
-  }
-
-  // Try blob storage if available
-  if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no local content found")
-    return null
-  }
-
-  try {
-    const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
-    console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
-
-    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
-    const targetBlob = blobs.find((b) => b.pathname === targetPath)
-
-    if (!targetBlob) {
-      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
-      console.log(
-        `[getPostBySlug] Available blobs:`,
-        blobs.map((b) => b.pathname),
-      )
-      return null
-    }
-
-    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
-
-    const fileContents = await fetchBlobContent(targetBlob.url)
-    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
-
-    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] Frontmatter:`, data)
-    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
-
-    const extracted = extractTitleAndExcerpt(content)
-    console.log(
-      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
-    )
-
-    const title = data.title || extracted.title || `Post: ${slug}`
-    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
-
-    const serializedContent = await serialize(content, {
-      parseFrontmatter: false,
-    })
-    console.log("[getPostBySlug] MDX serialized successfully")
-
-    return {
-      frontmatter: {
-        title: title,
-        date: data.date || new Date().toISOString().split("T")[0],
-        category: data.category || "Uncategorized",
-        excerpt: excerpt,
-        image: data.image || undefined,
-        slug: slug,
-      },
-      serializedContent,
-      content,
-      slug,
-    }
-  } catch (error) {
-    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
-    return null
-  }
-}
+### Professional Credibility
+A booking page signals you're serious about your business:
+- Shows you value your time
+- Demonstrates professionalism
+- Builds
