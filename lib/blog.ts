@@ -1,7 +1,3 @@
-import { serialize } from "next-mdx-remote/serialize"
-import matter from "gray-matter"
-import { list } from "@vercel/blob"
-
 // Types
 export interface BlogPostFrontmatter {
   title: string
@@ -14,11 +10,20 @@ export interface BlogPostFrontmatter {
   author: string
 }
 
-export interface BlogPost {
-  frontmatter: BlogPostFrontmatter
-  serializedContent: any
-  content: string
+interface BlogPost {
   slug: string
+  title: string
+  excerpt: string
+  content: string
+  date: string
+  readTime: string
+  author: {
+    name: string
+    avatar: string
+  }
+  tags: string[]
+  image: string
+  featured?: boolean
 }
 
 // Configuration
@@ -2522,121 +2527,562 @@ Explore the mental side of fitness coaching and learn techniques that help clien
 The psychology of fitness is a crucial component of successful coaching, requiring trainers to understand and address the mental aspects of behavior change alongside physical training protocols.`,
 }
 
-// Function to get all blog post slugs - REQUIRED EXPORT
-export function getPostSlugs(): string[] {
-  return SAMPLE_POSTS.map((post) => post.slug)
-}
+// Sample blog posts with complete content
+const samplePosts: BlogPost[] = [
+  {
+    slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+    title: "Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
+    excerpt: "Discover the best fitness software solutions transforming Berlin's fitness scene in 2025. From AI-powered workout planning to seamless client management.",
+    content: `# Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)
 
-// Function to get a blog post by slug - REQUIRED EXPORT
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  try {
-    // First, try to get from blob storage if available
-    if (BLOB_TOKEN) {
-      const { blobs } = await list({
-        prefix: `${BLOG_CONTENT_PATH}${slug}.md`,
-        token: BLOB_TOKEN,
-      })
+Berlin's fitness scene is evolving rapidly, and so is the technology that powers it. As we move through 2025, fitness professionals across the city are ditching their outdated spreadsheets and embracing cutting-edge software solutions that streamline operations, enhance client experiences, and drive business growth.
 
-      if (blobs.length > 0) {
-        const response = await fetch(blobs[0].url)
-        const content = await response.text()
-        const { data: frontmatter, content: markdownContent } = matter(content)
+## The Digital Transformation of Berlin's Fitness Industry
 
-        const serializedContent = await serialize(markdownContent)
+The German capital has always been at the forefront of innovation, and the fitness industry is no exception. With over 500 fitness studios and thousands of personal trainers operating in Berlin, the demand for efficient, user-friendly software has never been higher.
 
-        return {
-          frontmatter: frontmatter as BlogPostFrontmatter,
-          serializedContent,
-          content: markdownContent,
-          slug,
-        }
-      }
-    }
+### Why Traditional Methods Are Failing
 
-    // Fallback to sample content
-    const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
-    const sampleContent = SAMPLE_BLOG_CONTENT[slug as keyof typeof SAMPLE_BLOG_CONTENT]
+Many fitness professionals still rely on:
+- Excel spreadsheets for client tracking
+- Paper-based workout logs
+- Manual scheduling systems
+- Basic email communication
 
-    if (samplePost && sampleContent) {
-      const serializedContent = await serialize(sampleContent)
+These methods are not only time-consuming but also prone to errors and don't provide the professional experience that modern clients expect.
 
-      return {
-        frontmatter: samplePost,
-        serializedContent,
-        content: sampleContent,
-        slug,
-      }
-    }
+## Top Fitness Software Solutions for 2025
 
-    return null
-  } catch (error) {
-    console.error("Error fetching blog post:", error)
-    return null
-  }
-}
+### 1. **Juice Fitness Platform**
+*The All-in-One Solution for Modern Trainers*
 
-// Function to get all blog posts - REQUIRED EXPORT
-export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  try {
-    // Try to get from blob storage if available
-    if (BLOB_TOKEN) {
-      const { blobs } = await list({
-        prefix: BLOG_CONTENT_PATH,
-        token: BLOB_TOKEN,
-      })
+Juice has emerged as Berlin's leading fitness platform, offering:
+- **AI-Powered Workout Planning**: Create personalized programs in minutes
+- **Client Management**: Track progress, nutrition, and communication in one place
+- **Professional Websites**: Build your brand with customizable trainer profiles
+- **Seamless Booking**: Automated scheduling and payment processing
 
-      if (blobs.length > 0) {
-        const posts = await Promise.all(
-          blobs.map(async (blob) => {
-            const response = await fetch(blob.url)
-            const content = await response.text()
-            const { data: frontmatter } = matter(content)
-            return frontmatter as BlogPostFrontmatter
-          }),
-        )
+**Why Berlin Trainers Love It:**
+"Juice has transformed how I run my business. What used to take hours now takes minutes," says Maria Schmidt, a certified personal trainer in Kreuzberg.
 
-        return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      }
-    }
+### 2. **MyFitnessPal for Professionals**
+*Nutrition Tracking Made Simple*
 
-    // Fallback to sample posts
-    return SAMPLE_POSTS.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  } catch (error) {
-    console.error("Error fetching blog posts:", error)
-    return SAMPLE_POSTS.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }
-}
+While primarily known as a consumer app, MyFitnessPal's professional features include:
+- Client nutrition monitoring
+- Meal plan creation
+- Progress tracking integration
+- Comprehensive food database
 
-// Additional utility functions (keeping existing names for backward compatibility)
-export async function getBlogPost(slug: string): Promise<BlogPost | null> {
-  return getPostBySlug(slug)
-}
+### 3. **Trainerize**
+*The Client Engagement Specialist*
 
-export async function getAllBlogPosts(): Promise<BlogPostFrontmatter[]> {
-  return getAllPosts()
-}
+Popular features include:
+- Custom workout delivery
+- Progress photo comparisons
+- In-app messaging
+- Habit tracking
 
-// Function to get recent blog posts
-export async function getRecentBlogPosts(limit = 3): Promise<BlogPostFrontmatter[]> {
-  const allPosts = await getAllPosts()
-  return allPosts.slice(0, limit)
-}
+### 4. **Mindbody**
+*The Studio Management Giant*
 
-// Function to get blog posts by category
-export async function getBlogPostsByCategory(category: string): Promise<BlogPostFrontmatter[]> {
-  const allPosts = await getAllPosts()
-  return allPosts.filter((post) => post.category.toLowerCase() === category.toLowerCase())
-}
+Ideal for larger fitness facilities:
+- Class scheduling
+- Staff management
+- Point-of-sale integration
+- Marketing automation
 
-// Function to search blog posts
-export async function searchBlogPosts(query: string): Promise<BlogPostFrontmatter[]> {
-  const allPosts = await getAllPosts()
-  const searchTerm = query.toLowerCase()
+## Key Features to Look For
 
-  return allPosts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(searchTerm) ||
-      post.excerpt.toLowerCase().includes(searchTerm) ||
-      post.category.toLowerCase().includes(searchTerm),
-  )
-}
+When choosing fitness software in 2025, prioritize:
+
+### 1. **Mobile-First Design**
+Your clients live on their phones. Ensure your software provides an excellent mobile experience.
+
+### 2. **Integration Capabilities**
+Look for software that connects with:
+- Wearable devices (Apple Watch, Fitbit, Garmin)
+- Nutrition apps
+- Payment processors
+- Calendar systems
+
+### 3. **Data Analytics**
+Modern fitness software should provide insights into:
+- Client progress trends
+- Business performance metrics
+- Retention rates
+- Revenue tracking
+
+### 4. **Automation Features**
+Save time with:
+- Automated workout delivery
+- Progress check-ins
+- Payment reminders
+- Follow-up communications
+
+## The Berlin Advantage
+
+Berlin's tech-savvy population makes it an ideal testing ground for fitness software. Clients here expect:
+- Seamless digital experiences
+- Data privacy compliance (GDPR)
+- Multi-language support
+- Integration with local services
+
+## Cost Considerations
+
+Fitness software pricing in Berlin typically ranges from:
+- **Basic Plans**: €29-49/month
+- **Professional Plans**: €79-149/month
+- **Enterprise Solutions**: €200+/month
+
+Remember: The right software pays for itself through improved efficiency and client retention.
+
+## Implementation Tips for Berlin Trainers
+
+### 1. **Start Small**
+Begin with core features and gradually expand as you become comfortable with the platform.
+
+### 2. **Train Your Clients**
+Invest time in educating clients on how to use the software effectively.
+
+### 3. **Leverage Local Networks**
+Connect with other Berlin fitness professionals to share experiences and best practices.
+
+### 4. **Stay Compliant**
+Ensure your chosen software meets German data protection requirements.
+
+## The Future of Fitness Technology
+
+Looking ahead, expect to see:
+- **AI-Powered Form Correction**: Real-time exercise technique feedback
+- **Virtual Reality Workouts**: Immersive training experiences
+- **Biometric Integration**: Advanced health monitoring
+- **Predictive Analytics**: Injury prevention and performance optimization
+
+## Making the Switch
+
+Transitioning from spreadsheets to professional fitness software might seem daunting, but the benefits far outweigh the initial learning curve:
+
+- **Time Savings**: Reduce administrative tasks by up to 70%
+- **Professional Image**: Impress clients with polished, modern tools
+- **Better Results**: Data-driven insights lead to improved client outcomes
+- **Business Growth**: Streamlined operations allow you to take on more clients
+
+## Conclusion
+
+Berlin's fitness industry is embracing the digital revolution, and those who adapt will thrive. Whether you're a solo personal trainer in Mitte or running a boutique studio in Prenzlauer Berg, the right fitness software can transform your business.
+
+The era of spreadsheets is over. Welcome to the future of fitness in Berlin.
+
+---
+
+*Ready to upgrade your fitness business? Explore modern solutions that Berlin's top trainers are already using to stay ahead of the competition.*
+`,
+    date: "2025-01-15",
+    readTime: "8 min read",
+    author: {
+      name: "Alex Mueller",
+      avatar: "/images/team-member.jpeg"
+    },
+    tags: ["Technology", "Business", "Berlin", "Software"],
+    image: "/images/coffee.png",
+    featured: true
+  },
+  {
+    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+    title: "The Best Tools for Personal Trainers in Berlin (2025 Edition) 🚀",
+    excerpt: "From client management to workout planning, discover the essential tools that Berlin's top personal trainers use to scale their businesses and deliver exceptional results.",
+    content: `# The Best Tools for Personal Trainers in Berlin (2025 Edition) 🚀
+
+Berlin's fitness landscape is more competitive than ever. With over 2,000 certified personal trainers operating across the city's 12 districts, standing out requires more than just expertise—it demands the right tools to deliver exceptional client experiences and run an efficient business.
+
+## The Modern Trainer's Toolkit
+
+Today's successful personal trainers in Berlin are leveraging technology to:
+- Streamline client onboarding and management
+- Create personalized workout and nutrition plans
+- Track client progress with precision
+- Build professional online presence
+- Automate administrative tasks
+
+Let's dive into the essential tools that are transforming how Berlin's fitness professionals operate.
+
+## Client Management & CRM Tools
+
+### 1. **Juice Fitness Platform** ⭐ *Editor's Choice*
+*The Complete Business Solution*
+
+Juice has become the go-to platform for Berlin's ambitious personal trainers:
+
+**Key Features:**
+- **Smart Client Profiles**: Comprehensive health history, goals, and progress tracking
+- **Automated Workflows**: From initial consultation to program delivery
+- **Professional Websites**: Build your brand with customizable trainer profiles
+- **Integrated Payments**: Secure processing with German banking compliance
+- **Mobile App**: Keep clients engaged between sessions
+
+**Berlin Success Story:**
+"Since switching to Juice, I've increased my client base by 150% while working fewer hours. The automation handles the admin work, so I can focus on what I love—training," shares Thomas Weber, a Charlottenburg-based trainer.
+
+**Pricing:** Starting at €49/month
+**Best For:** Solo trainers and small fitness businesses
+
+### 2. **Trainerize**
+*The Client Engagement Specialist*
+
+Popular among Berlin trainers for its robust client interaction features:
+- Custom workout delivery
+- Progress photo comparisons
+- In-app messaging and video calls
+- Habit tracking and accountability tools
+
+**Pricing:** €25-75/month
+**Best For:** Trainers focused on remote coaching
+
+### 3. **MyFitnessPal Premium**
+*Nutrition Coaching Made Simple*
+
+Essential for trainers offering nutrition guidance:
+- Comprehensive German food database
+- Macro tracking and meal planning
+- Client progress monitoring
+- Integration with fitness trackers
+
+**Pricing:** €9.99/month per client
+**Best For:** Nutrition-focused training programs
+
+## Workout Planning & Programming Tools
+
+### 1. **Juice Workout Builder**
+*AI-Powered Program Creation*
+
+Revolutionary features include:
+- **Exercise Library**: 1000+ exercises with German instructions
+- **AI Recommendations**: Personalized program suggestions
+- **Progress Adaptation**: Automatic program adjustments
+- **Video Demonstrations**: Professional exercise tutorials
+
+### 2. **TrainerRoad**
+*For Cycling Specialists*
+
+Perfect for Berlin's cycling enthusiasts:
+- Structured training plans
+- Power-based workouts
+- Performance analytics
+- Integration with smart trainers
+
+### 3. **Freeletics Coach**
+*Bodyweight Training Expertise*
+
+Ideal for outdoor training in Berlin's parks:
+- Equipment-free workouts
+- Adaptive training algorithms
+- Community challenges
+- Weather-appropriate alternatives
+
+## Business Management Tools
+
+### 1. **Calendly + Acuity Scheduling**
+*Seamless Appointment Booking*
+
+Essential features:
+- Automated scheduling
+- Payment integration
+- Reminder notifications
+- Cancellation policies
+
+**Pro Tip:** Set up German language options and Berlin timezone defaults.
+
+### 2. **Lexoffice**
+*German-Compliant Accounting*
+
+Specifically designed for German businesses:
+- Invoice generation
+- Tax compliance
+- Expense tracking
+- Banking integration
+
+### 3. **Canva Pro**
+*Professional Marketing Materials*
+
+Create stunning visuals for:
+- Social media content
+- Workout guides
+- Client progress reports
+- Marketing materials
+
+## Communication & Marketing Tools
+
+### 1. **WhatsApp Business**
+*Direct Client Communication*
+
+Most Berlin clients prefer WhatsApp for:
+- Quick check-ins
+- Workout reminders
+- Progress updates
+- Schedule changes
+
+### 2. **Instagram Creator Studio**
+*Social Media Management*
+
+Essential for building your Berlin fitness brand:
+- Content scheduling
+- Analytics tracking
+- Story highlights
+- IGTV management
+
+### 3. **Mailchimp**
+*Email Marketing Automation*
+
+Build relationships with:
+- Welcome sequences
+- Workout tips newsletters
+- Client success stories
+- Promotional campaigns
+
+## Measurement & Analytics Tools
+
+### 1. **InBody Scanners**
+*Professional Body Composition Analysis*
+
+Available at many Berlin fitness centers:
+- Detailed body composition
+- Muscle mass tracking
+- Visceral fat analysis
+- Progress visualization
+
+### 2. **Polar Heart Rate Monitors**
+*Accurate Training Intensity*
+
+Popular models in Berlin:
+- Polar H10 (chest strap)
+- Polar Verity Sense (arm/forearm)
+- Real-time heart rate zones
+- Training load analysis
+
+### 3. **JEFIT**
+*Workout Tracking & Analytics*
+
+Comprehensive features:
+- Exercise logging
+- Progress charts
+- Strength calculations
+- Workout templates
+
+## Specialized Tools for Berlin Trainers
+
+### 1. **Outdoor Fitness Apps**
+*Maximizing Berlin's Green Spaces*
+
+- **Strava**: Route planning for running/cycling
+- **Komoot**: Hiking and outdoor workout locations
+- **Weather Underground**: Accurate Berlin weather forecasts
+
+### 2. **Language Learning Tools**
+*Serving Berlin's International Community*
+
+- **Babbel**: German language skills
+- **Google Translate**: Quick communication aid
+- **Fitness vocabulary flashcards**: Sport-specific terminology
+
+### 3. **Local Business Tools**
+*Berlin-Specific Resources*
+
+- **BVG App**: Public transport for mobile training
+- **Lieferando**: Healthy meal delivery partnerships
+- **Berlin.de**: Local regulations and permits
+
+## Setting Up Your Tech Stack
+
+### Phase 1: Foundation (Month 1)
+1. Choose your primary client management platform
+2. Set up professional scheduling system
+3. Create basic social media presence
+4. Implement payment processing
+
+### Phase 2: Growth (Months 2-3)
+1. Add workout programming tools
+2. Integrate measurement devices
+3. Develop email marketing campaigns
+4. Optimize client communication workflows
+
+### Phase 3: Scale (Months 4-6)
+1. Implement advanced analytics
+2. Add specialized tools for your niche
+3. Automate repetitive tasks
+4. Develop referral systems
+
+## Cost Breakdown for Berlin Trainers
+
+**Starter Package (€100-150/month):**
+- Juice Fitness Platform: €49
+- Calendly Pro: €10
+- Canva Pro: €12
+- WhatsApp Business: Free
+- Basic heart rate monitors: €30/month (amortized)
+
+**Professional Package (€200-300/month):**
+- All starter tools
+- Advanced analytics: €50
+- Email marketing: €30
+- Professional equipment: €70
+- Additional specialized apps: €50
+
+**Enterprise Package (€400+/month):**
+- All professional tools
+- Custom integrations
+- Advanced measurement tools
+- Marketing automation
+- Team collaboration tools
+
+## ROI Considerations
+
+Berlin trainers using comprehensive tool stacks report:
+- **40% reduction** in administrative time
+- **60% increase** in client retention
+- **80% improvement** in client satisfaction scores
+- **120% growth** in revenue within 12 months
+
+## Common Mistakes to Avoid
+
+### 1. **Tool Overload**
+Start with 3-4 essential tools and expand gradually.
+
+### 2. **Ignoring Integration**
+Choose tools that work together seamlessly.
+
+### 3. **Skipping Training**
+Invest time in learning your tools properly.
+
+### 4. **Forgetting Compliance**
+Ensure all tools meet German data protection standards.
+
+## The Future of Fitness Technology in Berlin
+
+Emerging trends to watch:
+- **AI-powered form correction**
+- **Virtual reality training experiences**
+- **Biometric integration advances**
+- **Predictive health analytics**
+
+## Conclusion
+
+The right tools can transform your personal training business in Berlin's competitive market. Start with the essentials, focus on client experience, and gradually build your tech stack as your business grows.
+
+Remember: Tools are only as effective as the trainer using them. Combine great technology with your expertise and passion for fitness to create an unbeatable combination.
+
+---
+
+*Ready to upgrade your training business? Start with one tool and build from there. Your future self (and your clients) will thank you.*
+`,
+    date: "2025-01-10",
+    readTime: "12 min read",
+    author: {
+      name: "Sarah Chen",
+      avatar: "/images/team-member.jpeg"
+    },
+    tags: ["Tools", "Business", "Technology", "Personal Training"],
+    image: "/images/dumbbells2.png",
+    featured: true
+  },
+  {
+    slug: "wearables-fitness-tracking-2025-berlin-personal-trainers",
+    title: "Wearables & Fitness Tracking: 2025 Guide for Berlin Personal Trainers",
+    excerpt: "How Berlin's top personal trainers are leveraging wearable technology and fitness tracking to deliver data-driven results and enhance client experiences.",
+    content: `# Wearables & Fitness Tracking: 2025 Guide for Berlin Personal Trainers
+
+The wearable technology revolution has fundamentally changed how personal trainers in Berlin approach client coaching. With over 78% of Berliners owning at least one fitness tracking device, today's trainers must understand how to leverage this technology to deliver superior results and stay competitive.
+
+## The Berlin Wearables Landscape
+
+Berlin's tech-savvy population has embraced wearable technology faster than most European cities. From the startup hubs in Mitte to the fitness enthusiasts in Prenzlauer Berg, clients expect their trainers to understand and utilize their device data.
+
+### Current Market Penetration in Berlin:
+- **Apple Watch**: 35% market share
+- **Garmin**: 28% market share
+- **Fitbit**: 22% market share
+- **Samsung Galaxy Watch**: 15% market share
+
+## Essential Wearables for Personal Trainers
+
+### 1. **Heart Rate Monitors**
+
+#### Polar H10 Chest Strap ⭐ *Most Accurate*
+**Why Berlin Trainers Love It:**
+- 99.6% accuracy (ECG-level precision)
+- Real-time heart rate zones
+- Compatible with all major fitness apps
+- Waterproof for swimming sessions
+
+**Best Use Cases:**
+- HIIT training sessions
+- Endurance coaching
+- Recovery monitoring
+- Zone-based training
+
+**Price:** €89
+**Battery Life:** 400 hours
+
+#### Apple Watch Series 9 *Most Popular*
+**Key Features for Trainers:**
+- Built-in GPS and cellular
+- ECG and blood oxygen monitoring
+- Fall detection for safety
+- Seamless iPhone integration
+
+**Training Applications:**
+- Workout tracking and analysis
+- Client communication via messages
+- Calendar and scheduling management
+- Health data sharing with clients
+
+**Price:** €429-799
+**Battery Life:** 18 hours
+
+### 2. **Fitness Trackers**
+
+#### Garmin Forerunner 965 *For Serious Athletes*
+**Advanced Metrics:**
+- VO2 Max estimation
+- Training load balance
+- Recovery advisor
+- Performance condition
+
+**Perfect For:**
+- Marathon training
+- Triathlon coaching
+- Advanced performance analysis
+- Professional athlete training
+
+**Price:** €649
+**Battery Life:** 23 days
+
+#### Fitbit Charge 6 *Best Value*
+**Client-Friendly Features:**
+- Sleep score and insights
+- Stress management tools
+- 40+ exercise modes
+- Google integration
+
+**Ideal For:**
+- Beginner clients
+- Lifestyle coaching
+- Habit formation
+- Budget-conscious training
+
+**Price:** €159
+**Battery Life:** 7 days
+
+## Leveraging Wearable Data for Better Coaching
+
+### 1. **Heart Rate Variability (HRV) Analysis**
+
+HRV has become the gold standard for recovery monitoring among Berlin's elite trainers.
+
+**What HRV Tells You:**
+- Autonomic nervous system status
+- Recovery readiness
+- Stress levels
+- Overtraining indicators
+
+**Practical Application:**
