@@ -18,8 +18,22 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   const encodedUrl = encodeURIComponent(url)
   const encodedText = encodeURIComponent(shareText)
 
+  // OLD DEPRECATED METHOD - This is the problem!
+  // const shareLinks = {
+  //   linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
+  // }
+
+  // NEW MODERN METHOD - Using compose URL with pre-filled text
+  const linkedInText = `${title}
+
+${shareText}
+
+Read more: ${url}
+
+#FitnessCoaching #PersonalTraining #FitnessTech`
+
   const shareLinks = {
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
+    linkedin: `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(linkedInText)}`,
   }
 
   const copyToClipboard = async () => {
@@ -29,6 +43,34 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error("Failed to copy URL:", err)
+      // Fallback for browsers that don't support clipboard API
+      try {
+        const textArea = document.createElement("textarea")
+        textArea.value = url
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand("copy")
+        document.body.removeChild(textArea)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (fallbackErr) {
+        console.error("Fallback copy failed:", fallbackErr)
+      }
+    }
+  }
+
+  const handleLinkedInShare = () => {
+    try {
+      const newWindow = window.open(shareLinks.linkedin, "_blank", "noopener,noreferrer")
+      if (!newWindow) {
+        // Popup blocked - fallback to copying URL
+        console.warn("LinkedIn sharing popup blocked, falling back to copy URL")
+        copyToClipboard()
+      }
+    } catch (error) {
+      console.error("LinkedIn sharing failed:", error)
+      // Fallback to copying URL
+      copyToClipboard()
     }
   }
 
@@ -39,8 +81,8 @@ export function SocialShare({ title, url, excerpt }: SocialShareProps) {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => window.open(shareLinks.linkedin, "_blank")}
-        className="flex items-center gap-2"
+        onClick={handleLinkedInShare}
+        className="flex items-center gap-2 bg-transparent"
       >
         <Linkedin className="w-4 h-4" />
         <span className="hidden sm:inline">LinkedIn</span>
