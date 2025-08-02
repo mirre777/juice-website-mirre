@@ -1,395 +1,353 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, RefreshCw, ArrowLeft, MapPin, Target, Clock, Globe } from "lucide-react"
-import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { MapPin, Mail, Phone, Target, Clock, Users, XCircle, Search } from "lucide-react"
 
-interface PotentialUser {
+interface User {
   id: string
+  name: string
   email: string
-  phone?: string
-  city?: string
-  district?: string // NEW field
-  user_type: string
+  user_type: "client" | "trainer"
+  city: string
+  district: string
+  goal: string
+  startTime: string
+  phone: string
+  message: string
+  numClients: string
+  plan: string
+  source: string
   status: string
-  created_at: string
-  numClients?: number
-  plan?: string
-  source?: string
-  // NEW: Munich-specific fields
-  name?: string
-  goal?: string
-  startTime?: string
-  origin?: string
+  createdAt: string
+  updatedAt: string
+}
+
+const goalColors: Record<string, string> = {
+  Muskelaufbau: "bg-blue-100 text-blue-800",
+  "Abnehmen & Körperfett reduzieren": "bg-green-100 text-green-800",
+  "Gesundheit & Wohlbefinden": "bg-purple-100 text-purple-800",
+  "Haltung verbessern": "bg-orange-100 text-orange-800",
+  "Kraft & Leistung steigern": "bg-red-100 text-red-800",
+  "Rücken stärken": "bg-yellow-100 text-yellow-800",
+  "Einstieg ins Training": "bg-pink-100 text-pink-800",
+}
+
+const sourceIcons: Record<string, string> = {
+  "munich-landing-page": "🏔️",
+  "trainer-signup": "💪",
+  "general-waitlist": "📝",
+  unknown: "❓",
 }
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<PotentialUser[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
-
-  const fetchUsers = async () => {
-    try {
-      console.log("Fetching users from API...")
-      const response = await fetch("/api/admin/users")
-      const data = await response.json()
-
-      console.log("API response:", data)
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch users")
-      }
-
-      setUsers(data.users || [])
-      setError(null)
-    } catch (err) {
-      console.error("Error fetching users:", err)
-      setError(err instanceof Error ? err.message : "Failed to fetch users")
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  const handleRefresh = () => {
-    setRefreshing(true)
-    fetchUsers()
-  }
-
-  const handleAcceptUser = async (userId: string) => {
-    try {
-      const response = await fetch("/api/admin/users/accept", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      })
-
-      if (response.ok) {
-        // Refresh the list after accepting
-        handleRefresh()
-      } else {
-        console.error("Failed to accept user")
-      }
-    } catch (error) {
-      console.error("Error accepting user:", error)
-    }
-  }
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterCity, setFilterCity] = useState("all")
+  const [filterUserType, setFilterUserType] = useState("all")
+  const [filterStatus, setFilterStatus] = useState("all")
 
   useEffect(() => {
     fetchUsers()
   }, [])
 
-  const getUserTypeBadge = (userType: string) => {
-    switch (userType) {
-      case "trainer":
-        return (
-          <Badge variant="default" className="bg-blue-500">
-            Trainer
-          </Badge>
-        )
-      case "client":
-        return <Badge variant="secondary">Client</Badge>
-      default:
-        return <Badge variant="outline">Unknown</Badge>
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/admin/users")
+      const data = await response.json()
+
+      if (data.success) {
+        setUsers(data.users)
+      } else {
+        setError(data.error || "Failed to fetch users")
+      }
+    } catch (err) {
+      setError("Network error occurred")
+      console.error("Error fetching users:", err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "waitlist":
-        return (
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-            Waitlist
-          </Badge>
-        )
-      case "pending":
-        return (
-          <Badge variant="outline" className="bg-orange-100 text-orange-800">
-            Pending
-          </Badge>
-        )
-      case "active":
-        return (
-          <Badge variant="default" className="bg-green-500">
-            Active
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">Unknown</Badge>
-    }
-  }
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.district.toLowerCase().includes(searchTerm.toLowerCase())
 
-  const getSourceBadge = (source?: string, origin?: string) => {
-    if (origin?.includes("personal-training-muenchen")) {
-      return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800">
-          München Landing
-        </Badge>
-      )
-    }
-    if (source === "munich-landing") {
-      return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800">
-          München
-        </Badge>
-      )
-    }
-    if (source === "trainer-signup") {
-      return (
-        <Badge variant="outline" className="bg-purple-100 text-purple-800">
-          Trainer Signup
-        </Badge>
-      )
-    }
-    if (source === "website_waitlist") {
-      return (
-        <Badge variant="outline" className="bg-gray-100 text-gray-800">
-          Website
-        </Badge>
-      )
-    }
-    return <Badge variant="outline">Unknown</Badge>
-  }
+    const matchesCity = filterCity === "all" || user.city === filterCity
+    const matchesUserType = filterUserType === "all" || user.user_type === filterUserType
+    const matchesStatus = filterStatus === "all" || user.status === filterStatus
 
-  const getGoalBadge = (goal?: string) => {
-    if (!goal) return null
+    return matchesSearch && matchesCity && matchesUserType && matchesStatus
+  })
 
-    const goalColors: { [key: string]: string } = {
-      Muskelaufbau: "bg-orange-100 text-orange-800",
-      "Abnehmen & Körperfett reduzieren": "bg-red-100 text-red-800",
-      "Gesundheit & Wohlbefinden": "bg-green-100 text-green-800",
-      "Haltung verbessern": "bg-blue-100 text-blue-800",
-      "Kraft & Leistung steigern": "bg-purple-100 text-purple-800",
-      "Rücken stärken": "bg-indigo-100 text-indigo-800",
-      "Einstieg ins Training": "bg-yellow-100 text-yellow-800",
-    }
+  const cities = [...new Set(users.map((user) => user.city).filter(Boolean))]
+  const statuses = [...new Set(users.map((user) => user.status))]
 
+  if (loading) {
     return (
-      <Badge variant="outline" className={goalColors[goal] || "bg-gray-100 text-gray-800"}>
-        <Target className="h-3 w-3 mr-1" />
-        {goal}
-      </Badge>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading users...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 text-red-800">
+              <XCircle className="h-5 w-5" />
+              <span>Error: {error}</span>
+            </div>
+            <Button onClick={fetchUsers} className="mt-4 bg-transparent" variant="outline">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Link>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-2">Manage potential users and convert them from waitlist to pending status.</p>
+          <p className="text-gray-600 mt-1">
+            {filteredUsers.length} of {users.length} users
+          </p>
         </div>
+        <Button onClick={fetchUsers} variant="outline">
+          Refresh
+        </Button>
+      </div>
 
-        {/* Waitlist Users Card */}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Waitlist Users</CardTitle>
-            <Button onClick={handleRefresh} disabled={refreshing} variant="outline" size="sm">
-              {refreshing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Refresh List
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {/* Firebase Environment Info */}
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-              <h3 className="font-semibold mb-2">Firebase Environment</h3>
-              <div className="text-sm text-gray-600 font-mono">
-                <div>Project ID: {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "Not configured"}</div>
-                <div>Auth Domain: {process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "Not configured"}</div>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-600">Total Users</p>
+                <p className="text-2xl font-bold">{users.length}</p>
               </div>
             </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                <span>Loading users...</span>
-              </div>
-            ) : error ? (
-              <div className="text-red-600 py-4">
-                <p>Error: {error}</p>
-                <Button onClick={handleRefresh} className="mt-2 bg-transparent" variant="outline">
-                  Try Again
-                </Button>
-              </div>
-            ) : users.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No users found in the waitlist.</div>
-            ) : (
-              <div className="space-y-4">
-                {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-3 font-semibold">User</th>
-                        <th className="text-left p-3 font-semibold">Contact</th>
-                        <th className="text-left p-3 font-semibold">Location</th>
-                        <th className="text-left p-3 font-semibold">Details</th>
-                        <th className="text-left p-3 font-semibold">Status</th>
-                        <th className="text-left p-3 font-semibold">Source</th>
-                        <th className="text-left p-3 font-semibold">Created</th>
-                        <th className="text-left p-3 font-semibold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id} className="border-b hover:bg-gray-50">
-                          <td className="p-3">
-                            <div>
-                              <div className="font-medium">{user.name || user.email.split("@")[0]}</div>
-                              <div className="text-sm text-gray-500">{getUserTypeBadge(user.user_type)}</div>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="text-sm">
-                              <div>{user.email}</div>
-                              {user.phone && <div className="text-gray-500">{user.phone}</div>}
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-1 text-sm">
-                              <MapPin className="h-3 w-3 text-gray-400" />
-                              <span>{user.city}</span>
-                              {user.district && <span className="text-gray-500">({user.district})</span>}
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="space-y-1">
-                              {user.goal && getGoalBadge(user.goal)}
-                              {user.user_type === "trainer" && user.numClients && (
-                                <div className="text-xs text-gray-500">{user.numClients} clients</div>
-                              )}
-                              {user.startTime && (
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                  <Clock className="h-3 w-3" />
-                                  {user.startTime}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-3">{getStatusBadge(user.status)}</td>
-                          <td className="p-3">{getSourceBadge(user.source, user.origin)}</td>
-                          <td className="p-3 text-sm">
-                            {new Date(user.created_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </td>
-                          <td className="p-3">
-                            {user.status === "waitlist" && (
-                              <Button
-                                onClick={() => handleAcceptUser(user.id)}
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                Accept
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="lg:hidden space-y-4">
-                  {users.map((user) => (
-                    <Card key={user.id} className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium">{user.name || user.email.split("@")[0]}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
-                            {user.phone && <div className="text-sm text-gray-500">{user.phone}</div>}
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            {getUserTypeBadge(user.user_type)}
-                            {getStatusBadge(user.status)}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1 text-sm">
-                          <MapPin className="h-3 w-3 text-gray-400" />
-                          <span>{user.city}</span>
-                          {user.district && <span className="text-gray-500">({user.district})</span>}
-                        </div>
-
-                        {user.goal && <div>{getGoalBadge(user.goal)}</div>}
-
-                        <div className="flex justify-between items-center text-sm">
-                          <div className="flex items-center gap-1">
-                            <Globe className="h-3 w-3 text-gray-400" />
-                            {getSourceBadge(user.source, user.origin)}
-                          </div>
-                          <div className="text-gray-500">{new Date(user.created_at).toLocaleDateString()}</div>
-                        </div>
-
-                        {user.status === "waitlist" && (
-                          <Button
-                            onClick={() => handleAcceptUser(user.id)}
-                            size="sm"
-                            className="w-full bg-green-600 hover:bg-green-700"
-                          >
-                            Accept User
-                          </Button>
-                        )}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
-
-        {/* Firebase Security Rules Info */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Firebase Security Rules</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              If you're experiencing permission errors when converting users, make sure your Firebase security rules
-              allow writes to the users collection:
-            </p>
-            <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
-              {`rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /potential_users/{document=**} {
-      allow read, write: if true;
-    }
-    match /users/{userId} {
-      allow read, write: if true;
-    }
-    
-    match /profile/{document=**} {
-      allow read, write: if true;
-    }
-    
-    match /notifications/{document=**} {
-      allow read, write: if true;
-    }
-  }
-}`}
-            </pre>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm text-gray-600">Clients</p>
+                <p className="text-2xl font-bold">{users.filter((u) => u.user_type === "client").length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-purple-600" />
+              <div>
+                <p className="text-sm text-gray-600">Trainers</p>
+                <p className="text-2xl font-bold">{users.filter((u) => u.user_type === "trainer").length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏔️</span>
+              <div>
+                <p className="text-sm text-gray-600">Munich</p>
+                <p className="text-2xl font-bold">{users.filter((u) => u.city === "München").length}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={filterCity} onValueChange={setFilterCity}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by city" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterUserType} onValueChange={setFilterUserType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="client">Clients</SelectItem>
+                <SelectItem value="trainer">Trainers</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {statuses.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Users Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Users ({filteredUsers.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Details</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{user.name || user.email.split("@")[0]}</div>
+                        <Badge variant={user.user_type === "trainer" ? "default" : "secondary"}>{user.user_type}</Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Mail className="h-3 w-3" />
+                          {user.email}
+                        </div>
+                        {user.phone && (
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Phone className="h-3 w-3" />
+                            {user.phone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {user.city && (
+                          <div className="flex items-center gap-1 text-sm">
+                            <MapPin className="h-3 w-3" />
+                            {user.city}
+                          </div>
+                        )}
+                        {user.district && <div className="text-sm text-gray-600">{user.district}</div>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {user.goal && (
+                          <Badge variant="outline" className={goalColors[user.goal] || "bg-gray-100 text-gray-800"}>
+                            {user.goal}
+                          </Badge>
+                        )}
+                        {user.user_type === "trainer" && user.numClients && (
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Users className="h-3 w-3" />
+                            {user.numClients} clients
+                          </div>
+                        )}
+                        {user.startTime && (
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Clock className="h-3 w-3" />
+                            {user.startTime}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <span>{sourceIcons[user.source] || "❓"}</span>
+                        <span className="text-sm capitalize">{user.source.replace("-", " ")}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={user.status === "accepted" ? "default" : "secondary"}
+                        className={
+                          user.status === "accepted"
+                            ? "bg-green-100 text-green-800"
+                            : user.status === "rejected"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
+                        }
+                      >
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        {new Date(user.createdAt).toLocaleDateString("de-DE")}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8 text-gray-500">No users found matching your filters.</div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

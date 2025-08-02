@@ -249,48 +249,9 @@ async function testEnvironmentSetup() {
   }
 }
 
-async function createTestEndpoint() {
-  console.log("🛠️  Creating test endpoint for waitlist action...\n")
-
-  // We need to create a test API endpoint that calls our server action
-  const testEndpointCode = `
-import { NextRequest, NextResponse } from "next/server"
-import { joinWaitlist } from "@/actions/waitlist-actions"
-
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData()
-    const result = await joinWaitlist(formData)
-    
-    return NextResponse.json(result)
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : String(error) 
-      },
-      { status: 500 }
-    )
-  }
-}
-`
-
-  console.log("Test endpoint code ready. You'll need to create:")
-  console.log("app/api/test-waitlist/route.ts")
-  console.log("\nEndpoint code:")
-  console.log(testEndpointCode)
-
-  return true
-}
-
 async function runCompleteTests() {
   console.log("🚀 Starting Munich Form Complete Flow Tests\n")
   console.log("=".repeat(80))
-
-  // Create test endpoint info
-  await createTestEndpoint()
-
-  console.log("\n" + "=".repeat(80))
 
   // Test environment first
   const envOk = await testEnvironmentSetup()
