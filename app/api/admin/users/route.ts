@@ -1,87 +1,150 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-import { credential } from "firebase-admin"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore"
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  try {
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
-
-    if (!privateKey || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PROJECT_ID) {
-      console.error("Missing Firebase Admin credentials")
-    } else {
-      initializeApp({
-        credential: credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: privateKey,
-        }),
-      })
-      console.log("Firebase Admin initialized successfully")
-    }
-  } catch (error) {
-    console.error("Firebase Admin initialization error:", error)
-  }
+interface PotentialUser {
+  id: string
+  email: string
+  phone?: string
+  city?: string
+  user_type: string
+  status: string
+  created_at: string
+  numClients?: number
+  plan?: string
+  source?: string
+  // NEW: Munich-specific fields
+  name?: string
+  goal?: string
+  district?: string
+  startTime?: string
+  origin?: string
 }
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("Fetching users from admin API...")
+    console.log("Admin users API called")
+    console.log("Firebase config available:", hasRealFirebaseConfig)
+    console.log("Database instance:", !!db)
 
-    // Check if Firebase Admin is properly configured
-    if (!getApps().length) {
-      console.log("Firebase Admin not configured, returning mock data")
+    // If we don't have real Firebase config, return mock data
+    if (!hasRealFirebaseConfig || !db) {
+      console.log("Using mock Firebase configuration - returning sample data")
+      const mockUsers: PotentialUser[] = [
+        {
+          id: "mock-1",
+          email: "john.doe@example.com",
+          phone: "+49 123 456789",
+          city: "München",
+          district: "Schwabing-West",
+          user_type: "client",
+          status: "waitlist",
+          created_at: new Date().toISOString(),
+          name: "John Doe",
+          goal: "Muskelaufbau",
+          startTime: "sofort",
+          source: "munich-landing",
+          origin: "https://juice-website.vercel.app/personal-training-muenchen",
+        },
+        {
+          id: "mock-2",
+          email: "maria.trainer@example.com",
+          phone: "+49 987 654321",
+          city: "München",
+          district: "Maxvorstadt",
+          user_type: "trainer",
+          status: "waitlist",
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          name: "Maria Schmidt",
+          numClients: 15,
+          plan: "pro",
+          source: "trainer-signup",
+        },
+      ]
+
       return NextResponse.json({
-        users: [
-          {
-            id: "mock-1",
-            email: "mock@example.com",
-            phone: "+1234567890",
-            city: "Mock City",
-            user_type: "client",
-            status: "waitlist",
-            created_at: new Date().toISOString(),
-            numClients: null,
-          },
-        ],
+        success: true,
+        users: mockUsers,
+        message: "Mock data (Firebase not configured)",
       })
     }
 
-    const db = getFirestore()
+    // Check if Firebase db is properly initialized
+    if (!db || typeof db.app === "undefined") {
+      console.error("Firebase database not properly initialized")
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Firebase database not properly initialized",
+          users: [],
+        },
+        { status: 500 },
+      )
+    }
 
-    // Fetch all potential users
-    const usersSnapshot = await db.collection("potential_users").get()
+    console.log("Fetching users from Firebase...")
 
-    console.log(`Found ${usersSnapshot.size} users in database`)
+    // Get users from Firebase
+    const potentialUsersRef = collection(db, "potential_users")
+    const usersQuery = query(potentialUsersRef, orderBy("createdAt", "desc"))
+    const querySnapshot = await getDocs(usersQuery)
 
-    const users = usersSnapshot.docs.map((doc) => {
+    console.log("Query snapshot size:", querySnapshot.size)
+
+    const users: PotentialUser[] = []
+    querySnapshot.forEach((doc) => {
       const data = doc.data()
-      console.log("User data from Firestore:", data)
+      console.log("Processing document:", doc.id, data)
 
-      return {
-        id: doc.id,
-        email: data.email || "N/A",
-        phone: data.phone || "N/A",
-        city: data.city || "N/A",
-        user_type: data.user_type || "unknown",
-        status: data.status || "unknown",
-        created_at: data.createdAt?.toDate?.()?.toISOString() || data.signUpDate || new Date().toISOString(),
-        numClients: data.numClients || null,
-        plan: data.plan || "unknown",
-        source: data.source || "unknown",
+      // Handle Firestore Timestamp
+      let createdAt = new Date().toISOString()
+      if (data.createdAt) {
+        if (data.createdAt instanceof Timestamp) {
+          createdAt = data.createdAt.toDate().toISOString()
+        } else if (typeof data.createdAt === "string") {
+          createdAt = data.createdAt
+        } else if (data.signUpDate) {
+          createdAt = data.signUpDate
+        }
       }
+
+      const user: PotentialUser = {
+        id: doc.id,
+        email: data.email || "",
+        phone: data.phone || "",
+        city: data.city || "",
+        district: data.district || "", // NEW field
+        user_type: data.user_type || "client",
+        status: data.status || "waitlist",
+        created_at: createdAt,
+        numClients: data.numClients || undefined,
+        plan: data.plan || "",
+        source: data.source || "",
+        // NEW: Munich-specific fields
+        name: data.name || "",
+        goal: data.goal || "",
+        startTime: data.startTime || "",
+        origin: data.origin || "",
+      }
+
+      users.push(user)
     })
 
-    console.log("Processed users:", users)
+    console.log("Processed users:", users.length)
 
-    return NextResponse.json({ users })
+    return NextResponse.json({
+      success: true,
+      users: users,
+      count: users.length,
+    })
   } catch (error) {
     console.error("Error fetching users:", error)
+
     return NextResponse.json(
       {
-        error: "Failed to fetch users",
-        details: error instanceof Error ? error.message : String(error),
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+        users: [],
       },
       { status: 500 },
     )

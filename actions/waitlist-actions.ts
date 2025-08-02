@@ -37,7 +37,13 @@ export async function joinWaitlist(formData: FormData) {
     const numClients = formData.get("numClients") as string
     const userType = formData.get("user_type") as string
 
-    console.log("Extracted data:", { email, city, phone, plan, userType, numClients })
+    // NEW: Munich-specific fields
+    const name = formData.get("name") as string
+    const goal = formData.get("goal") as string
+    const district = formData.get("district") as string
+    const startTime = formData.get("startTime") as string
+
+    console.log("Extracted data:", { email, city, phone, plan, userType, numClients, name, goal, district, startTime })
 
     // Get origin if possible
     let origin = ""
@@ -58,8 +64,8 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
-    // Validate phone
-    if (!phone || phone.trim().length < 8) {
+    // Validate phone (optional for Munich form)
+    if (phone && phone.trim().length > 0 && phone.trim().length < 8) {
       console.log("Phone validation failed")
       return {
         success: false,
@@ -131,7 +137,7 @@ export async function joinWaitlist(formData: FormData) {
     // Create waitlist entry with additional metadata
     const waitlistData: { [key: string]: any } = {
       email: email.toLowerCase().trim(),
-      phone: phone.trim(),
+      phone: phone?.trim() || "",
       city: city.trim(),
       plan: standardizePlan(plan || "unknown", userType),
       message: message || "",
@@ -142,6 +148,12 @@ export async function joinWaitlist(formData: FormData) {
       signUpDate: new Date().toISOString(),
       origin,
       fromWaitlist: true,
+
+      // NEW: Munich-specific fields
+      name: name?.trim() || "",
+      goal: goal || "",
+      district: district || "",
+      startTime: startTime || "",
     }
 
     // Add numClients only if it's provided (i.e., for trainers)

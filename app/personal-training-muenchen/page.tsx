@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import MunichPersonalTrainingClientPage from "./MunichPersonalTrainingClientPage"
 
 export const metadata: Metadata = {
-  title: "Personal Training München | Finde deinen passenden Fitness Coach",
+  title: "Personal Training München - Finde deinen passenden Coach | Juice",
   description:
-    "Personal Trainer in München finden ✓ Kostenloses Probetraining ✓ Alle Stadtteile ✓ Muskelaufbau, Abnehmen, Gesundheit ✓ Erfahrene Coaches für Anfänger & Fortgeschrittene",
+    "Personal Trainer in München finden ✓ Gratis Probetraining ✓ Alle Stadtteile ✓ Anfänger bis Fortgeschrittene ✓ Muskelaufbau, Abnehmen, Gesundheit",
   keywords: [
     "personal trainer münchen",
     "fitnesscoach münchen",
@@ -16,35 +16,32 @@ export const metadata: Metadata = {
     "krafttraining münchen",
     "abnehmen münchen",
     "gesundheitstraining münchen",
-    "haltungstraining münchen",
-    "bewegungsanalyse münchen",
-  ].join(", "),
+  ],
   openGraph: {
-    title: "Personal Training München | Finde deinen passenden Fitness Coach",
+    title: "Personal Training München - Finde deinen passenden Coach",
     description:
-      "Personal Trainer in München finden ✓ Kostenloses Probetraining ✓ Alle Stadtteile ✓ Muskelaufbau, Abnehmen, Gesundheit ✓ Erfahrene Coaches für Anfänger & Fortgeschrittene",
-    url: "https://juiceapp.com/personal-training-muenchen",
+      "Personal Trainer in München finden ✓ Gratis Probetraining ✓ Alle Stadtteile ✓ Anfänger bis Fortgeschrittene",
+    url: "https://juice-website.vercel.app/personal-training-muenchen",
     siteName: "Juice",
+    locale: "de_DE",
+    type: "website",
     images: [
       {
-        url: "/images/juice-og-image.png",
+        url: "/images/munich-personal-training-og.jpg",
         width: 1200,
         height: 630,
         alt: "Personal Training München - Juice",
       },
     ],
-    locale: "de_DE",
-    type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Personal Training München | Finde deinen passenden Fitness Coach",
-    description:
-      "Personal Trainer in München finden ✓ Kostenloses Probetraining ✓ Alle Stadtteile ✓ Muskelaufbau, Abnehmen, Gesundheit",
-    images: ["/images/juice-og-image.png"],
+    title: "Personal Training München - Finde deinen passenden Coach",
+    description: "Personal Trainer in München finden ✓ Gratis Probetraining ✓ Alle Stadtteile",
+    images: ["/images/munich-personal-training-og.jpg"],
   },
   alternates: {
-    canonical: "https://juiceapp.com/personal-training-muenchen",
+    canonical: "https://juice-website.vercel.app/personal-training-muenchen",
   },
   robots: {
     index: true,
@@ -59,6 +56,6 @@ export const metadata: Metadata = {
   },
 }
 
-export default function PersonalTrainingMunichPage() {
+export default function MunichPersonalTrainingPage() {
   return <MunichPersonalTrainingClientPage />
 }

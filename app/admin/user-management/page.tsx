@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, RefreshCw, ArrowLeft } from "lucide-react"
+import { Loader2, RefreshCw, ArrowLeft, MapPin, Target, Clock, Globe } from "lucide-react"
 import Link from "next/link"
 
 interface PotentialUser {
@@ -12,12 +12,18 @@ interface PotentialUser {
   email: string
   phone?: string
   city?: string
+  district?: string // NEW field
   user_type: string
   status: string
   created_at: string
   numClients?: number
   plan?: string
   source?: string
+  // NEW: Munich-specific fields
+  name?: string
+  goal?: string
+  startTime?: string
+  origin?: string
 }
 
 export default function UserManagementPage() {
@@ -119,6 +125,59 @@ export default function UserManagementPage() {
     }
   }
 
+  const getSourceBadge = (source?: string, origin?: string) => {
+    if (origin?.includes("personal-training-muenchen")) {
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800">
+          München Landing
+        </Badge>
+      )
+    }
+    if (source === "munich-landing") {
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800">
+          München
+        </Badge>
+      )
+    }
+    if (source === "trainer-signup") {
+      return (
+        <Badge variant="outline" className="bg-purple-100 text-purple-800">
+          Trainer Signup
+        </Badge>
+      )
+    }
+    if (source === "website_waitlist") {
+      return (
+        <Badge variant="outline" className="bg-gray-100 text-gray-800">
+          Website
+        </Badge>
+      )
+    }
+    return <Badge variant="outline">Unknown</Badge>
+  }
+
+  const getGoalBadge = (goal?: string) => {
+    if (!goal) return null
+
+    const goalColors: { [key: string]: string } = {
+      Muskelaufbau: "bg-orange-100 text-orange-800",
+      "Abnehmen & Körperfett reduzieren": "bg-red-100 text-red-800",
+      "Gesundheit & Wohlbefinden": "bg-green-100 text-green-800",
+      "Haltung verbessern": "bg-blue-100 text-blue-800",
+      "Kraft & Leistung steigern": "bg-purple-100 text-purple-800",
+      "Rücken stärken": "bg-indigo-100 text-indigo-800",
+      "Einstieg ins Training": "bg-yellow-100 text-yellow-800",
+    }
+
+    return (
+      <Badge variant="outline" className={goalColors[goal] || "bg-gray-100 text-gray-800"}>
+        <Target className="h-3 w-3 mr-1" />
+        {goal}
+      </Badge>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
@@ -166,59 +225,132 @@ export default function UserManagementPage() {
             ) : users.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No users found in the waitlist.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-3 font-semibold">Email</th>
-                      <th className="text-left p-3 font-semibold">Phone</th>
-                      <th className="text-left p-3 font-semibold">City</th>
-                      <th className="text-left p-3 font-semibold">User Type</th>
-                      <th className="text-left p-3 font-semibold">Clients</th>
-                      <th className="text-left p-3 font-semibold">Status</th>
-                      <th className="text-left p-3 font-semibold">Created At</th>
-                      <th className="text-left p-3 font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id} className="border-b hover:bg-gray-50">
-                        <td className="p-3">{user.email}</td>
-                        <td className="p-3">{user.phone || "N/A"}</td>
-                        <td className="p-3">{user.city || "N/A"}</td>
-                        <td className="p-3">{getUserTypeBadge(user.user_type)}</td>
-                        <td className="p-3">
-                          {user.user_type === "trainer" && user.numClients
-                            ? user.numClients
-                            : user.user_type === "trainer"
-                              ? "0"
-                              : "-"}
-                        </td>
-                        <td className="p-3">{getStatusBadge(user.status)}</td>
-                        <td className="p-3">
-                          {new Date(user.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </td>
-                        <td className="p-3">
-                          {user.status === "waitlist" && (
-                            <Button
-                              onClick={() => handleAcceptUser(user.id)}
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              Accept
-                            </Button>
-                          )}
-                        </td>
+              <div className="space-y-4">
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-3 font-semibold">User</th>
+                        <th className="text-left p-3 font-semibold">Contact</th>
+                        <th className="text-left p-3 font-semibold">Location</th>
+                        <th className="text-left p-3 font-semibold">Details</th>
+                        <th className="text-left p-3 font-semibold">Status</th>
+                        <th className="text-left p-3 font-semibold">Source</th>
+                        <th className="text-left p-3 font-semibold">Created</th>
+                        <th className="text-left p-3 font-semibold">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id} className="border-b hover:bg-gray-50">
+                          <td className="p-3">
+                            <div>
+                              <div className="font-medium">{user.name || user.email.split("@")[0]}</div>
+                              <div className="text-sm text-gray-500">{getUserTypeBadge(user.user_type)}</div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="text-sm">
+                              <div>{user.email}</div>
+                              {user.phone && <div className="text-gray-500">{user.phone}</div>}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-1 text-sm">
+                              <MapPin className="h-3 w-3 text-gray-400" />
+                              <span>{user.city}</span>
+                              {user.district && <span className="text-gray-500">({user.district})</span>}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="space-y-1">
+                              {user.goal && getGoalBadge(user.goal)}
+                              {user.user_type === "trainer" && user.numClients && (
+                                <div className="text-xs text-gray-500">{user.numClients} clients</div>
+                              )}
+                              {user.startTime && (
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                  <Clock className="h-3 w-3" />
+                                  {user.startTime}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3">{getStatusBadge(user.status)}</td>
+                          <td className="p-3">{getSourceBadge(user.source, user.origin)}</td>
+                          <td className="p-3 text-sm">
+                            {new Date(user.created_at).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </td>
+                          <td className="p-3">
+                            {user.status === "waitlist" && (
+                              <Button
+                                onClick={() => handleAcceptUser(user.id)}
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                Accept
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-4">
+                  {users.map((user) => (
+                    <Card key={user.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{user.name || user.email.split("@")[0]}</div>
+                            <div className="text-sm text-gray-500">{user.email}</div>
+                            {user.phone && <div className="text-sm text-gray-500">{user.phone}</div>}
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            {getUserTypeBadge(user.user_type)}
+                            {getStatusBadge(user.status)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 text-sm">
+                          <MapPin className="h-3 w-3 text-gray-400" />
+                          <span>{user.city}</span>
+                          {user.district && <span className="text-gray-500">({user.district})</span>}
+                        </div>
+
+                        {user.goal && <div>{getGoalBadge(user.goal)}</div>}
+
+                        <div className="flex justify-between items-center text-sm">
+                          <div className="flex items-center gap-1">
+                            <Globe className="h-3 w-3 text-gray-400" />
+                            {getSourceBadge(user.source, user.origin)}
+                          </div>
+                          <div className="text-gray-500">{new Date(user.created_at).toLocaleDateString()}</div>
+                        </div>
+
+                        {user.status === "waitlist" && (
+                          <Button
+                            onClick={() => handleAcceptUser(user.id)}
+                            size="sm"
+                            className="w-full bg-green-600 hover:bg-green-700"
+                          >
+                            Accept User
+                          </Button>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
