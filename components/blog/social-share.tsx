@@ -13,27 +13,29 @@ interface SocialShareProps {
 export function SocialShare({ title, url, excerpt }: SocialShareProps) {
   const [copied, setCopied] = useState(false)
 
-  const shareText = excerpt || title
-  const encodedTitle = encodeURIComponent(title)
-  const encodedUrl = encodeURIComponent(url)
-  const encodedText = encodeURIComponent(shareText)
-
-  // OLD DEPRECATED METHOD - This is the problem!
-  // const shareLinks = {
-  //   linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedText}`,
-  // }
-
-  // NEW MODERN METHOD - Using compose URL with pre-filled text
+  // Create professional LinkedIn post format
   const linkedInText = `${title}
 
-${shareText}
+${excerpt || title}
 
 Read more: ${url}
 
 #FitnessCoaching #PersonalTraining #FitnessTech`
 
+  // Validate text length (LinkedIn has ~3000 char limit)
+  const finalLinkedInText =
+    linkedInText.length > 2800
+      ? `${title}
+
+${(excerpt || title).substring(0, 200)}...
+
+Read more: ${url}
+
+#FitnessCoaching #PersonalTraining #FitnessTech`
+      : linkedInText
+
   const shareLinks = {
-    linkedin: `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(linkedInText)}`,
+    linkedin: `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(finalLinkedInText)}`,
   }
 
   const copyToClipboard = async () => {
@@ -47,7 +49,11 @@ Read more: ${url}
       try {
         const textArea = document.createElement("textarea")
         textArea.value = url
+        textArea.style.position = "fixed"
+        textArea.style.left = "-999999px"
+        textArea.style.top = "-999999px"
         document.body.appendChild(textArea)
+        textArea.focus()
         textArea.select()
         document.execCommand("copy")
         document.body.removeChild(textArea)
@@ -61,8 +67,20 @@ Read more: ${url}
 
   const handleLinkedInShare = () => {
     try {
-      const newWindow = window.open(shareLinks.linkedin, "_blank", "noopener,noreferrer")
-      if (!newWindow) {
+      // Validate URL before opening
+      if (!shareLinks.linkedin || shareLinks.linkedin.length > 8192) {
+        console.error("LinkedIn URL too long or invalid")
+        copyToClipboard()
+        return
+      }
+
+      const newWindow = window.open(
+        shareLinks.linkedin,
+        "_blank",
+        "noopener,noreferrer,width=600,height=600,scrollbars=yes,resizable=yes",
+      )
+
+      if (!newWindow || newWindow.closed || typeof newWindow.closed == "undefined") {
         // Popup blocked - fallback to copying URL
         console.warn("LinkedIn sharing popup blocked, falling back to copy URL")
         copyToClipboard()
