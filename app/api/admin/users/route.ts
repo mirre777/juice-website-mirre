@@ -1,113 +1,103 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
-import { collection, getDocs, query, orderBy } from "firebase/firestore"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { collection, getDocs, orderBy, query } from "firebase/firestore"
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("Fetching users from Firebase...")
+    console.log("Admin users API called")
+    console.log("Has real Firebase config:", hasRealFirebaseConfig)
+    console.log("Database instance:", !!db)
+
+    // If no real Firebase config, return mock data
+    if (!hasRealFirebaseConfig || !db) {
+      console.log("Using mock data for admin users")
+
+      const mockUsers = [
+        {
+          id: "mock-1",
+          email: "test@example.com",
+          name: "Test User",
+          phone: "+49 89 123456789",
+          city: "München",
+          district: "Maxvorstadt",
+          goal: "muskelaufbau",
+          startTime: "sofort",
+          user_type: "client",
+          plan: "personal-training-munich",
+          source: "munich-landing-page",
+          status: "waitlist",
+          createdAt: { seconds: Date.now() / 1000 },
+          signUpDate: new Date().toISOString(),
+        },
+        {
+          id: "mock-2",
+          email: "trainer@example.com",
+          name: "Test Trainer",
+          phone: "+49 89 987654321",
+          city: "München",
+          user_type: "trainer",
+          plan: "pro",
+          numClients: 15,
+          source: "trainer-signup",
+          status: "waitlist",
+          createdAt: { seconds: (Date.now() - 86400000) / 1000 },
+          signUpDate: new Date(Date.now() - 86400000).toISOString(),
+        },
+      ]
+
+      return NextResponse.json({
+        success: true,
+        users: mockUsers,
+        count: mockUsers.length,
+        message: "Mock data (Firebase not configured)",
+      })
+    }
 
     // Try to fetch from Firebase
-    const waitlistRef = collection(db, "waitlist")
-    const q = query(waitlistRef, orderBy("createdAt", "desc"))
-    const querySnapshot = await getDocs(q)
+    try {
+      console.log("Fetching users from Firebase...")
 
-    const users = querySnapshot.docs.map((doc) => {
-      const data = doc.data()
-      return {
+      const usersRef = collection(db, "potential_users")
+      const q = query(usersRef, orderBy("createdAt", "desc"))
+      const querySnapshot = await getDocs(q)
+
+      const users = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        name: data.name || null,
-        email: data.email,
-        phone: data.phone || null,
-        city: data.city || null,
-        user_type: data.user_type || "client",
-        plan: data.plan || null,
-        numClients: data.numClients || null,
-        goal: data.goal || null,
-        district: data.district || null,
-        startTime: data.startTime || null,
-        message: data.message || null,
-        source: data.source || "general",
-        status: data.status || "pending",
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      }
-    })
+        ...doc.data(),
+      }))
 
-    console.log(`Successfully fetched ${users.length} users from Firebase`)
+      console.log(`Found ${users.length} users in Firebase`)
 
-    return NextResponse.json({
-      success: true,
-      users,
-      count: users.length,
-    })
+      return NextResponse.json({
+        success: true,
+        users,
+        count: users.length,
+      })
+    } catch (firebaseError) {
+      console.error("Firebase error:", firebaseError)
+
+      // Return error with details
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Firebase error: ${firebaseError instanceof Error ? firebaseError.message : String(firebaseError)}`,
+          users: [],
+          count: 0,
+        },
+        { status: 500 },
+      )
+    }
   } catch (error) {
-    console.error("Error fetching users from Firebase:", error)
+    console.error("Admin users API error:", error)
 
-    // Fallback: Return mock data for development
-    const mockUsers = [
+    return NextResponse.json(
       {
-        id: "mock_1",
-        name: "Max Mustermann",
-        email: "max@example.com",
-        phone: "+49 89 123456789",
-        city: "München",
-        user_type: "client" as const,
-        plan: "personal-training-munich",
-        numClients: null,
-        goal: "muskelaufbau",
-        district: "Schwabing-West",
-        startTime: "1-2-wochen",
-        message: "Ich möchte endlich richtig mit dem Training anfangen!",
-        source: "munich-landing-page",
-        status: "pending" as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+        users: [],
+        count: 0,
       },
-      {
-        id: "mock_2",
-        name: "Anna Schmidt",
-        email: "anna@example.com",
-        phone: null,
-        city: "München",
-        user_type: "client" as const,
-        plan: "personal-training-munich",
-        numClients: null,
-        goal: "abnehmen",
-        district: "Maxvorstadt",
-        startTime: "sofort",
-        message: null,
-        source: "munich-landing-page",
-        status: "contacted" as const,
-        createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        updatedAt: new Date(Date.now() - 86400000).toISOString(),
-      },
-      {
-        id: "mock_3",
-        name: "Thomas Trainer",
-        email: "thomas@example.com",
-        phone: "+49 89 987654321",
-        city: "Berlin",
-        user_type: "trainer" as const,
-        plan: "coach",
-        numClients: 15,
-        goal: null,
-        district: null,
-        startTime: null,
-        message: "Ich bin erfahrener Personal Trainer und möchte mehr Kunden gewinnen.",
-        source: "general",
-        status: "converted" as const,
-        createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-        updatedAt: new Date(Date.now() - 172800000).toISOString(),
-      },
-    ]
-
-    console.log("Using mock data:", mockUsers.length, "users")
-
-    return NextResponse.json({
-      success: true,
-      users: mockUsers,
-      count: mockUsers.length,
-      note: "Using mock data due to Firebase connection issues",
-    })
+      { status: 500 },
+    )
   }
 }

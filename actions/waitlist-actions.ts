@@ -1,74 +1,106 @@
 "use server"
 
-import { db } from "@/firebase"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
+import { headers } from "next/headers"
 
-export async function joinWaitlist(formData: FormData | null) {
-  console.log("joinWaitlist called with:", formData ? Object.fromEntries(formData.entries()) : "null formData")
+// Helper function to standardize plan values
+function standardizePlan(plan: string, userType: string): string {
+  // For trainers
+  if (userType === "trainer" || userType === "coach") {
+    if (plan === "coach") {
+      return "pro"
+    } else if (["pro", "elite"].includes(plan)) {
+      return plan
+    }
+    return "pro" // Default for trainers
+  }
+  // For clients
+  else {
+    if (["basic", "premium"].includes(plan)) {
+      return plan
+    }
+    return "basic" // Default for clients
+  }
+}
 
+export async function joinWaitlist(formData: FormData) {
+  console.log("Server action called with formData:", formData)
+
+  // Check if formData is null or undefined
   if (!formData) {
-    console.error("FormData is null")
+    console.error("FormData is null or undefined")
     return {
       success: false,
-      message: "Keine Daten empfangen. Bitte versuche es erneut.",
-      error: "FormData is null",
+      message: "Formulardaten fehlen. Bitte versuche es erneut.",
     }
   }
 
   try {
-    // Extract form data with proper validation
-    const email = formData.get("email")?.toString()?.trim()
-    const name = formData.get("name")?.toString()?.trim()
-    const phone = formData.get("phone")?.toString()?.trim()
-    const city = formData.get("city")?.toString()?.trim()
-    const userType = formData.get("user_type")?.toString()?.trim()
-    const plan = formData.get("plan")?.toString()?.trim()
-    const numClients = formData.get("numClients")?.toString()?.trim()
+    // Convert FormData to object for logging
+    const formEntries = Object.fromEntries(formData.entries())
+    console.log("Form entries:", formEntries)
+
+    // Extract form data with null checks
+    const email = formData.get("email")?.toString() || ""
+    const city = formData.get("city")?.toString() || ""
+    const phone = formData.get("phone")?.toString() || ""
+    const plan = formData.get("plan")?.toString() || ""
+    const message = formData.get("message")?.toString() || ""
+    const numClients = formData.get("numClients")?.toString() || ""
+    const userType = formData.get("user_type")?.toString() || "client"
 
     // Munich-specific fields
-    const goal = formData.get("goal")?.toString()?.trim()
-    const district = formData.get("district")?.toString()?.trim()
-    const startTime = formData.get("startTime")?.toString()?.trim()
-    const message = formData.get("message")?.toString()?.trim()
+    const name = formData.get("name")?.toString() || ""
+    const goal = formData.get("goal")?.toString() || ""
+    const district = formData.get("district")?.toString() || ""
+    const startTime = formData.get("startTime")?.toString() || ""
 
     console.log("Extracted data:", {
       email,
-      name,
-      phone,
       city,
-      userType,
+      phone,
       plan,
+      userType,
       numClients,
+      name,
       goal,
       district,
       startTime,
-      message,
     })
 
-    // Validation
-    if (!email || !email.includes("@")) {
+    // Get origin if possible
+    let origin = ""
+    try {
+      const headersList = headers()
+      origin = headersList.get("origin") || ""
+      console.log("Request origin:", origin)
+    } catch (e) {
+      console.error("Could not get headers:", e)
+    }
+
+    // Validate required fields
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      console.log("Email validation failed")
       return {
         success: false,
         message: "Bitte gib eine gültige E-Mail-Adresse ein.",
-        error: "Invalid email",
       }
     }
 
-    if (!name || name.length < 2) {
-      return {
-        success: false,
-        message: "Bitte gib deinen Namen ein (mindestens 2 Zeichen).",
-        error: "Invalid name",
+    // For Munich clients, validate additional required fields
+    if (userType === "client" && city === "München") {
+      if (!name || name.trim().length < 2) {
+        return {
+          success: false,
+          message: "Bitte gib deinen Namen ein (mindestens 2 Zeichen).",
+        }
       }
-    }
 
-    // Munich-specific validation
-    if (city === "München") {
       if (!goal) {
         return {
           success: false,
           message: "Bitte wähle dein Trainingsziel aus.",
-          error: "Missing goal",
         }
       }
 
@@ -76,7 +108,6 @@ export async function joinWaitlist(formData: FormData | null) {
         return {
           success: false,
           message: "Bitte wähle deinen Stadtteil aus.",
-          error: "Missing district",
         }
       }
 
@@ -84,78 +115,158 @@ export async function joinWaitlist(formData: FormData | null) {
         return {
           success: false,
           message: "Bitte wähle deinen gewünschten Startzeitpunkt aus.",
-          error: "Missing start time",
         }
       }
     }
 
-    // Phone validation (if provided)
-    if (phone && phone.length > 0 && phone.length < 8) {
+    // Validate phone (optional, but if provided must be valid)
+    if (phone && phone.trim().length > 0 && phone.trim().length < 8) {
+      console.log("Phone validation failed")
       return {
         success: false,
         message: "Bitte gib eine gültige Telefonnummer ein oder lass das Feld leer.",
-        error: "Invalid phone",
       }
     }
 
-    // Prepare data for storage
-    const waitlistData = {
-      email,
-      name,
-      phone: phone || null,
-      city: city || null,
-      user_type: userType || "client",
-      plan: plan || null,
-      numClients: numClients ? Number.parseInt(numClients) : null,
-      goal: goal || null,
-      district: district || null,
-      startTime: startTime || null,
-      message: message || null,
-      source: city === "München" ? "munich-landing-page" : "general",
-      status: "pending",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    // Validate city
+    if (!city || city.trim().length < 2) {
+      console.log("City validation failed")
+      return {
+        success: false,
+        message: "Stadt ist erforderlich.",
+      }
     }
 
-    console.log("Data to be stored:", waitlistData)
+    // Validate user type
+    if (!userType || !["client", "trainer"].includes(userType)) {
+      console.log("User type validation failed:", userType)
+      return {
+        success: false,
+        message: "Bitte wähle aus, ob du Client oder Trainer bist.",
+      }
+    }
 
-    // Try to save to Firebase
+    // If we don't have real Firebase config, simulate success
+    if (!hasRealFirebaseConfig || !db) {
+      console.log("Using mock Firebase configuration - simulating success")
+      // Simulate a delay like a real database call
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      return {
+        success: true,
+        message:
+          "Perfekt! Wir melden uns in den nächsten 24 Stunden bei dir mit passenden Trainer-Vorschlägen. (Preview Mode)",
+      }
+    }
+
+    // Check if Firebase db is properly initialized
+    if (!db || typeof db.app === "undefined") {
+      console.error("Firebase database not properly initialized:", db)
+      return {
+        success: false,
+        message: "Datenbankverbindung fehlgeschlagen. Bitte versuche es später erneut.",
+        error: "Firebase database not initialized",
+      }
+    }
+
+    // Check if email already exists in the waitlist
     try {
-      const docRef = await addDoc(collection(db, "waitlist"), waitlistData)
-      console.log("Document written with ID: ", docRef.id)
+      const potentialUsersRef = collection(db, "potential_users")
+      const emailQuery = query(potentialUsersRef, where("email", "==", email.toLowerCase().trim()))
+      const querySnapshot = await getDocs(emailQuery)
 
-      return {
-        success: true,
-        message:
-          city === "München"
-            ? "Perfekt! Wir haben deine Anfrage erhalten und werden dir in den nächsten 24 Stunden zwei passende Trainer*innen vorschlagen."
-            : "Vielen Dank! Du bist jetzt auf der Warteliste. Wir melden uns bald bei dir.",
-        alreadyExists: false,
+      if (!querySnapshot.empty) {
+        console.log("Email already exists in waitlist:", email)
+        return {
+          success: true,
+          message: "Du stehst bereits auf unserer Liste! Wir melden uns, sobald wir starten.",
+          alreadyExists: true,
+        }
       }
-    } catch (firebaseError) {
-      console.error("Firebase error:", firebaseError)
+    } catch (queryError) {
+      console.error("Error checking existing email:", queryError)
+      // Continue with registration if query fails
+    }
 
-      // Fallback: Create mock data for development
-      const mockData = {
-        id: `mock_${Date.now()}`,
-        ...waitlistData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+    console.log("Setting user_type to:", userType)
+
+    // Determine source based on form data
+    let source = "website_waitlist"
+    if (city === "München" && goal) {
+      source = "munich-landing-page"
+    } else if (userType === "trainer") {
+      source = "trainer-signup"
+    }
+
+    // Create waitlist entry with additional metadata
+    const waitlistData: { [key: string]: any } = {
+      email: email.toLowerCase().trim(),
+      phone: phone?.trim() || "",
+      city: city.trim(),
+      plan: standardizePlan(plan || "unknown", userType),
+      message: message || "",
+      createdAt: serverTimestamp(),
+      status: "waitlist",
+      source: source,
+      user_type: userType,
+      signUpDate: new Date().toISOString(),
+      origin,
+      fromWaitlist: true,
+
+      // Munich-specific fields
+      name: name?.trim() || "",
+      goal: goal || "",
+      district: district || "",
+      startTime: startTime || "",
+    }
+
+    // Add numClients only if it's provided (i.e., for trainers)
+    if (numClients) {
+      const clientCount = Number.parseInt(numClients, 10)
+      if (!isNaN(clientCount) && clientCount >= 0) {
+        waitlistData.numClients = clientCount
       }
+    }
 
-      console.log("Using mock data:", mockData)
+    console.log("Saving to Firebase collection 'potential_users':", waitlistData)
 
-      return {
-        success: true,
-        message:
-          city === "München"
-            ? "Perfekt! Wir haben deine Anfrage erhalten und werden dir in den nächsten 24 Stunden zwei passende Trainer*innen vorschlagen."
-            : "Vielen Dank! Du bist jetzt auf der Warteliste. Wir melden uns bald bei dir.",
-        alreadyExists: false,
-      }
+    // Add to Firebase - using potential_users collection
+    const docRef = await addDoc(collection(db, "potential_users"), waitlistData)
+
+    console.log("Document written with ID:", docRef.id)
+
+    // Return success with appropriate message
+    const successMessage =
+      userType === "client" && city === "München"
+        ? "Perfekt! Wir melden uns in den nächsten 24 Stunden bei dir mit passenden Trainer-Vorschlägen."
+        : "Vielen Dank für deine Anmeldung! Wir melden uns bald bei dir."
+
+    return {
+      success: true,
+      message: successMessage,
     }
   } catch (error) {
-    console.error("Error in joinWaitlist:", error)
+    console.error("Error adding document:", error)
+
+    // Check if it's a Firebase initialization error
+    if (String(error).includes("collection") || String(error).includes("CollectionReference")) {
+      return {
+        success: false,
+        message: "Datenbankverbindung fehlgeschlagen. Bitte versuche es später erneut.",
+        error: "Firebase database not properly initialized. Please check your Firebase configuration.",
+      }
+    }
+
+    // Check if it's a permission error
+    if (String(error).includes("permission")) {
+      return {
+        success: false,
+        message: "Speichern in Datenbank nicht möglich. Bitte kontaktiere den Support.",
+        error:
+          "Firebase permission error. Make sure your security rules allow writes to the 'potential_users' collection.",
+      }
+    }
+
     return {
       success: false,
       message: "Es ist ein Fehler aufgetreten. Bitte versuche es erneut.",
