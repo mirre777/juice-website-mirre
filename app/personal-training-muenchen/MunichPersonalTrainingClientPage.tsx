@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,7 +11,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { MapPin, Users, Mail, CheckCircle, AlertCircle, Download, Star } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
+import {
+  MapPin,
+  Users,
+  Mail,
+  CheckCircle,
+  AlertCircle,
+  Download,
+  Star,
+  ArrowRight,
+  Activity,
+  Calendar,
+  MessageSquare,
+  Share2,
+} from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 
 const munichDistricts = [
@@ -62,6 +75,7 @@ const startTimes = [
 ]
 
 export default function MunichPersonalTrainingClientPage() {
+  const { setIsCoach } = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
   const [formData, setFormData] = useState({
@@ -74,9 +88,13 @@ export default function MunichPersonalTrainingClientPage() {
     message: "",
   })
 
+  // Set client mode by default for Munich page
+  useEffect(() => {
+    setIsCoach(false)
+  }, [setIsCoach])
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear any previous error when user starts typing
     if (submitResult && !submitResult.success) {
       setSubmitResult(null)
     }
@@ -91,7 +109,6 @@ export default function MunichPersonalTrainingClientPage() {
       const form = event.currentTarget
       const formDataObj = new FormData(form)
 
-      // Ensure required hidden fields are set
       formDataObj.set("user_type", "client")
       formDataObj.set("city", "München")
       formDataObj.set("plan", "personal-training-munich")
@@ -104,7 +121,6 @@ export default function MunichPersonalTrainingClientPage() {
       setSubmitResult(result)
 
       if (result.success) {
-        // Reset form on success
         setFormData({
           name: "",
           email: "",
@@ -128,207 +144,281 @@ export default function MunichPersonalTrainingClientPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
+    <main className="min-h-screen bg-black text-white">
+      <Navbar isHomePage={false} />
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="mb-8">
-            <Badge variant="outline" className="mb-4 bg-blue-100 text-blue-800 border-blue-200">
-              <MapPin className="h-4 w-4 mr-2" />
-              München
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Personal Training in <span className="text-blue-600">München</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-4">Der passende Coach für dich</p>
-            <p className="text-lg text-gray-600 mb-8 max-w-3xl mx-auto">
-              Egal ob du Anfänger bist oder im Training stagnierst – in München gibt's Trainer*innen, die dich verstehen
-              und weiterbringen.
+      {/* Hero Section - matching your main page style */}
+      <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-black">
+        {/* Background elements */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-juice/10 blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-juice/10 blur-3xl" />
+        </div>
+
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center space-y-4 text-center max-w-4xl mx-auto">
+            <div className="space-y-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mb-4"
+              >
+                <Badge variant="outline" className="bg-juice/20 text-juice border-juice/30 mb-6">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  München
+                </Badge>
+              </motion.div>
+
+              <h1 className="text-5xl font-bold text-center">
+                Personal Training in <span className="juice-text-gradient">München</span>
+              </h1>
+              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-white">Der passende Coach für dich</p>
+              <p className="mx-auto max-w-[600px] text-gray-400">
+                Egal ob du Anfänger bist oder im Training stagnierst – in München gibt's Trainer*innen, die dich
+                verstehen und weiterbringen.
+              </p>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-col sm:flex-row gap-4 mb-2 w-full sm:w-auto mx-auto"
+            >
+              <Button
+                size="lg"
+                className="bg-juice text-juice-foreground hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto"
+              >
+                Gratis Probetraining
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-zinc-700 hover:bg-zinc-800 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto bg-transparent"
+              >
+                <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                App downloaden
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - matching your existing style */}
+      <div className="pt-8 pb-0 bg-black maintain-scroll">
+        <div className="container px-4 md:px-6 pb-4">
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className="text-white font-medium mb-3">MÜNCHEN TRAINING</span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Zwei Wege zu deinem Ziel</h2>
+            <p className="text-gray-400 max-w-2xl">
+              Ob Einsteiger oder Fortgeschrittener – wir haben den passenden Ansatz für dich
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
-              <CheckCircle className="mr-2 h-5 w-5" />
-              Gratis Probetraining
-            </Button>
-            <Button variant="outline" size="lg" className="px-8 py-3 bg-transparent">
-              <Download className="mr-2 h-5 w-5" />
-              App downloaden
-            </Button>
+          <div className="grid grid-cols-1 gap-4 md:gap-6 max-w-4xl mx-auto">
+            {/* Beginners Card */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+              <div className="feature-card">
+                <div className="flex flex-col md:flex-row items-start">
+                  <div className="mr-4 mt-1">
+                    <Activity className="h-6 w-6 text-juice" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-white">🧍‍♂️ Keine Ahnung, wie du anfangen sollst?</h3>
+                    <p className="text-gray-400 mb-4">
+                      Viele Leute in München wollen fitter werden – aber Gym-Stress, Unsicherheit oder Rückenschmerzen
+                      halten sie ab. Unsere Coaches helfen beim Einstieg.
+                    </p>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        Kostenloses Probetraining
+                      </div>
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        Online-Beratung mit Fokus auf Gesundheit
+                      </div>
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        Einstieg mit Bewegungsanalyse & Haltungstraining
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Advanced Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <div className="feature-card">
+                <div className="flex flex-col md:flex-row items-start">
+                  <div className="mr-4 mt-1">
+                    <Calendar className="h-6 w-6 text-juice" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-white">
+                      🏋️‍♂️ Du trainierst hart, aber nichts passiert?
+                    </h3>
+                    <p className="text-gray-400 mb-4">
+                      Wenn du in München ernsthaft Kraft trainierst, aber stagnierst, brauchst du einen Coach mit Plan.
+                    </p>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        Maßgeschneiderte Programme
+                      </div>
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        Fokus auf progressive Overload
+                      </div>
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        App-Tracking und Analyse
+                      </div>
+                      <div className="flex items-center text-sm text-gray-300">
+                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        Wissen zu Hypertrophie, Regeneration & Ernährung
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary" className="bg-zinc-800 text-zinc-300">
+                        Muskelaufbau
+                      </Badge>
+                      <Badge variant="secondary" className="bg-zinc-800 text-zinc-300">
+                        Leistung
+                      </Badge>
+                      <Badge variant="secondary" className="bg-zinc-800 text-zinc-300">
+                        Technikanalyse
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Browse Option */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <div className="feature-card">
+                <div className="flex flex-col md:flex-row items-start">
+                  <div className="mr-4 mt-1">
+                    <MessageSquare className="h-6 w-6 text-juice" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-white">📱 Willst du erst mal stöbern?</h3>
+                    <p className="text-gray-400 mb-4">
+                      Hol dir die App. Klick dich durch Trainerprofile. Sag Bescheid, wenn du bereit bist.
+                    </p>
+                    <Button variant="outline" className="border-zinc-700 hover:bg-zinc-800 bg-transparent">
+                      <Download className="mr-2 h-4 w-4" />
+                      App downloaden
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Trainer Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <div className="feature-card">
+                <div className="flex flex-col md:flex-row items-start">
+                  <div className="mr-4 mt-1">
+                    <Share2 className="h-6 w-6 text-juice" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-white">Trainer*innen aus München</h3>
+                    <p className="text-gray-400 mb-4">
+                      Wir zeigen nur aktive Coaches in München. Filter möglich nach Stadtteil, Trainingsort und
+                      Spezialisierung.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge variant="outline" className="border-zinc-700 text-zinc-300">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        25 Stadtteile
+                      </Badge>
+                      <Badge variant="outline" className="border-zinc-700 text-zinc-300">
+                        <Users className="h-3 w-3 mr-1" />
+                        Studio & Outdoor
+                      </Badge>
+                      <Badge variant="outline" className="border-zinc-700 text-zinc-300">
+                        <Star className="h-3 w-3 mr-1" />
+                        Alle Levels
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
-      </section>
-
-      {/* Target Audience Sections */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* Beginners Section */}
-            <Card className="p-8 border-2 border-green-200 bg-green-50">
-              <CardContent className="p-0">
-                <div className="text-4xl mb-4">🧍‍♂️</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Keine Ahnung, wie du anfangen sollst?</h2>
-                <p className="text-gray-700 mb-6">
-                  Viele Leute in München wollen fitter werden – aber Gym-Stress, Unsicherheit oder Rückenschmerzen
-                  halten sie ab. Unsere Coaches helfen beim Einstieg.
-                </p>
-
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Kostenloses Probetraining</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Online-Beratung mit Fokus auf Gesundheit</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Einstieg mit Bewegungsanalyse & Haltungstraining</span>
-                  </div>
-                </div>
-
-                <div className="bg-green-100 rounded-lg p-4 border border-green-200">
-                  <p className="text-green-800 font-medium">
-                    💡 Formular ausfüllen – wir finden zwei Trainer*innen, die passen.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Advanced Section */}
-            <Card className="p-8 border-2 border-orange-200 bg-orange-50">
-              <CardContent className="p-0">
-                <div className="text-4xl mb-4">🏋️‍♂️</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Du trainierst hart, aber nichts passiert?</h2>
-                <p className="text-gray-700 mb-6">
-                  Wenn du in München ernsthaft Kraft trainierst, aber stagnierst, brauchst du einen Coach mit Plan.
-                </p>
-
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-orange-600" />
-                    <span>Maßgeschneiderte Programme</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-orange-600" />
-                    <span>Fokus auf progressive Overload</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-orange-600" />
-                    <span>App-Tracking und Analyse</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-orange-600" />
-                    <span>Wissen zu Hypertrophie, Regeneration & Ernährung</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 mb-6">
-                  <Badge variant="secondary">Muskelaufbau</Badge>
-                  <Badge variant="secondary">Leistung</Badge>
-                  <Badge variant="secondary">Technikanalyse</Badge>
-                </div>
-
-                <div className="bg-orange-100 rounded-lg p-4 border border-orange-200">
-                  <p className="text-orange-800 font-medium mb-2">🎯 Jetzt eintragen und passenden Coach erhalten.</p>
-                  <p className="text-orange-700 text-sm">
-                    Erstgespräch kostenlos • Geld zurück bei Buchung nach Probesession
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Browse Section */}
-      <section className="py-16 px-4 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-4xl mb-4">📱</div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Willst du erst mal stöbern?</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Hol dir die App. Klick dich durch Trainerprofile. Sag Bescheid, wenn du bereit bist.
-          </p>
-          <Button size="lg" variant="outline" className="px-8 py-3 bg-transparent">
-            <Download className="mr-2 h-5 w-5" />
-            App downloaden
-          </Button>
-        </div>
-      </section>
-
-      {/* Trainers Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Trainer*innen aus München</h2>
-          <p className="text-lg text-gray-600 mb-8 text-center">
-            Wir zeigen nur aktive Coaches in München. Filter möglich nach:
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card className="p-6 text-center">
-              <MapPin className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Stadtteil</h3>
-              <p className="text-sm text-gray-600">Trainer in deiner Nähe finden</p>
-            </Card>
-            <Card className="p-6 text-center">
-              <Users className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Trainingsort</h3>
-              <p className="text-sm text-gray-600">Studio, Outdoor, Home</p>
-            </Card>
-            <Card className="p-6 text-center">
-              <Star className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Spezialisierung</h3>
-              <p className="text-sm text-gray-600">Erfahrung & Expertise</p>
-            </Card>
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* SEO Keywords Section */}
-      <section className="py-16 px-4 bg-blue-50">
+      <section className="py-16 px-4 bg-zinc-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Beliebte Suchbegriffe</h2>
-          <p className="text-gray-600 mb-8">Wir ranken für:</p>
+          <h2 className="text-2xl font-bold text-white mb-6">Beliebte Suchbegriffe</h2>
+          <p className="text-gray-400 mb-8">Wir ranken für:</p>
           <div className="flex flex-wrap justify-center gap-3 mb-8">
-            <Badge variant="outline" className="px-4 py-2">
-              personal trainer münchen
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2">
-              fitnesscoach münchen
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2">
-              probetraining münchen
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2">
-              rücken stärken training münchen
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2">
-              muskelaufbau trainer münchen
-            </Badge>
+            {[
+              "personal trainer münchen",
+              "fitnesscoach münchen",
+              "probetraining münchen",
+              "rücken stärken training münchen",
+              "muskelaufbau trainer münchen",
+            ].map((keyword) => (
+              <Badge key={keyword} variant="outline" className="px-4 py-2 border-zinc-700 text-zinc-300">
+                {keyword}
+              </Badge>
+            ))}
           </div>
-          <p className="text-lg font-medium text-gray-900">Das klingt nach dir? Dann trag dich ein.</p>
+          <p className="text-lg font-medium text-white">Das klingt nach dir? Dann trag dich ein.</p>
         </div>
       </section>
 
-      {/* Contact Form */}
-      <section className="py-16 px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card className="p-8">
-            <CardContent className="p-0">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Passenden Coach finden</h2>
+      {/* Contact Form - matching your CTA section style */}
+      <section id="cta" className="pt-10 pb-0">
+        <div className="container px-4 md:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-3xl bg-white border border-gray-200 p-8 md:p-12"
+          >
+            {/* Background elements */}
+            <div className="absolute inset-0 z-0 overflow-hidden">
+              <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-juice/20 blur-3xl" />
+              <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-juice/10 blur-3xl" />
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
+                Finde deinen passenden Coach in München
+              </h2>
+              <p className="text-gray-600 mb-8">
+                Fülle das Formular aus und wir finden zwei Trainer*innen, die zu dir passen.
+              </p>
 
               {submitResult?.success ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Vielen Dank!</h3>
+                  <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Vielen Dank!</h3>
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6">
                   {/* Hidden fields */}
                   <input type="hidden" name="user_type" value="client" />
                   <input type="hidden" name="city" value="München" />
@@ -336,7 +426,9 @@ export default function MunichPersonalTrainingClientPage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">Name *</Label>
+                      <Label htmlFor="name" className="text-black">
+                        Name *
+                      </Label>
                       <Input
                         id="name"
                         name="name"
@@ -344,10 +436,13 @@ export default function MunichPersonalTrainingClientPage() {
                         onChange={(e) => handleInputChange("name", e.target.value)}
                         required
                         placeholder="Dein Name"
+                        className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">E-Mail *</Label>
+                      <Label htmlFor="email" className="text-black">
+                        E-Mail *
+                      </Label>
                       <Input
                         id="email"
                         name="email"
@@ -356,19 +451,22 @@ export default function MunichPersonalTrainingClientPage() {
                         onChange={(e) => handleInputChange("email", e.target.value)}
                         required
                         placeholder="deine@email.de"
+                        className="mt-1"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="goal">Trainingsziel *</Label>
+                    <Label htmlFor="goal" className="text-black">
+                      Trainingsziel *
+                    </Label>
                     <Select
                       name="goal"
                       value={formData.goal}
                       onValueChange={(value) => handleInputChange("goal", value)}
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Wähle dein Hauptziel" />
                       </SelectTrigger>
                       <SelectContent>
@@ -383,14 +481,16 @@ export default function MunichPersonalTrainingClientPage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="district">Stadtteil *</Label>
+                      <Label htmlFor="district" className="text-black">
+                        Stadtteil *
+                      </Label>
                       <Select
                         name="district"
                         value={formData.district}
                         onValueChange={(value) => handleInputChange("district", value)}
                         required
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Wähle deinen Stadtteil" />
                         </SelectTrigger>
                         <SelectContent>
@@ -404,14 +504,16 @@ export default function MunichPersonalTrainingClientPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="startTime">Startzeitpunkt *</Label>
+                      <Label htmlFor="startTime" className="text-black">
+                        Startzeitpunkt *
+                      </Label>
                       <Select
                         name="startTime"
                         value={formData.startTime}
                         onValueChange={(value) => handleInputChange("startTime", value)}
                         required
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Wann möchtest du starten?" />
                         </SelectTrigger>
                         <SelectContent>
@@ -426,7 +528,9 @@ export default function MunichPersonalTrainingClientPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="phone">Telefon (optional)</Label>
+                    <Label htmlFor="phone" className="text-black">
+                      Telefon (optional)
+                    </Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -434,11 +538,14 @@ export default function MunichPersonalTrainingClientPage() {
                       value={formData.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
                       placeholder="+49 89 123456789"
+                      className="mt-1"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="message">Nachricht (optional)</Label>
+                    <Label htmlFor="message" className="text-black">
+                      Nachricht (optional)
+                    </Label>
                     <Textarea
                       id="message"
                       name="message"
@@ -446,6 +553,7 @@ export default function MunichPersonalTrainingClientPage() {
                       onChange={(e) => handleInputChange("message", e.target.value)}
                       placeholder="Erzähl uns mehr über deine Ziele oder Wünsche..."
                       rows={3}
+                      className="mt-1"
                     />
                   </div>
 
@@ -458,12 +566,12 @@ export default function MunichPersonalTrainingClientPage() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+                    className="w-full client-gradient-btn text-black py-3 text-lg font-semibold"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
                         Wird gesendet...
                       </>
                     ) : (
@@ -475,12 +583,12 @@ export default function MunichPersonalTrainingClientPage() {
                   </Button>
                 </form>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       <Footer />
-    </div>
+    </main>
   )
 }

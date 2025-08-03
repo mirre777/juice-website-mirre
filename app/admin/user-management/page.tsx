@@ -3,62 +3,40 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Users, MapPin, Target, Calendar, Phone, Mail, Filter } from "lucide-react"
+import { Users, Search, Filter, MapPin, Mail, Phone, Calendar, Target, RefreshCw } from "lucide-react"
 
-interface User {
+interface WaitlistUser {
   id: string
   name?: string
   email: string
-  user_type: "client" | "trainer"
-  city?: string
-  district?: string
-  goal?: string
-  startTime?: string
   phone?: string
-  message?: string
-  status: string
-  source?: string
-  createdAt: any
+  city?: string
+  user_type: "client" | "trainer"
+  plan?: string
   numClients?: number
-}
-
-const goalColors: { [key: string]: string } = {
-  muskelaufbau: "bg-blue-100 text-blue-800",
-  abnehmen: "bg-green-100 text-green-800",
-  gesundheit: "bg-purple-100 text-purple-800",
-  haltung: "bg-orange-100 text-orange-800",
-  kraft: "bg-red-100 text-red-800",
-  einstieg: "bg-cyan-100 text-cyan-800",
-  beweglichkeit: "bg-pink-100 text-pink-800",
-}
-
-const goalLabels: { [key: string]: string } = {
-  muskelaufbau: "Muskelaufbau",
-  abnehmen: "Abnehmen",
-  gesundheit: "Gesundheit & Rücken",
-  haltung: "Haltung",
-  kraft: "Kraft",
-  einstieg: "Einstieg",
-  beweglichkeit: "Beweglichkeit",
+  goal?: string
+  district?: string
+  startTime?: string
+  message?: string
+  source?: string
+  status: "pending" | "contacted" | "converted"
+  createdAt: string
+  updatedAt: string
 }
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<WaitlistUser[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterCity, setFilterCity] = useState("all")
-  const [filterUserType, setFilterUserType] = useState("all")
-  const [filterSource, setFilterSource] = useState("all")
-
-  useEffect(() => {
-    fetchUsers()
-  }, [])
+  const [filterType, setFilterType] = useState<string>("all")
+  const [filterCity, setFilterCity] = useState<string>("all")
+  const [filterSource, setFilterSource] = useState<string>("all")
 
   const fetchUsers = async () => {
+    setLoading(true)
     try {
       const response = await fetch("/api/admin/users")
       if (response.ok) {
@@ -74,291 +52,370 @@ export default function UserManagementPage() {
     }
   }
 
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      !searchTerm ||
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.district?.toLowerCase().includes(searchTerm.toLowerCase())
 
+    const matchesType = filterType === "all" || user.user_type === filterType
     const matchesCity = filterCity === "all" || user.city === filterCity
-    const matchesUserType = filterUserType === "all" || user.user_type === filterUserType
     const matchesSource = filterSource === "all" || user.source === filterSource
 
-    return matchesSearch && matchesCity && matchesUserType && matchesSource
+    return matchesSearch && matchesType && matchesCity && matchesSource
   })
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return "N/A"
-    try {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-      return date.toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    } catch {
-      return "N/A"
+  const getGoalBadgeColor = (goal?: string) => {
+    if (!goal) return "bg-gray-100 text-gray-800"
+
+    const goalColors: Record<string, string> = {
+      muskelaufbau: "bg-blue-100 text-blue-800",
+      abnehmen: "bg-green-100 text-green-800",
+      gesundheit: "bg-purple-100 text-purple-800",
+      haltung: "bg-orange-100 text-orange-800",
+      kraft: "bg-red-100 text-red-800",
+      einstieg: "bg-cyan-100 text-cyan-800",
+      beweglichkeit: "bg-pink-100 text-pink-800",
     }
+
+    return goalColors[goal] || "bg-gray-100 text-gray-800"
   }
 
   const getSourceBadge = (source?: string) => {
-    switch (source) {
-      case "munich-landing-page":
-        return <Badge className="bg-blue-100 text-blue-800">München Landing</Badge>
-      case "trainer-signup":
-        return <Badge className="bg-green-100 text-green-800">Trainer Signup</Badge>
-      case "website_waitlist":
-        return <Badge className="bg-gray-100 text-gray-800">Website</Badge>
-      default:
-        return <Badge variant="secondary">Unbekannt</Badge>
+    if (source === "munich-landing-page") {
+      return (
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          München
+        </Badge>
+      )
     }
-  }
-
-  const getUserTypeBadge = (userType: string) => {
-    return userType === "trainer" ? (
-      <Badge className="bg-purple-100 text-purple-800">Trainer</Badge>
-    ) : (
-      <Badge className="bg-blue-100 text-blue-800">Client</Badge>
-    )
-  }
-
-  const getGoalBadge = (goal?: string) => {
-    if (!goal) return null
-    const color = goalColors[goal] || "bg-gray-100 text-gray-800"
-    const label = goalLabels[goal] || goal
-    return <Badge className={color}>{label}</Badge>
-  }
-
-  const uniqueCities = [...new Set(users.map((user) => user.city).filter(Boolean))]
-  const uniqueSources = [...new Set(users.map((user) => user.source).filter(Boolean))]
-
-  if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      </div>
+      <Badge variant="outline" className="bg-gray-50 text-gray-700">
+        General
+      </Badge>
     )
   }
+
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      pending: "bg-yellow-100 text-yellow-800",
+      contacted: "bg-blue-100 text-blue-800",
+      converted: "bg-green-100 text-green-800",
+    }
+    return <Badge className={statusColors[status as keyof typeof statusColors]}>{status}</Badge>
+  }
+
+  const uniqueCities = [...new Set(users.map((u) => u.city).filter(Boolean))]
+  const uniqueSources = [...new Set(users.map((u) => u.source).filter(Boolean))]
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-        <p className="text-gray-600">Verwalte alle Benutzer und Waitlist-Einträge</p>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+          <p className="text-gray-600">Manage waitlist users and track conversions</p>
+        </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gesamt Benutzer</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Users</p>
+                  <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Target className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Clients</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {users.filter((u) => u.user_type === "client").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Trainers</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {users.filter((u) => u.user_type === "trainer").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <MapPin className="h-8 w-8 text-orange-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">München</p>
+                  <p className="text-2xl font-bold text-gray-900">{users.filter((u) => u.city === "München").length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Filter className="mr-2 h-5 w-5" />
+              Filters
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-          </CardContent>
-        </Card>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clients</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.filter((u) => u.user_type === "client").length}</div>
-          </CardContent>
-        </Card>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="User Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="client">Clients</SelectItem>
+                  <SelectItem value="trainer">Trainers</SelectItem>
+                </SelectContent>
+              </Select>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trainer</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.filter((u) => u.user_type === "trainer").length}</div>
-          </CardContent>
-        </Card>
+              <Select value={filterCity} onValueChange={setFilterCity}>
+                <SelectTrigger>
+                  <SelectValue placeholder="City" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Cities</SelectItem>
+                  {uniqueCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">München Users</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.filter((u) => u.city === "München").length}</div>
-          </CardContent>
-        </Card>
-      </div>
+              <Select value={filterSource} onValueChange={setFilterSource}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  {uniqueSources.map((source) => (
+                    <SelectItem key={source} value={source}>
+                      {source}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filter & Suche
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Suche nach Name, Email, Stadt..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Button onClick={fetchUsers} variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh
+              </Button>
             </div>
+          </CardContent>
+        </Card>
 
-            <Select value={filterCity} onValueChange={setFilterCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Stadt wählen" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Städte</SelectItem>
-                {uniqueCities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Users List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Users ({filteredUsers.length})</CardTitle>
+            <CardDescription>Manage and track all waitlist users</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-600">Loading users...</span>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No users found matching your criteria</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <div className="grid grid-cols-12 gap-4 pb-4 border-b border-gray-200 text-sm font-medium text-gray-600">
+                    <div className="col-span-3">User</div>
+                    <div className="col-span-2">Contact</div>
+                    <div className="col-span-2">Location</div>
+                    <div className="col-span-3">Details</div>
+                    <div className="col-span-2">Source & Status</div>
+                  </div>
 
-            <Select value={filterUserType} onValueChange={setFilterUserType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Benutzertyp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Typen</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
-                <SelectItem value="trainer">Trainer</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterSource} onValueChange={setFilterSource}>
-              <SelectTrigger>
-                <SelectValue placeholder="Quelle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Quellen</SelectItem>
-                {uniqueSources.map((source) => (
-                  <SelectItem key={source} value={source}>
-                    {source}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("")
-                setFilterCity("all")
-                setFilterUserType("all")
-                setFilterSource("all")
-              }}
-            >
-              Filter zurücksetzen
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Benutzer ({filteredUsers.length})</CardTitle>
-          <CardDescription>Alle registrierten Benutzer und Waitlist-Einträge</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Benutzer</TableHead>
-                  <TableHead>Kontakt</TableHead>
-                  <TableHead>Standort</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Quelle</TableHead>
-                  <TableHead>Erstellt</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <div className="font-medium">{user.name || user.email}</div>
-                        {getUserTypeBadge(user.user_type)}
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex flex-col gap-1 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {user.email}
-                        </div>
-                        {user.phone && (
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Phone className="h-3 w-3" />
-                            {user.phone}
+                  {filteredUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="grid grid-cols-12 gap-4 py-4 border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <div className="col-span-3">
+                        <div className="flex items-center">
+                          <div>
+                            <p className="font-medium text-gray-900">{user.name || user.email.split("@")[0]}</p>
+                            <Badge
+                              variant="outline"
+                              className={
+                                user.user_type === "trainer"
+                                  ? "bg-purple-50 text-purple-700"
+                                  : "bg-blue-50 text-blue-700"
+                              }
+                            >
+                              {user.user_type}
+                            </Badge>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </TableCell>
 
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
+                      <div className="col-span-2">
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {user.email}
+                          </div>
+                          {user.phone && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Phone className="h-3 w-3 mr-1" />
+                              {user.phone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-span-2">
                         {user.city && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
+                          <div className="flex items-center text-sm text-gray-600 mb-1">
+                            <MapPin className="h-3 w-3 mr-1" />
                             {user.city}
                           </div>
                         )}
-                        {user.district && <div className="text-sm text-gray-600">{user.district}</div>}
+                        {user.district && <p className="text-xs text-gray-500">{user.district}</p>}
                       </div>
-                    </TableCell>
 
-                    <TableCell>
-                      <div className="flex flex-col gap-2">
-                        {user.goal && getGoalBadge(user.goal)}
-                        {user.user_type === "trainer" && user.numClients && (
-                          <Badge variant="outline">{user.numClients} Clients</Badge>
-                        )}
-                        {user.startTime && (
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <Calendar className="h-3 w-3" />
-                            {user.startTime}
+                      <div className="col-span-3">
+                        <div className="space-y-2">
+                          {user.goal && <Badge className={getGoalBadgeColor(user.goal)}>{user.goal}</Badge>}
+                          {user.numClients && (
+                            <Badge variant="outline" className="bg-gray-50">
+                              {user.numClients} clients
+                            </Badge>
+                          )}
+                          {user.startTime && (
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {user.startTime}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-span-2">
+                        <div className="space-y-2">
+                          {getSourceBadge(user.source)}
+                          {getStatusBadge(user.status)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                  {filteredUsers.map((user) => (
+                    <Card key={user.id}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="font-medium text-gray-900">{user.name || user.email.split("@")[0]}</p>
+                            <p className="text-sm text-gray-600">{user.email}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge
+                              variant="outline"
+                              className={
+                                user.user_type === "trainer"
+                                  ? "bg-purple-50 text-purple-700"
+                                  : "bg-blue-50 text-blue-700"
+                              }
+                            >
+                              {user.user_type}
+                            </Badge>
+                            {getStatusBadge(user.status)}
+                          </div>
+                        </div>
+
+                        {user.phone && (
+                          <div className="flex items-center text-sm text-gray-600 mb-2">
+                            <Phone className="h-3 w-3 mr-1" />
+                            {user.phone}
                           </div>
                         )}
-                      </div>
-                    </TableCell>
 
-                    <TableCell>{getSourceBadge(user.source)}</TableCell>
+                        {user.city && (
+                          <div className="flex items-center text-sm text-gray-600 mb-2">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {user.city}
+                            {user.district && `, ${user.district}`}
+                          </div>
+                        )}
 
-                    <TableCell>
-                      <div className="text-sm text-gray-600">{formatDate(user.createdAt)}</div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {user.goal && <Badge className={getGoalBadgeColor(user.goal)}>{user.goal}</Badge>}
+                          {user.numClients && (
+                            <Badge variant="outline" className="bg-gray-50">
+                              {user.numClients} clients
+                            </Badge>
+                          )}
+                          {getSourceBadge(user.source)}
+                        </div>
 
-            {filteredUsers.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                Keine Benutzer gefunden, die den Filterkriterien entsprechen.
+                        {user.startTime && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Start: {user.startTime}
+                          </div>
+                        )}
+
+                        {user.message && (
+                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">{user.message}</div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
