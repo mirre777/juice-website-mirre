@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { convertPotentialUserToTrainer } from "@/actions/status-management"
+import { convertPotentialUserToTrainer } from "../../../../actions/status-management"
 
 export async function POST(request: NextRequest) {
   console.log("🌐 CONVERT TO TRAINER API CALLED")
@@ -20,24 +20,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("🔄 Calling convertPotentialUserToTrainer...")
+    console.log("🔄 Converting potential user to trainer...")
 
     const result = await convertPotentialUserToTrainer(userId)
 
-    console.log("📊 Conversion result:", {
-      success: result.success,
-      trainerId: result.trainerId,
-      message: result.message,
-    })
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        trainerId: result.trainerId,
-        message: result.message,
-        trainerData: result.trainerData,
-      })
-    } else {
+    if (!result.success) {
+      console.error("❌ Conversion failed:", result.message)
       return NextResponse.json(
         {
           success: false,
@@ -46,8 +34,17 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       )
     }
+
+    console.log("✅ Trainer created successfully:", result.trainerId)
+
+    return NextResponse.json({
+      success: true,
+      message: result.message,
+      trainerId: result.trainerId,
+      trainerData: result.trainerData,
+    })
   } catch (error) {
-    console.error("❌ Error in convert-to-trainer API:", error)
+    console.error("❌ Error converting to trainer:", error)
     console.error("🔍 Error details:", {
       name: error instanceof Error ? error.name : "Unknown",
       message: error instanceof Error ? error.message : String(error),
@@ -56,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error ? error.message : "Failed to convert to trainer",
       },
       { status: 500 },
     )

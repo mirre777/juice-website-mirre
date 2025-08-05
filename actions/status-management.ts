@@ -1,7 +1,25 @@
 import { Timestamp } from "firebase-admin/firestore"
-import { db } from "../lib/firebase"
+import { db } from "../app/api/firebase-config"
 import type { PotentialUser } from "../types"
-import { standardizePhoneNumber } from "../utils"
+
+// Helper function to standardize phone numbers
+function standardizePhoneNumber(phone: string): string {
+  if (!phone) return phone
+
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, "")
+
+  // Handle German phone numbers
+  if (cleaned.startsWith("49")) {
+    return `+${cleaned}`
+  } else if (cleaned.startsWith("0")) {
+    return `+49${cleaned.slice(1)}`
+  } else if (cleaned.length >= 10) {
+    return `+49${cleaned}`
+  }
+
+  return phone
+}
 
 // Helper function to standardize plan values
 function standardizePlan(plan: string, userType: string): string {
