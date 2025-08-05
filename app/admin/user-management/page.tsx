@@ -1,92 +1,63 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
+  Users,
   Search,
-  RefreshCw,
-  UserIcon,
-  UserCheck,
-  Globe,
-  MapPin,
+  Download,
+  Mail,
   Phone,
-  Target,
+  MapPin,
   Calendar,
+  Target,
+  AlertCircle,
   CheckCircle,
   Clock,
-  AlertCircle,
+  User,
+  UserCheck,
+  Globe,
 } from "lucide-react"
 
-interface UserManagementUser {
+interface PotentialUser {
   id: string
   email: string
   name?: string
   phone?: string
   city?: string
-  user_type: "client" | "trainer"
-  status: string
-  source?: string
-  goal?: string
   district?: string
+  goal?: string
   startTime?: string
-  createdAt: any
+  user_type: "client" | "trainer"
   plan?: string
   numClients?: number
-}
-
-// Goal color mapping
-const goalColors: { [key: string]: string } = {
-  muskelaufbau: "bg-blue-100 text-blue-800",
-  abnehmen: "bg-green-100 text-green-800",
-  gesundheit: "bg-purple-100 text-purple-800",
-  haltung: "bg-orange-100 text-orange-800",
-  kraft: "bg-red-100 text-red-800",
-  einstieg: "bg-cyan-100 text-cyan-800",
-  beweglichkeit: "bg-pink-100 text-pink-800",
-}
-
-// Start time color mapping
-const startTimeColors: { [key: string]: string } = {
-  sofort: "bg-red-100 text-red-800",
-  "1-2-wochen": "bg-orange-100 text-orange-800",
-  "1-monat": "bg-yellow-100 text-yellow-800",
-  "2-3-monate": "bg-blue-100 text-blue-800",
-  unbestimmt: "bg-gray-100 text-gray-800",
-}
-
-// Source icon mapping
-const getSourceIcon = (source: string) => {
-  switch (source) {
-    case "munich-landing-page":
-      return <MapPin className="h-3 w-3" />
-    case "trainer-signup":
-      return <UserCheck className="h-3 w-3" />
-    default:
-      return <Globe className="h-3 w-3" />
-  }
-}
-
-// Source color mapping
-const getSourceColor = (source: string) => {
-  switch (source) {
-    case "munich-landing-page":
-      return "bg-blue-100 text-blue-800"
-    case "trainer-signup":
-      return "bg-green-100 text-green-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
+  message?: string
+  source: string
+  status: string
+  createdAt: any
+  signUpDate?: string
 }
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<UserManagementUser[]>([])
+  const [users, setUsers] = useState<PotentialUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [firebaseInfo, setFirebaseInfo] = useState<any>(null)
+  const [filterType, setFilterType] = useState<"all" | "client" | "trainer">("all")
+  const [filterCity, setFilterCity] = useState<string>("all")
+  const [filterSource, setFilterSource] = useState<string>("all")
+
+  // Fetch users from API
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   const fetchUsers = async () => {
     try {
@@ -94,46 +65,57 @@ export default function UserManagementPage() {
       setError(null)
 
       const response = await fetch("/api/admin/users")
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
 
       if (data.success) {
         setUsers(data.users || [])
-        setFirebaseInfo(data.firebaseInfo)
       } else {
         setError(data.error || "Failed to fetch users")
-        // Set mock data if Firebase fails
-        if (data.mockData) {
-          setUsers(data.mockData)
-        }
       }
     } catch (err) {
-      setError("Network error occurred")
       console.error("Error fetching users:", err)
+      setError(err instanceof Error ? err.message : "Failed to fetch users")
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
+  // Filter users based on search and filters
   const filteredUsers = users.filter((user) => {
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.name?.toLowerCase().includes(searchLower) ||
-      user.phone?.toLowerCase().includes(searchLower) ||
-      user.city?.toLowerCase().includes(searchLower) ||
-      user.goal?.toLowerCase().includes(searchLower) ||
-      user.district?.toLowerCase().includes(searchLower) ||
-      user.source?.toLowerCase().includes(searchLower) ||
-      user.user_type?.toLowerCase().includes(searchLower)
-    )
+    const matchesSearch =
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.goal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesType = filterType === "all" || user.user_type === filterType
+    const matchesCity = filterCity === "all" || user.city === filterCity
+    const matchesSource = filterSource === "all" || user.source === filterSource
+
+    return matchesSearch && matchesType && matchesCity && matchesSource
   })
 
+  // Get unique values for filters
+  const uniqueCities = [...new Set(users.map((user) => user.city).filter(Boolean))]
+  const uniqueSources = [...new Set(users.map((user) => user.source).filter(Boolean))]
+
+  // Statistics
+  const stats = {
+    total: users.length,
+    clients: users.filter((u) => u.user_type === "client").length,
+    trainers: users.filter((u) => u.user_type === "trainer").length,
+    munich: users.filter((u) => u.city === "München").length,
+  }
+
   const formatDate = (timestamp: any) => {
-    if (!timestamp) return "Unknown"
+    if (!timestamp) return "N/A"
 
     try {
       let date: Date
@@ -147,21 +129,94 @@ export default function UserManagementPage() {
         date = new Date(timestamp)
       }
 
-      return (
-        date.toLocaleDateString() +
-        " " +
-        date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      )
-    } catch (e) {
-      return "Invalid date"
+      return date.toLocaleDateString("de-DE", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    } catch (error) {
+      console.error("Error formatting date:", error)
+      return "Invalid Date"
     }
   }
 
-  const formatGoal = (goal: string) => {
-    const goalLabels: { [key: string]: string } = {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "waitlist":
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            <Clock className="h-3 w-3 mr-1" />
+            Waitlist
+          </Badge>
+        )
+      case "contacted":
+        return (
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+            <Mail className="h-3 w-3 mr-1" />
+            Contacted
+          </Badge>
+        )
+      case "active":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Active
+          </Badge>
+        )
+      default:
+        return <Badge variant="secondary">{status}</Badge>
+    }
+  }
+
+  const getSourceBadge = (source: string) => {
+    switch (source) {
+      case "munich-landing-page":
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <MapPin className="h-3 w-3 mr-1" />
+            München Page
+          </Badge>
+        )
+      case "trainer-signup":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <UserCheck className="h-3 w-3 mr-1" />
+            Trainer Signup
+          </Badge>
+        )
+      case "website_waitlist":
+        return (
+          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+            <Globe className="h-3 w-3 mr-1" />
+            Website
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-50 text-gray-700">
+            <Globe className="h-3 w-3 mr-1" />
+            {source}
+          </Badge>
+        )
+    }
+  }
+
+  const getGoalBadge = (goal?: string) => {
+    if (!goal) return null
+
+    const goalColors: Record<string, string> = {
+      muskelaufbau: "bg-blue-100 text-blue-800 border-blue-200",
+      abnehmen: "bg-green-100 text-green-800 border-green-200",
+      gesundheit: "bg-purple-100 text-purple-800 border-purple-200",
+      haltung: "bg-orange-100 text-orange-800 border-orange-200",
+      kraft: "bg-red-100 text-red-800 border-red-200",
+      einstieg: "bg-cyan-100 text-cyan-800 border-cyan-200",
+      beweglichkeit: "bg-pink-100 text-pink-800 border-pink-200",
+    }
+
+    const goalLabels: Record<string, string> = {
       muskelaufbau: "Muskelaufbau",
       abnehmen: "Abnehmen",
       gesundheit: "Gesundheit",
@@ -170,206 +225,312 @@ export default function UserManagementPage() {
       einstieg: "Einstieg",
       beweglichkeit: "Beweglichkeit",
     }
-    return goalLabels[goal] || goal
+
+    const colorClass = goalColors[goal] || "bg-gray-100 text-gray-800 border-gray-200"
+    const label = goalLabels[goal] || goal
+
+    return (
+      <Badge variant="outline" className={colorClass}>
+        <Target className="h-3 w-3 mr-1" />
+        {label}
+      </Badge>
+    )
   }
 
-  const formatStartTime = (startTime: string) => {
-    const timeLabels: { [key: string]: string } = {
+  const getStartTimeBadge = (startTime?: string) => {
+    if (!startTime) return null
+
+    const timeColors: Record<string, string> = {
+      sofort: "bg-red-100 text-red-800 border-red-200",
+      "1-2-wochen": "bg-orange-100 text-orange-800 border-orange-200",
+      "1-monat": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      "2-3-monate": "bg-blue-100 text-blue-800 border-blue-200",
+      "noch-unentschieden": "bg-gray-100 text-gray-800 border-gray-200",
+    }
+
+    const timeLabels: Record<string, string> = {
       sofort: "Sofort",
       "1-2-wochen": "1-2 Wochen",
       "1-monat": "1 Monat",
       "2-3-monate": "2-3 Monate",
-      unbestimmt: "Unbestimmt",
+      "noch-unentschieden": "Unentschieden",
     }
-    return timeLabels[startTime] || startTime
+
+    const colorClass = timeColors[startTime] || "bg-gray-100 text-gray-800 border-gray-200"
+    const label = timeLabels[startTime] || startTime
+
+    return (
+      <Badge variant="outline" className={colorClass}>
+        <Calendar className="h-3 w-3 mr-1" />
+        {label}
+      </Badge>
+    )
   }
 
-  const formatSource = (source: string) => {
-    const sourceLabels: { [key: string]: string } = {
-      "munich-landing-page": "München Page",
-      "trainer-signup": "Trainer Signup",
-      website_waitlist: "Website",
-    }
-    return sourceLabels[source] || source
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">User Management</h1>
+            <p className="text-muted-foreground">Manage potential users and waitlist</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-20" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-12" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Error loading users: {error}
+            <Button variant="outline" size="sm" className="ml-4 bg-transparent" onClick={fetchUsers}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex flex-col space-y-4">
-        <h1 className="text-3xl font-bold text-center">User Management</h1>
-        <p className="text-gray-600 text-center">
-          Manage potential users and convert them from waitlist to pending status.
-        </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">User Management</h1>
+          <p className="text-muted-foreground">Manage potential users and waitlist</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchUsers}>
+            <Download className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Firebase Environment Info */}
-      {firebaseInfo && (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Firebase Environment</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="bg-gray-100 p-4 rounded-lg font-mono text-sm">
-              <div>Project ID: {firebaseInfo.projectId}</div>
-              <div>Auth Domain: {firebaseInfo.authDomain}</div>
-            </div>
+            <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button onClick={fetchUsers} disabled={loading} variant="outline">
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh List
-        </Button>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clients</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.clients}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trainers</CardTitle>
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.trainers}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">München</CardTitle>
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.munich}</div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Waitlist Users */}
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserIcon className="h-5 w-5" />
-            Waitlist Users
-            <Badge variant="secondary">{filteredUsers.length}</Badge>
-          </CardTitle>
+          <CardTitle>Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-              Loading users...
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by email, name, city, goal, phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={fetchUsers} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No users found</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 font-medium">Email</th>
-                    <th className="text-left p-3 font-medium">Contact</th>
-                    <th className="text-left p-3 font-medium">User Type</th>
-                    <th className="text-left p-3 font-medium">Goal</th>
-                    <th className="text-left p-3 font-medium">Start Time</th>
-                    <th className="text-left p-3 font-medium">Source</th>
-                    <th className="text-left p-3 font-medium">Status</th>
-                    <th className="text-left p-3 font-medium">Created At</th>
-                    <th className="text-left p-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">
-                        <div>
-                          <div className="font-medium">{user.email}</div>
-                          {user.name && <div className="text-sm text-gray-600">{user.name}</div>}
-                          {user.city && <div className="text-xs text-gray-500">{user.city}</div>}
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        {user.phone ? (
-                          <div className="flex items-center text-sm text-green-600">
-                            <Phone className="h-3 w-3 mr-1" />
-                            {user.phone}
+
+            <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="User Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="client">Clients</SelectItem>
+                <SelectItem value="trainer">Trainers</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filterCity} onValueChange={setFilterCity}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="City" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {uniqueCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filterSource} onValueChange={setFilterSource}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {uniqueSources.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Users Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Users ({filteredUsers.length})</CardTitle>
+          <CardDescription>All potential users from various sources</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[200px]">User Info</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Goal</TableHead>
+                  <TableHead>Start Time</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      No users found matching your criteria
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{user.name || "N/A"}</div>
+                          <div className="text-sm text-muted-foreground flex items-center">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {user.email}
                           </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">No phone</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        <Badge
-                          variant={user.user_type === "client" ? "default" : "secondary"}
-                          className={
-                            user.user_type === "client" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"
-                          }
-                        >
-                          {user.user_type}
-                        </Badge>
-                      </td>
-                      <td className="p-3">
-                        {user.goal ? (
-                          <Badge variant="outline" className={goalColors[user.goal] || "bg-gray-100 text-gray-800"}>
-                            <Target className="h-3 w-3 mr-1" />
-                            {formatGoal(user.goal)}
+                          <Badge variant={user.user_type === "trainer" ? "default" : "secondary"}>
+                            {user.user_type === "trainer" ? "Trainer" : "Client"}
                           </Badge>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {user.startTime ? (
-                          <Badge
-                            variant="outline"
-                            className={startTimeColors[user.startTime] || "bg-gray-100 text-gray-800"}
-                          >
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {formatStartTime(user.startTime)}
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        {user.source ? (
-                          <Badge variant="outline" className={getSourceColor(user.source)}>
-                            {getSourceIcon(user.source)}
-                            <span className="ml-1">{formatSource(user.source)}</span>
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        <Badge
-                          variant="outline"
-                          className={
-                            user.status === "waitlist"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : user.status === "pending"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
-                          }
-                        >
-                          {user.status === "waitlist" && <Clock className="h-3 w-3 mr-1" />}
-                          {user.status === "pending" && <CheckCircle className="h-3 w-3 mr-1" />}
-                          {user.status}
-                        </Badge>
-                      </td>
-                      <td className="p-3 text-sm text-gray-600">{formatDate(user.createdAt)}</td>
-                      <td className="p-3">
-                        <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
-                          Accept
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="space-y-1">
+                          {user.phone ? (
+                            <div className="text-sm flex items-center">
+                              <Phone className="h-3 w-3 mr-1 text-green-600" />
+                              <span className="text-green-700">{user.phone}</span>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground flex items-center">
+                              <Phone className="h-3 w-3 mr-1" />
+                              No phone
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="space-y-1">
+                          {user.city && (
+                            <div className="text-sm flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {user.city}
+                            </div>
+                          )}
+                          {user.district && <div className="text-xs text-muted-foreground">{user.district}</div>}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>{getGoalBadge(user.goal)}</TableCell>
+
+                      <TableCell>{getStartTimeBadge(user.startTime)}</TableCell>
+
+                      <TableCell>{getSourceBadge(user.source)}</TableCell>
+
+                      <TableCell>{getStatusBadge(user.status)}</TableCell>
+
+                      <TableCell>
+                        <div className="text-sm">{formatDate(user.createdAt)}</div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

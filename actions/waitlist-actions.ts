@@ -24,15 +24,6 @@ function standardizePlan(plan: string, userType: string): string {
   }
 }
 
-// Timeout wrapper for Firebase operations
-async function withTimeout<T>(promise: Promise<T>, timeoutMs = 10000): Promise<T> {
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs)
-  })
-
-  return Promise.race([promise, timeoutPromise])
-}
-
 export async function joinWaitlist(formData: FormData) {
   console.log("Server action called with formData:", formData)
 
@@ -155,8 +146,6 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
-    console.log("✅ All validations passed")
-
     // If we don't have real Firebase config, simulate success
     if (!hasRealFirebaseConfig || !db) {
       console.log("Using mock Firebase configuration - simulating success")
@@ -180,15 +169,11 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
-    console.log("🔥 Firebase database is initialized, proceeding with operations...")
-
-    // Check if email already exists in the waitlist (with timeout)
+    // Check if email already exists in the waitlist
     try {
-      console.log("📧 Checking if email already exists...")
       const potentialUsersRef = collection(db, "potential_users")
       const emailQuery = query(potentialUsersRef, where("email", "==", email.toLowerCase().trim()))
-
-      const querySnapshot = await withTimeout(getDocs(emailQuery), 5000)
+      const querySnapshot = await getDocs(emailQuery)
 
       if (!querySnapshot.empty) {
         console.log("Email already exists in waitlist:", email)
@@ -198,12 +183,8 @@ export async function joinWaitlist(formData: FormData) {
           alreadyExists: true,
         }
       }
-      console.log("✅ Email is unique, proceeding with registration")
     } catch (queryError) {
       console.error("Error checking existing email:", queryError)
-      if (queryError.message.includes("timeout")) {
-        console.log("⏰ Email check timed out, proceeding anyway...")
-      }
       // Continue with registration if query fails
     }
 
@@ -247,39 +228,25 @@ export async function joinWaitlist(formData: FormData) {
       }
     }
 
-    console.log("💾 Saving to Firebase collection 'potential_users':", waitlistData)
+    console.log("Saving to Firebase collection 'potential_users':", waitlistData)
 
-    // Add to Firebase - using potential_users collection (with timeout)
-    try {
-      const docRef = await withTimeout(addDoc(collection(db, "potential_users"), waitlistData), 10000)
+    // Add to Firebase - using potential_users collection
+    const docRef = await addDoc(collection(db, "potential_users"), waitlistData)
 
-      console.log("✅ Document written with ID:", docRef.id)
+    console.log("Document written with ID:", docRef.id)
 
-      // Return success with appropriate message
-      const successMessage =
-        userType === "client" && city === "München"
-          ? "Perfekt! Wir melden uns in den nächsten 24 Stunden bei dir mit passenden Trainer-Vorschlägen."
-          : "Vielen Dank für deine Anmeldung! Wir melden uns bald bei dir."
+    // Return success with appropriate message
+    const successMessage =
+      userType === "client" && city === "München"
+        ? "Perfekt! Wir melden uns in den nächsten 24 Stunden bei dir mit passenden Trainer-Vorschlägen."
+        : "Vielen Dank für deine Anmeldung! Wir melden uns bald bei dir."
 
-      return {
-        success: true,
-        message: successMessage,
-      }
-    } catch (writeError) {
-      console.error("💥 Firebase write error:", writeError)
-
-      if (writeError.message.includes("timeout")) {
-        return {
-          success: false,
-          message: "Die Anfrage dauert zu lange. Bitte versuche es erneut oder kontaktiere den Support.",
-          error: "Firebase write operation timed out",
-        }
-      }
-
-      throw writeError // Re-throw to be caught by outer catch block
+    return {
+      success: true,
+      message: successMessage,
     }
   } catch (error) {
-    console.error("💥 Error adding document:", error)
+    console.error("Error adding document:", error)
 
     // Check if it's a Firebase initialization error
     if (String(error).includes("collection") || String(error).includes("CollectionReference")) {
@@ -297,15 +264,6 @@ export async function joinWaitlist(formData: FormData) {
         message: "Speichern in Datenbank nicht möglich. Bitte kontaktiere den Support.",
         error:
           "Firebase permission error. Make sure your security rules allow writes to the 'potential_users' collection.",
-      }
-    }
-
-    // Check if it's a timeout error
-    if (String(error).includes("timeout")) {
-      return {
-        success: false,
-        message: "Die Anfrage dauert zu lange. Bitte versuche es erneut.",
-        error: "Operation timed out",
       }
     }
 

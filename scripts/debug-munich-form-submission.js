@@ -1,129 +1,129 @@
-// Debug script for Munich form submission
-console.log("🧪 Testing Munich Form Submission...")
+// Debug script for Munich form submission issues
+console.log("🔍 Munich Form Submission Debug Script")
+console.log("=====================================")
 
-// Test data that matches what we see in the console
-const testFormData = new FormData()
-testFormData.append("email", "mirresnelting@gmail.com")
-testFormData.append("city", "München")
-testFormData.append("phone", "+436602101427")
-testFormData.append("plan", "personal-training-munich")
-testFormData.append("user_type", "client")
-testFormData.append("numClients", "")
-testFormData.append("name", "Mirre Snelting")
-testFormData.append("goal", "abnehmen")
-testFormData.append("district", "Moosach")
-testFormData.append("startTime", "1-2-wochen")
-testFormData.append("message", "")
+// Test the form submission flow
+async function debugMunichFormSubmission() {
+  console.log("\n1. Testing Munich form submission flow...")
 
-console.log("📝 Test form data prepared:")
-for (const [key, value] of testFormData.entries()) {
-  console.log(`  ${key}: ${value}`)
-}
-
-// Test the server action directly
-async function testServerAction() {
   try {
-    console.log("🚀 Calling server action...")
+    // Test data that matches what we see in the console
+    const testFormData = new FormData()
+    testFormData.append("email", "ggggggg@gmail.com")
+    testFormData.append("city", "München")
+    testFormData.append("phone", "+436602101427")
+    testFormData.append("plan", "personal-training-munich")
+    testFormData.append("user_type", "client")
+    testFormData.append("name", "Mirre Snelting")
+    testFormData.append("goal", "abnehmen")
+    testFormData.append("district", "Neuhausen-Nymphenburg")
+    testFormData.append("startTime", "1-2-wochen")
+    testFormData.append("message", "")
 
-    // Import the server action
-    const { joinWaitlist } = await import("../actions/waitlist-actions.js")
+    console.log("📝 Test form data prepared:")
+    for (const [key, value] of testFormData.entries()) {
+      console.log(`  ${key}: ${value}`)
+    }
 
-    // Set a timeout for the operation
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Operation timed out after 10 seconds")), 10000),
-    )
+    // Test the waitlist action directly
+    console.log("\n2. Testing waitlist action...")
 
-    const actionPromise = joinWaitlist(testFormData)
+    const response = await fetch("/api/test-waitlist", {
+      method: "POST",
+      body: testFormData,
+    })
 
-    const result = await Promise.race([actionPromise, timeoutPromise])
+    console.log("📡 Response status:", response.status)
+    console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()))
 
-    console.log("✅ Server action result:", result)
-
-    if (result.success) {
-      console.log("🎉 Form submission successful!")
+    if (response.ok) {
+      const result = await response.json()
+      console.log("✅ Response data:", result)
     } else {
-      console.log("❌ Form submission failed:", result.message)
-      if (result.error) {
-        console.log("🔍 Error details:", result.error)
-      }
+      const errorText = await response.text()
+      console.log("❌ Error response:", errorText)
     }
   } catch (error) {
-    console.error("💥 Server action error:", error)
-
-    if (error.message.includes("timeout")) {
-      console.log("⏰ The operation timed out - this suggests a Firebase connection issue")
-    }
-
-    if (error.message.includes("permission")) {
-      console.log("🔒 Firebase permission error - check your security rules")
-    }
-
-    if (error.message.includes("network")) {
-      console.log("🌐 Network error - check your internet connection")
-    }
+    console.error("❌ Debug script error:", error)
   }
 }
 
-// Test Firebase connection directly
+// Test Firebase connection
 async function testFirebaseConnection() {
+  console.log("\n3. Testing Firebase connection...")
+
   try {
-    console.log("🔥 Testing Firebase connection...")
+    const response = await fetch("/api/debug-firestore")
+    const result = await response.json()
 
-    const { db, hasRealFirebaseConfig } = await import("../app/api/firebase-config.js")
+    console.log("🔥 Firebase status:", result)
 
-    console.log("📊 Firebase config status:")
-    console.log(`  Has real config: ${hasRealFirebaseConfig}`)
-    console.log(`  Database initialized: ${!!db}`)
-
-    if (db) {
-      // Try to get a reference to the collection
-      const { collection } = await import("firebase/firestore")
-      const potentialUsersRef = collection(db, "potential_users")
-      console.log("✅ Collection reference created successfully")
-
-      // Try a simple write operation with timeout
-      const { addDoc, serverTimestamp } = await import("firebase/firestore")
-
-      const testDoc = {
-        test: true,
-        timestamp: serverTimestamp(),
-        createdAt: new Date().toISOString(),
-      }
-
-      console.log("📝 Attempting test write to Firebase...")
-
-      const writePromise = addDoc(potentialUsersRef, testDoc)
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Firebase write timed out")), 5000),
-      )
-
-      const docRef = await Promise.race([writePromise, timeoutPromise])
-      console.log("✅ Test document written with ID:", docRef.id)
+    if (result.hasRealConfig) {
+      console.log("✅ Real Firebase config detected")
     } else {
-      console.log("❌ Database not initialized")
+      console.log("⚠️ Using mock Firebase config")
     }
   } catch (error) {
-    console.error("💥 Firebase connection error:", error)
-
-    if (error.message.includes("timeout")) {
-      console.log("⏰ Firebase write operation timed out")
-      console.log("💡 This could be due to:")
-      console.log("   - Network connectivity issues")
-      console.log("   - Firebase security rules blocking writes")
-      console.log("   - Firebase project configuration issues")
-    }
+    console.error("❌ Firebase connection test failed:", error)
   }
 }
 
-// Run the tests
-async function runAllTests() {
-  console.log("🎯 Starting Munich form submission debug tests...\n")
+// Test admin users API
+async function testAdminUsersAPI() {
+  console.log("\n4. Testing admin users API...")
 
-  await testFirebaseConnection()
-  console.log("\n" + "=".repeat(50) + "\n")
-  await testServerAction()
+  try {
+    const response = await fetch("/api/admin/users")
+    const result = await response.json()
 
-  console.log("\n🏁 Debug tests completed!")
+    console.log("👥 Admin users API response:", result)
+    console.log(`📊 Found ${result.count || 0} users`)
+  } catch (error) {
+    console.error("❌ Admin users API test failed:", error)
+  }
 }
 
-runAllTests()
+// Check environment variables
+function checkEnvironmentVariables() {
+  console.log("\n5. Checking environment variables...")
+
+  const requiredEnvVars = [
+    "NEXT_PUBLIC_FIREBASE_API_KEY",
+    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+    "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+    "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+    "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+    "NEXT_PUBLIC_FIREBASE_APP_ID",
+  ]
+
+  requiredEnvVars.forEach((envVar) => {
+    const value = process.env[envVar]
+    if (value) {
+      console.log(`✅ ${envVar}: ${value.substring(0, 10)}...`)
+    } else {
+      console.log(`❌ ${envVar}: NOT SET`)
+    }
+  })
+}
+
+// Run all tests
+async function runAllTests() {
+  console.log("🚀 Starting Munich form debug tests...\n")
+
+  checkEnvironmentVariables()
+  await testFirebaseConnection()
+  await testAdminUsersAPI()
+  await debugMunichFormSubmission()
+
+  console.log("\n✨ Debug tests completed!")
+}
+
+// Execute if running directly
+if (typeof window !== "undefined") {
+  // Browser environment
+  runAllTests()
+} else {
+  // Node.js environment
+  console.log("Run this script in the browser console on your Munich page")
+  console.log("Or visit: /personal-training-muenchen and paste this script in the console")
+}
