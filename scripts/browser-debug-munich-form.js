@@ -149,5 +149,9 @@ async function runBrowserDebug() {
   console.log("4. Try submitting the actual form to see if it hangs")
 }
 
-// Auto-run
-runBrowserDebug()
+// Auto-run if in browser
+if (typeof window !== "undefined") {
+  runBrowserDebug()
+} else {
+  console.log("This script should be run in the browser console")
+}

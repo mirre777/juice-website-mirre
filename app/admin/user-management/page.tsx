@@ -35,10 +35,10 @@ interface PotentialUser {
   district?: string
   goal?: string
   startTime?: string
+  message?: string
   user_type: "client" | "trainer"
   plan?: string
   numClients?: number
-  message?: string
   source: string
   status: string
   createdAt: any
@@ -93,7 +93,8 @@ export default function UserManagementPage() {
       user.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.goal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.message?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesType = filterType === "all" || user.user_type === filterType
     const matchesCity = filterCity === "all" || user.city === filterCity
@@ -461,12 +462,13 @@ export default function UserManagementPage() {
                   <TableHead>Source</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No users found matching your criteria
                     </TableCell>
                   </TableRow>
@@ -524,6 +526,33 @@ export default function UserManagementPage() {
 
                       <TableCell>
                         <div className="text-sm">{formatDate(user.createdAt)}</div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              // TODO: Implement contact action
+                              console.log("Contact user:", user.id)
+                            }}
+                          >
+                            <Mail className="h-3 w-3 mr-1" />
+                            Contact
+                          </Button>
+                          {user.status === "waitlist" && (
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                // TODO: Implement accept action
+                                console.log("Accept user:", user.id)
+                              }}
+                            >
+                              Accept
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
