@@ -24,6 +24,8 @@ import {
   User,
   UserCheck,
   Globe,
+  Trash2,
+  UserPlus,
 } from "lucide-react"
 
 interface PotentialUser {
@@ -152,6 +154,53 @@ export default function UserManagementPage() {
     } finally {
       console.log("🏁 fetchUsers completed, setting loading=false")
       setLoading(false)
+    }
+  }
+
+  // Handle user actions
+  const handleAcceptUser = async (userId: string) => {
+    console.log("✅ Accept user clicked:", userId)
+    try {
+      const response = await fetch(`/api/admin/users/accept`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      })
+
+      if (response.ok) {
+        console.log("✅ User accepted successfully")
+        // Refresh the users list
+        fetchUsers()
+      } else {
+        console.error("❌ Failed to accept user")
+      }
+    } catch (error) {
+      console.error("❌ Error accepting user:", error)
+    }
+  }
+
+  const handleRemoveUser = async (userId: string) => {
+    console.log("🗑️ Remove user clicked:", userId)
+    if (!confirm("Are you sure you want to remove this user? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        console.log("✅ User removed successfully")
+        // Refresh the users list
+        fetchUsers()
+      } else {
+        console.error("❌ Failed to remove user")
+      }
+    } catch (error) {
+      console.error("❌ Error removing user:", error)
     }
   }
 
@@ -418,23 +467,6 @@ export default function UserManagementPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Debug Info */}
-      <Card className="border-yellow-200 bg-yellow-50">
-        <CardHeader>
-          <CardTitle className="text-yellow-800">🔍 Debug Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-yellow-700 space-y-1">
-            <div>Total users loaded: {users.length}</div>
-            <div>Munich users: {users.filter((u) => u.city === "München").length}</div>
-            <div>Users with phone: {users.filter((u) => u.phone).length}</div>
-            <div>Users with goals: {users.filter((u) => u.goal).length}</div>
-            <div>Unique cities: {uniqueCities.join(", ") || "None"}</div>
-            <div>Unique sources: {uniqueSources.join(", ") || "None"}</div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -496,6 +528,7 @@ export default function UserManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle>Filters</CardTitle>
+          <CardDescription>Use multiple filters simultaneously to narrow down results</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
@@ -566,7 +599,8 @@ export default function UserManagementPage() {
                 <TableRow>
                   <TableHead className="min-w-[200px]">User Info</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>District</TableHead>
                   <TableHead>Goal</TableHead>
                   <TableHead>Start Time</TableHead>
                   <TableHead>Source</TableHead>
@@ -578,7 +612,7 @@ export default function UserManagementPage() {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       No users found matching your criteria
                     </TableCell>
                   </TableRow>
@@ -617,17 +651,22 @@ export default function UserManagementPage() {
                         </TableCell>
 
                         <TableCell>
-                          <div className="space-y-1">
-                            {user.city ? (
-                              <div className="text-sm flex items-center">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {user.city}
-                              </div>
-                            ) : (
-                              <div className="text-sm text-muted-foreground">N/A</div>
-                            )}
-                            {user.district && <div className="text-xs text-muted-foreground">{user.district}</div>}
-                          </div>
+                          {user.city ? (
+                            <div className="text-sm flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {user.city}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">N/A</div>
+                          )}
+                        </TableCell>
+
+                        <TableCell>
+                          {user.district ? (
+                            <div className="text-sm">{user.district}</div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">N/A</div>
+                          )}
                         </TableCell>
 
                         <TableCell>
@@ -656,26 +695,20 @@ export default function UserManagementPage() {
 
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                console.log("📧 Contact user clicked:", user.id)
-                              }}
-                            >
-                              <Mail className="h-3 w-3 mr-1" />
-                              Contact
-                            </Button>
                             {user.status === "waitlist" && (
                               <Button
                                 size="sm"
-                                onClick={() => {
-                                  console.log("✅ Accept user clicked:", user.id)
-                                }}
+                                onClick={() => handleAcceptUser(user.id)}
+                                className="bg-green-600 hover:bg-green-700"
                               >
+                                <UserPlus className="h-3 w-3 mr-1" />
                                 Accept
                               </Button>
                             )}
+                            <Button size="sm" variant="destructive" onClick={() => handleRemoveUser(user.id)}>
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Remove
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
