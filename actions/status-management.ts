@@ -1,126 +1,153 @@
-import { Timestamp } from "firebase-admin/firestore"
-import { db } from "../lib/firebase"
-import type { PotentialUser, StatusTransition } from "../types"
-import { standardizePhoneNumber } from "../utils"
+import { db } from "@/app/api/firebase-config"
+import { collection, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore"
 
-// Helper function to standardize plan values
-function standardizePlan(plan: string, userType: string): string {
-  // For trainers
-  if (userType === "trainer" || userType === "coach") {
-    if (plan === "coach") {
-      return "pro"
-    } else if (["pro", "elite"].includes(plan)) {
-      return plan
-    }
-    return "pro" // Default for trainers
+// Utility function to standardize phone numbers
+function standardizePhoneNumber(phone: string): string {
+  if (!phone) return ""
+
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, "")
+
+  // If it starts with 49 (Germany country code), keep as is
+  if (cleaned.startsWith("49")) {
+    return `+${cleaned}`
   }
-  // For clients
-  else {
-    if (["basic", "premium"].includes(plan)) {
-      return plan
-    }
-    return "basic" // Default for clients
+
+  // If it starts with 0, replace with +49
+  if (cleaned.startsWith("0")) {
+    return `+49${cleaned.slice(1)}`
   }
+
+  // If it's just digits without country code, assume German and add +49
+  if (cleaned.length >= 10) {
+    return `+49${cleaned}`
+  }
+
+  // Return original if we can't standardize
+  return phone
 }
 
-export const convertPotentialUserToUser = async (potentialUserId: string, additionalUserData: any = {}) => {
+export async function convertPotentialUserToTrainer(userId: string) {
+  console.log("🔄 Starting convertPotentialUserToTrainer for:", userId)
+
   try {
-    // 1. Get the potential user data
-    const potentialUserDoc = await db.collection("potential_users").doc(potentialUserId).get()
-
-    if (!potentialUserDoc.exists) {
-      return { success: false, message: "Potential user not found" }
-    }
-
-    const potentialUserData = potentialUserDoc.data() as PotentialUser
-
-    if (!potentialUserData) {
-      return { success: false, message: "Potential user data is missing" }
-    }
-
-    // 2. Validate email and phone number
-    if (!potentialUserData.email) {
-      return { success: false, message: "Email is required" }
-    }
-
-    // Standardize phone number if it exists
-    if (potentialUserData.phone) {
-      try {
-        potentialUserData.phone = standardizePhoneNumber(potentialUserData.phone)
-      } catch (error: any) {
-        console.error("Error standardizing phone number:", error)
-        return { success: false, message: error.message }
+    if (!db) {
+      console.error("❌ Firebase database not configured")
+      return {
+        success: false,
+        message: "Database not configured",
+        trainerId: null,
+        trainerData: null,
       }
     }
 
-    const now = Timestamp.now()
+    console.log("✅ Database configured, fetching potential user...")
 
-    // Determine user_type based on existing data
-    const user_type =
-      potentialUserData.user_type ||
-      (potentialUserData.role === "trainer" || potentialUserData.role === "coach" || potentialUserData.plan === "coach"
-        ? "trainer"
-        : "client")
+    // Get the potential user data
+    const potentialUserRef = doc(db, "potential_users", userId)
+    const potentialUserSnap = await getDoc(potentialUserRef)
 
-    // 3. Create the new user document with simplified structure
-    const userData = {
-      // Standard fields
-      createdAt: now,
-      updatedAt: now,
-
-      // Simplified status
-      status: "pending",
-      pendingAt: now,
-
-      // Fields from potential user
-      email: potentialUserData.email,
-      user_type, // Use user_type instead of role
-      hasTrainer: false, // Use hasTrainer instead of hasCoach
-
-      // Connection to potential user
-      potentialUserId: potentialUserId,
-      fromWaitlist: true,
-
-      // Additional data
-      ...additionalUserData,
-      // Standardize plan if provided
-      plan: standardizePlan(additionalUserData.plan || potentialUserData.plan || "basic", user_type),
+    if (!potentialUserSnap.exists()) {
+      console.error("❌ Potential user not found:", userId)
+      return {
+        success: false,
+        message: "Potential user not found",
+        trainerId: null,
+        trainerData: null,
+      }
     }
 
-    // 4. Add the user to the users collection
-    const userRef = await db.collection("users").add(userData)
-    const userId = userRef.id
+    const potentialUserData = potentialUserSnap.data()
+    console.log("📊 Potential user data:", potentialUserData)
 
-    // 5. Update the potential user document
-    await db.collection("potential_users").doc(potentialUserId).update({
-      convertedToUser: true,
-      userId: userId,
-      updatedAt: Timestamp.now(),
+    // Check if already converted
+    if (potentialUserData.convertedToTrainer) {
+      console.log("⚠️ User already converted to trainer")
+      return {
+        success: false,
+        message: "User already converted to trainer",
+        trainerId: potentialUserData.trainerId || null,
+        trainerData: null,
+      }
+    }
+
+    // Prepare trainer data
+    const trainerData = {
+      // Basic info
+      name: potentialUserData.fullName || potentialUserData.name || "Unknown",
+      email: potentialUserData.email || "",
+      phone: standardizePhoneNumber(potentialUserData.phoneNumber || potentialUserData.phone || ""),
+
+      // Location
+      city: potentialUserData.city || "",
+      district: potentialUserData.district || "",
+      location:
+        potentialUserData.location ||
+        `${potentialUserData.city || ""}, ${potentialUserData.district || ""}`.replace(/, $/, ""),
+
+      // Goals and specialization
+      goal: potentialUserData.goal || "",
+      specialization: potentialUserData.goal || "",
+
+      // Metadata
+      status: "website_created",
+      user_type: "trainer",
+      source: potentialUserData.source || "admin_conversion",
+      originalPotentialUserId: userId,
+
+      // Timestamps
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      convertedAt: serverTimestamp(),
+
+      // Additional fields
+      isActive: true,
+      websiteStatus: "created",
+      profileComplete: false,
+    }
+
+    console.log("📝 Creating trainer with data:", trainerData)
+
+    // Create new trainer document
+    const trainersCollection = collection(db, "trainers")
+    const trainerDocRef = await addDoc(trainersCollection, trainerData)
+    const trainerId = trainerDocRef.id
+
+    console.log("✅ Trainer created with ID:", trainerId)
+
+    // Update the original potential user
+    await updateDoc(potentialUserRef, {
+      convertedToTrainer: true,
+      trainerId: trainerId,
+      status: "website_created",
+      updatedAt: serverTimestamp(),
+      convertedAt: serverTimestamp(),
     })
 
-    // 6. Record new user status "pending"
-    const userTransition: StatusTransition = {
-      potentialUserId: potentialUserId,
-      userId: userId,
-      email: potentialUserData.email,
-      previousStatus: "",
-      newStatus: "pending",
-      timestamp: Timestamp.now(),
-      reason: "Initial account creation",
-      source: "users",
-      userType: user_type, // Use user_type instead of role
-    }
-
-    await db.collection("status_transitions").add(userTransition)
+    console.log("✅ Updated potential user with conversion info")
 
     return {
       success: true,
-      userId: userId,
-      message: "Potential user successfully converted to user",
-      user_type, // Use user_type instead of role
+      message: "Successfully converted to trainer",
+      trainerId: trainerId,
+      trainerData: {
+        ...trainerData,
+        id: trainerId,
+      },
     }
-  } catch (error: any) {
-    console.error("Error converting potential user to user:", error)
-    return { success: false, message: error.message }
+  } catch (error) {
+    console.error("❌ Error in convertPotentialUserToTrainer:", error)
+    console.error("🔍 Error details:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+      trainerId: null,
+      trainerData: null,
+    }
   }
 }
