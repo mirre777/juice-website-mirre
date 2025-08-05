@@ -242,7 +242,7 @@ export default function MunichPersonalTrainingClientPage() {
     switch (step.id) {
       case "basic":
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="name" className="text-base font-medium">
                 Name <span className="text-red-500">*</span>
@@ -304,7 +304,7 @@ export default function MunichPersonalTrainingClientPage() {
 
       case "location":
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="district" className="text-base font-medium">
                 Stadtteil <span className="text-red-500">*</span>
@@ -355,7 +355,7 @@ export default function MunichPersonalTrainingClientPage() {
 
       case "contact":
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="phone" className="text-base font-medium">
                 Telefon (optional)
@@ -578,7 +578,7 @@ export default function MunichPersonalTrainingClientPage() {
               <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-juice/10 blur-3xl" />
             </div>
 
-            <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
+            <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
                 Finde deinen passenden Coach in München
               </h2>
@@ -593,7 +593,7 @@ export default function MunichPersonalTrainingClientPage() {
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
-                <Card className="shadow-xl border-0 w-full max-w-2xl">
+                <Card className="shadow-xl border-0 w-full max-w-lg mx-auto">
                   <CardHeader className="bg-gray-50 rounded-t-lg">
                     <CardTitle className="text-2xl text-center">Coach-Finder</CardTitle>
 
@@ -619,7 +619,7 @@ export default function MunichPersonalTrainingClientPage() {
 
                   <CardContent className="p-8">
                     <form onSubmit={handleSubmit}>
-                      <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
+                      <div className="min-h-[250px]">{renderCurrentStepFields()}</div>
 
                       {/* Navigation Buttons */}
                       <div className="flex justify-between items-center pt-8 mt-8 border-t">
