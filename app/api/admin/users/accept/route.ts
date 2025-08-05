@@ -1,14 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
 import { doc, updateDoc, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 export async function POST(request: NextRequest) {
-  console.log("📞 CONTACTED USER API CALLED")
+  console.log("📞 ACCEPT USER API CALLED")
   console.log("🕐 Timestamp:", new Date().toISOString())
 
   try {
-    if (!hasRealFirebaseConfig || !db) {
-      console.error("❌ Firebase not properly configured")
+    if (!db) {
+      console.error("❌ Firebase not configured")
       return NextResponse.json(
         {
           success: false,
@@ -41,26 +41,23 @@ export async function POST(request: NextRequest) {
       updatedAt: Timestamp.now(),
     })
 
-    console.log("✅ User status updated to contacted successfully")
+    console.log("✅ User status updated successfully")
 
     return NextResponse.json({
       success: true,
       message: "User marked as contacted successfully",
-      userId: userId,
     })
   } catch (error) {
     console.error("❌ Error updating user status:", error)
     console.error("🔍 Error details:", {
       name: error instanceof Error ? error.name : "Unknown",
       message: error instanceof Error ? error.message : String(error),
-      code: (error as any)?.code || "unknown",
     })
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
-        errorCode: (error as any)?.code || "unknown",
+        error: error instanceof Error ? error.message : "Failed to update user status",
       },
       { status: 500 },
     )
