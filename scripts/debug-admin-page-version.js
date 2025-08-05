@@ -1,117 +1,157 @@
-// Debug script to check what version of the admin page is being served
-
-console.log("🔍 Debugging Admin Page Version...\n")
-
-// Check if we're in the right environment
 const fs = require("fs")
 const path = require("path")
 
-// 1. Check the actual file content on disk
+console.log("🔍 Debugging Admin Page Version...\n")
+
+// Check if we're in the right directory structure
+const possiblePaths = [
+  "app/admin/user-management/page.tsx",
+  "./app/admin/user-management/page.tsx",
+  "src/app/admin/user-management/page.tsx",
+  "./src/app/admin/user-management/page.tsx",
+]
+
 console.log("📁 Checking file system...")
-const adminPagePath = path.join(process.cwd(), "app/admin/user-management/page.tsx")
 
-try {
-  if (fs.existsSync(adminPagePath)) {
-    const fileContent = fs.readFileSync(adminPagePath, "utf8")
+let foundFile = null
+let fileContent = null
 
-    // Check for key indicators of the enhanced version
-    const hasEnhancedTable =
-      fileContent.includes("User Info") && fileContent.includes("Contact") && fileContent.includes("Location")
-    const hasGoalBadge = fileContent.includes("getGoalBadge")
-    const hasStartTimeBadge = fileContent.includes("getStartTimeBadge")
-    const hasSourceBadge = fileContent.includes("getSourceBadge")
-    const hasStatistics = fileContent.includes("Statistics Cards")
-    const hasFilters = fileContent.includes("Filters")
-
-    console.log("✅ File exists at:", adminPagePath)
-    console.log("📊 Enhanced table headers:", hasEnhancedTable ? "✅ YES" : "❌ NO")
-    console.log("🎯 Goal badge function:", hasGoalBadge ? "✅ YES" : "❌ NO")
-    console.log("⏰ Start time badge function:", hasStartTimeBadge ? "✅ YES" : "❌ NO")
-    console.log("🌐 Source badge function:", hasSourceBadge ? "✅ YES" : "❌ NO")
-    console.log("📈 Statistics cards:", hasStatistics ? "✅ YES" : "❌ NO")
-    console.log("🔍 Filter section:", hasFilters ? "✅ YES" : "❌ NO")
-
-    // Check file size and last modified
-    const stats = fs.statSync(adminPagePath)
-    console.log("📏 File size:", Math.round(stats.size / 1024), "KB")
-    console.log("🕐 Last modified:", stats.mtime.toLocaleString())
-
-    // Look for the old basic table structure
-    const hasOldTable = fileContent.includes("Waitlist Users") && !hasEnhancedTable
-    console.log("🗂️ Old basic table structure:", hasOldTable ? "⚠️ YES (PROBLEM!)" : "✅ NO")
-
-    if (hasOldTable) {
-      console.log("\n❌ ISSUE FOUND: File still contains old table structure!")
-      console.log("The file needs to be completely replaced with the enhanced version.")
-    } else if (hasEnhancedTable && hasGoalBadge && hasStartTimeBadge) {
-      console.log("\n✅ SUCCESS: File contains enhanced version!")
-      console.log("The issue might be caching or build-related.")
-    } else {
-      console.log("\n⚠️ PARTIAL: File has some enhanced features but may be incomplete.")
+for (const filePath of possiblePaths) {
+  try {
+    if (fs.existsSync(filePath)) {
+      foundFile = filePath
+      fileContent = fs.readFileSync(filePath, "utf8")
+      console.log(`✅ Found file at: ${filePath}`)
+      break
     }
-  } else {
-    console.log("❌ File does not exist at:", adminPagePath)
+  } catch (error) {
+    // Continue checking other paths
   }
-} catch (error) {
-  console.error("❌ Error reading file:", error.message)
 }
 
-// 2. Check if there are any other admin page files
-console.log("\n🔍 Checking for other admin page files...")
-const adminDir = path.join(process.cwd(), "app/admin")
-try {
-  if (fs.existsSync(adminDir)) {
-    const adminFiles = fs.readdirSync(adminDir, { recursive: true })
-    const pageFiles = adminFiles.filter((file) => file.includes("page.tsx") || file.includes("page.ts"))
-    console.log("📄 Admin page files found:")
-    pageFiles.forEach((file) => {
-      console.log("  -", file)
-    })
+if (!foundFile) {
+  console.log("❌ Admin page file not found in any expected location")
+  console.log("🔍 Checking current directory structure...")
+
+  try {
+    const currentDir = process.cwd()
+    console.log(`📂 Current directory: ${currentDir}`)
+
+    // List contents of current directory
+    const contents = fs.readdirSync(".")
+    console.log("📋 Directory contents:", contents)
+
+    // Check if app directory exists
+    if (contents.includes("app")) {
+      console.log("📁 Found app directory, checking contents...")
+      const appContents = fs.readdirSync("app")
+      console.log("📋 App directory contents:", appContents)
+
+      if (appContents.includes("admin")) {
+        console.log("📁 Found admin directory, checking contents...")
+        const adminContents = fs.readdirSync("app/admin")
+        console.log("📋 Admin directory contents:", adminContents)
+      }
+    }
+  } catch (error) {
+    console.log("❌ Error reading directory structure:", error.message)
   }
-} catch (error) {
-  console.error("❌ Error reading admin directory:", error.message)
+} else {
+  console.log("\n🔍 Analyzing file content...")
+
+  // Check for enhanced features
+  const enhancedFeatures = [
+    "getGoalBadge",
+    "getStartTimeBadge",
+    "getSourceBadge",
+    "User Info",
+    "Contact",
+    "Location",
+    "Goal",
+    "Start Time",
+    "Statistics Cards",
+    "uniqueCities",
+    "filterCity",
+  ]
+
+  const foundFeatures = enhancedFeatures.filter((feature) => fileContent.includes(feature))
+
+  console.log(`✅ Enhanced features found: ${foundFeatures.length}/${enhancedFeatures.length}`)
+  foundFeatures.forEach((feature) => console.log(`  ✓ ${feature}`))
+
+  const missingFeatures = enhancedFeatures.filter((feature) => !fileContent.includes(feature))
+
+  if (missingFeatures.length > 0) {
+    console.log(`❌ Missing features: ${missingFeatures.length}`)
+    missingFeatures.forEach((feature) => console.log(`  ✗ ${feature}`))
+  }
+
+  // Check file size and modification time
+  const stats = fs.statSync(foundFile)
+  console.log(`📊 File size: ${stats.size} bytes`)
+  console.log(`📅 Last modified: ${stats.mtime}`)
+
+  // Check for old basic table structure
+  const oldFeatures = [
+    "Waitlist Users",
+    "potential_users",
+    "Email</th>",
+    "User Type</th>",
+    "Status</th>",
+    "Created At</th>",
+    "Actions</th>",
+  ]
+
+  const foundOldFeatures = oldFeatures.filter((feature) => fileContent.includes(feature))
+
+  if (foundOldFeatures.length > 0) {
+    console.log(`⚠️  Old table structure detected: ${foundOldFeatures.length} old features found`)
+    foundOldFeatures.forEach((feature) => console.log(`  ! ${feature}`))
+  }
 }
 
-// 3. Check package.json for Next.js version
+// Check package.json for Next.js version
 console.log("\n📦 Checking Next.js version...")
 try {
-  const packagePath = path.join(process.cwd(), "package.json")
-  if (fs.existsSync(packagePath)) {
-    const packageContent = JSON.parse(fs.readFileSync(packagePath, "utf8"))
-    const nextVersion = packageContent.dependencies?.next || packageContent.devDependencies?.next
-    console.log("⚡ Next.js version:", nextVersion || "Not found")
-  }
+  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"))
+  const nextVersion = packageJson.dependencies?.next || packageJson.devDependencies?.next
+  console.log(`⚡ Next.js version: ${nextVersion || "Not found"}`)
 } catch (error) {
-  console.error("❌ Error reading package.json:", error.message)
+  console.log("❌ Could not read package.json")
 }
 
-// 4. Check if there's a build directory
+// Check build status
 console.log("\n🏗️ Checking build status...")
-const buildDir = path.join(process.cwd(), ".next")
-if (fs.existsSync(buildDir)) {
+if (fs.existsSync(".next")) {
   console.log("✅ .next build directory exists")
-
-  // Check if there's a cached version
-  const cacheDir = path.join(buildDir, "cache")
-  if (fs.existsSync(cacheDir)) {
-    console.log("📦 Build cache exists - this might be serving old content")
-    console.log("💡 Try: rm -rf .next && npm run build")
+  try {
+    const buildId = fs.readFileSync(".next/BUILD_ID", "utf8").trim()
+    console.log(`🆔 Build ID: ${buildId}`)
+  } catch (error) {
+    console.log("⚠️  Could not read BUILD_ID")
   }
 } else {
   console.log("❌ No .next build directory found")
   console.log("💡 Try: npm run build")
 }
 
-// 5. Environment check
+// Environment check
 console.log("\n🌍 Environment check...")
-console.log("NODE_ENV:", process.env.NODE_ENV || "not set")
-console.log("Current directory:", process.cwd())
+console.log(`NODE_ENV: ${process.env.NODE_ENV || "not set"}`)
+console.log(`Current directory: ${process.cwd()}`)
 
+// Recommendations
 console.log("\n🎯 RECOMMENDATIONS:")
 console.log("1. Hard refresh browser (Ctrl+Shift+R or Cmd+Shift+R)")
 console.log("2. Clear browser cache")
 console.log("3. Delete .next folder and rebuild: rm -rf .next && npm run build")
 console.log("4. Check browser dev tools Network tab for 304 responses")
 console.log("5. Try incognito/private browsing mode")
+
+if (!foundFile) {
+  console.log("6. The admin page file is missing - this explains why changes aren't showing")
+  console.log("7. Check if the file exists in your actual project repository")
+  console.log("8. Verify the file was properly saved/committed")
+}
 
 console.log("\n✅ Debug complete!")
