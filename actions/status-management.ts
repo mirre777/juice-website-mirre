@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase-admin/firestore"
 import { db } from "../lib/firebase"
-import type { PotentialUser, StatusTransition } from "../types"
+import type { PotentialUser } from "../types"
 import { standardizePhoneNumber } from "../utils"
 
 // Helper function to standardize plan values
@@ -23,6 +23,111 @@ function standardizePlan(plan: string, userType: string): string {
   }
 }
 
+export const convertPotentialUserToTrainer = async (potentialUserId: string, additionalTrainerData: any = {}) => {
+  try {
+    console.log("🔄 Starting convertPotentialUserToTrainer for:", potentialUserId)
+
+    // 1. Get the potential user data
+    const potentialUserDoc = await db.collection("potential_users").doc(potentialUserId).get()
+
+    if (!potentialUserDoc.exists) {
+      console.error("❌ Potential user not found:", potentialUserId)
+      return { success: false, message: "Potential user not found" }
+    }
+
+    const potentialUserData = potentialUserDoc.data() as PotentialUser
+
+    if (!potentialUserData) {
+      console.error("❌ Potential user data is missing")
+      return { success: false, message: "Potential user data is missing" }
+    }
+
+    console.log("✅ Found potential user:", potentialUserData.email)
+
+    // 2. Validate email and phone number
+    if (!potentialUserData.email) {
+      return { success: false, message: "Email is required" }
+    }
+
+    // Standardize phone number if it exists
+    if (potentialUserData.phone) {
+      try {
+        potentialUserData.phone = standardizePhoneNumber(potentialUserData.phone)
+      } catch (error: any) {
+        console.error("Error standardizing phone number:", error)
+        return { success: false, message: error.message }
+      }
+    }
+
+    const now = Timestamp.now()
+
+    // 3. Create the new trainer document
+    const trainerData = {
+      // Standard fields
+      createdAt: now,
+      updatedAt: now,
+
+      // Status
+      status: "active",
+      activatedAt: now,
+
+      // Fields from potential user
+      email: potentialUserData.email,
+      name: potentialUserData.name || potentialUserData.email.split("@")[0],
+      phone: potentialUserData.phone,
+      city: potentialUserData.city,
+      district: potentialUserData.district,
+
+      // Trainer-specific fields
+      isActive: true,
+      websiteCreated: true,
+
+      // Connection to potential user
+      potentialUserId: potentialUserId,
+      fromWaitlist: true,
+
+      // Additional data
+      ...additionalTrainerData,
+      // Standardize plan if provided
+      plan: standardizePlan(additionalTrainerData.plan || potentialUserData.plan || "pro", "trainer"),
+    }
+
+    console.log("🔄 Creating trainer document...")
+
+    // 4. Add the trainer to the trainers collection
+    const trainerRef = await db.collection("trainers").add(trainerData)
+    const trainerId = trainerRef.id
+
+    console.log("✅ Trainer created with ID:", trainerId)
+
+    // 5. Update the potential user document
+    await db.collection("potential_users").doc(potentialUserId).update({
+      convertedToTrainer: true,
+      trainerId: trainerId,
+      status: "website created",
+      updatedAt: Timestamp.now(),
+    })
+
+    console.log("✅ Updated potential user with trainer info")
+
+    return {
+      success: true,
+      trainerId: trainerId,
+      message: "Potential user successfully converted to trainer",
+      trainerData: {
+        id: trainerId,
+        email: potentialUserData.email,
+        name: trainerData.name,
+        city: potentialUserData.city,
+      },
+    }
+  } catch (error: any) {
+    console.error("❌ Error converting potential user to trainer:", error)
+    return { success: false, message: error.message }
+  }
+}
+
+// Keep the original function for backward compatibility
 export const convertPotentialUserToUser = async (potentialUserId: string, additionalUserData: any = {}) => {
   try {
     // 1. Get the potential user data
@@ -97,21 +202,6 @@ export const convertPotentialUserToUser = async (potentialUserId: string, additi
       userId: userId,
       updatedAt: Timestamp.now(),
     })
-
-    // 6. Record new user status "pending"
-    const userTransition: StatusTransition = {
-      potentialUserId: potentialUserId,
-      userId: userId,
-      email: potentialUserData.email,
-      previousStatus: "",
-      newStatus: "pending",
-      timestamp: Timestamp.now(),
-      reason: "Initial account creation",
-      source: "users",
-      userType: user_type, // Use user_type instead of role
-    }
-
-    await db.collection("status_transitions").add(userTransition)
 
     return {
       success: true,

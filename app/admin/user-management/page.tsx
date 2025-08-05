@@ -47,6 +47,8 @@ interface PotentialUser {
   status: string
   createdAt: any
   signUpDate?: string
+  convertedToTrainer?: boolean
+  trainerId?: string
 }
 
 export default function UserManagementPage() {
@@ -212,10 +214,37 @@ export default function UserManagementPage() {
     alert("Mark as matched functionality coming soon!")
   }
 
-  const handleCreateWebsite = (userId: string) => {
+  const handleCreateWebsite = async (userId: string) => {
     console.log("🌐 Create website clicked:", userId)
-    // TODO: Implement create website functionality
-    alert("Create website functionality coming soon!")
+
+    if (!confirm("This will create a trainer website for this user. Continue?")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/convert-to-trainer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        console.log("✅ User converted to trainer successfully")
+        alert(`Trainer website created successfully! Trainer ID: ${data.trainerId}`)
+        // Refresh the users list
+        fetchUsers()
+      } else {
+        console.error("❌ Failed to create trainer website:", data.error)
+        alert(`Failed to create trainer website: ${data.error}`)
+      }
+    } catch (error) {
+      console.error("❌ Error creating trainer website:", error)
+      alert("Error creating trainer website. Please try again.")
+    }
   }
 
   // Filter users based on search and filters
@@ -313,6 +342,13 @@ export default function UserManagementPage() {
           <Badge variant="outline" className="bg-blue-100 text-blue-800">
             <Mail className="h-3 w-3 mr-1" />
             Contacted
+          </Badge>
+        )
+      case "website created":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            <Globe2 className="h-3 w-3 mr-1" />
+            Website Created
           </Badge>
         )
       case "active":
@@ -627,7 +663,7 @@ export default function UserManagementPage() {
                   <TableHead>Source</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="min-w-[300px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -740,16 +776,23 @@ export default function UserManagementPage() {
                               <Heart className="h-3 w-3 mr-1" />
                               Match
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled
-                              onClick={() => handleCreateWebsite(user.id)}
-                              className="opacity-50 cursor-not-allowed"
-                            >
-                              <Globe2 className="h-3 w-3 mr-1" />
-                              Website
-                            </Button>
+                            {user.user_type === "trainer" && !user.convertedToTrainer && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCreateWebsite(user.id)}
+                                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                              >
+                                <Globe2 className="h-3 w-3 mr-1" />
+                                Website
+                              </Button>
+                            )}
+                            {user.convertedToTrainer && (
+                              <Badge variant="outline" className="bg-green-100 text-green-800">
+                                <Globe2 className="h-3 w-3 mr-1" />
+                                Website Created
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

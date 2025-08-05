@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
-import { doc, updateDoc } from "firebase/firestore"
+import { doc, updateDoc, Timestamp } from "firebase/firestore"
 
 export async function POST(request: NextRequest) {
   console.log("📞 CONTACTED USER API CALLED")
@@ -32,17 +32,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("🔥 Updating user status from waitlist to contacted...")
+    console.log("🔄 Updating user status to contacted...")
 
-    // Update the user status from "waitlist" to "contacted"
     const userRef = doc(db, "potential_users", userId)
     await updateDoc(userRef, {
       status: "contacted",
-      contactedAt: new Date(),
-      updatedAt: new Date(),
+      contactedAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     })
 
-    console.log("✅ User status updated successfully to 'contacted'")
+    console.log("✅ User status updated to contacted successfully")
 
     return NextResponse.json({
       success: true,
