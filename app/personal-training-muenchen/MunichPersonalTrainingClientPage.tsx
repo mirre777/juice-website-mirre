@@ -183,8 +183,13 @@ export default function MunichPersonalTrainingClientPage() {
     e.preventDefault()
     e.stopPropagation()
 
-    // Only submit if we're on the last step
+    // Only submit if we're on the last step AND the form was actually submitted
     if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    // Don't auto-submit - only submit when explicitly called
+    if (isSubmitting) {
       return
     }
 
@@ -652,6 +657,12 @@ export default function MunichPersonalTrainingClientPage() {
                             type="submit"
                             disabled={isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black font-bold px-8 py-3 border-2 border-juice shadow-lg"
+                            onClick={(e) => {
+                              // Ensure this only submits when explicitly clicked
+                              if (!isSubmitting) {
+                                handleSubmit(e)
+                              }
+                            }}
                           >
                             {isSubmitting ? (
                               <>
