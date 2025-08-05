@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useTheme } from "@/components/theme-provider"
@@ -25,6 +26,8 @@ import {
   Calendar,
   MessageSquare,
   Share2,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 
@@ -77,10 +80,19 @@ const startTimes = [
   { value: "unbestimmt", label: "Noch unbestimmt" },
 ]
 
+// Define form steps
+const formSteps = [
+  { id: "basic", fields: ["name", "email"], title: "Grunddaten" },
+  { id: "goal", fields: ["goal"], title: "Trainingsziel" },
+  { id: "location", fields: ["district", "startTime"], title: "Ort & Zeit" },
+  { id: "contact", fields: ["phone", "message"], title: "Kontakt & Details" },
+]
+
 export default function MunichPersonalTrainingClientPage() {
   const { setIsCoach } = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -90,6 +102,7 @@ export default function MunichPersonalTrainingClientPage() {
     phone: "",
     message: "",
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Set client mode by default for Munich page
   useEffect(() => {
@@ -98,19 +111,100 @@ export default function MunichPersonalTrainingClientPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }))
+    }
     if (submitResult && !submitResult.success) {
       setSubmitResult(null)
     }
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const validateCurrentStep = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
+    const newErrors: Record<string, string> = {}
+
+    currentFields.forEach((field) => {
+      if (field === "name" && !formData.name.trim()) {
+        newErrors.name = "Name ist erforderlich"
+      }
+      if (field === "email") {
+        if (!formData.email.trim()) {
+          newErrors.email = "E-Mail ist erforderlich"
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = "Bitte gib eine gültige E-Mail-Adresse ein"
+        }
+      }
+      if (field === "goal" && !formData.goal) {
+        newErrors.goal = "Bitte wähle dein Trainingsziel"
+      }
+      if (field === "district" && !formData.district) {
+        newErrors.district = "Bitte wähle deinen Stadtteil"
+      }
+      if (field === "startTime" && !formData.startTime) {
+        newErrors.startTime = "Bitte wähle deinen Startzeitpunkt"
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const canProceedToNext = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
+
+    if (currentStep === 0) {
+      // Basic info
+      return (
+        formData.name.trim() !== "" && formData.email.trim() !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      )
+    }
+    if (currentStep === 1) {
+      // Goal
+      return formData.goal !== ""
+    }
+    if (currentStep === 2) {
+      // Location & Time
+      return formData.district !== "" && formData.startTime !== ""
+    }
+
+    // Contact step is optional
+    return true
+  }
+
+  const nextStep = () => {
+    if (validateCurrentStep() && canProceedToNext() && currentStep < formSteps.length - 1) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only submit if we're on the last step
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    if (!validateCurrentStep()) {
+      return
+    }
+
     setIsSubmitting(true)
-    setSubmitResult(null)
 
     try {
-      const form = event.currentTarget
-      const formDataObj = new FormData(form)
+      const formDataObj = new FormData()
+
+      // Add all form data
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataObj.set(key, value)
+      })
 
       formDataObj.set("user_type", "client")
       formDataObj.set("city", "München")
@@ -133,7 +227,7 @@ export default function MunichPersonalTrainingClientPage() {
           phone: "",
           message: "",
         })
-        form.reset()
+        setCurrentStep(0)
       }
     } catch (error) {
       console.error("Form submission error:", error)
@@ -143,6 +237,162 @@ export default function MunichPersonalTrainingClientPage() {
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const renderCurrentStepFields = () => {
+    const step = formSteps[currentStep]
+
+    switch (step.id) {
+      case "basic":
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="name" className="text-base font-medium">
+                Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder="Dein Name"
+                className={`mt-2 h-12 ${errors.name ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
+              />
+              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="email" className="text-base font-medium">
+                E-Mail <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                placeholder="deine@email.de"
+                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            </div>
+          </div>
+        )
+
+      case "goal":
+        return (
+          <div>
+            <Label htmlFor="goal" className="text-base font-medium">
+              Trainingsziel <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={formData.goal}
+              onValueChange={(value) => handleInputChange("goal", value)}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger className={`mt-2 h-12 ${errors.goal ? "border-red-500" : ""}`}>
+                <SelectValue placeholder="Wähle dein Hauptziel" />
+              </SelectTrigger>
+              <SelectContent>
+                {fitnessGoals.map((goal) => (
+                  <SelectItem key={goal.value} value={goal.value}>
+                    {goal.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.goal && <p className="text-red-500 text-sm mt-1">{errors.goal}</p>}
+          </div>
+        )
+
+      case "location":
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="district" className="text-base font-medium">
+                Stadtteil <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.district}
+                onValueChange={(value) => handleInputChange("district", value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder="Wähle deinen Stadtteil" />
+                </SelectTrigger>
+                <SelectContent>
+                  {munichDistricts.map((district) => (
+                    <SelectItem key={district} value={district}>
+                      {district}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="startTime" className="text-base font-medium">
+                Startzeitpunkt <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.startTime}
+                onValueChange={(value) => handleInputChange("startTime", value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className={`mt-2 h-12 ${errors.startTime ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder="Wann möchtest du starten?" />
+                </SelectTrigger>
+                <SelectContent>
+                  {startTimes.map((time) => (
+                    <SelectItem key={time.value} value={time.value}>
+                      {time.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.startTime && <p className="text-red-500 text-sm mt-1">{errors.startTime}</p>}
+            </div>
+          </div>
+        )
+
+      case "contact":
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="phone" className="text-base font-medium">
+                Telefon (optional)
+              </Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                placeholder="+49 89 123456789"
+                className="mt-2 h-12"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="message" className="text-base font-medium">
+                Nachricht (optional)
+              </Label>
+              <p className="text-sm text-gray-600 mt-1 mb-2">Erzähl uns mehr über deine Ziele oder Wünsche...</p>
+              <Textarea
+                id="message"
+                value={formData.message}
+                onChange={(e) => handleInputChange("message", e.target.value)}
+                placeholder="Ich möchte..."
+                className="mt-2 min-h-32"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+        )
+
+      default:
+        return null
     }
   }
 
@@ -159,7 +409,7 @@ export default function MunichPersonalTrainingClientPage() {
         App downloaden
       </Button>
 
-      {/* Hero Section - matching your main page style */}
+      {/* Hero Section */}
       <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-gray-50 to-white">
         {/* Background elements */}
         <div className="absolute inset-0 z-0">
@@ -201,6 +451,12 @@ export default function MunichPersonalTrainingClientPage() {
               <Button
                 size="lg"
                 className="bg-juice text-juice-foreground hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto"
+                onClick={() => {
+                  const formElement = document.getElementById("coach-finder-form")
+                  if (formElement) {
+                    formElement.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                }}
               >
                 Gratis Probetraining
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -210,7 +466,7 @@ export default function MunichPersonalTrainingClientPage() {
         </div>
       </section>
 
-      {/* Features Section - matching your existing style */}
+      {/* Features Section */}
       <div className="pt-8 pb-0 bg-white maintain-scroll">
         <div className="container px-4 md:px-6 pb-4">
           <div className="flex flex-col items-center text-center mb-12">
@@ -372,8 +628,8 @@ export default function MunichPersonalTrainingClientPage() {
         </div>
       </div>
 
-      {/* Contact Form - matching your CTA section style */}
-      <section id="cta" className="pt-10 pb-0">
+      {/* Step-by-Step Form Section */}
+      <section id="coach-finder-form" className="pt-10 pb-0">
         <div className="container px-4 md:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -402,170 +658,91 @@ export default function MunichPersonalTrainingClientPage() {
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6">
-                  {/* Hidden fields */}
-                  <input type="hidden" name="user_type" value="client" />
-                  <input type="hidden" name="city" value="München" />
-                  <input type="hidden" name="plan" value="personal-training-munich" />
+                <Card className="shadow-xl border-0 w-full max-w-2xl">
+                  <CardHeader className="bg-gray-50 rounded-t-lg">
+                    <CardTitle className="text-2xl text-center">Coach-Finder</CardTitle>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name" className="text-black">
-                        Name *
-                      </Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
-                        required
-                        placeholder="Dein Name"
-                        className="mt-1"
-                      />
+                    {/* Progress Indicator */}
+                    <div className="mt-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-gray-600">
+                          Schritt {currentStep + 1} von {formSteps.length}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% abgeschlossen
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-juice h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
                     </div>
-                    <div>
-                      <Label htmlFor="email" className="text-black">
-                        E-Mail *
-                      </Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        required
-                        placeholder="deine@email.de"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
+                  </CardHeader>
 
-                  <div>
-                    <Label htmlFor="goal" className="text-black">
-                      Trainingsziel *
-                    </Label>
-                    <Select
-                      name="goal"
-                      value={formData.goal}
-                      onValueChange={(value) => handleInputChange("goal", value)}
-                      required
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Wähle dein Hauptziel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {fitnessGoals.map((goal) => (
-                          <SelectItem key={goal.value} value={goal.value}>
-                            {goal.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <CardContent className="p-8">
+                    <form onSubmit={handleSubmit}>
+                      <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="district" className="text-black">
-                        Stadtteil *
-                      </Label>
-                      <Select
-                        name="district"
-                        value={formData.district}
-                        onValueChange={(value) => handleInputChange("district", value)}
-                        required
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Wähle deinen Stadtteil" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {munichDistricts.map((district) => (
-                            <SelectItem key={district} value={district}>
-                              {district}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      {/* Navigation Buttons */}
+                      <div className="flex justify-between items-center pt-8 mt-8 border-t">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={prevStep}
+                          disabled={currentStep === 0}
+                          className="flex items-center gap-2 bg-transparent"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Zurück
+                        </Button>
 
-                    <div>
-                      <Label htmlFor="startTime" className="text-black">
-                        Startzeitpunkt *
-                      </Label>
-                      <Select
-                        name="startTime"
-                        value={formData.startTime}
-                        onValueChange={(value) => handleInputChange("startTime", value)}
-                        required
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Wann möchtest du starten?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {startTimes.map((time) => (
-                            <SelectItem key={time.value} value={time.value}>
-                              {time.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                        {currentStep < formSteps.length - 1 ? (
+                          <Button
+                            type="button"
+                            onClick={nextStep}
+                            disabled={!canProceedToNext()}
+                            className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2"
+                          >
+                            Weiter
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="bg-juice hover:bg-juice/90 text-black font-semibold px-8 py-3"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                                Wird gesendet...
+                              </>
+                            ) : (
+                              <>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Coach finden
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </form>
 
-                  <div>
-                    <Label htmlFor="phone" className="text-black">
-                      Telefon (optional)
-                    </Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange("phone", e.target.value)}
-                      placeholder="+49 89 123456789"
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message" className="text-black">
-                      Nachricht (optional)
-                    </Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={(e) => handleInputChange("message", e.target.value)}
-                      placeholder="Erzähl uns mehr über deine Ziele oder Wünsche..."
-                      rows={3}
-                      className="mt-1"
-                    />
-                  </div>
-
-                  {submitResult && !submitResult.success && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
-                      <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
-                      <p className="text-red-800 text-sm">{submitResult.message}</p>
-                    </div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    className="w-full client-gradient-btn text-black py-3 text-lg font-semibold"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-                        Wird gesendet...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="mr-2 h-5 w-5" />
-                        Passenden Coach finden
-                      </>
+                    {submitResult && !submitResult.success && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center mt-4">
+                        <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+                        <p className="text-red-800 text-sm">{submitResult.message}</p>
+                      </div>
                     )}
-                  </Button>
-                </form>
+
+                    <p className="text-center text-sm text-gray-600 mt-4">
+                      Kostenlos und unverbindlich. Wir finden passende Trainer*innen für dich.
+                    </p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </motion.div>
