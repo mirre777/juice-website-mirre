@@ -5,11 +5,12 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "postinstall": "npm run build",
     "lint": "next lint",
     "start": "next start"
   },
   "dependencies": {
-    "@emotion/is-prop-valid": "latest",
+    "@emotion/is-prop-valid": "^1.2.1",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
@@ -95,5 +96,9 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   },
-  "packageManager": "npm@latest"
+  "packageManager": "npm@10.8.2",
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0"
+  }
 }
