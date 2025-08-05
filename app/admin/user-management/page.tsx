@@ -23,6 +23,7 @@ import {
   Clock,
   User,
   UserCheck,
+  Globe,
 } from "lucide-react"
 
 interface PotentialUser {
@@ -90,7 +91,9 @@ export default function UserManagementPage() {
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.district?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.goal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.phone?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesType = filterType === "all" || user.user_type === filterType
     const matchesCity = filterCity === "all" || user.city === filterCity
@@ -143,21 +146,21 @@ export default function UserManagementPage() {
     switch (status) {
       case "waitlist":
         return (
-          <Badge variant="secondary">
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             <Clock className="h-3 w-3 mr-1" />
             Waitlist
           </Badge>
         )
       case "contacted":
         return (
-          <Badge variant="outline">
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
             <Mail className="h-3 w-3 mr-1" />
             Contacted
           </Badge>
         )
       case "active":
         return (
-          <Badge variant="default">
+          <Badge variant="default" className="bg-green-100 text-green-800">
             <CheckCircle className="h-3 w-3 mr-1" />
             Active
           </Badge>
@@ -171,25 +174,97 @@ export default function UserManagementPage() {
     switch (source) {
       case "munich-landing-page":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <MapPin className="h-3 w-3 mr-1" />
             München Page
           </Badge>
         )
       case "trainer-signup":
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700">
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <UserCheck className="h-3 w-3 mr-1" />
             Trainer Signup
           </Badge>
         )
       case "website_waitlist":
         return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700">
+          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+            <Globe className="h-3 w-3 mr-1" />
             Website
           </Badge>
         )
       default:
-        return <Badge variant="outline">{source}</Badge>
+        return (
+          <Badge variant="outline" className="bg-gray-50 text-gray-700">
+            <Globe className="h-3 w-3 mr-1" />
+            {source}
+          </Badge>
+        )
     }
+  }
+
+  const getGoalBadge = (goal?: string) => {
+    if (!goal) return null
+
+    const goalColors: Record<string, string> = {
+      muskelaufbau: "bg-blue-100 text-blue-800 border-blue-200",
+      abnehmen: "bg-green-100 text-green-800 border-green-200",
+      gesundheit: "bg-purple-100 text-purple-800 border-purple-200",
+      haltung: "bg-orange-100 text-orange-800 border-orange-200",
+      kraft: "bg-red-100 text-red-800 border-red-200",
+      einstieg: "bg-cyan-100 text-cyan-800 border-cyan-200",
+      beweglichkeit: "bg-pink-100 text-pink-800 border-pink-200",
+    }
+
+    const goalLabels: Record<string, string> = {
+      muskelaufbau: "Muskelaufbau",
+      abnehmen: "Abnehmen",
+      gesundheit: "Gesundheit",
+      haltung: "Haltung",
+      kraft: "Kraft",
+      einstieg: "Einstieg",
+      beweglichkeit: "Beweglichkeit",
+    }
+
+    const colorClass = goalColors[goal] || "bg-gray-100 text-gray-800 border-gray-200"
+    const label = goalLabels[goal] || goal
+
+    return (
+      <Badge variant="outline" className={colorClass}>
+        <Target className="h-3 w-3 mr-1" />
+        {label}
+      </Badge>
+    )
+  }
+
+  const getStartTimeBadge = (startTime?: string) => {
+    if (!startTime) return null
+
+    const timeColors: Record<string, string> = {
+      sofort: "bg-red-100 text-red-800 border-red-200",
+      "1-2-wochen": "bg-orange-100 text-orange-800 border-orange-200",
+      "1-monat": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      "2-3-monate": "bg-blue-100 text-blue-800 border-blue-200",
+      "noch-unentschieden": "bg-gray-100 text-gray-800 border-gray-200",
+    }
+
+    const timeLabels: Record<string, string> = {
+      sofort: "Sofort",
+      "1-2-wochen": "1-2 Wochen",
+      "1-monat": "1 Monat",
+      "2-3-monate": "2-3 Monate",
+      "noch-unentschieden": "Unentschieden",
+    }
+
+    const colorClass = timeColors[startTime] || "bg-gray-100 text-gray-800 border-gray-200"
+    const label = timeLabels[startTime] || startTime
+
+    return (
+      <Badge variant="outline" className={colorClass}>
+        <Calendar className="h-3 w-3 mr-1" />
+        {label}
+      </Badge>
+    )
   }
 
   if (loading) {
@@ -317,7 +392,7 @@ export default function UserManagementPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by email, name, city..."
+                  placeholder="Search by email, name, city, goal, phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -378,10 +453,11 @@ export default function UserManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead className="min-w-[200px]">User Info</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>Details</TableHead>
+                  <TableHead>Goal</TableHead>
+                  <TableHead>Start Time</TableHead>
                   <TableHead>Source</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
@@ -390,7 +466,7 @@ export default function UserManagementPage() {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No users found matching your criteria
                     </TableCell>
                   </TableRow>
@@ -404,19 +480,26 @@ export default function UserManagementPage() {
                             <Mail className="h-3 w-3 mr-1" />
                             {user.email}
                           </div>
-                          {user.phone && (
-                            <div className="text-sm text-muted-foreground flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {user.phone}
-                            </div>
-                          )}
+                          <Badge variant={user.user_type === "trainer" ? "default" : "secondary"}>
+                            {user.user_type === "trainer" ? "Trainer" : "Client"}
+                          </Badge>
                         </div>
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={user.user_type === "trainer" ? "default" : "secondary"}>
-                          {user.user_type === "trainer" ? "Trainer" : "Client"}
-                        </Badge>
+                        <div className="space-y-1">
+                          {user.phone ? (
+                            <div className="text-sm flex items-center">
+                              <Phone className="h-3 w-3 mr-1 text-green-600" />
+                              <span className="text-green-700">{user.phone}</span>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground flex items-center">
+                              <Phone className="h-3 w-3 mr-1" />
+                              No phone
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
 
                       <TableCell>
@@ -431,25 +514,9 @@ export default function UserManagementPage() {
                         </div>
                       </TableCell>
 
-                      <TableCell>
-                        <div className="space-y-1">
-                          {user.goal && (
-                            <div className="text-sm flex items-center">
-                              <Target className="h-3 w-3 mr-1" />
-                              {user.goal}
-                            </div>
-                          )}
-                          {user.startTime && (
-                            <div className="text-xs text-muted-foreground flex items-center">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {user.startTime}
-                            </div>
-                          )}
-                          {user.numClients && (
-                            <div className="text-xs text-muted-foreground">{user.numClients} clients</div>
-                          )}
-                        </div>
-                      </TableCell>
+                      <TableCell>{getGoalBadge(user.goal)}</TableCell>
+
+                      <TableCell>{getStartTimeBadge(user.startTime)}</TableCell>
 
                       <TableCell>{getSourceBadge(user.source)}</TableCell>
 
