@@ -366,7 +366,7 @@ export default function MunichPersonalTrainingClientPage() {
                 onChange={(e) => handleInputChange("phone", e.target.value)}
                 placeholder="+49 89 123456789"
                 className="mt-2 h-12"
-                disabled={isSubmitting}
+                // Removed the disabled={isSubmitting} to allow input even during submission
               />
             </div>
 
@@ -381,7 +381,7 @@ export default function MunichPersonalTrainingClientPage() {
                 onChange={(e) => handleInputChange("message", e.target.value)}
                 placeholder="Ich möchte..."
                 className="mt-2 min-h-32"
-                disabled={isSubmitting}
+                // Removed the disabled={isSubmitting} to allow input even during submission
               />
             </div>
           </div>
@@ -424,7 +424,7 @@ export default function MunichPersonalTrainingClientPage() {
               >
                 <Badge
                   variant="outline"
-                  className="bg-juice/20 text-juice-foreground border-juice border-2 mb-6 font-bold text-base px-4 py-1.5 shadow-sm"
+                  className="bg-juice/20 text-black border-juice border-2 mb-6 font-bold text-base px-4 py-1.5 shadow-sm"
                 >
                   <MapPin className="h-4 w-4 mr-2" />
                   München
@@ -449,7 +449,7 @@ export default function MunichPersonalTrainingClientPage() {
             >
               <Button
                 size="lg"
-                className="bg-juice text-juice-foreground hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto"
+                className="bg-juice text-black hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold"
                 onClick={() => {
                   const formElement = document.getElementById("coach-finder-form")
                   if (formElement) {
@@ -642,7 +642,7 @@ export default function MunichPersonalTrainingClientPage() {
                             type="button"
                             onClick={nextStep}
                             disabled={!canProceedToNext()}
-                            className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2"
+                            className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2 font-bold"
                           >
                             Weiter
                             <ChevronRight className="w-4 h-4" />
@@ -651,16 +651,16 @@ export default function MunichPersonalTrainingClientPage() {
                           <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-juice hover:bg-juice/90 text-white font-semibold px-8 py-3 border-2 border-juice shadow-lg"
+                            className="bg-juice hover:bg-juice/90 text-black font-bold px-8 py-3 border-2 border-juice shadow-lg"
                           >
                             {isSubmitting ? (
                               <>
-                                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
                                 Wird gesendet...
                               </>
                             ) : (
                               <>
-                                <Mail className="mr-2 h-4 w-4 text-white" />
+                                <Mail className="mr-2 h-4 w-4" />
                                 Passenden Coach finden
                               </>
                             )}
