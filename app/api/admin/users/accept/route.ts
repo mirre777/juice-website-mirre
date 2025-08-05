@@ -1,14 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { doc, updateDoc, Timestamp } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
 
 export async function POST(request: NextRequest) {
-  console.log("📞 ACCEPT USER API CALLED")
+  console.log("📞 CONTACTED USER API CALLED")
   console.log("🕐 Timestamp:", new Date().toISOString())
 
   try {
-    if (!db) {
-      console.error("❌ Firebase not configured")
+    if (!hasRealFirebaseConfig || !db) {
+      console.error("❌ Firebase not properly configured")
       return NextResponse.json(
         {
           success: false,

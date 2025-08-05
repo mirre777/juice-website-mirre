@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { convertPotentialUserToTrainer } from "../../../../actions/status-management"
+import { convertPotentialUserToTrainer } from "@/actions/status-management"
 
 export async function POST(request: NextRequest) {
   console.log("🌐 CONVERT TO TRAINER API CALLED")
