@@ -18,7 +18,7 @@ import {
   CheckCircle,
   AlertCircle,
   Download,
-  ArrowRight,
+  ChevronDown,
   Activity,
   Calendar,
   ChevronRight,
@@ -470,7 +470,7 @@ export default function MunichPersonalTrainingClientPage() {
                 }}
               >
                 Gratis Probetraining
-                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <ChevronDown className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </motion.div>
           </div>
