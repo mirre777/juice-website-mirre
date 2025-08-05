@@ -443,7 +443,7 @@ export default function UserManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Users Table */}
+      {/* Enhanced Users Table */}
       <Card>
         <CardHeader>
           <CardTitle>Users ({filteredUsers.length})</CardTitle>
