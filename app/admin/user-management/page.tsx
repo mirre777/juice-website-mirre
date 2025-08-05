@@ -25,7 +25,9 @@ import {
   UserCheck,
   Globe,
   Trash2,
-  UserPlus,
+  MessageCircle,
+  Heart,
+  Globe2,
 } from "lucide-react"
 
 interface PotentialUser {
@@ -158,8 +160,8 @@ export default function UserManagementPage() {
   }
 
   // Handle user actions
-  const handleAcceptUser = async (userId: string) => {
-    console.log("✅ Accept user clicked:", userId)
+  const handleContactedUser = async (userId: string) => {
+    console.log("📞 Contacted user clicked:", userId)
     try {
       const response = await fetch(`/api/admin/users/accept`, {
         method: "POST",
@@ -170,14 +172,14 @@ export default function UserManagementPage() {
       })
 
       if (response.ok) {
-        console.log("✅ User accepted successfully")
+        console.log("✅ User marked as contacted successfully")
         // Refresh the users list
         fetchUsers()
       } else {
-        console.error("❌ Failed to accept user")
+        console.error("❌ Failed to mark user as contacted")
       }
     } catch (error) {
-      console.error("❌ Error accepting user:", error)
+      console.error("❌ Error marking user as contacted:", error)
     }
   }
 
@@ -202,6 +204,18 @@ export default function UserManagementPage() {
     } catch (error) {
       console.error("❌ Error removing user:", error)
     }
+  }
+
+  const handleMarkAsMatched = (userId: string) => {
+    console.log("💝 Mark as matched clicked:", userId)
+    // TODO: Implement mark as matched functionality
+    alert("Mark as matched functionality coming soon!")
+  }
+
+  const handleCreateWebsite = (userId: string) => {
+    console.log("🌐 Create website clicked:", userId)
+    // TODO: Implement create website functionality
+    alert("Create website functionality coming soon!")
   }
 
   // Filter users based on search and filters
@@ -288,6 +302,13 @@ export default function UserManagementPage() {
           </Badge>
         )
       case "contacted":
+        return (
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+            <Mail className="h-3 w-3 mr-1" />
+            Contacted
+          </Badge>
+        )
+      case "pending":
         return (
           <Badge variant="outline" className="bg-blue-100 text-blue-800">
             <Mail className="h-3 w-3 mr-1" />
@@ -694,20 +715,40 @@ export default function UserManagementPage() {
                         </TableCell>
 
                         <TableCell>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-1">
                             {user.status === "waitlist" && (
                               <Button
                                 size="sm"
-                                onClick={() => handleAcceptUser(user.id)}
-                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleContactedUser(user.id)}
+                                className="bg-blue-600 hover:bg-blue-700"
                               >
-                                <UserPlus className="h-3 w-3 mr-1" />
-                                Accept
+                                <MessageCircle className="h-3 w-3 mr-1" />
+                                Contacted
                               </Button>
                             )}
                             <Button size="sm" variant="destructive" onClick={() => handleRemoveUser(user.id)}>
                               <Trash2 className="h-3 w-3 mr-1" />
                               Remove
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              onClick={() => handleMarkAsMatched(user.id)}
+                              className="opacity-50 cursor-not-allowed"
+                            >
+                              <Heart className="h-3 w-3 mr-1" />
+                              Match
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              onClick={() => handleCreateWebsite(user.id)}
+                              className="opacity-50 cursor-not-allowed"
+                            >
+                              <Globe2 className="h-3 w-3 mr-1" />
+                              Website
                             </Button>
                           </div>
                         </TableCell>
