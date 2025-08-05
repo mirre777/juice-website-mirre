@@ -498,7 +498,7 @@ export default function UserManagementPage() {
                           ) : (
                             <div className="text-sm text-muted-foreground flex items-center">
                               <Phone className="h-3 w-3 mr-1" />
-                              No phone
+                              N/A
                             </div>
                           )}
                         </div>
@@ -506,19 +506,33 @@ export default function UserManagementPage() {
 
                       <TableCell>
                         <div className="space-y-1">
-                          {user.city && (
+                          {user.city ? (
                             <div className="text-sm flex items-center">
                               <MapPin className="h-3 w-3 mr-1" />
                               {user.city}
                             </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">N/A</div>
                           )}
                           {user.district && <div className="text-xs text-muted-foreground">{user.district}</div>}
                         </div>
                       </TableCell>
 
-                      <TableCell>{getGoalBadge(user.goal)}</TableCell>
+                      <TableCell>
+                        {user.goal ? (
+                          getGoalBadge(user.goal)
+                        ) : (
+                          <span className="text-sm text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
 
-                      <TableCell>{getStartTimeBadge(user.startTime)}</TableCell>
+                      <TableCell>
+                        {user.startTime ? (
+                          getStartTimeBadge(user.startTime)
+                        ) : (
+                          <span className="text-sm text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
 
                       <TableCell>{getSourceBadge(user.source)}</TableCell>
 
@@ -534,7 +548,6 @@ export default function UserManagementPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              // TODO: Implement contact action
                               console.log("Contact user:", user.id)
                             }}
                           >
@@ -545,7 +558,6 @@ export default function UserManagementPage() {
                             <Button
                               size="sm"
                               onClick={() => {
-                                // TODO: Implement accept action
                                 console.log("Accept user:", user.id)
                               }}
                             >
