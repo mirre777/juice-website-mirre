@@ -46,6 +46,9 @@ interface PotentialUser {
 }
 
 export default function UserManagementPage() {
+  console.log("🎯 ADMIN PAGE COMPONENT LOADED")
+  console.log("🕐 Component load time:", new Date().toISOString())
+
   const [users, setUsers] = useState<PotentialUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,31 +59,98 @@ export default function UserManagementPage() {
 
   // Fetch users from API
   useEffect(() => {
+    console.log("🔄 useEffect triggered - fetching users")
     fetchUsers()
   }, [])
 
   const fetchUsers = async () => {
+    console.log("📡 Starting fetchUsers function")
+    console.log("🕐 Fetch start time:", new Date().toISOString())
+
     try {
       setLoading(true)
       setError(null)
+      console.log("🔄 Set loading=true, error=null")
 
+      console.log("📞 Making API call to /api/admin/users")
       const response = await fetch("/api/admin/users")
+      console.log("📨 API response received:", {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+      })
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
+      console.log("📋 Parsing JSON response...")
       const data = await response.json()
+      console.log("✅ JSON parsed successfully")
+      console.log("📊 Response data structure:", {
+        success: data.success,
+        usersCount: data.users?.length || 0,
+        count: data.count,
+        message: data.message,
+        hasDebug: !!data.debug,
+      })
+
+      if (data.debug) {
+        console.log("🔍 Debug info from API:", data.debug)
+      }
 
       if (data.success) {
+        console.log("✅ API call successful, processing users...")
+        console.log("👥 Users received:", data.users?.length || 0)
+
+        // Log each user's Munich-specific fields
+        if (data.users && data.users.length > 0) {
+          console.log("📋 Analyzing received users:")
+          data.users.forEach((user: PotentialUser, index: number) => {
+            console.log(`👤 User ${index + 1}:`, {
+              id: user.id,
+              email: user.email,
+              name: user.name || "❌ MISSING",
+              phone: user.phone || "❌ MISSING",
+              city: user.city || "❌ MISSING",
+              district: user.district || "❌ MISSING",
+              goal: user.goal || "❌ MISSING",
+              startTime: user.startTime || "❌ MISSING",
+              source: user.source || "❌ MISSING",
+              user_type: user.user_type || "❌ MISSING",
+            })
+          })
+
+          // Analyze Munich-specific data
+          const munichUsers = data.users.filter((u: PotentialUser) => u.city === "München")
+          const usersWithPhone = data.users.filter((u: PotentialUser) => u.phone)
+          const usersWithGoals = data.users.filter((u: PotentialUser) => u.goal)
+          const usersWithStartTime = data.users.filter((u: PotentialUser) => u.startTime)
+
+          console.log("📊 Munich data analysis:")
+          console.log("  🏙️ Munich users:", munichUsers.length)
+          console.log("  📞 Users with phone:", usersWithPhone.length)
+          console.log("  🎯 Users with goals:", usersWithGoals.length)
+          console.log("  ⏰ Users with start time:", usersWithStartTime.length)
+        }
+
         setUsers(data.users || [])
+        console.log("✅ Users state updated")
       } else {
+        console.error("❌ API returned success=false:", data.error)
         setError(data.error || "Failed to fetch users")
       }
     } catch (err) {
-      console.error("Error fetching users:", err)
+      console.error("❌ Error in fetchUsers:", err)
+      console.error("🔍 Error details:", {
+        name: err instanceof Error ? err.name : "Unknown",
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : "No stack trace",
+      })
       setError(err instanceof Error ? err.message : "Failed to fetch users")
     } finally {
+      console.log("🏁 fetchUsers completed, setting loading=false")
       setLoading(false)
     }
   }
@@ -103,9 +173,23 @@ export default function UserManagementPage() {
     return matchesSearch && matchesType && matchesCity && matchesSource
   })
 
+  console.log("🔍 Filter results:", {
+    totalUsers: users.length,
+    filteredUsers: filteredUsers.length,
+    searchTerm,
+    filterType,
+    filterCity,
+    filterSource,
+  })
+
   // Get unique values for filters
   const uniqueCities = [...new Set(users.map((user) => user.city).filter(Boolean))]
   const uniqueSources = [...new Set(users.map((user) => user.source).filter(Boolean))]
+
+  console.log("📊 Filter options:", {
+    uniqueCities,
+    uniqueSources,
+  })
 
   // Statistics
   const stats = {
@@ -114,6 +198,8 @@ export default function UserManagementPage() {
     trainers: users.filter((u) => u.user_type === "trainer").length,
     munich: users.filter((u) => u.city === "München").length,
   }
+
+  console.log("📈 Statistics:", stats)
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return "N/A"
@@ -138,7 +224,7 @@ export default function UserManagementPage() {
         minute: "2-digit",
       })
     } catch (error) {
-      console.error("Error formatting date:", error)
+      console.error("❌ Error formatting date:", error)
       return "Invalid Date"
     }
   }
@@ -172,6 +258,7 @@ export default function UserManagementPage() {
   }
 
   const getSourceBadge = (source: string) => {
+    console.log("🏷️ Creating source badge for:", source)
     switch (source) {
       case "munich-landing-page":
         return (
@@ -205,6 +292,7 @@ export default function UserManagementPage() {
   }
 
   const getGoalBadge = (goal?: string) => {
+    console.log("🎯 Creating goal badge for:", goal)
     if (!goal) return null
 
     const goalColors: Record<string, string> = {
@@ -239,6 +327,7 @@ export default function UserManagementPage() {
   }
 
   const getStartTimeBadge = (startTime?: string) => {
+    console.log("⏰ Creating start time badge for:", startTime)
     if (!startTime) return null
 
     const timeColors: Record<string, string> = {
@@ -269,6 +358,7 @@ export default function UserManagementPage() {
   }
 
   if (loading) {
+    console.log("⏳ Rendering loading state")
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -308,6 +398,7 @@ export default function UserManagementPage() {
   }
 
   if (error) {
+    console.log("❌ Rendering error state:", error)
     return (
       <div className="container mx-auto p-6">
         <Alert variant="destructive">
@@ -323,13 +414,32 @@ export default function UserManagementPage() {
     )
   }
 
+  console.log("✅ Rendering main admin interface with", users.length, "users")
+
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Debug Info */}
+      <Card className="border-yellow-200 bg-yellow-50">
+        <CardHeader>
+          <CardTitle className="text-yellow-800">🔍 Debug Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-yellow-700 space-y-1">
+            <div>Total users loaded: {users.length}</div>
+            <div>Munich users: {users.filter((u) => u.city === "München").length}</div>
+            <div>Users with phone: {users.filter((u) => u.phone).length}</div>
+            <div>Users with goals: {users.filter((u) => u.goal).length}</div>
+            <div>Unique cities: {uniqueCities.join(", ") || "None"}</div>
+            <div>Unique sources: {uniqueSources.join(", ") || "None"}</div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-muted-foreground">Manage potential users and waitlist</p>
+          <h1 className="text-3xl font-bold">Enhanced User Management</h1>
+          <p className="text-muted-foreground">Manage potential users with Munich-specific fields</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={fetchUsers}>
@@ -446,8 +556,8 @@ export default function UserManagementPage() {
       {/* Enhanced Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users ({filteredUsers.length})</CardTitle>
-          <CardDescription>All potential users from various sources</CardDescription>
+          <CardTitle>Enhanced Users Table ({filteredUsers.length})</CardTitle>
+          <CardDescription>All potential users with Munich-specific fields</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -473,101 +583,104 @@ export default function UserManagementPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">{user.name || "N/A"}</div>
-                          <div className="text-sm text-muted-foreground flex items-center">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {user.email}
-                          </div>
-                          <Badge variant={user.user_type === "trainer" ? "default" : "secondary"}>
-                            {user.user_type === "trainer" ? "Trainer" : "Client"}
-                          </Badge>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="space-y-1">
-                          {user.phone ? (
-                            <div className="text-sm flex items-center">
-                              <Phone className="h-3 w-3 mr-1 text-green-600" />
-                              <span className="text-green-700">{user.phone}</span>
-                            </div>
-                          ) : (
+                  filteredUsers.map((user) => {
+                    console.log("🎨 Rendering user row:", user.id, user.email)
+                    return (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">{user.name || "N/A"}</div>
                             <div className="text-sm text-muted-foreground flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              N/A
+                              <Mail className="h-3 w-3 mr-1" />
+                              {user.email}
                             </div>
-                          )}
-                        </div>
-                      </TableCell>
+                            <Badge variant={user.user_type === "trainer" ? "default" : "secondary"}>
+                              {user.user_type === "trainer" ? "Trainer" : "Client"}
+                            </Badge>
+                          </div>
+                        </TableCell>
 
-                      <TableCell>
-                        <div className="space-y-1">
-                          {user.city ? (
-                            <div className="text-sm flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {user.city}
-                            </div>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {user.phone ? (
+                              <div className="text-sm flex items-center">
+                                <Phone className="h-3 w-3 mr-1 text-green-600" />
+                                <span className="text-green-700">{user.phone}</span>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-muted-foreground flex items-center">
+                                <Phone className="h-3 w-3 mr-1" />
+                                N/A
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="space-y-1">
+                            {user.city ? (
+                              <div className="text-sm flex items-center">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {user.city}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-muted-foreground">N/A</div>
+                            )}
+                            {user.district && <div className="text-xs text-muted-foreground">{user.district}</div>}
+                          </div>
+                        </TableCell>
+
+                        <TableCell>
+                          {user.goal ? (
+                            getGoalBadge(user.goal)
                           ) : (
-                            <div className="text-sm text-muted-foreground">N/A</div>
+                            <span className="text-sm text-muted-foreground">N/A</span>
                           )}
-                          {user.district && <div className="text-xs text-muted-foreground">{user.district}</div>}
-                        </div>
-                      </TableCell>
+                        </TableCell>
 
-                      <TableCell>
-                        {user.goal ? (
-                          getGoalBadge(user.goal)
-                        ) : (
-                          <span className="text-sm text-muted-foreground">N/A</span>
-                        )}
-                      </TableCell>
+                        <TableCell>
+                          {user.startTime ? (
+                            getStartTimeBadge(user.startTime)
+                          ) : (
+                            <span className="text-sm text-muted-foreground">N/A</span>
+                          )}
+                        </TableCell>
 
-                      <TableCell>
-                        {user.startTime ? (
-                          getStartTimeBadge(user.startTime)
-                        ) : (
-                          <span className="text-sm text-muted-foreground">N/A</span>
-                        )}
-                      </TableCell>
+                        <TableCell>{getSourceBadge(user.source)}</TableCell>
 
-                      <TableCell>{getSourceBadge(user.source)}</TableCell>
+                        <TableCell>{getStatusBadge(user.status)}</TableCell>
 
-                      <TableCell>{getStatusBadge(user.status)}</TableCell>
+                        <TableCell>
+                          <div className="text-sm">{formatDate(user.createdAt)}</div>
+                        </TableCell>
 
-                      <TableCell>
-                        <div className="text-sm">{formatDate(user.createdAt)}</div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              console.log("Contact user:", user.id)
-                            }}
-                          >
-                            <Mail className="h-3 w-3 mr-1" />
-                            Contact
-                          </Button>
-                          {user.status === "waitlist" && (
+                        <TableCell>
+                          <div className="flex gap-2">
                             <Button
                               size="sm"
+                              variant="outline"
                               onClick={() => {
-                                console.log("Accept user:", user.id)
+                                console.log("📧 Contact user clicked:", user.id)
                               }}
                             >
-                              Accept
+                              <Mail className="h-3 w-3 mr-1" />
+                              Contact
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                            {user.status === "waitlist" && (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  console.log("✅ Accept user clicked:", user.id)
+                                }}
+                              >
+                                Accept
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
                 )}
               </TableBody>
             </Table>
