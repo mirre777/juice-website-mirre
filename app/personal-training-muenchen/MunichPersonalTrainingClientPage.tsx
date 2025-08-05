@@ -713,17 +713,17 @@ export default function MunichPersonalTrainingClientPage() {
                           <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-juice hover:bg-juice/90 text-black font-semibold px-8 py-3"
+                            className="bg-juice hover:bg-juice/90 text-white font-semibold px-8 py-3 border-2 border-juice shadow-lg"
                           >
                             {isSubmitting ? (
                               <>
-                                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
                                 Wird gesendet...
                               </>
                             ) : (
                               <>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Coach finden
+                                <Mail className="mr-2 h-4 w-4 text-white" />
+                                Passenden Coach finden
                               </>
                             )}
                           </Button>
