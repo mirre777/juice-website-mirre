@@ -15,7 +15,6 @@ import { Footer } from "@/components/footer"
 import { useTheme } from "@/components/theme-provider"
 import {
   MapPin,
-  Mail,
   CheckCircle,
   AlertCircle,
   Download,
@@ -680,10 +679,7 @@ export default function MunichPersonalTrainingClientPage() {
                                 Wird gesendet...
                               </>
                             ) : (
-                              <>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Passenden Coach finden
-                              </>
+                              "Absenden"
                             )}
                           </Button>
                         )}
