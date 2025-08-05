@@ -634,7 +634,7 @@ export default function MunichPersonalTrainingClientPage() {
                   </CardHeader>
 
                   <CardContent className="p-8">
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={(e) => e.preventDefault()}>
                       <div className="min-h-[250px]">{renderCurrentStepFields()}</div>
 
                       {/* Navigation Buttons */}
@@ -662,9 +662,17 @@ export default function MunichPersonalTrainingClientPage() {
                           </Button>
                         ) : (
                           <Button
-                            type="submit"
+                            type="button"
                             disabled={isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black font-bold px-8 py-3 border-2 border-juice shadow-lg"
+                            onClick={async (e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+
+                              if (isSubmitting) return
+
+                              await handleSubmit(e as any)
+                            }}
                           >
                             {isSubmitting ? (
                               <>
