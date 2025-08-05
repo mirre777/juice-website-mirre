@@ -422,7 +422,10 @@ export default function MunichPersonalTrainingClientPage() {
                 transition={{ duration: 0.5 }}
                 className="mb-4"
               >
-                <Badge variant="outline" className="bg-juice/10 text-juice border-juice/50 mb-6 font-semibold">
+                <Badge
+                  variant="outline"
+                  className="bg-juice/20 text-juice-foreground border-juice border-2 mb-6 font-bold text-base px-4 py-1.5 shadow-sm"
+                >
                   <MapPin className="h-4 w-4 mr-2" />
                   München
                 </Badge>
