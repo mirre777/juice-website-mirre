@@ -28,7 +28,8 @@ import {
 } from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 
-const featureCardClass = "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+const featureCardClass =
+  "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
 
 const munichDistricts = [
   "Altstadt-Lehel",
@@ -166,7 +167,7 @@ export default function MunichPersonalTrainingClientPage() {
                 transition={{ duration: 0.5 }}
                 className="mb-4"
               >
-                <Badge variant="outline" className="bg-juice/20 text-juice border-juice/30 mb-6">
+                <Badge variant="outline" className="bg-juice/10 text-juice border-juice/50 mb-6 font-semibold">
                   <MapPin className="h-4 w-4 mr-2" />
                   München
                 </Badge>
@@ -219,7 +220,7 @@ export default function MunichPersonalTrainingClientPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
             {/* Beginners Card */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div className={featureCardClass}>
