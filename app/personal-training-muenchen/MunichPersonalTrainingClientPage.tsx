@@ -15,17 +15,13 @@ import { Footer } from "@/components/footer"
 import { useTheme } from "@/components/theme-provider"
 import {
   MapPin,
-  Users,
   Mail,
   CheckCircle,
   AlertCircle,
   Download,
-  Star,
   ArrowRight,
   Activity,
   Calendar,
-  MessageSquare,
-  Share2,
   ChevronRight,
   ChevronLeft,
 } from "lucide-react"
@@ -557,67 +553,6 @@ export default function MunichPersonalTrainingClientPage() {
                       </Badge>
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
                         Technikanalyse
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Browse Option */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <div className={featureCardClass}>
-                <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1">
-                    <MessageSquare className="h-6 w-6 text-juice" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">📱 Willst du erst mal stöbern?</h3>
-                    <p className="text-gray-600 mb-4">
-                      Hol dir die App. Klick dich durch Trainerprofile. Sag Bescheid, wenn du bereit bist.
-                    </p>
-                    <Button variant="outline" className="border-gray-300 hover:bg-gray-50 bg-white text-gray-900">
-                      <Download className="mr-2 h-4 w-4" />
-                      App downloaden
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Trainer Info */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <div className={featureCardClass}>
-                <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1">
-                    <Share2 className="h-6 w-6 text-juice" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">Trainer*innen aus München</h3>
-                    <p className="text-gray-600 mb-4">
-                      Wir zeigen nur aktive Coaches in München. Filter möglich nach Stadtteil, Trainingsort und
-                      Spezialisierung.
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                      <Badge variant="outline" className="border-gray-300 text-gray-700">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        25 Stadtteile
-                      </Badge>
-                      <Badge variant="outline" className="border-gray-300 text-gray-700">
-                        <Users className="h-3 w-3 mr-1" />
-                        Studio & Outdoor
-                      </Badge>
-                      <Badge variant="outline" className="border-gray-300 text-gray-700">
-                        <Star className="h-3 w-3 mr-1" />
-                        Alle Levels
                       </Badge>
                     </div>
                   </div>
