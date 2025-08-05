@@ -133,8 +133,8 @@ export default function MunichPersonalTrainingClientPage() {
       if (field === "email") {
         if (!formData.email.trim()) {
           newErrors.email = "E-Mail ist erforderlich"
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = "Bitte gib eine gültige E-Mail-Adresse ein"
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+          newErrors.email = "Bitte gib eine gültige E-Mail-Adresse ein (z.B. name@beispiel.de)"
         }
       }
       if (field === "goal" && !formData.goal) {
@@ -156,10 +156,9 @@ export default function MunichPersonalTrainingClientPage() {
     const currentFields = formSteps[currentStep].fields
 
     if (currentStep === 0) {
-      // Basic info
-      return (
-        formData.name.trim() !== "" && formData.email.trim() !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-      )
+      // Basic info - be more lenient with email validation for UX
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return formData.name.trim() !== "" && formData.email.trim() !== "" && emailRegex.test(formData.email.trim())
     }
     if (currentStep === 1) {
       // Goal
@@ -256,6 +255,26 @@ export default function MunichPersonalTrainingClientPage() {
         return (
           <div className="space-y-4">
             <div>
+              <Label htmlFor="email" className="text-base font-medium">
+                E-Mail <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                placeholder="name@beispiel.de"
+                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""} ${
+                  formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? "border-orange-400" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+              {formData.email && !errors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                <p className="text-orange-600 text-sm mt-1">Bitte gib eine gültige E-Mail-Adresse ein</p>
+              )}
+            </div>
+            <div>
               <Label htmlFor="name" className="text-base font-medium">
                 Name <span className="text-red-500">*</span>
               </Label>
@@ -268,22 +287,6 @@ export default function MunichPersonalTrainingClientPage() {
                 disabled={isSubmitting}
               />
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="email" className="text-base font-medium">
-                E-Mail <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="deine@email.de"
-                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
-                disabled={isSubmitting}
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
           </div>
         )
