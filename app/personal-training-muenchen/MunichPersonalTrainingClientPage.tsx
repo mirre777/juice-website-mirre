@@ -105,6 +105,13 @@ export default function MunichPersonalTrainingClientPage() {
     setIsCoach(false)
   }, [setIsCoach])
 
+  // Reset submission state when step changes
+  useEffect(() => {
+    if (isSubmitting) {
+      setIsSubmitting(false)
+    }
+  }, [currentStep])
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
@@ -183,12 +190,12 @@ export default function MunichPersonalTrainingClientPage() {
     e.preventDefault()
     e.stopPropagation()
 
-    // Only submit if we're on the last step AND the form was actually submitted
+    // Only submit if we're on the last step
     if (currentStep !== formSteps.length - 1) {
       return
     }
 
-    // Don't auto-submit - only submit when explicitly called
+    // Prevent double submission
     if (isSubmitting) {
       return
     }
@@ -371,7 +378,6 @@ export default function MunichPersonalTrainingClientPage() {
                 onChange={(e) => handleInputChange("phone", e.target.value)}
                 placeholder="+49 89 123456789"
                 className="mt-2 h-12"
-                // Removed the disabled={isSubmitting} to allow input even during submission
               />
             </div>
 
@@ -386,7 +392,6 @@ export default function MunichPersonalTrainingClientPage() {
                 onChange={(e) => handleInputChange("message", e.target.value)}
                 placeholder="Ich möchte..."
                 className="mt-2 min-h-32"
-                // Removed the disabled={isSubmitting} to allow input even during submission
               />
             </div>
           </div>
@@ -635,7 +640,7 @@ export default function MunichPersonalTrainingClientPage() {
                           type="button"
                           variant="outline"
                           onClick={prevStep}
-                          disabled={currentStep === 0}
+                          disabled={currentStep === 0 || isSubmitting}
                           className="flex items-center gap-2 bg-transparent"
                         >
                           <ChevronLeft className="w-4 h-4" />
@@ -646,7 +651,7 @@ export default function MunichPersonalTrainingClientPage() {
                           <Button
                             type="button"
                             onClick={nextStep}
-                            disabled={!canProceedToNext()}
+                            disabled={!canProceedToNext() || isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2 font-bold"
                           >
                             Weiter
@@ -657,12 +662,6 @@ export default function MunichPersonalTrainingClientPage() {
                             type="submit"
                             disabled={isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black font-bold px-8 py-3 border-2 border-juice shadow-lg"
-                            onClick={(e) => {
-                              // Ensure this only submits when explicitly clicked
-                              if (!isSubmitting) {
-                                handleSubmit(e)
-                              }
-                            }}
                           >
                             {isSubmitting ? (
                               <>
