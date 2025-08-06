@@ -1,8 +1,10 @@
-'use client'
+import React from 'react';
+import CityLandingPage from '../shared/CityLandingPage';
 
-import CityLandingPage from '@/components/city-landing/CityLandingPage'
-import { berlinContent } from '@/lib/city-content'
+const BerlinPersonalTrainingClientPage: React.FC = () => {
+  return (
+    <CityLandingPage city="Berlin" />
+  );
+};
 
-export default function BerlinPersonalTrainingClientPage() {
-  return <CityLandingPage content={berlinContent} />
-}
+export default BerlinPersonalTrainingClientPage;
