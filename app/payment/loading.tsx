@@ -1,3 +1,5 @@
+import SharedLoading from '@/components/shared-loading'
+
 export default function Loading() {
-  return null
+  return <SharedLoading showSpinner={false} />
 }
