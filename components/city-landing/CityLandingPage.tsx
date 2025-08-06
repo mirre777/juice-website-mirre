@@ -1,64 +1,35 @@
-'use client'
+"use client"
 
-import type React from 'react'
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Navbar } from '@/components/navbar'
-import { Footer } from '@/components/footer'
-import { useTheme } from '@/components/theme-provider'
-import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, Activity, Calendar, ChevronRight, ChevronLeft } from 'lucide-react'
-import { joinWaitlist } from '@/actions/waitlist-actions'
+import type React from "react"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
+import { useTheme } from "@/components/theme-provider"
+import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react'
+import { joinWaitlist } from "@/actions/waitlist-actions"
+import type { CityContent } from "@/lib/city-content"
 
-const featureCardClass = 'bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full'
+const featureCardClass = "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
 
-interface CityContent {
-  cityName: string
-  cityKey: string
-  hero: {
-    title: string
-    subtitle: string
-    description: string
-  }
-  sections: {
-    beginner: {
-      title: string
-      description: string
-      features: string[]
-    }
-    advanced: {
-      title: string
-      description: string
-      features: string[]
-      badges: string[]
-    }
-  }
-  form: {
-    title: string
-    description: string
-    districts: string[]
-    goals: Array<{ value: string; label: string; color: string }>
-    startTimes: Array<{ value: string; label: string }>
-  }
-}
+// Define form steps
+const formSteps = [
+  { id: "basic", fields: ["name", "email"], title: "Grunddaten" },
+  { id: "goal", fields: ["goal"], title: "Trainingsziel" },
+  { id: "location", fields: ["district", "startTime"], title: "Ort & Zeit" },
+  { id: "contact", fields: ["phone", "message"], title: "Kontakt & Details" },
+]
 
 interface CityLandingPageProps {
   content: CityContent
 }
-
-// Define form steps
-const formSteps = [
-  { id: 'basic', fields: ['name', 'email'], title: 'Grunddaten' },
-  { id: 'goal', fields: ['goal'], title: 'Trainingsziel' },
-  { id: 'location', fields: ['district', 'startTime'], title: 'Ort & Zeit' },
-  { id: 'contact', fields: ['phone', 'message'], title: 'Kontakt & Details' },
-]
 
 export default function CityLandingPage({ content }: CityLandingPageProps) {
   const { setIsCoach } = useTheme()
@@ -66,17 +37,17 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    goal: '',
-    district: '',
-    startTime: '',
-    phone: '',
-    message: '',
+    name: "",
+    email: "",
+    goal: "",
+    district: "",
+    startTime: "",
+    phone: "",
+    message: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Set client mode by default
+  // Set client mode by default for city pages
   useEffect(() => {
     setIsCoach(false)
   }, [setIsCoach])
@@ -91,7 +62,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: "" }))
     }
     if (submitResult && !submitResult.success) {
       setSubmitResult(null)
@@ -103,24 +74,24 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
     const newErrors: Record<string, string> = {}
 
     currentFields.forEach((field) => {
-      if (field === 'name' && !formData.name.trim()) {
-        newErrors.name = 'Name ist erforderlich'
+      if (field === "name" && !formData.name.trim()) {
+        newErrors.name = content.form.validation.nameRequired
       }
-      if (field === 'email') {
+      if (field === "email") {
         if (!formData.email.trim()) {
-          newErrors.email = 'E-Mail ist erforderlich'
+          newErrors.email = content.form.validation.emailRequired
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-          newErrors.email = 'Bitte gib eine gültige E-Mail-Adresse ein (z.B. name@beispiel.de)'
+          newErrors.email = content.form.validation.emailInvalid
         }
       }
-      if (field === 'goal' && !formData.goal) {
-        newErrors.goal = 'Bitte wähle dein Trainingsziel'
+      if (field === "goal" && !formData.goal) {
+        newErrors.goal = content.form.validation.goalRequired
       }
-      if (field === 'district' && !formData.district) {
-        newErrors.district = 'Bitte wähle deinen Stadtteil'
+      if (field === "district" && !formData.district) {
+        newErrors.district = content.form.validation.districtRequired
       }
-      if (field === 'startTime' && !formData.startTime) {
-        newErrors.startTime = 'Bitte wähle deinen Startzeitpunkt'
+      if (field === "startTime" && !formData.startTime) {
+        newErrors.startTime = content.form.validation.startTimeRequired
       }
     })
 
@@ -132,15 +103,15 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
     if (currentStep === 0) {
       // Basic info - be more lenient with email validation for UX
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return formData.name.trim() !== '' && formData.email.trim() !== '' && emailRegex.test(formData.email.trim())
+      return formData.name.trim() !== "" && formData.email.trim() !== "" && emailRegex.test(formData.email.trim())
     }
     if (currentStep === 1) {
       // Goal
-      return formData.goal !== ''
+      return formData.goal !== ""
     }
     if (currentStep === 2) {
       // Location & Time
-      return formData.district !== '' && formData.startTime !== ''
+      return formData.district !== "" && formData.startTime !== ""
     }
     // Contact step is optional
     return true
@@ -183,33 +154,32 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
       Object.entries(formData).forEach(([key, value]) => {
         formDataObj.set(key, value)
       })
-      formDataObj.set('user_type', 'client')
-      formDataObj.set('city', content.cityName)
-      formDataObj.set('plan', `personal-training-${content.cityKey}`)
+      formDataObj.set("user_type", "client")
+      formDataObj.set("city", content.cityName)
+      formDataObj.set("plan", `personal-training-${content.citySlug}`)
 
-      console.log('Submitting form with data:', Object.fromEntries(formDataObj.entries()))
-
+      console.log("Submitting form with data:", Object.fromEntries(formDataObj.entries()))
       const result = await joinWaitlist(formDataObj)
-      console.log('Form submission result:', result)
+      console.log("Form submission result:", result)
 
       setSubmitResult(result)
       if (result.success) {
         setFormData({
-          name: '',
-          email: '',
-          goal: '',
-          district: '',
-          startTime: '',
-          phone: '',
-          message: '',
+          name: "",
+          email: "",
+          goal: "",
+          district: "",
+          startTime: "",
+          phone: "",
+          message: "",
         })
         setCurrentStep(0)
       }
     } catch (error) {
-      console.error('Form submission error:', error)
+      console.error("Form submission error:", error)
       setSubmitResult({
         success: false,
-        message: 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+        message: content.form.errorMessage,
       })
     } finally {
       setIsSubmitting(false)
@@ -219,61 +189,61 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
   const renderCurrentStepFields = () => {
     const step = formSteps[currentStep]
     switch (step.id) {
-      case 'basic':
+      case "basic":
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-base font-medium">
-                E-Mail <span className="text-red-500">*</span>
+                {content.form.fields.email} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="name@beispiel.de"
-                className={`mt-2 h-12 ${errors.email ? 'border-red-500' : ''} ${
-                  formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-orange-400' : ''
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                placeholder={content.form.placeholders.email}
+                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""} ${
+                  formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? "border-orange-400" : ""
                 }`}
                 disabled={isSubmitting}
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               {formData.email && !errors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                <p className="text-orange-600 text-sm mt-1">Bitte gib eine gültige E-Mail-Adresse ein</p>
+                <p className="text-orange-600 text-sm mt-1">{content.form.validation.emailInvalid}</p>
               )}
             </div>
             <div>
               <Label htmlFor="name" className="text-base font-medium">
-                Name <span className="text-red-500">*</span>
+                {content.form.fields.name} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Dein Name"
-                className={`mt-2 h-12 ${errors.name ? 'border-red-500' : ''}`}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder={content.form.placeholders.name}
+                className={`mt-2 h-12 ${errors.name ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
               />
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
           </div>
         )
-      case 'goal':
+      case "goal":
         return (
           <div>
             <Label htmlFor="goal" className="text-base font-medium">
-              Trainingsziel <span className="text-red-500">*</span>
+              {content.form.fields.goal} <span className="text-red-500">*</span>
             </Label>
             <Select
               value={formData.goal}
-              onValueChange={(value) => handleInputChange('goal', value)}
+              onValueChange={(value) => handleInputChange("goal", value)}
               disabled={isSubmitting}
             >
-              <SelectTrigger className={`mt-2 h-12 ${errors.goal ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Wähle dein Hauptziel" />
+              <SelectTrigger className={`mt-2 h-12 ${errors.goal ? "border-red-500" : ""}`}>
+                <SelectValue placeholder={content.form.placeholders.goal} />
               </SelectTrigger>
               <SelectContent>
-                {content.form.goals.map((goal) => (
+                {content.fitnessGoals.map((goal) => (
                   <SelectItem key={goal.value} value={goal.value}>
                     {goal.label}
                   </SelectItem>
@@ -283,23 +253,23 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             {errors.goal && <p className="text-red-500 text-sm mt-1">{errors.goal}</p>}
           </div>
         )
-      case 'location':
+      case "location":
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="district" className="text-base font-medium">
-                Stadtteil <span className="text-red-500">*</span>
+                {content.form.fields.district} <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.district}
-                onValueChange={(value) => handleInputChange('district', value)}
+                onValueChange={(value) => handleInputChange("district", value)}
                 disabled={isSubmitting}
               >
-                <SelectTrigger className={`mt-2 h-12 ${errors.district ? 'border-red-500' : ''}`}>
-                  <SelectValue placeholder="Wähle deinen Stadtteil" />
+                <SelectTrigger className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder={content.form.placeholders.district} />
                 </SelectTrigger>
                 <SelectContent>
-                  {content.form.districts.map((district) => (
+                  {content.districts.map((district) => (
                     <SelectItem key={district} value={district}>
                       {district}
                     </SelectItem>
@@ -310,18 +280,18 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             </div>
             <div>
               <Label htmlFor="startTime" className="text-base font-medium">
-                Startzeitpunkt <span className="text-red-500">*</span>
+                {content.form.fields.startTime} <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.startTime}
-                onValueChange={(value) => handleInputChange('startTime', value)}
+                onValueChange={(value) => handleInputChange("startTime", value)}
                 disabled={isSubmitting}
               >
-                <SelectTrigger className={`mt-2 h-12 ${errors.startTime ? 'border-red-500' : ''}`}>
-                  <SelectValue placeholder="Wann möchtest du starten?" />
+                <SelectTrigger className={`mt-2 h-12 ${errors.startTime ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder={content.form.placeholders.startTime} />
                 </SelectTrigger>
                 <SelectContent>
-                  {content.form.startTimes.map((time) => (
+                  {content.startTimes.map((time) => (
                     <SelectItem key={time.value} value={time.value}>
                       {time.label}
                     </SelectItem>
@@ -332,31 +302,31 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             </div>
           </div>
         )
-      case 'contact':
+      case "contact":
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="phone" className="text-base font-medium">
-                Telefon (optional)
+                {content.form.fields.phone}
               </Label>
               <Input
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="+49 89 123456789"
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                placeholder={content.form.placeholders.phone}
                 className="mt-2 h-12"
               />
             </div>
             <div>
               <Label htmlFor="message" className="text-base font-medium">
-                Nachricht (optional)
+                {content.form.fields.message}
               </Label>
-              <p className="text-sm text-gray-600 mt-1 mb-2">Erzähl uns mehr über deine Ziele oder Wünsche...</p>
+              <p className="text-sm text-gray-600 mt-1 mb-2">{content.form.placeholders.messageHint}</p>
               <Textarea
                 id="message"
                 value={formData.message}
-                onChange={(e) => handleInputChange('message', e.target.value)}
-                placeholder="Ich möchte..."
+                onChange={(e) => handleInputChange("message", e.target.value)}
+                placeholder={content.form.placeholders.message}
                 className="mt-2 min-h-32"
               />
             </div>
@@ -370,7 +340,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <Navbar isHomePage={false} />
-
+      
       {/* Floating App Download Button */}
       <Button
         size="lg"
@@ -379,7 +349,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
       >
         <a href="https://www.juice.fitness/download-juice-app" target="_blank" rel="noopener noreferrer">
           <Download className="h-5 w-5" />
-          App downloaden
+          {content.appDownload}
         </a>
       </Button>
 
@@ -408,7 +378,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                 </Badge>
               </motion.div>
               <h1 className="text-5xl font-bold text-center text-gray-900">
-                {content.hero.title}
+                {content.hero.title.prefix} <span className="juice-text-gradient">{content.cityName}</span>
               </h1>
               <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">{content.hero.subtitle}</p>
               <p className="mx-auto max-w-[600px] text-gray-600">
@@ -425,13 +395,13 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                 size="lg"
                 className="bg-juice text-black hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold"
                 onClick={() => {
-                  const formElement = document.getElementById('coach-finder-form')
+                  const formElement = document.getElementById("coach-finder-form")
                   if (formElement) {
-                    formElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    formElement.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
                 }}
               >
-                Gratis Probetraining
+                {content.hero.ctaButton}
                 <ChevronDown className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </motion.div>
@@ -443,10 +413,10 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
       <div className="pt-8 pb-0 bg-white maintain-scroll">
         <div className="container px-4 md:px-6 pb-4">
           <div className="flex flex-col items-center text-center mb-12">
-            <span className="text-gray-900 font-medium mb-3">{content.cityName.toUpperCase()} TRAINING</span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Zwei Wege zu deinem Ziel</h2>
+            <span className="text-gray-900 font-medium mb-3">{content.features.sectionTitle}</span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">{content.features.title}</h2>
             <p className="text-gray-600 max-w-2xl">
-              Ob Einsteiger oder Fortgeschrittener – wir haben den passenden Ansatz für dich
+              {content.features.subtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
@@ -454,19 +424,20 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div className={featureCardClass}>
                 <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1"></div>
+                  <div className="mr-4 mt-1">
+                  </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      {content.sections.beginner.title}
+                      {content.features.beginners.title}
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      {content.sections.beginner.description}
+                      {content.features.beginners.description}
                     </p>
                     <div className="space-y-2 mb-4">
-                      {content.sections.beginner.features.map((feature, index) => (
+                      {content.features.beginners.benefits.map((benefit, index) => (
                         <div key={index} className="flex items-center text-sm text-gray-700">
                           <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                          {feature}
+                          {benefit}
                         </div>
                       ))}
                     </div>
@@ -474,7 +445,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                 </div>
               </div>
             </motion.div>
-
+            
             {/* Advanced Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -483,24 +454,25 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             >
               <div className={featureCardClass}>
                 <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1"></div>
+                  <div className="mr-4 mt-1">
+                  </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      {content.sections.advanced.title}
+                      {content.features.advanced.title}
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      {content.sections.advanced.description}
+                      {content.features.advanced.description}
                     </p>
                     <div className="space-y-2 mb-4">
-                      {content.sections.advanced.features.map((feature, index) => (
+                      {content.features.advanced.benefits.map((benefit, index) => (
                         <div key={index} className="flex items-center text-sm text-gray-700">
                           <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                          {feature}
+                          {benefit}
                         </div>
                       ))}
                     </div>
                     <div className="flex gap-2">
-                      {content.sections.advanced.badges.map((badge, index) => (
+                      {content.features.advanced.badges.map((badge, index) => (
                         <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-700">
                           {badge}
                         </Badge>
@@ -533,26 +505,26 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                 {content.form.title}
               </h2>
               <p className="text-gray-600 mb-8">
-                {content.form.description}
+                {content.form.subtitle}
               </p>
               {submitResult?.success ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Vielen Dank!</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{content.form.successTitle}</h3>
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
                 <Card className="shadow-xl border-0 w-full max-w-lg mx-auto">
                   <CardHeader className="bg-gray-50 rounded-t-lg">
-                    <CardTitle className="text-2xl text-center">Coach-Finder</CardTitle>
+                    <CardTitle className="text-2xl text-center">{content.form.cardTitle}</CardTitle>
                     {/* Progress Indicator */}
                     <div className="mt-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-600">
-                          Schritt {currentStep + 1} von {formSteps.length}
+                          {content.form.stepIndicator.step} {currentStep + 1} {content.form.stepIndicator.of} {formSteps.length}
                         </span>
                         <span className="text-sm text-gray-600">
-                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% abgeschlossen
+                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% {content.form.stepIndicator.completed}
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -561,7 +533,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                           style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
                         ></div>
                       </div>
-                      <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
+                      <p className="text-center text-sm text-gray-600 mt-2">{content.form.steps[currentStep]}</p>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
@@ -577,7 +549,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                           className="flex items-center gap-2 bg-transparent"
                         >
                           <ChevronLeft className="w-4 h-4" />
-                          Zurück
+                          {content.form.buttons.back}
                         </Button>
                         {currentStep < formSteps.length - 1 ? (
                           <Button
@@ -586,7 +558,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                             disabled={!canProceedToNext() || isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2 font-bold"
                           >
-                            Weiter
+                            {content.form.buttons.next}
                             <ChevronRight className="w-4 h-4" />
                           </Button>
                         ) : (
@@ -604,10 +576,10 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                             {isSubmitting ? (
                               <>
                                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                                Wird gesendet...
+                                {content.form.buttons.submitting}
                               </>
                             ) : (
-                              'Absenden'
+                              content.form.buttons.submit
                             )}
                           </Button>
                         )}
@@ -620,7 +592,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                       </div>
                     )}
                     <p className="text-center text-sm text-gray-600 mt-4">
-                      Kostenlos und unverbindlich. Wir finden passende Trainer*innen für dich.
+                      {content.form.disclaimer}
                     </p>
                   </CardContent>
                 </Card>
@@ -629,7 +601,6 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
           </motion.div>
         </div>
       </section>
-
       <Footer />
     </main>
   )
