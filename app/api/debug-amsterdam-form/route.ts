@@ -4,10 +4,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Log the form submission
+    // Log the submission for debugging
     console.log('Amsterdam form submission:', {
       timestamp: new Date().toISOString(),
-      city: 'Amsterdam',
       data: body
     })
 
@@ -17,14 +16,19 @@ export async function POST(request: NextRequest) {
     // Return success response
     return NextResponse.json({
       success: true,
-      message: 'Form submitted successfully',
+      message: 'Amsterdam form submitted successfully',
       data: body
     })
 
   } catch (error) {
     console.error('Amsterdam form submission error:', error)
+    
     return NextResponse.json(
-      { error: 'Failed to submit form' },
+      { 
+        success: false, 
+        error: 'Failed to process Amsterdam form submission',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
