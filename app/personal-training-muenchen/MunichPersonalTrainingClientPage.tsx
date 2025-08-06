@@ -13,17 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useTheme } from "@/components/theme-provider"
-import {
-  MapPin,
-  CheckCircle,
-  AlertCircle,
-  Download,
-  ChevronDown,
-  Activity,
-  Calendar,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react"
+import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, Activity, Calendar, ChevronRight, ChevronLeft } from 'lucide-react'
 import { joinWaitlist } from "@/actions/waitlist-actions"
 
 const featureCardClass =
@@ -412,9 +402,12 @@ export default function MunichPersonalTrainingClientPage() {
       <Button
         size="lg"
         className="fixed bottom-6 right-6 z-50 bg-juice hover:bg-juice/90 text-black font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 text-sm md:text-base md:px-6 md:py-3"
+        asChild
       >
-        <Download className="h-5 w-5" />
-        App downloaden
+        <a href="https://www.juice.fitness/download-juice-app" target="_blank" rel="noopener noreferrer">
+          <Download className="h-5 w-5" />
+          App downloaden
+        </a>
       </Button>
 
       {/* Hero Section */}
@@ -494,7 +487,6 @@ export default function MunichPersonalTrainingClientPage() {
               <div className={featureCardClass}>
                 <div className="flex flex-col md:flex-row items-start">
                   <div className="mr-4 mt-1">
-                    <Activity className="h-6 w-6 text-juice" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
@@ -506,15 +498,13 @@ export default function MunichPersonalTrainingClientPage() {
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         Kostenloses Probetraining
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
                         Online-Beratung mit Fokus auf Gesundheit
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
                         Einstieg mit Bewegungsanalyse & Haltungstraining
                       </div>
                     </div>
@@ -532,7 +522,6 @@ export default function MunichPersonalTrainingClientPage() {
               <div className={featureCardClass}>
                 <div className="flex flex-col md:flex-row items-start">
                   <div className="mr-4 mt-1">
-                    <Calendar className="h-6 w-6 text-juice" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
@@ -543,19 +532,15 @@ export default function MunichPersonalTrainingClientPage() {
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
                         Maßgeschneiderte Programme
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
                         Fokus auf progressive Overload
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
                         App-Tracking und Analyse
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-juice" />
                         Wissen zu Hypertrophie, Regeneration & Ernährung
                       </div>
                     </div>
