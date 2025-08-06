@@ -19,43 +19,45 @@ import { joinWaitlist } from "@/actions/waitlist-actions"
 const featureCardClass =
   "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
 
-const amsterdamDistricts = [
-  "Centrum",
-  "Noord",
-  "Oost",
-  "West",
-  "Zuid",
-  "Zuidoost",
-  "Nieuw-West",
-  "Westpoort",
+const copenhagenDistricts = [
+  "Indre By",
+  "Vesterbro",
+  "Nørrebro",
+  "Østerbro",
+  "Frederiksberg",
+  "Amager",
+  "Valby",
+  "Vanløse",
+  "Brønshøj",
+  "Bispebjerg",
 ]
 
 const fitnessGoals = [
-  { value: "gezondheid", label: "Gezondheid & Houding", color: "bg-purple-100 text-purple-800" },
-  { value: "spiermassa", label: "Spiermassa & Kracht", color: "bg-blue-100 text-blue-800" },
-  { value: "afvallen", label: "Afvallen & Conditie", color: "bg-green-100 text-green-800" },
-  { value: "houding", label: "Houding verbeteren", color: "bg-orange-100 text-orange-800" },
-  { value: "beginnen", label: "Beginnen met trainen", color: "bg-cyan-100 text-cyan-800" },
-  { value: "progressie", label: "Progressie & Structuur", color: "bg-red-100 text-red-800" },
+  { value: "sundhed", label: "Sundhed & Holdning", color: "bg-purple-100 text-purple-800" },
+  { value: "muskelopbygning", label: "Muskelopbygning", color: "bg-blue-100 text-blue-800" },
+  { value: "vaegttab", label: "Vægttab", color: "bg-green-100 text-green-800" },
+  { value: "holdning", label: "Holdning", color: "bg-orange-100 text-orange-800" },
+  { value: "begynder", label: "Begynder træning", color: "bg-cyan-100 text-cyan-800" },
+  { value: "styrke", label: "Styrke & Performance", color: "bg-red-100 text-red-800" },
 ]
 
 const startTimes = [
-  { value: "direct", label: "Direct" },
-  { value: "1-2-weken", label: "Over 1-2 weken" },
-  { value: "1-maand", label: "Over een maand" },
-  { value: "2-3-maanden", label: "Over 2-3 maanden" },
-  { value: "onbekend", label: "Nog onbekend" },
+  { value: "nu", label: "Nu" },
+  { value: "1-2-uger", label: "Om 1-2 uger" },
+  { value: "1-maaned", label: "Om en måned" },
+  { value: "2-3-maaneder", label: "Om 2-3 måneder" },
+  { value: "ukendt", label: "Ved ikke endnu" },
 ]
 
 // Define form steps
 const formSteps = [
-  { id: "basic", fields: ["name", "email"], title: "Basisgegevens" },
-  { id: "goal", fields: ["goal"], title: "Trainingsdoel" },
-  { id: "location", fields: ["district", "startTime"], title: "Locatie & Timing" },
-  { id: "contact", fields: ["phone", "message"], title: "Contact & Details" },
+  { id: "basic", fields: ["name", "email"], title: "Grundoplysninger" },
+  { id: "goal", fields: ["goal"], title: "Træningsmål" },
+  { id: "location", fields: ["district", "startTime"], title: "Lokation & Timing" },
+  { id: "contact", fields: ["phone", "message"], title: "Kontakt & Detaljer" },
 ]
 
-export default function AmsterdamPersonalTrainingClientPage() {
+export default function CopenhagenPersonalTrainingClientPage() {
   const { setIsCoach } = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -71,7 +73,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Set client mode by default for Amsterdam page
+  // Set client mode by default for Copenhagen page
   useEffect(() => {
     setIsCoach(false)
   }, [setIsCoach])
@@ -99,23 +101,23 @@ export default function AmsterdamPersonalTrainingClientPage() {
 
     currentFields.forEach((field) => {
       if (field === "name" && !formData.name.trim()) {
-        newErrors.name = "Naam is verplicht"
+        newErrors.name = "Navn er påkrævet"
       }
       if (field === "email") {
         if (!formData.email.trim()) {
-          newErrors.email = "E-mail is verplicht"
+          newErrors.email = "E-mail er påkrævet"
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-          newErrors.email = "Voer een geldig e-mailadres in (bijv. naam@voorbeeld.nl)"
+          newErrors.email = "Indtast en gyldig e-mailadresse (f.eks. navn@eksempel.dk)"
         }
       }
       if (field === "goal" && !formData.goal) {
-        newErrors.goal = "Kies je trainingsdoel"
+        newErrors.goal = "Vælg dit træningsmål"
       }
       if (field === "district" && !formData.district) {
-        newErrors.district = "Kies je stadsdeel"
+        newErrors.district = "Vælg din bydel"
       }
       if (field === "startTime" && !formData.startTime) {
-        newErrors.startTime = "Kies wanneer je wilt starten"
+        newErrors.startTime = "Vælg hvornår du vil starte"
       }
     })
 
@@ -186,8 +188,8 @@ export default function AmsterdamPersonalTrainingClientPage() {
       })
 
       formDataObj.set("user_type", "client")
-      formDataObj.set("city", "Amsterdam")
-      formDataObj.set("plan", "personal-training-amsterdam")
+      formDataObj.set("city", "København")
+      formDataObj.set("plan", "personal-training-copenhagen")
 
       const result = await joinWaitlist(formDataObj)
 
@@ -209,7 +211,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
       console.error("Form submission error:", error)
       setSubmitResult({
         success: false,
-        message: "Er is een fout opgetreden. Probeer het opnieuw.",
+        message: "Der opstod en fejl. Prøv igen.",
       })
     } finally {
       setIsSubmitting(false)
@@ -232,7 +234,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="naam@voorbeeld.nl"
+                placeholder="navn@eksempel.dk"
                 className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""} ${
                   formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? "border-orange-400" : ""
                 }`}
@@ -240,18 +242,18 @@ export default function AmsterdamPersonalTrainingClientPage() {
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               {formData.email && !errors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                <p className="text-orange-600 text-sm mt-1">Voer een geldig e-mailadres in</p>
+                <p className="text-orange-600 text-sm mt-1">Indtast en gyldig e-mailadresse</p>
               )}
             </div>
             <div>
               <Label htmlFor="name" className="text-base font-medium">
-                Naam <span className="text-red-500">*</span>
+                Navn <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Je naam"
+                placeholder="Dit navn"
                 className={`mt-2 h-12 ${errors.name ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
               />
@@ -264,7 +266,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
         return (
           <div>
             <Label htmlFor="goal" className="text-base font-medium">
-              Trainingsdoel <span className="text-red-500">*</span>
+              Træningsmål <span className="text-red-500">*</span>
             </Label>
             <Select
               value={formData.goal}
@@ -272,7 +274,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
               disabled={isSubmitting}
             >
               <SelectTrigger className={`mt-2 h-12 ${errors.goal ? "border-red-500" : ""}`}>
-                <SelectValue placeholder="Kies je hoofddoel" />
+                <SelectValue placeholder="Vælg dit hovedmål" />
               </SelectTrigger>
               <SelectContent>
                 {fitnessGoals.map((goal) => (
@@ -291,7 +293,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="district" className="text-base font-medium">
-                Stadsdeel <span className="text-red-500">*</span>
+                Bydel <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.district}
@@ -299,10 +301,10 @@ export default function AmsterdamPersonalTrainingClientPage() {
                 disabled={isSubmitting}
               >
                 <SelectTrigger className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Kies je stadsdeel" />
+                  <SelectValue placeholder="Vælg din bydel" />
                 </SelectTrigger>
                 <SelectContent>
-                  {amsterdamDistricts.map((district) => (
+                  {copenhagenDistricts.map((district) => (
                     <SelectItem key={district} value={district}>
                       {district}
                     </SelectItem>
@@ -314,7 +316,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
 
             <div>
               <Label htmlFor="startTime" className="text-base font-medium">
-                Starttijd <span className="text-red-500">*</span>
+                Startdato <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.startTime}
@@ -322,7 +324,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
                 disabled={isSubmitting}
               >
                 <SelectTrigger className={`mt-2 h-12 ${errors.startTime ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Wanneer wil je starten?" />
+                  <SelectValue placeholder="Hvornår vil du starte?" />
                 </SelectTrigger>
                 <SelectContent>
                   {startTimes.map((time) => (
@@ -342,27 +344,27 @@ export default function AmsterdamPersonalTrainingClientPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="phone" className="text-base font-medium">
-                Telefoon (optioneel)
+                Telefon (valgfrit)
               </Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
-                placeholder="+31 6 12345678"
+                placeholder="+45 12 34 56 78"
                 className="mt-2 h-12"
               />
             </div>
 
             <div>
               <Label htmlFor="message" className="text-base font-medium">
-                Bericht (optioneel)
+                Besked (valgfrit)
               </Label>
-              <p className="text-sm text-gray-600 mt-1 mb-2">Vertel ons meer over je doelen of wensen...</p>
+              <p className="text-sm text-gray-600 mt-1 mb-2">Fortæl os mere om dine mål eller ønsker...</p>
               <Textarea
                 id="message"
                 value={formData.message}
                 onChange={(e) => handleInputChange("message", e.target.value)}
-                placeholder="Ik wil..."
+                placeholder="Jeg vil gerne..."
                 className="mt-2 min-h-32"
               />
             </div>
@@ -386,7 +388,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
       >
         <a href="https://www.juice.fitness/download-juice-app" target="_blank" rel="noopener noreferrer">
           <Download className="h-5 w-5" />
-          App downloaden
+          Download appen
         </a>
       </Button>
 
@@ -412,16 +414,16 @@ export default function AmsterdamPersonalTrainingClientPage() {
                   className="bg-juice/20 text-black border-juice border-2 mb-6 font-bold text-base px-4 py-1.5 shadow-sm"
                 >
                   <MapPin className="h-4 w-4 mr-2" />
-                  Amsterdam
+                  København
                 </Badge>
               </motion.div>
 
               <h1 className="text-5xl font-bold text-center text-gray-900">
-                Personal Training in <span className="juice-text-gradient">Amsterdam</span>
+                Personlig træning i <span className="juice-text-gradient">København</span>
               </h1>
-              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Start zonder gedoe</p>
+              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Find din træner</p>
               <p className="mx-auto max-w-[600px] text-gray-600">
-                Nieuw in de gym? Of al even bezig maar geen progressie? In Amsterdam vind je personal trainers die snappen wat werkt.
+                Vil du bare i bedre form eller bryde igennem din træningsvæg? Vi har trænere i København, der ved hvordan.
               </p>
             </div>
 
@@ -441,7 +443,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
                   }
                 }}
               >
-                Gratis proefles
+                Gratis prøvetime
                 <ChevronDown className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </motion.div>
@@ -453,10 +455,10 @@ export default function AmsterdamPersonalTrainingClientPage() {
       <div className="pt-8 pb-0 bg-white maintain-scroll">
         <div className="container px-4 md:px-6 pb-4">
           <div className="flex flex-col items-center text-center mb-12">
-            <span className="text-gray-900 font-medium mb-3">AMSTERDAM TRAINING</span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Twee manieren om te beginnen</h2>
+            <span className="text-gray-900 font-medium mb-3">KØBENHAVN TRÆNING</span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">To måder at starte på</h2>
             <p className="text-gray-600 max-w-2xl">
-              Gratis proefles of videogesprek, of download eerst de app om rond te kijken
+              Gratis prøvetime eller videosamtale, eller download appen hvis du vil vente og kigge først
             </p>
           </div>
 
@@ -469,23 +471,23 @@ export default function AmsterdamPersonalTrainingClientPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      🚶 Eerste stap naar gezonder leven?
+                      🙋 Første gang i fitness?
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Geen stress. Veel trainers in Amsterdam werken met mensen die willen starten, maar niet weten hoe.
+                      Du behøver ikke kende øvelserne eller have udstyret i orden. Mange københavnske trænere arbejder med folk, der vil i gang – uden pres.
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Gratis proefles in een studio of gym
+                        Gratis prøvetime i et lokalt træningscenter
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Online kennismaking
+                        Online intro med en personlig træner
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Training gericht op houding, beweging en basisconditie
+                        Fokus på mobilitet, hverdagsstyrke og sundhed
                       </div>
                     </div>
                   </div>
@@ -505,38 +507,34 @@ export default function AmsterdamPersonalTrainingClientPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      🏋️ Kracht, progressie, structuur?
+                      🏋️ Seriøs omkring din træning?
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Serieus bezig met krachttraining maar vastgelopen? Amsterdamse coaches kunnen je programmeren, tracken en begeleiden.
+                      København er fyldt med trænere, der kan hjælpe dig forbi plateauer og give dig et system:
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Persoonlijk plan
+                        Program med progressive overload
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Progressive overload
+                        Tydelig plan og feedback i appen
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        App tracking & feedback
-                      </div>
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Kennis van hypertrofie & lifting
+                        Fokus på hypertrofi, styrke og performance
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Spiermassa
+                        Muskelmasse
                       </Badge>
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Structuur
+                        Max styrke
                       </Badge>
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Resultaat
+                        Performance
                       </Badge>
                     </div>
                   </div>
@@ -564,31 +562,31 @@ export default function AmsterdamPersonalTrainingClientPage() {
 
             <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
-                Vind jouw trainer in Amsterdam
+                Find din træner i København
               </h2>
               <p className="text-gray-600 mb-8">
-                Vul het formulier in. Wij koppelen je aan 2 trainers die bij jou passen.
+                Udfyld formularen, så matcher vi dig med 2 trænere, der passer til dig.
               </p>
 
               {submitResult?.success ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Bedankt!</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Tak!</h3>
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
                 <Card className="shadow-xl border-0 w-full max-w-lg mx-auto">
                   <CardHeader className="bg-gray-50 rounded-t-lg">
-                    <CardTitle className="text-2xl text-center">Trainer-Finder</CardTitle>
+                    <CardTitle className="text-2xl text-center">Træner-Finder</CardTitle>
 
                     {/* Progress Indicator */}
                     <div className="mt-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-600">
-                          Stap {currentStep + 1} van {formSteps.length}
+                          Trin {currentStep + 1} af {formSteps.length}
                         </span>
                         <span className="text-sm text-gray-600">
-                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% voltooid
+                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% færdig
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -615,7 +613,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
                           className="flex items-center gap-2 bg-transparent"
                         >
                           <ChevronLeft className="w-4 h-4" />
-                          Terug
+                          Tilbage
                         </Button>
 
                         {currentStep < formSteps.length - 1 ? (
@@ -625,7 +623,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
                             disabled={!canProceedToNext() || isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2 font-bold"
                           >
-                            Verder
+                            Videre
                             <ChevronRight className="w-4 h-4" />
                           </Button>
                         ) : (
@@ -645,10 +643,10 @@ export default function AmsterdamPersonalTrainingClientPage() {
                             {isSubmitting ? (
                               <>
                                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                                Verzenden...
+                                Sender...
                               </>
                             ) : (
-                              "Verzenden"
+                              "Send"
                             )}
                           </Button>
                         )}
@@ -663,7 +661,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
                     )}
 
                     <p className="text-center text-sm text-gray-600 mt-4">
-                      Gratis en vrijblijvend. Wij vinden trainers die bij jou passen.
+                      Gratis og uforpligtende. Vi finder trænere, der passer til dig.
                     </p>
                   </CardContent>
                 </Card>
