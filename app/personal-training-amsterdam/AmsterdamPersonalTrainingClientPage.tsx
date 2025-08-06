@@ -19,61 +19,43 @@ import { joinWaitlist } from "@/actions/waitlist-actions"
 const featureCardClass =
   "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
 
-const munichDistricts = [
-  "Altstadt-Lehel",
-  "Ludwigsvorstadt-Isarvorstadt",
-  "Maxvorstadt",
-  "Schwabing-West",
-  "Au-Haidhausen",
-  "Sendling",
-  "Sendling-Westpark",
-  "Schwanthalerhöhe",
-  "Neuhausen-Nymphenburg",
-  "Moosach",
-  "Milbertshofen-Am Hart",
-  "Schwabing-Freimann",
-  "Bogenhausen",
-  "Berg am Laim",
-  "Trudering-Riem",
-  "Ramersdorf-Perlach",
-  "Obergiesing-Fasangarten",
-  "Untergiesing-Harlaching",
-  "Thalkirchen-Obersendling-Forstenried-Fürstenried-Solln",
-  "Hadern",
-  "Pasing-Obermenzing",
-  "Aubing-Lochhausen-Langwied",
-  "Allach-Untermenzing",
-  "Feldmoching-Hasenbergl",
-  "Laim",
+const amsterdamDistricts = [
+  "Centrum",
+  "Noord",
+  "Oost",
+  "West",
+  "Zuid",
+  "Zuidoost",
+  "Nieuw-West",
+  "Westpoort",
 ]
 
 const fitnessGoals = [
-  { value: "muskelaufbau", label: "Muskelaufbau", color: "bg-blue-100 text-blue-800" },
-  { value: "abnehmen", label: "Abnehmen & Körperfett reduzieren", color: "bg-green-100 text-green-800" },
-  { value: "gesundheit", label: "Gesundheit & Rücken", color: "bg-purple-100 text-purple-800" },
-  { value: "haltung", label: "Haltung verbessern", color: "bg-orange-100 text-orange-800" },
-  { value: "kraft", label: "Kraft & Leistung steigern", color: "bg-red-100 text-red-800" },
-  { value: "einstieg", label: "Einstieg ins Training", color: "bg-cyan-100 text-cyan-800" },
-  { value: "beweglichkeit", label: "Beweglichkeit & Mobilität", color: "bg-pink-100 text-pink-800" },
+  { value: "gezondheid", label: "Gezondheid & Houding", color: "bg-purple-100 text-purple-800" },
+  { value: "spiermassa", label: "Spiermassa & Kracht", color: "bg-blue-100 text-blue-800" },
+  { value: "afvallen", label: "Afvallen & Conditie", color: "bg-green-100 text-green-800" },
+  { value: "houding", label: "Houding verbeteren", color: "bg-orange-100 text-orange-800" },
+  { value: "beginnen", label: "Beginnen met trainen", color: "bg-cyan-100 text-cyan-800" },
+  { value: "progressie", label: "Progressie & Structuur", color: "bg-red-100 text-red-800" },
 ]
 
 const startTimes = [
-  { value: "sofort", label: "Sofort" },
-  { value: "1-2-wochen", label: "In 1-2 Wochen" },
-  { value: "1-monat", label: "In einem Monat" },
-  { value: "2-3-monate", label: "In 2-3 Monaten" },
-  { value: "unbestimmt", label: "Noch unbestimmt" },
+  { value: "direct", label: "Direct" },
+  { value: "1-2-weken", label: "Over 1-2 weken" },
+  { value: "1-maand", label: "Over een maand" },
+  { value: "2-3-maanden", label: "Over 2-3 maanden" },
+  { value: "onbekend", label: "Nog onbekend" },
 ]
 
 // Define form steps
 const formSteps = [
-  { id: "basic", fields: ["name", "email"], title: "Grunddaten" },
-  { id: "goal", fields: ["goal"], title: "Trainingsziel" },
-  { id: "location", fields: ["district", "startTime"], title: "Ort & Zeit" },
-  { id: "contact", fields: ["phone", "message"], title: "Kontakt & Details" },
+  { id: "basic", fields: ["name", "email"], title: "Basisgegevens" },
+  { id: "goal", fields: ["goal"], title: "Trainingsdoel" },
+  { id: "location", fields: ["district", "startTime"], title: "Locatie & Timing" },
+  { id: "contact", fields: ["phone", "message"], title: "Contact & Details" },
 ]
 
-export default function MunichPersonalTrainingClientPage() {
+export default function AmsterdamPersonalTrainingClientPage() {
   const { setIsCoach } = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -89,7 +71,7 @@ export default function MunichPersonalTrainingClientPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Set client mode by default for Munich page
+  // Set client mode by default for Amsterdam page
   useEffect(() => {
     setIsCoach(false)
   }, [setIsCoach])
@@ -117,23 +99,23 @@ export default function MunichPersonalTrainingClientPage() {
 
     currentFields.forEach((field) => {
       if (field === "name" && !formData.name.trim()) {
-        newErrors.name = "Name ist erforderlich"
+        newErrors.name = "Naam is verplicht"
       }
       if (field === "email") {
         if (!formData.email.trim()) {
-          newErrors.email = "E-Mail ist erforderlich"
+          newErrors.email = "E-mail is verplicht"
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-          newErrors.email = "Bitte gib eine gültige E-Mail-Adresse ein (z.B. name@beispiel.de)"
+          newErrors.email = "Voer een geldig e-mailadres in (bijv. naam@voorbeeld.nl)"
         }
       }
       if (field === "goal" && !formData.goal) {
-        newErrors.goal = "Bitte wähle dein Trainingsziel"
+        newErrors.goal = "Kies je trainingsdoel"
       }
       if (field === "district" && !formData.district) {
-        newErrors.district = "Bitte wähle deinen Stadtteil"
+        newErrors.district = "Kies je stadsdeel"
       }
       if (field === "startTime" && !formData.startTime) {
-        newErrors.startTime = "Bitte wähle deinen Startzeitpunkt"
+        newErrors.startTime = "Kies wanneer je wilt starten"
       }
     })
 
@@ -203,8 +185,8 @@ export default function MunichPersonalTrainingClientPage() {
       })
 
       formDataObj.set("user_type", "client")
-      formDataObj.set("city", "München")
-      formDataObj.set("plan", "personal-training-munich")
+      formDataObj.set("city", "Amsterdam")
+      formDataObj.set("plan", "personal-training-amsterdam")
 
       const result = await joinWaitlist(formDataObj)
 
@@ -225,7 +207,7 @@ export default function MunichPersonalTrainingClientPage() {
     } catch (error) {
       setSubmitResult({
         success: false,
-        message: "Es ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+        message: "Er is een fout opgetreden. Probeer het opnieuw.",
       })
     } finally {
       setIsSubmitting(false)
@@ -241,14 +223,14 @@ export default function MunichPersonalTrainingClientPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-base font-medium">
-                E-Mail <span className="text-red-500">*</span>
+                E-mail <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="name@beispiel.de"
+                placeholder="naam@voorbeeld.nl"
                 className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""} ${
                   formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? "border-orange-400" : ""
                 }`}
@@ -256,18 +238,18 @@ export default function MunichPersonalTrainingClientPage() {
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               {formData.email && !errors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                <p className="text-orange-600 text-sm mt-1">Bitte gib eine gültige E-Mail-Adresse ein</p>
+                <p className="text-orange-600 text-sm mt-1">Voer een geldig e-mailadres in</p>
               )}
             </div>
             <div>
               <Label htmlFor="name" className="text-base font-medium">
-                Name <span className="text-red-500">*</span>
+                Naam <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Dein Name"
+                placeholder="Je naam"
                 className={`mt-2 h-12 ${errors.name ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
               />
@@ -280,7 +262,7 @@ export default function MunichPersonalTrainingClientPage() {
         return (
           <div>
             <Label htmlFor="goal" className="text-base font-medium">
-              Trainingsziel <span className="text-red-500">*</span>
+              Trainingsdoel <span className="text-red-500">*</span>
             </Label>
             <Select
               value={formData.goal}
@@ -288,7 +270,7 @@ export default function MunichPersonalTrainingClientPage() {
               disabled={isSubmitting}
             >
               <SelectTrigger className={`mt-2 h-12 ${errors.goal ? "border-red-500" : ""}`}>
-                <SelectValue placeholder="Wähle dein Hauptziel" />
+                <SelectValue placeholder="Kies je hoofddoel" />
               </SelectTrigger>
               <SelectContent>
                 {fitnessGoals.map((goal) => (
@@ -307,7 +289,7 @@ export default function MunichPersonalTrainingClientPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="district" className="text-base font-medium">
-                Stadtteil <span className="text-red-500">*</span>
+                Stadsdeel <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.district}
@@ -315,10 +297,10 @@ export default function MunichPersonalTrainingClientPage() {
                 disabled={isSubmitting}
               >
                 <SelectTrigger className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Wähle deinen Stadtteil" />
+                  <SelectValue placeholder="Kies je stadsdeel" />
                 </SelectTrigger>
                 <SelectContent>
-                  {munichDistricts.map((district) => (
+                  {amsterdamDistricts.map((district) => (
                     <SelectItem key={district} value={district}>
                       {district}
                     </SelectItem>
@@ -330,7 +312,7 @@ export default function MunichPersonalTrainingClientPage() {
 
             <div>
               <Label htmlFor="startTime" className="text-base font-medium">
-                Startzeitpunkt <span className="text-red-500">*</span>
+                Starttijd <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.startTime}
@@ -338,7 +320,7 @@ export default function MunichPersonalTrainingClientPage() {
                 disabled={isSubmitting}
               >
                 <SelectTrigger className={`mt-2 h-12 ${errors.startTime ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Wann möchtest du starten?" />
+                  <SelectValue placeholder="Wanneer wil je starten?" />
                 </SelectTrigger>
                 <SelectContent>
                   {startTimes.map((time) => (
@@ -358,27 +340,27 @@ export default function MunichPersonalTrainingClientPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="phone" className="text-base font-medium">
-                Telefon (optional)
+                Telefoon (optioneel)
               </Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
-                placeholder="+49 89 123456789"
+                placeholder="+31 6 12345678"
                 className="mt-2 h-12"
               />
             </div>
 
             <div>
               <Label htmlFor="message" className="text-base font-medium">
-                Nachricht (optional)
+                Bericht (optioneel)
               </Label>
-              <p className="text-sm text-gray-600 mt-1 mb-2">Erzähl uns mehr über deine Ziele oder Wünsche...</p>
+              <p className="text-sm text-gray-600 mt-1 mb-2">Vertel ons meer over je doelen of wensen...</p>
               <Textarea
                 id="message"
                 value={formData.message}
                 onChange={(e) => handleInputChange("message", e.target.value)}
-                placeholder="Ich möchte..."
+                placeholder="Ik wil..."
                 className="mt-2 min-h-32"
               />
             </div>
@@ -428,17 +410,16 @@ export default function MunichPersonalTrainingClientPage() {
                   className="bg-juice/20 text-black border-juice border-2 mb-6 font-bold text-base px-4 py-1.5 shadow-sm"
                 >
                   <MapPin className="h-4 w-4 mr-2" />
-                  München
+                  Amsterdam
                 </Badge>
               </motion.div>
 
               <h1 className="text-5xl font-bold text-center text-gray-900">
-                Personal Training in <span className="juice-text-gradient">München</span>
+                Personal Training in <span className="juice-text-gradient">Amsterdam</span>
               </h1>
-              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Der passende Coach für dich</p>
+              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Vind jouw trainer</p>
               <p className="mx-auto max-w-[600px] text-gray-600">
-                Egal ob du Anfänger bist oder im Training stagnierst – in München gibt's Trainer*innen, die dich
-                verstehen und weiterbringen.
+                Nieuw in de gym? Of al even bezig maar geen progressie? In Amsterdam vind je personal trainers die snappen wat werkt.
               </p>
             </div>
 
@@ -458,7 +439,7 @@ export default function MunichPersonalTrainingClientPage() {
                   }
                 }}
               >
-                Gratis Probetraining
+                Gratis proefles
                 <ChevronDown className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </motion.div>
@@ -470,10 +451,10 @@ export default function MunichPersonalTrainingClientPage() {
       <div className="pt-8 pb-0 bg-white maintain-scroll">
         <div className="container px-4 md:px-6 pb-4">
           <div className="flex flex-col items-center text-center mb-12">
-            <span className="text-gray-900 font-medium mb-3">MÜNCHEN TRAINING</span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Zwei Wege zu deinem Ziel</h2>
+            <span className="text-gray-900 font-medium mb-3">AMSTERDAM TRAINING</span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Twee manieren om te beginnen</h2>
             <p className="text-gray-600 max-w-2xl">
-              Ob Einsteiger oder Fortgeschrittener – wir haben den passenden Ansatz für dich
+              Gratis proefles of videogesprek, of download eerst de app om rond te kijken
             </p>
           </div>
 
@@ -486,24 +467,23 @@ export default function MunichPersonalTrainingClientPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      🧍‍♂️ Keine Ahnung, wie du anfangen sollst?
+                      🚶 Eerste stap naar gezonder leven?
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Viele Leute in München wollen fitter werden – aber Gym-Stress, Unsicherheit oder Rückenschmerzen
-                      halten sie ab. Unsere Coaches helfen beim Einstieg.
+                      Geen stress. Veel trainers in Amsterdam werken met mensen die willen starten, maar niet weten hoe.
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Kostenloses Probetraining
+                        Gratis proefles in een studio of gym
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Online-Beratung mit Fokus auf Gesundheit
+                        Online kennismaking
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Einstieg mit Bewegungsanalyse & Haltungstraining
+                        Training gericht op houding, beweging en basisconditie
                       </div>
                     </div>
                   </div>
@@ -523,38 +503,38 @@ export default function MunichPersonalTrainingClientPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      🏋️‍♂️ Du trainierst hart, aber nichts passiert?
+                      🏋️ Kracht, progressie, structuur?
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Wenn du in München ernsthaft Kraft trainierst, aber stagnierst, brauchst du einen Coach mit Plan.
+                      Serieus bezig met krachttraining maar vastgelopen? Amsterdamse coaches kunnen je programmeren, tracken en begeleiden.
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Maßgeschneiderte Programme
+                        Persoonlijk plan
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Fokus auf progressive Overload
+                        Progressive overload
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        App-Tracking und Analyse
+                        App tracking & feedback
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
                         <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Wissen zu Hypertrophie, Regeneration & Ernährung
+                        Kennis van hypertrofie & lifting
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Muskelaufbau
+                        Spiermassa
                       </Badge>
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Leistung
+                        Structuur
                       </Badge>
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Technikanalyse
+                        Resultaat
                       </Badge>
                     </div>
                   </div>
@@ -582,31 +562,31 @@ export default function MunichPersonalTrainingClientPage() {
 
             <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
-                Finde deinen passenden Coach in München
+                Vind jouw trainer in Amsterdam
               </h2>
               <p className="text-gray-600 mb-8">
-                Fülle das Formular aus und wir finden zwei Trainer*innen, die zu dir passen.
+                Vul het formulier in. Wij koppelen je aan 2 trainers die bij jou passen.
               </p>
 
               {submitResult?.success ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Vielen Dank!</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Bedankt!</h3>
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
                 <Card className="shadow-xl border-0 w-full max-w-lg mx-auto">
                   <CardHeader className="bg-gray-50 rounded-t-lg">
-                    <CardTitle className="text-2xl text-center">Coach-Finder</CardTitle>
+                    <CardTitle className="text-2xl text-center">Trainer-Finder</CardTitle>
 
                     {/* Progress Indicator */}
                     <div className="mt-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-600">
-                          Schritt {currentStep + 1} von {formSteps.length}
+                          Stap {currentStep + 1} van {formSteps.length}
                         </span>
                         <span className="text-sm text-gray-600">
-                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% abgeschlossen
+                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% voltooid
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -633,7 +613,7 @@ export default function MunichPersonalTrainingClientPage() {
                           className="flex items-center gap-2 bg-transparent"
                         >
                           <ChevronLeft className="w-4 h-4" />
-                          Zurück
+                          Terug
                         </Button>
 
                         {currentStep < formSteps.length - 1 ? (
@@ -643,7 +623,7 @@ export default function MunichPersonalTrainingClientPage() {
                             disabled={!canProceedToNext() || isSubmitting}
                             className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2 font-bold"
                           >
-                            Weiter
+                            Verder
                             <ChevronRight className="w-4 h-4" />
                           </Button>
                         ) : (
@@ -663,13 +643,10 @@ export default function MunichPersonalTrainingClientPage() {
                             {isSubmitting ? (
                               <>
                                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                                Wird gesendet...
-                              </>
-                            ) :
-                                Wird gesendet...
+                                Verzenden...
                               </>
                             ) : (
-                              "Absenden"
+                              "Verzenden"
                             )}
                           </Button>
                         )}
@@ -684,7 +661,7 @@ export default function MunichPersonalTrainingClientPage() {
                     )}
 
                     <p className="text-center text-sm text-gray-600 mt-4">
-                      Kostenlos und unverbindlich. Wir finden passende Trainer*innen für dich.
+                      Gratis en vrijblijvend. Wij vinden trainers die bij jou passen.
                     </p>
                   </CardContent>
                 </Card>
