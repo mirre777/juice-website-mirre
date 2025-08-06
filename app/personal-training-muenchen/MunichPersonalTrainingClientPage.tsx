@@ -13,7 +13,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useTheme } from "@/components/theme-provider"
-import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, Activity, Calendar, ChevronRight, ChevronLeft } from 'lucide-react'
+import {
+  MapPin,
+  CheckCircle,
+  AlertCircle,
+  Download,
+  ChevronDown,
+  Activity,
+  Calendar,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 
 const featureCardClass =
