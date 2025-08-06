@@ -1,681 +1,451 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
-import { useTheme } from "@/components/theme-provider"
-import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react'
-import { joinWaitlist } from "@/actions/waitlist-actions"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CheckCircle, Users, Smartphone, MapPin, Calendar, Target } from 'lucide-react'
 
-const featureCardClass =
-  "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
-
-const copenhagenDistricts = [
-  "Indre By",
-  "Vesterbro",
-  "Nørrebro",
-  "Østerbro",
-  "Frederiksberg",
-  "Amager",
-  "Valby",
-  "Vanløse",
-  "Brønshøj",
-  "Bispebjerg",
-]
-
-const fitnessGoals = [
-  { value: "sundhed", label: "Sundhed & Holdning", color: "bg-purple-100 text-purple-800" },
-  { value: "muskelopbygning", label: "Muskelopbygning & Styrke", color: "bg-blue-100 text-blue-800" },
-  { value: "vaegttab", label: "Vægttab & Kondition", color: "bg-green-100 text-green-800" },
-  { value: "holdning", label: "Holdning forbedring", color: "bg-orange-100 text-orange-800" },
-  { value: "begynder", label: "Begynde med træning", color: "bg-cyan-100 text-cyan-800" },
-  { value: "progression", label: "Progression & Struktur", color: "bg-red-100 text-red-800" },
-]
-
-const startTimes = [
-  { value: "direkte", label: "Direkte" },
-  { value: "1-2-uger", label: "Om 1-2 uger" },
-  { value: "1-maaned", label: "Om en måned" },
-  { value: "2-3-maaneder", label: "Om 2-3 måneder" },
-  { value: "ukendt", label: "Endnu ukendt" },
-]
-
-// Define form steps
-const formSteps = [
-  { id: "basic", fields: ["name", "email"], title: "Grundlæggende oplysninger" },
-  { id: "goal", fields: ["goal"], title: "Træningsmål" },
-  { id: "location", fields: ["district", "startTime"], title: "Lokation & Timing" },
-  { id: "contact", fields: ["phone", "message"], title: "Kontakt & Detaljer" },
-]
+interface FormData {
+  name: string
+  email: string
+  goal: string
+  district: string
+  startDate: string
+  message: string
+}
 
 export default function CopenhagenPersonalTrainingClientPage() {
-  const { setIsCoach } = useTheme()
+  const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    goal: "",
-    district: "",
-    startTime: "",
-    phone: "",
-    message: "",
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    goal: '',
+    district: '',
+    startDate: '',
+    message: ''
   })
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Set client mode by default for Copenhagen page
-  useEffect(() => {
-    setIsCoach(false)
-  }, [setIsCoach])
+  const copenhagenDistricts = [
+    'Indre By',
+    'Vesterbro',
+    'Nørrebro',
+    'Østerbro',
+    'Frederiksberg',
+    'Amager',
+    'Valby',
+    'Vanløse'
+  ]
 
-  // Reset submission state when step changes
-  useEffect(() => {
-    if (isSubmitting) {
-      setIsSubmitting(false)
-    }
-  }, [currentStep])
+  const goals = [
+    'Sundhed',
+    'Muskelopbygning', 
+    'Holdning',
+    'Vægttab'
+  ]
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
-    }
-    if (submitResult && !submitResult.success) {
-      setSubmitResult(null)
-    }
-  }
-
-  const validateCurrentStep = (): boolean => {
-    const currentFields = formSteps[currentStep].fields
-    const newErrors: Record<string, string> = {}
-
-    currentFields.forEach((field) => {
-      if (field === "name" && !formData.name.trim()) {
-        newErrors.name = "Navn er påkrævet"
-      }
-      if (field === "email") {
-        if (!formData.email.trim()) {
-          newErrors.email = "E-mail er påkrævet"
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-          newErrors.email = "Indtast en gyldig e-mailadresse (f.eks. navn@eksempel.dk)"
-        }
-      }
-      if (field === "goal" && !formData.goal) {
-        newErrors.goal = "Vælg dit træningsmål"
-      }
-      if (field === "district" && !formData.district) {
-        newErrors.district = "Vælg din bydel"
-      }
-      if (field === "startTime" && !formData.startTime) {
-        newErrors.startTime = "Vælg hvornår du vil starte"
-      }
-    })
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const canProceedToNext = (): boolean => {
-    const currentFields = formSteps[currentStep].fields
-
-    if (currentStep === 0) {
-      // Basic info - be more lenient with email validation for UX
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return formData.name.trim() !== "" && formData.email.trim() !== "" && emailRegex.test(formData.email.trim())
-    }
-    if (currentStep === 1) {
-      // Goal
-      return formData.goal !== ""
-    }
-    if (currentStep === 2) {
-      // Location & Time
-      return formData.district !== "" && formData.startTime !== ""
-    }
-
-    // Contact step is optional
-    return true
-  }
-
-  const nextStep = () => {
-    if (validateCurrentStep() && canProceedToNext() && currentStep < formSteps.length - 1) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    e.stopPropagation()
-
-    // Only submit if we're on the last step
-    if (currentStep !== formSteps.length - 1) {
-      return
-    }
-
-    // Prevent double submission
-    if (isSubmitting) {
-      return
-    }
-
-    if (!validateCurrentStep()) {
-      return
-    }
-
     setIsSubmitting(true)
-    setSubmitResult(null) // Clear previous results
+    setSubmitResult(null)
 
     try {
-      const formDataObj = new FormData()
-
-      // Add all form data
-      Object.entries(formData).forEach(([key, value]) => {
-        formDataObj.set(key, value)
+      const response = await fetch('/api/debug-copenhagen-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          city: 'Copenhagen',
+          timestamp: new Date().toISOString()
+        }),
       })
 
-      formDataObj.set("user_type", "client")
-      formDataObj.set("city", "København")
-      formDataObj.set("plan", "personal-training-koebenhavn")
+      const result = await response.json()
 
-      const result = await joinWaitlist(formDataObj)
-
-      setSubmitResult(result)
-
-      if (result.success) {
-        setFormData({
-          name: "",
-          email: "",
-          goal: "",
-          district: "",
-          startTime: "",
-          phone: "",
-          message: "",
+      if (response.ok) {
+        setSubmitResult({
+          success: true,
+          message: 'Tak! Vi kontakter dig inden for 24 timer for at matche dig med 2 egnede trænere i København.'
         })
-        setCurrentStep(0)
+        setCurrentStep(4)
+      } else {
+        throw new Error(result.error || 'Der skete en fejl')
       }
     } catch (error) {
-      console.error("Form submission error:", error)
+      console.error('Form submission error:', error)
       setSubmitResult({
         success: false,
-        message: "Der opstod en fejl. Prøv igen.",
+        message: 'Der opstod en fejl. Prøv igen eller kontakt os.'
       })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const renderCurrentStepFields = () => {
-    const step = formSteps[currentStep]
+  const nextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
 
-    switch (step.id) {
-      case "basic":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email" className="text-base font-medium">
-                E-mail <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="navn@eksempel.dk"
-                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""} ${
-                  formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? "border-orange-400" : ""
-                }`}
-                disabled={isSubmitting}
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              {formData.email && !errors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                <p className="text-orange-600 text-sm mt-1">Indtast en gyldig e-mailadresse</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="name" className="text-base font-medium">
-                Navn <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Dit navn"
-                className={`mt-2 h-12 ${errors.name ? "border-red-500" : ""}`}
-                disabled={isSubmitting}
-              />
-              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-            </div>
-          </div>
-        )
-
-      case "goal":
-        return (
-          <div>
-            <Label htmlFor="goal" className="text-base font-medium">
-              Træningsmål <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.goal}
-              onValueChange={(value) => handleInputChange("goal", value)}
-              disabled={isSubmitting}
-            >
-              <SelectTrigger className={`mt-2 h-12 ${errors.goal ? "border-red-500" : ""}`}>
-                <SelectValue placeholder="Vælg dit hovedmål" />
-              </SelectTrigger>
-              <SelectContent>
-                {fitnessGoals.map((goal) => (
-                  <SelectItem key={goal.value} value={goal.value}>
-                    {goal.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.goal && <p className="text-red-500 text-sm mt-1">{errors.goal}</p>}
-          </div>
-        )
-
-      case "location":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="district" className="text-base font-medium">
-                Bydel <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.district}
-                onValueChange={(value) => handleInputChange("district", value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Vælg din bydel" />
-                </SelectTrigger>
-                <SelectContent>
-                  {copenhagenDistricts.map((district) => (
-                    <SelectItem key={district} value={district}>
-                      {district}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="startTime" className="text-base font-medium">
-                Starttidspunkt <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.startTime}
-                onValueChange={(value) => handleInputChange("startTime", value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger className={`mt-2 h-12 ${errors.startTime ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Hvornår vil du starte?" />
-                </SelectTrigger>
-                <SelectContent>
-                  {startTimes.map((time) => (
-                    <SelectItem key={time.value} value={time.value}>
-                      {time.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.startTime && <p className="text-red-500 text-sm mt-1">{errors.startTime}</p>}
-            </div>
-          </div>
-        )
-
-      case "contact":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="phone" className="text-base font-medium">
-                Telefon (valgfrit)
-              </Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
-                placeholder="+45 12 34 56 78"
-                className="mt-2 h-12"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="message" className="text-base font-medium">
-                Besked (valgfrit)
-              </Label>
-              <p className="text-sm text-gray-600 mt-1 mb-2">Fortæl os mere om dine mål eller ønsker...</p>
-              <Textarea
-                id="message"
-                value={formData.message}
-                onChange={(e) => handleInputChange("message", e.target.value)}
-                placeholder="Jeg vil gerne..."
-                className="mt-2 min-h-32"
-              />
-            </div>
-          </div>
-        )
-
-      default:
-        return null
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
     }
   }
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <Navbar isHomePage={false} />
-
-      {/* Floating App Download Button */}
-      <Button
-        size="lg"
-        className="fixed bottom-6 right-6 z-50 bg-juice hover:bg-juice/90 text-black font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 text-sm md:text-base md:px-6 md:py-3"
-        asChild
-      >
-        <a href="https://www.juice.fitness/download-juice-app" target="_blank" rel="noopener noreferrer">
-          <Download className="h-5 w-5" />
-          Download appen
-        </a>
-      </Button>
-
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       {/* Hero Section */}
-      <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-gray-50 to-white">
-        {/* Background elements */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-juice/10 blur-3xl" />
-          <div className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-juice/10 blur-3xl" />
-        </div>
-
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center max-w-4xl mx-auto">
-            <div className="space-y-2">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-4"
-              >
-                <Badge
-                  variant="outline"
-                  className="bg-juice/20 text-black border-juice border-2 mb-6 font-bold text-base px-4 py-1.5 shadow-sm"
-                >
-                  <MapPin className="h-4 w-4 mr-2" />
-                  København
-                </Badge>
-              </motion.div>
-
-              <h1 className="text-5xl font-bold text-center text-gray-900">
-                Personlig træning i <span className="juice-text-gradient">København</span>
-              </h1>
-              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Find din træner</p>
-              <p className="mx-auto max-w-[600px] text-gray-600">
-                Vil du bare i bedre form eller bryde igennem din træningsvæg? Vi har trænere i København, der ved hvordan.
-              </p>
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            Personlig træning i København
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-700 mb-8">
+            Find din træner
+          </p>
+          <div className="bg-white rounded-lg p-6 shadow-lg mb-12">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center justify-center">
+              <CheckCircle className="text-green-500 mr-2" />
+              Kom i gang uden bøvl
+            </h2>
+            <p className="text-lg text-gray-600 mb-6">
+              Vil du bare i bedre form eller bryde igennem din træningsvæg? Vi har trænere i København, der ved hvordan.
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                <span>Gratis prøvetime eller videosamtale</span>
+              </div>
+              <div className="flex items-center">
+                <Smartphone className="text-blue-500 mr-2 flex-shrink-0" />
+                <span>Download appen, hvis du vil vente og kigge først</span>
+              </div>
             </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4 mb-2 w-full sm:w-auto mx-auto"
-            >
-              <Button
-                size="lg"
-                className="bg-juice text-black hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold"
-                onClick={() => {
-                  const formElement = document.getElementById("coach-finder-form")
-                  if (formElement) {
-                    formElement.scrollIntoView({ behavior: "smooth", block: "start" })
-                  }
-                }}
-              >
-                Gratis prøvetime
-                <ChevronDown className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <div className="pt-8 pb-0 bg-white maintain-scroll">
-        <div className="container px-4 md:px-6 pb-4">
-          <div className="flex flex-col items-center text-center mb-12">
-            <span className="text-gray-900 font-medium mb-3">KØBENHAVN TRÆNING</span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">To måder at starte på</h2>
-            <p className="text-gray-600 max-w-2xl">
-              Gratis prøvetime eller videosamtale, eller download appen hvis du vil vente og kigge først
+      {/* Beginner Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 flex items-center justify-center">
+              🙋 Første gang i fitness?
+            </h2>
+            <p className="text-xl text-gray-600">
+              Du behøver ikke kende øvelserne eller have udstyret i orden. Mange københavnske trænere arbejder med folk, der vil i gang – uden pres.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
-            {/* Beginners Card */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <div className={featureCardClass}>
-                <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1">
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      🙋 Første gang i fitness?
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Du behøver ikke kende øvelserne eller have udstyret i orden. Mange københavnske trænere arbejder med folk, der vil i gang – uden pres.
-                    </p>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Gratis prøvetime i et lokalt træningscenter
-                      </div>
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Online intro med en personlig træner
-                      </div>
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Fokus på mobilitet, hverdagsstyrke og sundhed
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Advanced Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <div className={featureCardClass}>
-                <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1">
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      🏋️ Seriøs omkring din træning?
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      København er fyldt med trænere, der kan hjælpe dig forbi plateauer og give dig et system.
-                    </p>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Program med progressive overload
-                      </div>
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Tydelig plan og feedback i appen
-                      </div>
-                      <div className="flex items-center text-sm text-gray-700">
-                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
-                        Fokus på hypertrofi, styrke og performance
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mb-4">
-                      <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Muskelmasse
-                      </Badge>
-                      <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Max styrke
-                      </Badge>
-                      <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Avancerede splits
-                      </Badge>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>• Gratis samtale</p>
-                      <p>• Første session refunderes hvis du booker</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Step-by-Step Form Section */}
-      <section id="coach-finder-form" className="pt-10 pb-0">
-        <div className="container px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-3xl bg-white border border-gray-200 p-8 md:p-12"
-          >
-            {/* Background elements */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-              <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-juice/20 blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-juice/10 blur-3xl" />
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Du får fx:</h3>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Gratis prøvetime i et lokalt træningscenter</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Online intro med en personlig træner</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Fokus på mobilitet, hverdagsstyrke og sundhed</span>
+                </li>
+              </ul>
             </div>
-
-            <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
-                Find din træner i København
-              </h2>
-              <p className="text-gray-600 mb-8">
+            <div className="bg-green-50 p-6 rounded-lg">
+              <p className="text-lg font-medium text-center">
                 Udfyld formularen, så matcher vi dig med 2 trænere, der passer til dig.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      {/* Advanced Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 flex items-center justify-center">
+              🏋️ Seriøs omkring din træning?
+            </h2>
+            <p className="text-xl text-gray-600">
+              København er fyldt med trænere, der kan hjælpe dig forbi plateauer og give dig et system:
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Features:</h3>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Program med progressive overload</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Tydelig plan og feedback i appen</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Fokus på hypertrofi, styrke og performance</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Mål:</h3>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <Target className="text-blue-500 mr-2 flex-shrink-0" />
+                  <span>Muskelmasse</span>
+                </li>
+                <li className="flex items-center">
+                  <Target className="text-blue-500 mr-2 flex-shrink-0" />
+                  <span>Max styrke</span>
+                </li>
+                <li className="flex items-center">
+                  <Target className="text-blue-500 mr-2 flex-shrink-0" />
+                  <span>Avancerede splits og periodisering</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Muligheder:</h3>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Gratis samtale</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="text-green-500 mr-2 flex-shrink-0" />
+                  <span>Første session refunderes hvis du booker</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="text-center mt-8">
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <p className="text-lg font-medium">
+                Find din træner nu – bare udfyld formularen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* App Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4 flex items-center justify-center">
+            📱 Brug appen først?
+          </h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Tjek profiler. Se hvem der er aktiv. Marker interesse. Start når du er klar.
+          </p>
+          <Button size="lg" className="bg-green-600 hover:bg-green-700">
+            Download appen
+          </Button>
+        </div>
+      </section>
+
+      {/* Trainers Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Trænere i København</h2>
+          <p className="text-lg text-gray-600 text-center mb-8">
+            Du ser kun trænere, der er aktive i København. Filtrer efter:
+          </p>
+          <div className="grid md:grid-cols-3 gap-4 mb-8">
+            <div className="flex items-center justify-center">
+              <MapPin className="text-blue-500 mr-2" />
+              <span>Bydel</span>
+            </div>
+            <div className="flex items-center justify-center">
+              <Users className="text-green-500 mr-2" />
+              <span>Træningsform (center, udendørs, hjemme)</span>
+            </div>
+            <div className="flex items-center justify-center">
+              <Target className="text-purple-500 mr-2" />
+              <span>Speciale og erfaring</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SEO Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Populære søgeord</h2>
+          <p className="text-lg text-gray-600 text-center mb-8">Vi rangerer på:</p>
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <ul className="space-y-2">
+              <li>• personlig træner københavn</li>
+              <li>• gratis prøvetime træning københavn</li>
+              <li>• fitness coach københavn</li>
+            </ul>
+            <ul className="space-y-2">
+              <li>• træning for begyndere københavn</li>
+              <li>• muskelopbygning københavn</li>
+            </ul>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-medium">Lyder det som dig? Så meld dig til gratis.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Form Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-green-50">
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">
+                Find din personlige træner i København
+              </CardTitle>
+              <CardDescription className="text-center">
+                Gratis og uforpligtende. Vi finder trænere, der passer til dig.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               {submitResult?.success ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Tak!</h3>
+                  <CheckCircle className="text-green-500 w-16 h-16 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Tak!</h3>
                   <p className="text-gray-600">{submitResult.message}</p>
                 </div>
               ) : (
-                <Card className="shadow-xl border-0 w-full max-w-lg mx-auto">
-                  <CardHeader className="bg-gray-50 rounded-t-lg">
-                    <CardTitle className="text-2xl text-center">Træner-Finder</CardTitle>
-
-                    {/* Progress Indicator */}
-                    <div className="mt-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-gray-600">
-                          Trin {currentStep + 1} af {formSteps.length}
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% færdig
-                        </span>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {currentStep === 1 && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Navn</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          required
+                        />
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-juice h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
-                        ></div>
+                      <div>
+                        <Label htmlFor="email">E-mail</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          required
+                        />
                       </div>
-                      <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
+                      <div className="flex justify-end">
+                        <Button type="button" onClick={nextStep}>
+                          Næste
+                        </Button>
+                      </div>
                     </div>
-                  </CardHeader>
+                  )}
 
-                  <CardContent className="p-8">
-                    <form onSubmit={(e) => e.preventDefault()}>
-                      <div className="min-h-[250px]">{renderCurrentStepFields()}</div>
-
-                      {/* Navigation Buttons */}
-                      <div className="flex justify-between items-center pt-8 mt-8 border-t">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={prevStep}
-                          disabled={currentStep === 0 || isSubmitting}
-                          className="flex items-center gap-2 bg-transparent"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
+                  {currentStep === 2 && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="goal">Mål</Label>
+                        <Select value={formData.goal} onValueChange={(value) => handleInputChange('goal', value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Vælg dit mål" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {goals.map((goal) => (
+                              <SelectItem key={goal} value={goal}>
+                                {goal}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="district">Bydel</Label>
+                        <Select value={formData.district} onValueChange={(value) => handleInputChange('district', value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Vælg din bydel" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {copenhagenDistricts.map((district) => (
+                              <SelectItem key={district} value={district}>
+                                {district}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="startDate">Startdato</Label>
+                        <Input
+                          id="startDate"
+                          value={formData.startDate}
+                          onChange={(e) => handleInputChange('startDate', e.target.value)}
+                          placeholder="For eksempel: næste uge, om en måned..."
+                        />
+                      </div>
+                      <div className="flex justify-between">
+                        <Button type="button" variant="outline" onClick={prevStep}>
                           Tilbage
                         </Button>
-
-                        {currentStep < formSteps.length - 1 ? (
-                          <Button
-                            type="button"
-                            onClick={nextStep}
-                            disabled={!canProceedToNext() || isSubmitting}
-                            className="bg-juice hover:bg-juice/90 text-black flex items-center gap-2 font-bold"
-                          >
-                            Videre
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            disabled={isSubmitting}
-                            className="bg-juice hover:bg-juice/90 text-black font-bold px-8 py-3 border-2 border-juice shadow-lg"
-                            onClick={async (e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-
-                              if (isSubmitting) return
-
-                              await handleSubmit(e as any)
-                            }}
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                                Sender...
-                              </>
-                            ) : (
-                              "Send"
-                            )}
-                          </Button>
-                        )}
+                        <Button type="button" onClick={nextStep}>
+                          Næste
+                        </Button>
                       </div>
-                    </form>
+                    </div>
+                  )}
 
-                    {submitResult && !submitResult.success && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center mt-4">
-                        <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
-                        <p className="text-red-800 text-sm">{submitResult.message}</p>
+                  {currentStep === 3 && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="message">Besked (valgfrit)</Label>
+                        <Textarea
+                          id="message"
+                          value={formData.message}
+                          onChange={(e) => handleInputChange('message', e.target.value)}
+                          placeholder="Fortæl os mere om dine mål eller ønsker..."
+                          rows={4}
+                        />
                       </div>
-                    )}
-
-                    <p className="text-center text-sm text-gray-600 mt-4">
-                      Gratis og uforpligtende. Vi finder trænere, der passer til dig.
-                    </p>
-                  </CardContent>
-                </Card>
+                      <div className="flex justify-between">
+                        <Button type="button" variant="outline" onClick={prevStep}>
+                          Tilbage
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? 'Sender...' : 'Send'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </form>
               )}
-            </div>
-          </motion.div>
+
+              {submitResult && !submitResult.success && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-red-600">{submitResult.message}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </section>
-
-      <Footer />
-    </main>
+    </div>
   )
 }
