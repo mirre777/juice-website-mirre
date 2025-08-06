@@ -3,7 +3,7 @@ import CopenhagenPersonalTrainingClientPage from "./CopenhagenPersonalTrainingCl
 
 export const metadata = {
   title: "Personlig træning København - Find din træner | Juice Fitness",
-  description: "Personlig træning i København. Gratis prøvetime eller videosamtale. Find trænere der passer til dig for sundhed, muskelopbygning eller vægttab.",
+  description: "Personlig træning i København. Gratis prøvetime eller videosamtale. Find trænere der passer til dig for sundhed, muskelopbygning eller holdning.",
   keywords: "personlig træner københavn, gratis prøvetime træning københavn, fitness coach københavn, træning for begyndere københavn, muskelopbygning københavn",
 }
 

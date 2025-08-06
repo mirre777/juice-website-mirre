@@ -34,24 +34,24 @@ const copenhagenDistricts = [
 
 const fitnessGoals = [
   { value: "sundhed", label: "Sundhed & Holdning", color: "bg-purple-100 text-purple-800" },
-  { value: "muskelopbygning", label: "Muskelopbygning", color: "bg-blue-100 text-blue-800" },
-  { value: "vaegttab", label: "Vægttab", color: "bg-green-100 text-green-800" },
-  { value: "holdning", label: "Holdning", color: "bg-orange-100 text-orange-800" },
-  { value: "begynder", label: "Begynder træning", color: "bg-cyan-100 text-cyan-800" },
-  { value: "styrke", label: "Styrke & Performance", color: "bg-red-100 text-red-800" },
+  { value: "muskelopbygning", label: "Muskelopbygning & Styrke", color: "bg-blue-100 text-blue-800" },
+  { value: "vaegttab", label: "Vægttab & Kondition", color: "bg-green-100 text-green-800" },
+  { value: "holdning", label: "Holdning forbedring", color: "bg-orange-100 text-orange-800" },
+  { value: "begynder", label: "Begynde med træning", color: "bg-cyan-100 text-cyan-800" },
+  { value: "progression", label: "Progression & Struktur", color: "bg-red-100 text-red-800" },
 ]
 
 const startTimes = [
-  { value: "nu", label: "Nu" },
+  { value: "direkte", label: "Direkte" },
   { value: "1-2-uger", label: "Om 1-2 uger" },
   { value: "1-maaned", label: "Om en måned" },
   { value: "2-3-maaneder", label: "Om 2-3 måneder" },
-  { value: "ukendt", label: "Ved ikke endnu" },
+  { value: "ukendt", label: "Endnu ukendt" },
 ]
 
 // Define form steps
 const formSteps = [
-  { id: "basic", fields: ["name", "email"], title: "Grundoplysninger" },
+  { id: "basic", fields: ["name", "email"], title: "Grundlæggende oplysninger" },
   { id: "goal", fields: ["goal"], title: "Træningsmål" },
   { id: "location", fields: ["district", "startTime"], title: "Lokation & Timing" },
   { id: "contact", fields: ["phone", "message"], title: "Kontakt & Detaljer" },
@@ -189,7 +189,7 @@ export default function CopenhagenPersonalTrainingClientPage() {
 
       formDataObj.set("user_type", "client")
       formDataObj.set("city", "København")
-      formDataObj.set("plan", "personal-training-copenhagen")
+      formDataObj.set("plan", "personal-training-koebenhavn")
 
       const result = await joinWaitlist(formDataObj)
 
@@ -316,7 +316,7 @@ export default function CopenhagenPersonalTrainingClientPage() {
 
             <div>
               <Label htmlFor="startTime" className="text-base font-medium">
-                Startdato <span className="text-red-500">*</span>
+                Starttidspunkt <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.startTime}
@@ -510,7 +510,7 @@ export default function CopenhagenPersonalTrainingClientPage() {
                       🏋️ Seriøs omkring din træning?
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      København er fyldt med trænere, der kan hjælpe dig forbi plateauer og give dig et system:
+                      København er fyldt med trænere, der kan hjælpe dig forbi plateauer og give dig et system.
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
@@ -526,7 +526,7 @@ export default function CopenhagenPersonalTrainingClientPage() {
                         Fokus på hypertrofi, styrke og performance
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mb-4">
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
                         Muskelmasse
                       </Badge>
@@ -534,8 +534,12 @@ export default function CopenhagenPersonalTrainingClientPage() {
                         Max styrke
                       </Badge>
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                        Performance
+                        Avancerede splits
                       </Badge>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p>• Gratis samtale</p>
+                      <p>• Første session refunderes hvis du booker</p>
                     </div>
                   </div>
                 </div>

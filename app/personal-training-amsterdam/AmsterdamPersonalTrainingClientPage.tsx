@@ -419,7 +419,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
               <h1 className="text-5xl font-bold text-center text-gray-900">
                 Personal Training in <span className="juice-text-gradient">Amsterdam</span>
               </h1>
-              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Start zonder gedoe</p>
+              <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">Vind jouw trainer</p>
               <p className="mx-auto max-w-[600px] text-gray-600">
                 Nieuw in de gym? Of al even bezig maar geen progressie? In Amsterdam vind je personal trainers die snappen wat werkt.
               </p>
@@ -456,7 +456,7 @@ export default function AmsterdamPersonalTrainingClientPage() {
             <span className="text-gray-900 font-medium mb-3">AMSTERDAM TRAINING</span>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Twee manieren om te beginnen</h2>
             <p className="text-gray-600 max-w-2xl">
-              Gratis proefles of videogesprek, of download eerst de app om rond te kijken
+              Gratis proefles of videogesprek, of app downloaden als je eerst wilt rondkijken
             </p>
           </div>
 
