@@ -1,27 +1,14 @@
-import type { Metadata } from 'next'
+import { Metadata } from 'next'
 import ViennaPersonalTrainingClientPage from './ViennaPersonalTrainingClientPage'
 
 export const metadata: Metadata = {
   title: 'Personal Training Wien - Finde deinen Coach | Juice',
-  description: 'Personal Trainer in Wien finden. Gratis Probetraining oder Video-Call. Für Anfänger und Fortgeschrittene. Muskelaufbau, Gesundheit, Haltung - starte jetzt!',
-  keywords: [
-    'personal trainer wien',
-    'fitnesscoach wien', 
-    'probetraining wien',
-    'training mit rückenproblemen',
-    'muskelaufbau wien',
-    'personal training wien',
-    'fitness coach wien',
-    'krafttraining wien',
-    'gesundheitstraining wien'
-  ],
+  description: 'Personal Trainer*innen in Wien finden. Gratis Probetraining, erfahrene Coaches für Muskelaufbau, Gewichtsverlust und Fitness. Starte noch heute mit deinem Training.',
+  keywords: 'personal trainer wien, fitnesscoach wien, probetraining wien, muskelaufbau wien, personal training',
+  robots: 'index, follow',
   alternates: {
-    canonical: 'https://www.juice.fitness/personal-training-wien',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+    canonical: 'https://juiceapp.de/personal-training-wien'
+  }
 }
 
 export default function ViennaPersonalTrainingPage() {

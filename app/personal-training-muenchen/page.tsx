@@ -1,27 +1,14 @@
-import type { Metadata } from "next"
-import MunichPersonalTrainingClientPage from "./MunichPersonalTrainingClientPage"
+import { Metadata } from 'next'
+import MunichPersonalTrainingClientPage from './MunichPersonalTrainingClientPage'
 
 export const metadata: Metadata = {
-  title: "Personal Training München - Finde deinen passenden Coach | Juice",
-  description:
-    "Personal Training in München: Finde den perfekten Fitness-Coach für dich. Gratis Probetraining, alle Stadtteile, Muskelaufbau, Abnehmen & Gesundheit. Jetzt Trainer finden!",
-  keywords: [
-    "personal trainer münchen",
-    "fitnesscoach münchen",
-    "probetraining münchen",
-    "muskelaufbau trainer münchen",
-    "rücken stärken training münchen",
-    "personal training schwabing",
-    "fitness coach maxvorstadt",
-    "krafttraining münchen",
-  ],
+  title: 'Personal Training München - Finde deinen passenden Coach | Juice',
+  description: 'Personal Trainer in München finden. Gratis Probetraining, erfahrene Coaches für Muskelaufbau, Gewichtsverlust und Fitness. Starte noch heute mit deinem Training.',
+  keywords: 'personal trainer münchen, fitnesscoach münchen, probetraining münchen, muskelaufbau münchen, personal training',
+  robots: 'index, follow',
   alternates: {
-    canonical: "https://juice-coaching.com/personal-training-muenchen",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+    canonical: 'https://juiceapp.de/personal-training-muenchen'
+  }
 }
 
 export default function MunichPersonalTrainingPage() {
