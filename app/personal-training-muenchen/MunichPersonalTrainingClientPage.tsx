@@ -502,9 +502,11 @@ export default function MunichPersonalTrainingClientPage() {
                         Kostenloses Probetraining
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         Online-Beratung mit Fokus auf Gesundheit
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         Einstieg mit Bewegungsanalyse & Haltungstraining
                       </div>
                     </div>
@@ -532,15 +534,19 @@ export default function MunichPersonalTrainingClientPage() {
                     </p>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         Maßgeschneiderte Programme
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         Fokus auf progressive Overload
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         App-Tracking und Analyse
                       </div>
                       <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-700" />
                         Wissen zu Hypertrophie, Regeneration & Ernährung
                       </div>
                     </div>
