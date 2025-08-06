@@ -15,27 +15,12 @@ export const metadata: Metadata = {
     "fitness vejledning københavn",
     "styrketræning københavn",
   ],
-  openGraph: {
-    title: "Personlig træning København - Find din træner",
-    description:
-      "Første gang i fitness eller fastlåst i din træning? I København finder du trænere, der ved hvordan det gøres. Gratis prøvetime tilgængelig!",
-    url: "https://juice-coaching.com/personal-training-koebenhavn",
-    siteName: "Juice Coaching",
-    locale: "da_DK",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Personlig træning København - Find din træner",
-    description:
-      "Første gang i fitness eller fastlåst i din træning? I København finder du trænere, der ved hvordan det gøres.",
+  alternates: {
+    canonical: "https://juice-coaching.com/personal-training-koebenhavn",
   },
   robots: {
     index: true,
     follow: true,
-  },
-  alternates: {
-    canonical: "https://juice-coaching.com/personal-training-koebenhavn",
   },
 }
 

@@ -665,9 +665,6 @@ export default function MunichPersonalTrainingClientPage() {
                                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
                                 Wird gesendet...
                               </>
-                            ) :
-                                Wird gesendet...
-                              </>
                             ) : (
                               "Absenden"
                             )}

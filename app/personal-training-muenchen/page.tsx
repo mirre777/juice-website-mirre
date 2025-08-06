@@ -15,27 +15,12 @@ export const metadata: Metadata = {
     "fitness coach maxvorstadt",
     "krafttraining münchen",
   ],
-  openGraph: {
-    title: "Personal Training München - Finde deinen passenden Coach",
-    description:
-      "Egal ob Anfänger oder Fortgeschrittener - in München gibt's Trainer*innen, die dich verstehen und weiterbringen. Gratis Probetraining verfügbar!",
-    url: "https://juice-coaching.com/personal-training-muenchen",
-    siteName: "Juice Coaching",
-    locale: "de_DE",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Personal Training München - Finde deinen passenden Coach",
-    description:
-      "Egal ob Anfänger oder Fortgeschrittener - in München gibt's Trainer*innen, die dich verstehen und weiterbringen.",
+  alternates: {
+    canonical: "https://juice-coaching.com/personal-training-muenchen",
   },
   robots: {
     index: true,
     follow: true,
-  },
-  alternates: {
-    canonical: "https://juice-coaching.com/personal-training-muenchen",
   },
 }
 

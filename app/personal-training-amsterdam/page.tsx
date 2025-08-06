@@ -15,27 +15,12 @@ export const metadata: Metadata = {
     "fitness begeleiding amsterdam",
     "krachttraining amsterdam",
   ],
-  openGraph: {
-    title: "Personal Training Amsterdam - Vind jouw trainer",
-    description:
-      "Nieuw in de gym of vastgelopen? In Amsterdam vind je trainers die snappen wat werkt. Gratis proefles beschikbaar!",
-    url: "https://juice-coaching.com/personal-training-amsterdam",
-    siteName: "Juice Coaching",
-    locale: "nl_NL",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Personal Training Amsterdam - Vind jouw trainer",
-    description:
-      "Nieuw in de gym of vastgelopen? In Amsterdam vind je trainers die snappen wat werkt.",
+  alternates: {
+    canonical: "https://juice-coaching.com/personal-training-amsterdam",
   },
   robots: {
     index: true,
     follow: true,
-  },
-  alternates: {
-    canonical: "https://juice-coaching.com/personal-training-amsterdam",
   },
 }
 

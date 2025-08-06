@@ -15,27 +15,12 @@ export const metadata: Metadata = {
     "fitness coach kreuzberg",
     "krafttraining berlin",
   ],
-  openGraph: {
-    title: "Personal Training Berlin - Dein Coach wartet",
-    description:
-      "Ob Anfänger oder im Gym feststeckst - in Berlin findest du Trainer*innen, die wissen, wie man Fortschritte macht. Gratis Probetraining verfügbar!",
-    url: "https://juice-coaching.com/personal-training-berlin",
-    siteName: "Juice Coaching",
-    locale: "de_DE",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Personal Training Berlin - Dein Coach wartet",
-    description:
-      "Ob Anfänger oder im Gym feststeckst - in Berlin findest du Trainer*innen, die wissen, wie man Fortschritte macht.",
+  alternates: {
+    canonical: "https://juice-coaching.com/personal-training-berlin",
   },
   robots: {
     index: true,
     follow: true,
-  },
-  alternates: {
-    canonical: "https://juice-coaching.com/personal-training-berlin",
   },
 }
 
