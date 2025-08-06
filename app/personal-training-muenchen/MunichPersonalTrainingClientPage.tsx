@@ -454,13 +454,17 @@ export default function MunichPersonalTrainingClientPage() {
             >
               <Button
                 size="lg"
-                className="bg-juice text-black hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold"
-                onClick={() => {
+                className="bg-juice text-black hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  console.log("Button clicked!") // Debug log
                   const formElement = document.getElementById("coach-finder-form")
+                  console.log("Form element found:", formElement) // Debug log
                   if (formElement) {
                     formElement.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
                 }}
+                type="button"
               >
                 Gratis Probetraining
                 <ChevronDown className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
