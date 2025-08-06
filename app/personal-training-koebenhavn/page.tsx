@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import CopenhagenPersonalTrainingClientPage from './CopenhagenPersonalTrainingClientPage'
+import CityLandingPage from '@/components/city-landing/CityLandingPage'
+import { copenhagenContent } from '@/lib/city-content'
 
 export const metadata: Metadata = {
   title: 'Personlig træning København - Find din træner | Juice',
@@ -12,5 +13,5 @@ export const metadata: Metadata = {
 }
 
 export default function CopenhagenPersonalTrainingPage() {
-  return <CopenhagenPersonalTrainingClientPage />
+  return <CityLandingPage content={copenhagenContent} />
 }
