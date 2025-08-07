@@ -40,28 +40,34 @@ export interface Trainer extends TempTrainer {
   websiteUrl?: string
 }
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  console.log('🔥 [FIREBASE ADMIN] Initializing Firebase Admin...')
+// Initialize Firebase Admin SDK
+function initializeFirebaseAdmin() {
+  console.log('🔥 [FIREBASE ADMIN] Initializing Firebase Admin SDK...')
+  
+  // Check if we have the required environment variables
+  const requiredEnvVars = [
+    'FIREBASE_PROJECT_ID',
+    'FIREBASE_CLIENT_EMAIL', 
+    'FIREBASE_PRIVATE_KEY'
+  ]
+  
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
+  
+  if (missingVars.length > 0) {
+    console.error('❌ [FIREBASE ADMIN] Missing required environment variables:', missingVars)
+    throw new Error(`Missing Firebase Admin environment variables: ${missingVars.join(', ')}`)
+  }
+  
+  console.log('✅ [FIREBASE ADMIN] All required environment variables present')
+  
+  // Check if Firebase Admin is already initialized
+  if (getApps().length > 0) {
+    console.log('✅ [FIREBASE ADMIN] Firebase Admin already initialized')
+    return getApps()[0]
+  }
   
   try {
-    // Check if we have the required environment variables
-    const requiredEnvVars = [
-      'FIREBASE_PROJECT_ID',
-      'FIREBASE_CLIENT_EMAIL', 
-      'FIREBASE_PRIVATE_KEY'
-    ]
-    
-    const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
-    
-    if (missingVars.length > 0) {
-      console.log('❌ [FIREBASE ADMIN] Missing environment variables:', missingVars)
-      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`)
-    }
-    
-    console.log('✅ [FIREBASE ADMIN] All required environment variables found')
-    
-    // Initialize with service account
+    // Initialize Firebase Admin with service account
     const app = initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
@@ -71,51 +77,65 @@ if (!getApps().length) {
       projectId: process.env.FIREBASE_PROJECT_ID,
     })
     
-    console.log('🎉 [FIREBASE ADMIN] Firebase Admin initialized successfully')
+    console.log('🎉 [FIREBASE ADMIN] Firebase Admin initialized successfully!')
+    return app
   } catch (error) {
     console.error('💥 [FIREBASE ADMIN] Failed to initialize Firebase Admin:', error)
     throw error
   }
 }
 
-const db = getFirestore()
+// Get Firestore instance
+function getFirestoreAdmin() {
+  console.log('🔍 [FIREBASE ADMIN] Getting Firestore instance...')
+  
+  try {
+    const app = initializeFirebaseAdmin()
+    const db = getFirestore(app)
+    
+    console.log('✅ [FIREBASE ADMIN] Firestore instance obtained successfully')
+    return db
+  } catch (error) {
+    console.error('💥 [FIREBASE ADMIN] Failed to get Firestore instance:', error)
+    throw error
+  }
+}
 
 export class TrainerService {
   private static readonly TEMP_COLLECTION = 'temp_trainers'
   private static readonly TRAINERS_COLLECTION = 'trainers'
 
   static async createTempTrainer(trainerData: any) {
-    console.log('🔥 [FIREBASE TRAINER] Starting createTempTrainer with Admin SDK...')
-    console.log('📋 [FIREBASE TRAINER] Input data:', trainerData)
+    console.log('🚀 [TRAINER SERVICE] Creating temp trainer...')
+    console.log('📋 [TRAINER SERVICE] Input data:', trainerData)
     
     try {
-      console.log('🔍 [FIREBASE TRAINER] Getting Firestore collection reference...')
-      const tempTrainersRef = db.collection('temp_trainers')
-      console.log('✅ [FIREBASE TRAINER] Collection reference obtained')
+      const db = getFirestoreAdmin()
+      console.log('✅ [TRAINER SERVICE] Firestore connection established')
       
+      // Prepare document data
       const docData = {
         ...trainerData,
         createdAt: new Date(),
         updatedAt: new Date(),
+        status: 'pending'
       }
       
-      console.log('📋 [FIREBASE TRAINER] Document data prepared:', docData)
-      console.log('🚀 [FIREBASE TRAINER] Adding document to Firestore with Admin SDK...')
+      console.log('📄 [TRAINER SERVICE] Document data prepared:', docData)
       
-      const docRef = await tempTrainersRef.add(docData)
-      console.log('✅ [FIREBASE TRAINER] Document created successfully with ID:', docRef.id)
+      // Add document to Firestore
+      console.log('💾 [TRAINER SERVICE] Adding document to temp_trainers collection...')
+      const docRef = await db.collection('temp_trainers').add(docData)
+      
+      console.log('🎉 [TRAINER SERVICE] Document created successfully with ID:', docRef.id)
       
       return {
         success: true,
-        tempId: docRef.id,
+        id: docRef.id,
         redirectUrl: `/marketplace/trainer/temp/${docRef.id}`
       }
     } catch (error) {
-      console.error('💥 [FIREBASE TRAINER] Error creating temp trainer:', error)
-      console.error('Error type:', typeof error)
-      console.error('Error constructor:', error?.constructor?.name)
-      console.error('Error message:', error instanceof Error ? error.message : String(error))
-      
+      console.error('💥 [TRAINER SERVICE] Error creating temp trainer:', error)
       throw error
     }
   }
@@ -124,6 +144,7 @@ export class TrainerService {
     console.log("🔥 [FIREBASE TRAINER] Getting temp trainer with ID:", id)
 
     try {
+      const db = getFirestoreAdmin()
       const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
       const docSnap = await docRef.get()
 
@@ -145,6 +166,7 @@ export class TrainerService {
     console.log("🔥 [FIREBASE TRAINER] Updating temp trainer:", id, updates)
 
     try {
+      const db = getFirestoreAdmin()
       const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
       await docRef.update({
         ...updates,
@@ -162,6 +184,7 @@ export class TrainerService {
     console.log("🔥 [FIREBASE TRAINER] Deleting temp trainer:", id)
 
     try {
+      const db = getFirestoreAdmin()
       const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
       await docRef.delete()
 
@@ -176,6 +199,7 @@ export class TrainerService {
     console.log("🔥 [FIREBASE TRAINER] Activating trainer from temp ID:", tempId)
 
     try {
+      const db = getFirestoreAdmin()
       // Get temp trainer data
       const tempTrainer = await this.getTempTrainer(tempId)
       if (!tempTrainer) {
@@ -208,6 +232,7 @@ export class TrainerService {
     console.log("🔥 [FIREBASE TRAINER] Getting trainer with ID:", id)
 
     try {
+      const db = getFirestoreAdmin()
       const docRef = db.collection(this.TRAINERS_COLLECTION).doc(id)
       const docSnap = await docRef.get()
 
@@ -229,6 +254,7 @@ export class TrainerService {
     console.log("🔥 [FIREBASE TRAINER] Getting all trainers...")
 
     try {
+      const db = getFirestoreAdmin()
       const trainersRef = db.collection(this.TRAINERS_COLLECTION)
       const q = trainersRef.where('isActive', '==', true).orderBy('createdAt', 'desc')
       const querySnapshot = await q.get()
