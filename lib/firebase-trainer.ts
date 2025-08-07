@@ -1,295 +1,260 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
 import { 
   collection, 
   addDoc, 
   doc, 
   getDoc, 
   updateDoc, 
+  deleteDoc, 
+  getDocs, 
   query, 
   where, 
-  getDocs,
-  deleteDoc,
-  orderBy,
-  limit
+  orderBy, 
+  limit,
+  serverTimestamp,
+  Timestamp 
 } from 'firebase/firestore'
 import { db } from '@/firebase'
-import type { TrainerFormData, TrainerContent } from "@/types/trainer"
-import type { TempTrainer, Trainer } from "@/types/trainer"
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      }),
-    })
-  } catch (error) {
-    console.error("Firebase Admin initialization error:", error)
-  }
+export interface TempTrainer {
+  id?: string
+  fullName: string
+  email: string
+  phone: string
+  city: string
+  district: string
+  specialty: string
+  certifications: string
+  bio: string
+  services: string[]
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
 }
 
-const firestoreDb = getFirestore()
+export interface Trainer extends TempTrainer {
+  id: string
+  isActive: boolean
+  activatedAt?: Timestamp
+  paymentStatus?: 'pending' | 'completed' | 'failed'
+  websiteUrl?: string
+}
 
 export class TrainerService {
-  static async createTempTrainer(trainerData: TempTrainer): Promise<string> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Starting createTempTrainer...")
-    console.log("📋 [FIREBASE TRAINER SERVICE] Input data:", trainerData)
+  private static readonly TEMP_COLLECTION = 'temp_trainers'
+  private static readonly TRAINERS_COLLECTION = 'trainers'
+
+  static async createTempTrainer(trainerData: Omit<TempTrainer, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    console.log("🔥 [FIREBASE TRAINER] Starting createTempTrainer...")
+    console.log("📋 [FIREBASE TRAINER] Input data:", trainerData)
 
     try {
       // Check if Firebase is initialized
-      console.log("🔍 [FIREBASE TRAINER SERVICE] Checking Firebase db connection...")
-      if (!firestoreDb) {
-        console.log("❌ [FIREBASE TRAINER SERVICE] Firebase db is not initialized")
-        throw new Error("Firebase database is not initialized")
+      console.log("🔍 [FIREBASE TRAINER] Checking Firebase db connection...")
+      if (!db) {
+        console.log("❌ [FIREBASE TRAINER] Firebase db is not initialized")
+        throw new Error('Firebase database is not initialized')
       }
-      console.log("✅ [FIREBASE TRAINER SERVICE] Firebase db is available")
+      console.log("✅ [FIREBASE TRAINER] Firebase db is available")
 
-      // Check if we can access collections
-      console.log("🔍 [FIREBASE TRAINER SERVICE] Testing collection access...")
-      const tempTrainersRef = collection(firestoreDb, 'tempTrainers')
-      console.log("✅ [FIREBASE TRAINER SERVICE] Collection reference created:", tempTrainersRef.path)
+      // Check if collection function is available
+      console.log("🔍 [FIREBASE TRAINER] Checking Firestore collection function...")
+      if (typeof collection !== 'function') {
+        console.log("❌ [FIREBASE TRAINER] Firestore collection function not available")
+        throw new Error('Firestore collection function is not available')
+      }
+      console.log("✅ [FIREBASE TRAINER] Firestore collection function is available")
+
+      // Get collection reference
+      console.log("🔍 [FIREBASE TRAINER] Getting collection reference...")
+      const tempTrainersRef = collection(db, this.TEMP_COLLECTION)
+      console.log("✅ [FIREBASE TRAINER] Collection reference obtained:", this.TEMP_COLLECTION)
 
       // Prepare document data
       const docData = {
         ...trainerData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       }
-      console.log("📄 [FIREBASE TRAINER SERVICE] Document data prepared:", docData)
+      console.log("📋 [FIREBASE TRAINER] Document data prepared:", docData)
+
+      // Check if addDoc function is available
+      console.log("🔍 [FIREBASE TRAINER] Checking Firestore addDoc function...")
+      if (typeof addDoc !== 'function') {
+        console.log("❌ [FIREBASE TRAINER] Firestore addDoc function not available")
+        throw new Error('Firestore addDoc function is not available')
+      }
+      console.log("✅ [FIREBASE TRAINER] Firestore addDoc function is available")
 
       // Add document to Firestore
-      console.log("💾 [FIREBASE TRAINER SERVICE] Adding document to Firestore...")
+      console.log("🚀 [FIREBASE TRAINER] Adding document to Firestore...")
       const docRef = await addDoc(tempTrainersRef, docData)
-      console.log("✅ [FIREBASE TRAINER SERVICE] Document added successfully with ID:", docRef.id)
+      console.log("✅ [FIREBASE TRAINER] Document added successfully with ID:", docRef.id)
 
       return docRef.id
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error in createTempTrainer:")
+      console.log("💥 [FIREBASE TRAINER] Error in createTempTrainer:")
       console.log("Error type:", typeof error)
       console.log("Error constructor:", error?.constructor?.name)
       console.log("Error message:", error instanceof Error ? error.message : String(error))
-      console.log("Error code:", (error as any)?.code)
-      console.log("Error details:", (error as any)?.details)
-      console.log("Full error:", error)
+      console.log("Error stack:", error instanceof Error ? error.stack : "No stack trace")
+      console.log("Full error object:", error)
 
       // Re-throw with more context
-      throw new Error(`Failed to create temp trainer: ${error instanceof Error ? error.message : String(error)}`)
+      if (error instanceof Error) {
+        throw new Error(`Failed to create temp trainer: ${error.message}`)
+      } else {
+        throw new Error(`Failed to create temp trainer: ${String(error)}`)
+      }
     }
   }
 
-  static async getTempTrainer(tempId: string): Promise<TempTrainer | null> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Getting temp trainer:", tempId)
-    
+  static async getTempTrainer(id: string): Promise<TempTrainer | null> {
+    console.log("🔥 [FIREBASE TRAINER] Getting temp trainer with ID:", id)
+
     try {
-      if (!firestoreDb) {
-        console.log("❌ [FIREBASE TRAINER SERVICE] Firebase db not initialized")
-        throw new Error("Firebase database is not initialized")
+      if (!db) {
+        throw new Error('Firebase database is not initialized')
       }
 
-      const docRef = doc(firestoreDb, 'tempTrainers', tempId)
+      const docRef = doc(db, this.TEMP_COLLECTION, id)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        console.log("✅ [FIREBASE TRAINER SERVICE] Temp trainer found")
-        return docSnap.data() as TempTrainer
+        const data = docSnap.data() as TempTrainer
+        console.log("✅ [FIREBASE TRAINER] Temp trainer found:", data)
+        return { ...data, id: docSnap.id }
       } else {
-        console.log("❌ [FIREBASE TRAINER SERVICE] Temp trainer not found")
+        console.log("❌ [FIREBASE TRAINER] Temp trainer not found")
         return null
       }
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error getting temp trainer:", error)
-      throw error
+      console.log("💥 [FIREBASE TRAINER] Error getting temp trainer:", error)
+      throw new Error(`Failed to get temp trainer: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
-  static async updateTempTrainer(tempId: string, updates: Partial<TempTrainer>): Promise<void> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Updating temp trainer:", tempId, updates)
-    
+  static async updateTempTrainer(id: string, updates: Partial<TempTrainer>): Promise<void> {
+    console.log("🔥 [FIREBASE TRAINER] Updating temp trainer:", id, updates)
+
     try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
+      if (!db) {
+        throw new Error('Firebase database is not initialized')
       }
 
-      const docRef = doc(firestoreDb, 'tempTrainers', tempId)
+      const docRef = doc(db, this.TEMP_COLLECTION, id)
       await updateDoc(docRef, {
         ...updates,
-        updatedAt: new Date(),
+        updatedAt: serverTimestamp(),
       })
-      console.log("✅ [FIREBASE TRAINER SERVICE] Temp trainer updated successfully")
+
+      console.log("✅ [FIREBASE TRAINER] Temp trainer updated successfully")
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error updating temp trainer:", error)
-      throw error
+      console.log("💥 [FIREBASE TRAINER] Error updating temp trainer:", error)
+      throw new Error(`Failed to update temp trainer: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
-  static async deleteTempTrainer(tempId: string): Promise<void> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Deleting temp trainer:", tempId)
-    
+  static async deleteTempTrainer(id: string): Promise<void> {
+    console.log("🔥 [FIREBASE TRAINER] Deleting temp trainer:", id)
+
     try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
+      if (!db) {
+        throw new Error('Firebase database is not initialized')
       }
 
-      const docRef = doc(firestoreDb, 'tempTrainers', tempId)
+      const docRef = doc(db, this.TEMP_COLLECTION, id)
       await deleteDoc(docRef)
-      console.log("✅ [FIREBASE TRAINER SERVICE] Temp trainer deleted successfully")
+
+      console.log("✅ [FIREBASE TRAINER] Temp trainer deleted successfully")
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error deleting temp trainer:", error)
-      throw error
+      console.log("💥 [FIREBASE TRAINER] Error deleting temp trainer:", error)
+      throw new Error(`Failed to delete temp trainer: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
-  static async getAllTempTrainers(): Promise<(TempTrainer & { id: string })[]> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Getting all temp trainers")
-    
+  static async activateTrainer(tempId: string): Promise<string> {
+    console.log("🔥 [FIREBASE TRAINER] Activating trainer from temp ID:", tempId)
+
     try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
+      if (!db) {
+        throw new Error('Firebase database is not initialized')
       }
 
-      const q = query(
-        collection(firestoreDb, 'tempTrainers'),
-        orderBy('createdAt', 'desc')
-      )
-      
-      const querySnapshot = await getDocs(q)
-      const trainers = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as (TempTrainer & { id: string })[]
-
-      console.log("✅ [FIREBASE TRAINER SERVICE] Retrieved temp trainers:", trainers.length)
-      return trainers
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error getting temp trainers:", error)
-      throw error
-    }
-  }
-
-  // Active trainer methods
-  static async createTrainer(trainerData: Omit<Trainer, 'id'>): Promise<string> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Creating active trainer")
-    
-    try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
+      // Get temp trainer data
+      const tempTrainer = await this.getTempTrainer(tempId)
+      if (!tempTrainer) {
+        throw new Error('Temp trainer not found')
       }
 
-      const docData = {
-        ...trainerData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      // Create active trainer
+      const trainerData: Omit<Trainer, 'id'> = {
+        ...tempTrainer,
+        isActive: true,
+        activatedAt: serverTimestamp() as Timestamp,
+        paymentStatus: 'completed',
       }
 
-      const docRef = await addDoc(collection(firestoreDb, 'trainers'), docData)
-      console.log("✅ [FIREBASE TRAINER SERVICE] Active trainer created:", docRef.id)
+      const trainersRef = collection(db, this.TRAINERS_COLLECTION)
+      const docRef = await addDoc(trainersRef, trainerData)
+
+      // Delete temp trainer
+      await this.deleteTempTrainer(tempId)
+
+      console.log("✅ [FIREBASE TRAINER] Trainer activated successfully with ID:", docRef.id)
       return docRef.id
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error creating trainer:", error)
-      throw error
+      console.log("💥 [FIREBASE TRAINER] Error activating trainer:", error)
+      throw new Error(`Failed to activate trainer: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
-  static async getTrainer(trainerId: string): Promise<Trainer | null> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Getting trainer:", trainerId)
-    
+  static async getTrainer(id: string): Promise<Trainer | null> {
+    console.log("🔥 [FIREBASE TRAINER] Getting trainer with ID:", id)
+
     try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
+      if (!db) {
+        throw new Error('Firebase database is not initialized')
       }
 
-      const docRef = doc(firestoreDb, 'trainers', trainerId)
+      const docRef = doc(db, this.TRAINERS_COLLECTION, id)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        console.log("✅ [FIREBASE TRAINER SERVICE] Trainer found")
-        return { id: docSnap.id, ...docSnap.data() } as Trainer
+        const data = docSnap.data() as Trainer
+        console.log("✅ [FIREBASE TRAINER] Trainer found:", data)
+        return { ...data, id: docSnap.id }
       } else {
-        console.log("❌ [FIREBASE TRAINER SERVICE] Trainer not found")
+        console.log("❌ [FIREBASE TRAINER] Trainer not found")
         return null
       }
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error getting trainer:", error)
-      throw error
-    }
-  }
-
-  static async updateTrainer(trainerId: string, updates: Partial<Trainer>): Promise<void> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Updating trainer:", trainerId)
-    
-    try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
-      }
-
-      const docRef = doc(firestoreDb, 'trainers', trainerId)
-      await updateDoc(docRef, {
-        ...updates,
-        updatedAt: new Date(),
-      })
-      console.log("✅ [FIREBASE TRAINER SERVICE] Trainer updated successfully")
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error updating trainer:", error)
-      throw error
+      console.log("💥 [FIREBASE TRAINER] Error getting trainer:", error)
+      throw new Error(`Failed to get trainer: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
   static async getAllTrainers(): Promise<Trainer[]> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Getting all trainers")
-    
+    console.log("🔥 [FIREBASE TRAINER] Getting all trainers...")
+
     try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
+      if (!db) {
+        throw new Error('Firebase database is not initialized')
       }
 
-      const q = query(
-        collection(firestoreDb, 'trainers'),
-        orderBy('createdAt', 'desc')
-      )
-      
+      const trainersRef = collection(db, this.TRAINERS_COLLECTION)
+      const q = query(trainersRef, where('isActive', '==', true), orderBy('createdAt', 'desc'))
       const querySnapshot = await getDocs(q)
-      const trainers = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Trainer[]
 
-      console.log("✅ [FIREBASE TRAINER SERVICE] Retrieved trainers:", trainers.length)
+      const trainers: Trainer[] = []
+      querySnapshot.forEach((doc) => {
+        trainers.push({ ...doc.data() as Trainer, id: doc.id })
+      })
+
+      console.log("✅ [FIREBASE TRAINER] Found trainers:", trainers.length)
       return trainers
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error getting trainers:", error)
-      throw error
-    }
-  }
-
-  static async getActiveTrainers(): Promise<Trainer[]> {
-    console.log("🔥 [FIREBASE TRAINER SERVICE] Getting active trainers")
-    
-    try {
-      if (!firestoreDb) {
-        throw new Error("Firebase database is not initialized")
-      }
-
-      const q = query(
-        collection(firestoreDb, 'trainers'),
-        where('isActive', '==', true),
-        orderBy('createdAt', 'desc')
-      )
-      
-      const querySnapshot = await getDocs(q)
-      const trainers = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Trainer[]
-
-      console.log("✅ [FIREBASE TRAINER SERVICE] Retrieved active trainers:", trainers.length)
-      return trainers
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER SERVICE] Error getting active trainers:", error)
-      throw error
+      console.log("💥 [FIREBASE TRAINER] Error getting all trainers:", error)
+      throw new Error(`Failed to get trainers: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 }
