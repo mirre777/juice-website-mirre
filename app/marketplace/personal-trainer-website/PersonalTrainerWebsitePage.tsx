@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useRouter } from "next/navigation"
 
 interface FormData {
@@ -89,6 +89,7 @@ export default function PersonalTrainerWebsitePage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const [submitError, setSubmitError] = useState<string>("")
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -215,6 +216,10 @@ export default function PersonalTrainerWebsitePage() {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
+    // Clear submit error when user makes changes
+    if (submitError) {
+      setSubmitError("")
+    }
   }
 
   const handleServiceToggle = (service: string, event?: React.MouseEvent) => {
@@ -258,6 +263,7 @@ export default function PersonalTrainerWebsitePage() {
     }
 
     setIsSubmitting(true)
+    setSubmitError("")
 
     try {
       const response = await fetch("/api/trainer/create", {
@@ -268,17 +274,31 @@ export default function PersonalTrainerWebsitePage() {
         body: JSON.stringify(formData),
       })
 
+      // Check if response is ok first
+      if (!response.ok) {
+        // Try to get error message from response
+        let errorMessage = "Failed to create trainer profile. Please try again."
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // If JSON parsing fails, use status text
+          errorMessage = `Server error: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
+      }
+
       const data = await response.json()
 
-      if (response.ok && data.success) {
+      if (data.success && data.redirectUrl) {
         router.push(data.redirectUrl)
       } else {
-        console.error("Form submission failed:", data.error)
-        alert(data.error || "Failed to create trainer profile. Please try again.")
+        throw new Error(data.error || "Unexpected response format")
       }
     } catch (error) {
       console.error("Form submission error:", error)
-      alert("An unexpected error occurred. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+      setSubmitError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -298,6 +318,7 @@ export default function PersonalTrainerWebsitePage() {
     }
 
     setIsSubmitting(true)
+    setSubmitError("")
 
     try {
       const response = await fetch("/api/trainer/create", {
@@ -308,17 +329,31 @@ export default function PersonalTrainerWebsitePage() {
         body: JSON.stringify(formData),
       })
 
+      // Check if response is ok first
+      if (!response.ok) {
+        // Try to get error message from response
+        let errorMessage = "Failed to create trainer profile. Please try again."
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // If JSON parsing fails, use status text
+          errorMessage = `Server error: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
+      }
+
       const data = await response.json()
 
-      if (response.ok && data.success) {
+      if (data.success && data.redirectUrl) {
         router.push(data.redirectUrl)
       } else {
-        console.error("Form submission failed:", data.error)
-        alert(data.error || "Failed to create trainer profile. Please try again.")
+        throw new Error(data.error || "Unexpected response format")
       }
     } catch (error) {
       console.error("Form submission error:", error)
-      alert("An unexpected error occurred. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+      setSubmitError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -695,6 +730,13 @@ export default function PersonalTrainerWebsitePage() {
             <CardContent className="p-8">
               <form onSubmit={handleFormSubmit}>
                 <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
+
+                {/* Error Display */}
+                {submitError && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm">{submitError}</p>
+                  </div>
+                )}
 
                 {/* Navigation Buttons */}
                 <div className="flex justify-between items-center pt-8 mt-8 border-t">
