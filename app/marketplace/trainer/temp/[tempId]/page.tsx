@@ -7,7 +7,7 @@ import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Clock } from "lucide-react"
+import { AlertCircle, Clock } from 'lucide-react'
 
 interface TempTrainerPageProps {
   params: {
@@ -56,6 +56,13 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           // Calculate initial time left (only for temp trainers)
           if (data.trainer.expiresAt) {
             const expiresAt = new Date(data.trainer.expiresAt).getTime()
+            const now = Date.now()
+            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+            setTimeLeft(remaining)
+          } else {
+            // If no expiresAt is set, give it 24 hours from creation
+            const createdAt = data.trainer.createdAt ? new Date(data.trainer.createdAt).getTime() : Date.now()
+            const expiresAt = createdAt + (24 * 60 * 60 * 1000) // 24 hours
             const now = Date.now()
             const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
             setTimeLeft(remaining)
@@ -257,8 +264,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     )
   }
 
-  // Check if expired
-  const isExpired = timeLeft <= 0
+  // Check if expired - give at least 1 hour minimum
+  const isExpired = timeLeft <= 0 && timeLeft !== null
 
   if (isExpired) {
     return (

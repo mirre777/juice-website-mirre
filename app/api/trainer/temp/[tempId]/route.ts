@@ -1,102 +1,59 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { TrainerService } from "@/lib/firebase-trainer"
-import { getFirestore } from "firebase-admin/firestore"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { NextRequest, NextResponse } from 'next/server'
+import { TrainerService } from '@/lib/firebase-trainer'
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  })
-}
-
-const db = getFirestore()
-
-export async function GET(request: NextRequest, { params }: { params: { tempId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { tempId: string } }
+) {
+  console.log('🔥 [TEMP TRAINER API] Getting temp trainer:', params.tempId)
+  
   try {
-    const { tempId } = params
-
-    console.log("=== TEMP TRAINER API ENDPOINT ===")
-    console.log("Temp ID:", tempId)
-
-    if (!tempId) {
-      console.log("❌ No temp ID provided")
-      return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
-    }
-
-    const trainer = await TrainerService.getTempTrainer(tempId)
-
-    console.log("=== TRAINER SERVICE RESULT ===")
-    console.log("Trainer found:", !!trainer)
-    console.log("Trainer data:", trainer)
-
+    const trainer = await TrainerService.getTempTrainer(params.tempId)
+    
     if (!trainer) {
-      console.log("❌ Trainer not found or expired")
-      return NextResponse.json({ success: false, error: "Trainer not found or expired" }, { status: 404 })
+      console.log('❌ [TEMP TRAINER API] Trainer not found')
+      return NextResponse.json(
+        { error: 'Trainer not found' },
+        { status: 404 }
+      )
     }
-
-    console.log("✅ Returning trainer data with success: true")
-    return NextResponse.json({ success: true, trainer })
+    
+    console.log('✅ [TEMP TRAINER API] Trainer found:', trainer)
+    
+    return NextResponse.json({
+      success: true,
+      trainer,
+      content: null // Will be generated on frontend
+    })
+    
   } catch (error) {
-    console.error("❌ Error fetching temp trainer:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    console.error('💥 [TEMP TRAINER API] Error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { tempId: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { tempId: string } }
+) {
+  console.log('🔥 [TEMP TRAINER API] Updating temp trainer:', params.tempId)
+  
   try {
-    const { tempId } = params
-    const { content } = await request.json()
-
-    console.log("=== TEMP TRAINER PUT ENDPOINT ===")
-    console.log("Temp ID:", tempId)
-    console.log("Content update:", content)
-
-    if (!tempId) {
-      console.log("❌ No temp ID provided")
-      return NextResponse.json({ success: false, error: "Temp ID is required" }, { status: 400 })
-    }
-
-    if (!content) {
-      console.log("❌ No content provided")
-      return NextResponse.json({ success: false, error: "Content is required" }, { status: 400 })
-    }
-
-    // Get current trainer to check status
-    const trainer = await TrainerService.getTempTrainer(tempId)
-
-    if (!trainer) {
-      console.log("❌ Trainer not found")
-      return NextResponse.json({ success: false, error: "Trainer not found" }, { status: 404 })
-    }
-
-    // Check if trainer is already activated
-    if (trainer.status === "active" && trainer.isPaid) {
-      console.log("❌ Trainer already activated, should use live endpoint")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Trainer already activated",
-          redirectTo: `/marketplace/trainer/${trainer.id}`,
-        },
-        { status: 400 },
-      )
-    }
-
-    // Update temp trainer content using Firebase Admin
-    await db.collection("trainers").doc(tempId).update({
-      content: content,
-      updatedAt: new Date().toISOString(),
-    })
-
-    console.log("✅ Temp trainer content updated successfully")
+    const body = await request.json()
+    const { content } = body
+    
+    await TrainerService.updateTempTrainer(params.tempId, { content })
+    
     return NextResponse.json({ success: true })
+    
   } catch (error) {
-    console.error("❌ Error updating temp trainer:", error)
-    return NextResponse.json({ success: false, error: "Failed to update trainer content" }, { status: 500 })
+    console.error('💥 [TEMP TRAINER API] Error updating:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
