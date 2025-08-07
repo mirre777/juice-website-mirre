@@ -14,6 +14,8 @@ import {
   Timestamp 
 } from 'firebase/firestore'
 import { db } from '@/firebase'
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
 
 export interface TempTrainer {
   id?: string
@@ -27,17 +29,44 @@ export interface TempTrainer {
   bio: string
   services: string[]
   status: 'pending' | 'approved' | 'rejected'
-  createdAt?: Timestamp
-  updatedAt?: Timestamp
+  createdAt?: any
+  updatedAt?: any
 }
 
 export interface Trainer extends TempTrainer {
   id: string
   isActive: boolean
-  activatedAt?: Timestamp
+  activatedAt?: any
   paymentStatus?: 'pending' | 'completed' | 'failed'
   websiteUrl?: string
 }
+
+// Initialize Firebase Admin if not already initialized
+if (!getApps().length) {
+  try {
+    console.log("🔥 [FIREBASE ADMIN] Initializing Firebase Admin...")
+    console.log("🔍 [FIREBASE ADMIN] Environment check:", {
+      hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+      hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+      hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    })
+
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      }),
+    })
+    console.log("✅ [FIREBASE ADMIN] Firebase Admin initialized successfully")
+  } catch (error) {
+    console.error("💥 [FIREBASE ADMIN] Firebase Admin initialization error:", error)
+  }
+}
+
+const adminDb = getFirestore()
 
 export class TrainerService {
   private static readonly TEMP_COLLECTION = 'temp_trainers'
