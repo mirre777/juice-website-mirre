@@ -18,7 +18,7 @@ export async function GET(
       )
     }
     
-    console.log('✅ [TEMP TRAINER API] Trainer found:', trainer)
+    console.log('✅ [TEMP TRAINER API] Trainer found:', JSON.stringify(trainer, null, 2))
     
     return NextResponse.json({
       success: true,

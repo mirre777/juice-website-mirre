@@ -30,6 +30,7 @@ export interface TempTrainer {
   status: 'pending' | 'approved' | 'rejected'
   createdAt?: any
   updatedAt?: any
+  expiresAt?: any
 }
 
 export interface Trainer extends TempTrainer {
@@ -107,28 +108,43 @@ export class TrainerService {
 
   static async createTempTrainer(trainerData: any) {
     console.log('🚀 [TRAINER SERVICE] Creating temp trainer...')
-    console.log('📋 [TRAINER SERVICE] Input data:', trainerData)
+    console.log('📋 [TRAINER SERVICE] Input data:', JSON.stringify(trainerData, null, 2))
     
     try {
       const db = getFirestoreAdmin()
       console.log('✅ [TRAINER SERVICE] Firestore connection established')
       
+      // Create expiration date (24 hours from now)
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + (24 * 60 * 60 * 1000))
+      
       // Prepare document data
       const docData = {
         ...trainerData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        expiresAt: new Date(Date.now() + (24 * 60 * 60 * 1000)), // 24 hours from now
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: expiresAt,
         status: 'pending'
       }
       
-      console.log('📄 [TRAINER SERVICE] Document data prepared:', docData)
+      console.log('📄 [TRAINER SERVICE] Document data prepared:', JSON.stringify(docData, null, 2))
       
       // Add document to Firestore
       console.log('💾 [TRAINER SERVICE] Adding document to temp_trainers collection...')
       const docRef = await db.collection('temp_trainers').add(docData)
       
       console.log('🎉 [TRAINER SERVICE] Document created successfully with ID:', docRef.id)
+      
+      // Verify the document was created by reading it back
+      console.log('🔍 [TRAINER SERVICE] Verifying document creation...')
+      const createdDoc = await docRef.get()
+      
+      if (createdDoc.exists) {
+        console.log('✅ [TRAINER SERVICE] Document verified in database:', createdDoc.data())
+      } else {
+        console.error('❌ [TRAINER SERVICE] Document not found after creation!')
+        throw new Error('Document creation verification failed')
+      }
       
       return {
         success: true,
@@ -137,6 +153,14 @@ export class TrainerService {
       }
     } catch (error) {
       console.error('💥 [TRAINER SERVICE] Error creating temp trainer:', error)
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        console.error('Error name:', error.name)
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+      }
+      
       throw error
     }
   }
@@ -154,7 +178,7 @@ export class TrainerService {
 
       if (docSnap.exists) {
         const data = docSnap.data() as TempTrainer
-        console.log("✅ [FIREBASE TRAINER] Temp trainer found:", data)
+        console.log("✅ [FIREBASE TRAINER] Temp trainer found:", JSON.stringify(data, null, 2))
         return { ...data, id: docSnap.id }
       } else {
         console.log("❌ [FIREBASE TRAINER] Temp trainer not found")

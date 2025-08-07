@@ -23,7 +23,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState<number>(0)
+  const [timeLeft, setTimeLeft] = useState<number>(86400) // Default 24 hours in seconds
   const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
 
@@ -31,8 +31,11 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   useEffect(() => {
     const fetchTempTrainer = async () => {
       try {
+        console.log('🔍 [TEMP TRAINER PAGE] Fetching temp trainer:', tempId)
         const response = await fetch(`/api/trainer/temp/${tempId}`)
         const data = await response.json()
+
+        console.log('📥 [TEMP TRAINER PAGE] Response:', data)
 
         if (!response.ok) {
           throw new Error(data.error || "Failed to load trainer preview")
@@ -53,25 +56,36 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           setContent(trainerContent)
           setEditingContent(trainerContent)
 
-          // Calculate initial time left (only for temp trainers)
+          // Calculate initial time left
+          let remaining = 86400 // Default 24 hours
+          
           if (data.trainer.expiresAt) {
-            const expiresAt = new Date(data.trainer.expiresAt).getTime()
-            const now = Date.now()
-            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
-            setTimeLeft(remaining)
-          } else {
-            // If no expiresAt is set, give it 24 hours from creation
-            const createdAt = data.trainer.createdAt ? new Date(data.trainer.createdAt).getTime() : Date.now()
-            const expiresAt = createdAt + (24 * 60 * 60 * 1000) // 24 hours
-            const now = Date.now()
-            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
-            setTimeLeft(remaining)
+            try {
+              const expiresAt = new Date(data.trainer.expiresAt).getTime()
+              const now = Date.now()
+              remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+              console.log('⏰ [TEMP TRAINER PAGE] Calculated time left:', remaining, 'seconds')
+            } catch (e) {
+              console.warn('⚠️ [TEMP TRAINER PAGE] Error parsing expiresAt, using default:', e)
+            }
+          } else if (data.trainer.createdAt) {
+            try {
+              const createdAt = new Date(data.trainer.createdAt).getTime()
+              const expiresAt = createdAt + (24 * 60 * 60 * 1000) // 24 hours
+              const now = Date.now()
+              remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+              console.log('⏰ [TEMP TRAINER PAGE] Calculated time from createdAt:', remaining, 'seconds')
+            } catch (e) {
+              console.warn('⚠️ [TEMP TRAINER PAGE] Error parsing createdAt, using default:', e)
+            }
           }
+          
+          setTimeLeft(remaining)
         } else {
           throw new Error("Trainer preview not found")
         }
       } catch (err) {
-        console.error("Error fetching temp trainer:", err)
+        console.error("💥 [TEMP TRAINER PAGE] Error fetching temp trainer:", err)
         setError(err instanceof Error ? err.message : "Failed to load trainer preview")
       } finally {
         setLoading(false)
@@ -91,7 +105,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
       setTimeLeft((prev) => {
         const newTime = prev - 1
         if (newTime <= 0) {
-          // Mark as expired and redirect
+          // Mark as expired and redirect after 3 seconds
           setTimeout(() => {
             router.push("/marketplace/personal-trainer-website")
           }, 3000)
@@ -155,6 +169,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   // Format time for display
   const formatTimeLeft = (seconds: number): string => {
     if (seconds <= 0) return "Expired"
+    if (isNaN(seconds)) return "24h 0m 0s" // Fallback for NaN
 
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
@@ -264,8 +279,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     )
   }
 
-  // Check if expired - give at least 1 hour minimum
-  const isExpired = timeLeft <= 0 && timeLeft !== null
+  // Check if expired
+  const isExpired = timeLeft <= 0
 
   if (isExpired) {
     return (

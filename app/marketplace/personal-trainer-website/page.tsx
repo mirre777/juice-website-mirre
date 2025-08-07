@@ -2,9 +2,9 @@ import { Metadata } from 'next'
 import PersonalTrainerWebsitePage from './PersonalTrainerWebsitePage'
 
 export const metadata: Metadata = {
-  title: 'Personal Trainer Website Builder – Go Live in 10 Minutes | Juice',
-  description: 'Launch your own personal trainer website in minutes. No coding needed. Capture leads, boost visibility and book sessions with a high-converting landing page.',
-  keywords: 'personal trainer website, fitness coach landing page, no code trainer site, book personal training sessions, fitness website Europe, personal training SEO, trainer marketing, gym coach profile, website builder for PTs',
+  title: 'Create Your Personal Trainer Website | Professional Fitness Websites',
+  description: 'Build a stunning personal trainer website in minutes. Get more clients, showcase your expertise, and grow your fitness business with our easy-to-use platform.',
+  keywords: 'personal trainer website, fitness website builder, trainer marketing, fitness business',
   authors: [{ name: 'Juice' }],
   creator: 'Juice',
   publisher: 'Juice',
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: `${process.env.NEXT_PUBLIC_APP_URL}/marketplace/personal-trainer-website`,
-    title: 'Personal Trainer Website Builder – Go Live in 10 Minutes | Juice',
-    description: 'Create your own personal trainer site that books clients and ranks in search. No tech skills required. Trusted by 500+ European trainers.',
+    title: 'Create Your Personal Trainer Website | Professional Fitness Websites',
+    description: 'Build a stunning personal trainer website in minutes. Get more clients, showcase your expertise, and grow your fitness business with our easy-to-use platform.',
     siteName: 'Juice',
     images: [
       {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Personal Trainer Website Builder – Go Live in 10 Minutes | Juice',
+    title: 'Create Your Personal Trainer Website | Professional Fitness Websites',
     description: 'Get your fitness site online in minutes. Book clients, grow your visibility and stay 24/7 available – all without coding.',
     images: [`${process.env.NEXT_PUBLIC_APP_URL}/images/og-feature-graphic.png`],
     creator: '@juice',
@@ -109,13 +109,5 @@ const structuredData = {
 }
 
 export default function Page() {
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <PersonalTrainerWebsitePage />
-    </>
-  )
+  return <PersonalTrainerWebsitePage />
 }

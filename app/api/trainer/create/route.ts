@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
       hasSpecialty: !!body.specialty,
       hasCertifications: !!body.certifications,
       hasBio: !!body.bio,
-      servicesCount: body.services?.length || 0
+      servicesCount: body.services?.length || 0,
+      fullBody: JSON.stringify(body, null, 2)
     })
     
     // Validate required fields
@@ -63,13 +64,13 @@ export async function POST(request: NextRequest) {
       status: 'pending'
     }
     
-    console.log('✅ [TRAINER CREATE API] Trainer data prepared successfully')
+    console.log('✅ [TRAINER CREATE API] Trainer data prepared successfully:', JSON.stringify(trainerData, null, 2))
     
     // Create temp trainer
     console.log('🚀 [TRAINER CREATE API] Calling TrainerService.createTempTrainer...')
     const result = await TrainerService.createTempTrainer(trainerData)
     
-    console.log('🎉 [TRAINER CREATE API] Trainer created successfully:', result)
+    console.log('🎉 [TRAINER CREATE API] Trainer created successfully:', JSON.stringify(result, null, 2))
     
     return NextResponse.json(result)
     
