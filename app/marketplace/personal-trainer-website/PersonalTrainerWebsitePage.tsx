@@ -1,15 +1,17 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import type React from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { CheckCircle, Star, Users, Clock, Shield, ArrowRight, Zap } from 'lucide-react'
-import Image from 'next/image'
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react'
+import { useRouter } from "next/navigation"
 
 interface FormData {
   fullName: string
@@ -18,457 +20,796 @@ interface FormData {
   city: string
   district: string
   specialty: string
-  certifications: string
   bio: string
+  certifications: string
   services: string[]
 }
 
+interface FormErrors {
+  fullName?: string
+  email?: string
+  city?: string
+  district?: string
+  specialty?: string
+  bio?: string
+}
+
 const specialties = [
-  'Weight Loss',
-  'Muscle Building',
-  'Cardio Training',
-  'Strength Training',
-  'Yoga',
-  'Pilates',
-  'CrossFit',
-  'Nutrition Coaching',
-  'Rehabilitation',
-  'Sports Performance'
+  "Weight Loss",
+  "Strength Training",
+  "Sports Performance",
+  "Rehabilitation",
+  "Nutrition Coaching",
+  "Group Fitness",
+  "Yoga & Mindfulness",
+  "Senior Fitness",
+  "Youth Training",
+  "Bodybuilding",
 ]
 
-const services = [
-  'One-on-One Training',
-  'Group Classes',
-  'Online Coaching',
-  'Nutrition Planning',
-  'Workout Plans',
-  'Progress Tracking'
+const serviceOptions = [
+  "Personal Training",
+  "Weight Loss Programs",
+  "Flexibility & Mobility",
+  "Online Coaching",
+  "Group Fitness",
+  "Strength Training",
+  "Sports-Specific Training",
+  "Nutrition Coaching",
+  "Cardio Training",
+  "Rehabilitation",
 ]
+
+// Define form steps
+const formSteps = [
+  { id: "basic", fields: ["fullName", "email"], title: "Basic Information" },
+  { id: "contact", fields: ["phone", "specialty"], title: "Contact & Specialty" },
+  { id: "location", fields: ["city", "district"], title: "Location" },
+  { id: "bio", fields: ["bio"], title: "Professional Bio" },
+  { id: "certifications", fields: ["certifications"], title: "Certifications" },
+  { id: "services", fields: ["services"], title: "Services Offered" },
+]
+
+// Trust Shield SVG Component
+const TrustShield = ({ className = "w-8 h-8" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M12 2L3 7V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V7L12 2Z"
+      fill="#000000"
+      stroke="#000000"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M9 12L11 14L15 10" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
 
 export default function PersonalTrainerWebsitePage() {
-  const [currentStep, setCurrentStep] = useState(1)
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [submitError, setSubmitError] = useState<string>("")
   const [formData, setFormData] = useState<FormData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    city: '',
-    district: '',
-    specialty: '',
-    certifications: '',
-    bio: '',
-    services: []
+    fullName: "",
+    email: "",
+    phone: "",
+    city: "",
+    district: "",
+    specialty: "",
+    bio: "",
+    certifications: "",
+    services: [],
   })
+  const [errors, setErrors] = useState<FormErrors>({})
 
-  const handleInputChange = (field: keyof FormData, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const handleServiceToggle = (service: string) => {
-    setFormData(prev => ({
-      ...prev,
-      services: prev.services.includes(service)
-        ? prev.services.filter(s => s !== service)
-        : [...prev.services, service]
-    }))
-  }
-
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        return !!(formData.fullName && formData.email && formData.phone)
-      case 2:
-        return !!(formData.city && formData.district && formData.specialty)
-      case 3:
-        return !!(formData.certifications && formData.bio)
-      case 4:
-        return formData.services.length > 0
-      default:
-        return true
+  const scrollToForm = () => {
+    const formElement = document.getElementById("trainer-form")
+    if (formElement) {
+      formElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
     }
   }
 
+  // Calculate progress
+  const getFieldValue = (field: string) => {
+    if (field === "services") {
+      return formData.services.length > 0
+    }
+    return formData[field as keyof FormData] !== ""
+  }
+
+  const getTotalFilledFields = () => {
+    const allFields = [
+      "fullName",
+      "email",
+      "phone",
+      "specialty",
+      "city",
+      "district",
+      "bio",
+      "certifications",
+      "services",
+    ]
+    return allFields.filter((field) => {
+      if (field === "services") {
+        return formData.services.length > 0
+      }
+      if (field === "bio" || field === "certifications" || field === "phone") {
+        // Optional fields
+        return true
+      }
+      return formData[field as keyof FormData] !== ""
+    }).length
+  }
+
+  const getRequiredFieldsCount = () => {
+    return 6 // fullName, email, specialty, city, district + at least one optional field
+  }
+
+  const validateCurrentStep = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
+    const newErrors: FormErrors = {}
+
+    currentFields.forEach((field) => {
+      if (field === "fullName" && !formData.fullName.trim()) {
+        newErrors.fullName = "Full name is required"
+      }
+      if (field === "email") {
+        if (!formData.email.trim()) {
+          newErrors.email = "Email is required"
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = "Please enter a valid email address"
+        }
+      }
+      if (field === "city" && !formData.city.trim()) {
+        newErrors.city = "City is required"
+      }
+      if (field === "district" && !formData.district.trim()) {
+        newErrors.district = "District is required"
+      }
+      if (field === "specialty" && !formData.specialty) {
+        newErrors.specialty = "Please select your primary specialty"
+      }
+      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length < 20) {
+        newErrors.bio = "Bio must be at least 20 characters if provided"
+      }
+      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length > 500) {
+        newErrors.bio = "Bio must be less than 500 characters"
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const canProceedToNext = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
+
+    // For required fields steps
+    if (currentStep === 0) {
+      // Basic info
+      return (
+        formData.fullName.trim() !== "" &&
+        formData.email.trim() !== "" &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      )
+    }
+    if (currentStep === 1) {
+      // Contact & Specialty
+      return formData.specialty !== ""
+    }
+    if (currentStep === 2) {
+      // Location
+      return formData.city.trim() !== "" && formData.district.trim() !== ""
+    }
+
+    // Optional steps can always proceed
+    return true
+  }
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
+    // Clear submit error when user makes changes
+    if (submitError) {
+      setSubmitError("")
+    }
+  }
+
+  const handleServiceToggle = (service: string, event?: React.MouseEvent) => {
+    // Prevent any event bubbling that might trigger form submission
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      services: prev.services.includes(service)
+        ? prev.services.filter((s) => s !== service)
+        : [...prev.services, service],
+    }))
+  }
+
   const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 4))
+    if (validateCurrentStep() && canProceedToNext() && currentStep < formSteps.length - 1) {
+      setCurrentStep(currentStep + 1)
     }
   }
 
   const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1))
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
   }
 
-  const handleSubmit = async () => {
-    console.log('🚀 [FORM SUBMIT] Starting form submission...')
-    console.log('📋 [FORM SUBMIT] Form data:', formData)
-    
-    if (!validateStep(4)) {
-      console.log('❌ [FORM SUBMIT] Form validation failed')
-      setSubmitError('Please complete all required fields')
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only submit if we're on the last step
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    if (!validateCurrentStep()) {
       return
     }
 
     setIsSubmitting(true)
-    setSubmitError(null)
+    setSubmitError("")
 
     try {
-      console.log('🌐 [FORM SUBMIT] Sending POST request to /api/trainer/create...')
+      console.log("🚀 [FORM SUBMIT] Starting form submission...")
+      console.log("📋 [FORM SUBMIT] Form data:", formData)
       
-      const response = await fetch('/api/trainer/create', {
-        method: 'POST',
+      const response = await fetch("/api/trainer/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       })
 
-      console.log('📡 [FORM SUBMIT] Response received:', {
+      console.log("📡 [FORM SUBMIT] Response received:", {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
         headers: Object.fromEntries(response.headers.entries())
       })
 
-      const result = await response.json()
-      console.log('📋 [FORM SUBMIT] Parsed result:', result)
+      // Check if response is ok first
+      if (!response.ok) {
+        console.log("❌ [FORM SUBMIT] Response not ok, getting text...")
+        const errorText = await response.text()
+        console.log("📄 [FORM SUBMIT] Error response text:", errorText)
+        throw new Error(`Server error: ${response.status} - ${errorText}`)
+      }
 
-      if (response.ok && result.success) {
-        console.log('✅ [FORM SUBMIT] Success! Redirecting to:', result.redirectUrl)
-        window.location.href = result.redirectUrl
+      console.log("✅ [FORM SUBMIT] Response is ok, parsing JSON...")
+      const data = await response.json()
+      console.log("📦 [FORM SUBMIT] Parsed result:", data)
+
+      if (data.success && data.redirectUrl) {
+        console.log("🎉 [FORM SUBMIT] Success! Redirecting to:", data.redirectUrl)
+        router.push(data.redirectUrl)
       } else {
-        console.log('❌ [FORM SUBMIT] Request failed:', result)
-        setSubmitError(result.error || result.details || 'Failed to create trainer profile')
+        throw new Error(data.error || "Unexpected response format")
       }
     } catch (error) {
-      console.error('💥 [FORM SUBMIT] Network/parsing error:', error)
-      setSubmitError('Network error. Please check your connection and try again.')
+      console.log("💥 [FORM SUBMIT] Caught error:")
+      console.log("Error type:", typeof error)
+      console.log("Error constructor:", error?.constructor?.name)
+      console.log("Error message:", error instanceof Error ? error.message : String(error))
+      console.log("Full error:", error)
+      
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+      setSubmitError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
+  const handleExplicitSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only submit if we're on the last step
+    if (currentStep !== formSteps.length - 1) {
+      return
+    }
+
+    if (!validateCurrentStep()) {
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError("")
+
+    try {
+      console.log("🚀 [FORM SUBMIT] Starting form submission...")
+      console.log("📋 [FORM SUBMIT] Form data:", formData)
+      
+      const response = await fetch("/api/trainer/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      console.log("📡 [FORM SUBMIT] Response received:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      })
+
+      // Check if response is ok first
+      if (!response.ok) {
+        console.log("❌ [FORM SUBMIT] Response not ok, getting text...")
+        const errorText = await response.text()
+        console.log("📄 [FORM SUBMIT] Error response text:", errorText)
+        throw new Error(`Server error: ${response.status} - ${errorText}`)
+      }
+
+      console.log("✅ [FORM SUBMIT] Response is ok, parsing JSON...")
+      const data = await response.json()
+      console.log("📦 [FORM SUBMIT] Parsed result:", data)
+
+      if (data.success && data.redirectUrl) {
+        console.log("🎉 [FORM SUBMIT] Success! Redirecting to:", data.redirectUrl)
+        router.push(data.redirectUrl)
+      } else {
+        throw new Error(data.error || "Unexpected response format")
+      }
+    } catch (error) {
+      console.log("💥 [FORM SUBMIT] Caught error:")
+      console.log("Error type:", typeof error)
+      console.log("Error constructor:", error?.constructor?.name)
+      console.log("Error message:", error instanceof Error ? error.message : String(error))
+      console.log("Full error:", error)
+      
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+      setSubmitError(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const renderCurrentStepFields = () => {
+    const step = formSteps[currentStep]
+
+    switch (step.id) {
+      case "basic":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
-              <Label htmlFor="fullName">Full Name *</Label>
+              <Label htmlFor="fullName" className="text-base font-medium">
+                Full Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="fullName"
                 value={formData.fullName}
-                onChange={(e) => handleInputChange('fullName', e.target.value)}
-                placeholder="Enter your full name"
-                required
+                onChange={(e) => handleInputChange("fullName", e.target.value)}
+                placeholder="John Smith"
+                className={`mt-2 h-12 ${errors.fullName ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
               />
+              {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
             </div>
+
             <div>
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email" className="text-base font-medium">
+                Email Address <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="your.email@example.com"
-                required
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                placeholder="john@example.com"
+                className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
               />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
+          </div>
+        )
+
+      case "contact":
+        return (
+          <div className="space-y-6">
             <div>
-              <Label htmlFor="phone">Phone *</Label>
+              <Label htmlFor="phone" className="text-base font-medium">
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
                 placeholder="+1 (555) 123-4567"
-                required
+                className="mt-2 h-12"
+                disabled={isSubmitting}
               />
+            </div>
+
+            <div>
+              <Label htmlFor="specialty" className="text-base font-medium">
+                Primary Specialty <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.specialty}
+                onValueChange={(value) => handleInputChange("specialty", value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className={`mt-2 h-12 ${errors.specialty ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder="Select your specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {specialties.map((specialty) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
             </div>
           </div>
         )
-      case 2:
+
+      case "location":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
-              <Label htmlFor="city">City *</Label>
+              <Label htmlFor="city" className="text-base font-medium">
+                City <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="city"
                 value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="Enter your city"
-                required
+                onChange={(e) => handleInputChange("city", e.target.value)}
+                placeholder="Vienna"
+                className={`mt-2 h-12 ${errors.city ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
               />
+              {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
             </div>
+
             <div>
-              <Label htmlFor="district">District/Area *</Label>
+              <Label htmlFor="district" className="text-base font-medium">
+                District <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="district"
                 value={formData.district}
-                onChange={(e) => handleInputChange('district', e.target.value)}
-                placeholder="Enter your district or area"
-                required
+                onChange={(e) => handleInputChange("district", e.target.value)}
+                placeholder="Innere Stadt"
+                className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}
+                disabled={isSubmitting}
               />
-            </div>
-            <div>
-              <Label htmlFor="specialty">Primary Specialty *</Label>
-              <select
-                id="specialty"
-                value={formData.specialty}
-                onChange={(e) => handleInputChange('specialty', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                required
-              >
-                <option value="">Select your specialty</option>
-                {specialties.map(specialty => (
-                  <option key={specialty} value={specialty}>{specialty}</option>
-                ))}
-              </select>
+              {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
             </div>
           </div>
         )
-      case 3:
+
+      case "bio":
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="certifications">Certifications *</Label>
-              <Textarea
-                id="certifications"
-                value={formData.certifications}
-                onChange={(e) => handleInputChange('certifications', e.target.value)}
-                placeholder="List your certifications (e.g., NASM-CPT, ACE, ACSM)"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="bio">Professional Bio *</Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                placeholder="Tell potential clients about your experience, approach, and what makes you unique..."
-                rows={4}
-                required
-              />
-            </div>
-          </div>
-        )
-      case 4:
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Services Offered *</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {services.map(service => (
-                  <label key={service} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.services.includes(service)}
-                      onChange={() => handleServiceToggle(service)}
-                      className="rounded"
-                    />
-                    <span className="text-sm">{service}</span>
-                  </label>
-                ))}
+          <div>
+            <Label htmlFor="bio" className="text-base font-medium">
+              Professional Bio
+            </Label>
+            <p className="text-sm text-gray-600 mt-1 mb-2">
+              Tell potential clients about your background, training philosophy, and what makes you unique. (Optional)
+            </p>
+            <Textarea
+              id="bio"
+              value={formData.bio}
+              onChange={(e) => handleInputChange("bio", e.target.value)}
+              placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
+              className={`mt-2 min-h-32 ${errors.bio ? "border-red-500" : ""}`}
+              disabled={isSubmitting}
+            />
+            <div className="flex justify-between items-center mt-2">
+              {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
+              <div className="ml-auto">
+                <span
+                  className={`text-sm ${formData.bio.length > 450 ? "text-red-500" : formData.bio.length > 400 ? "text-yellow-600" : "text-gray-500"}`}
+                >
+                  {formData.bio.length}/500 characters
+                </span>
               </div>
             </div>
           </div>
         )
+
+      case "certifications":
+        return (
+          <div>
+            <Label htmlFor="certifications" className="text-base font-medium">
+              Certifications & Qualifications
+            </Label>
+            <p className="text-sm text-gray-600 mt-1 mb-2">
+              List your certifications, degrees, or other qualifications (comma-separated).
+            </p>
+            <Input
+              id="certifications"
+              value={formData.certifications}
+              onChange={(e) => handleInputChange("certifications", e.target.value)}
+              placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
+              className="mt-2 h-12"
+              disabled={isSubmitting}
+            />
+          </div>
+        )
+
+      case "services":
+        return (
+          <div>
+            <Label className="text-base font-medium">Services Offered</Label>
+            <p className="text-sm text-gray-600 mt-1 mb-4">
+              Select the services you provide to your clients. (Optional)
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {serviceOptions.map((service) => (
+                <div key={service} className="flex items-center space-x-3">
+                  <Checkbox
+                    id={service}
+                    checked={formData.services?.includes(service) || false}
+                    onCheckedChange={(checked) => {
+                      // Only update the state, don't trigger any form submission
+                      handleServiceToggle(service)
+                    }}
+                    disabled={isSubmitting}
+                  />
+                  <Label
+                    htmlFor={service}
+                    className="text-sm font-medium cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleServiceToggle(service, e)
+                    }}
+                  >
+                    {service}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
       default:
         return null
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 text-center">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-yellow-400/10" />
-        <div className="relative max-w-4xl mx-auto">
-          <div className="flex items-center justify-center mb-6">
-            <Shield className="h-8 w-8 text-lime-600 mr-2" />
-            <Badge variant="secondary" className="bg-lime-100 text-lime-800 border-lime-200">
-              No coding required
-            </Badge>
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Build Your{' '}
-            <span className="bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
-              Professional
-            </span>{' '}
-            Trainer Website
-          </h1>
-          
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Create a stunning website that attracts clients, showcases your expertise, and grows your fitness business. 
-            <span className="text-lime-600 font-semibold"> Get started in minutes!</span>
-          </p>
+      <section className="pt-20 pb-[30px] bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-left max-w-4xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-white border border-black rounded-full">
+                <TrustShield className="w-8 h-8" />
+              </div>
+              <div className="bg-white text-black border border-black px-4 py-2 text-lg font-medium rounded-full">
+                No coding required
+              </div>
+            </div>
 
-          <div className="flex items-center justify-center space-x-4 mb-8">
-            <div className="flex items-center text-gray-600">
-              <Zap className="h-5 w-5 text-lime-500 mr-2" />
-              <span>Quick Setup</span>
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Get Your Professional{" "}
+              <span className="text-black relative">
+                Trainer Website
+                <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
+              </span>{" "}
+              <span className="bg-black text-white px-3 py-1 rounded leading-none inline-block">in 10 minutes</span>
+            </h1>
+
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
+              Launch a high-converting one-page site that captures leads and books sessions for you. Just complete a
+              short form and your personal-training brand goes live – with SEO and client-ready.
+            </p>
+
+            {/* CTA Button */}
+            <div className="mb-8">
+              <Button
+                onClick={scrollToForm}
+                className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                Create for free
+                <ArrowDown className="w-5 h-5 ml-2" />
+              </Button>
             </div>
-            <div className="flex items-center text-gray-600">
-              <Shield className="h-5 w-5 text-lime-500 mr-2" />
-              <span>Professional Design</span>
-            </div>
-            <div className="flex items-center text-gray-600">
-              <Users className="h-5 w-5 text-lime-500 mr-2" />
-              <span>Client Management</span>
+
+            <div className="flex items-center gap-8 mb-12">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <span className="text-gray-700 font-medium">Increase visibility</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                </div>
+                <span className="text-gray-700 font-medium">Super fast</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <Star className="w-5 h-5 text-purple-600" />
+                </div>
+                <span className="text-gray-700 font-medium">Professional design</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 px-4 bg-white/50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">What Trainers Say</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border-lime-200">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <Image
-                    src="/images/laner.png"
-                    alt="Laner - Personal Trainer"
-                    width={60}
-                    height={60}
-                    className="rounded-full mr-4"
-                  />
-                  <div>
-                    <h4 className="font-semibold">Laner</h4>
-                    <p className="text-sm text-gray-600">Certified Personal Trainer</p>
-                  </div>
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-start gap-4">
+                <img src="/images/laner.png" alt="Laner" className="w-12 h-12 rounded-full object-cover" />
+                <div>
+                  <p className="text-gray-800 font-medium mb-2">"Super smooth, I had my website in 3 minutes."</p>
+                  <p className="text-gray-600 text-sm">- Laner</p>
                 </div>
-                <div className="flex mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-700">
-                  "This platform made it incredibly easy to create my professional website. 
-                  I went from zero to fully booked in just 2 weeks!"
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card className="border-lime-200">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <Image
-                    src="/images/rici.png"
-                    alt="Rici - Fitness Coach"
-                    width={60}
-                    height={60}
-                    className="rounded-full mr-4"
-                  />
-                  <div>
-                    <h4 className="font-semibold">Rici</h4>
-                    <p className="text-sm text-gray-600">Fitness Coach & Nutritionist</p>
-                  </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-start gap-4">
+                <img src="/images/rici.png" alt="Rici" className="w-12 h-12 rounded-full object-cover" />
+                <div>
+                  <p className="text-gray-800 font-medium mb-2">
+                    "I never knew a website could be made this fast and good"
+                  </p>
+                  <p className="text-gray-600 text-sm">- Rici</p>
                 </div>
-                <div className="flex mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-700">
-                  "The client management tools are amazing. I can focus on training 
-                  while the website handles bookings and payments automatically."
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="bg-lime-100 rounded-lg p-6">
-              <div className="text-3xl font-bold text-lime-800 mb-2">500+</div>
-              <div className="text-lime-700">Active Trainers</div>
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-[#D2FF28] rounded-full">
+                  <span className="text-2xl">👥</span>
+                </div>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
+              <div className="text-gray-600">Trainers Trust Us</div>
             </div>
-            <div className="bg-lime-100 rounded-lg p-6">
-              <div className="text-3xl font-bold text-lime-800 mb-2">95%</div>
-              <div className="text-lime-700">Client Satisfaction</div>
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-[#D2FF28] rounded-full">
+                  <span className="text-2xl">📈</span>
+                </div>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">95%</div>
+              <div className="text-gray-600">Client Satisfaction</div>
             </div>
-            <div className="bg-lime-100 rounded-lg p-6">
-              <div className="text-3xl font-bold text-lime-800 mb-2">24/7</div>
-              <div className="text-lime-700">Support Available</div>
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-[#D2FF28] rounded-full">
+                  <span className="text-2xl">⚡</span>
+                </div>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mb-2">24/7</div>
+              <div className="text-gray-600">Website Availability</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Form Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-lime-200 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Create Your Trainer Profile</CardTitle>
-              <CardDescription>
-                Step {currentStep} of 4 - {
-                  currentStep === 1 ? 'Personal Information' :
-                  currentStep === 2 ? 'Location & Specialty' :
-                  currentStep === 3 ? 'Credentials & Bio' :
-                  'Services Offered'
-                }
-              </CardDescription>
-              
-              {/* Progress Bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
-                <div 
-                  className="bg-lime-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(currentStep / 4) * 100}%` }}
-                />
+      <section id="trainer-form" className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Stand out. Book clients.</h2>
+            <p className="text-xl text-gray-600">Fill out this form to get your own page. No coding required.</p>
+          </div>
+
+          <Card className="shadow-xl border-0">
+            <CardHeader className="bg-gray-50 rounded-t-lg">
+              <CardTitle className="text-2xl text-center">Create Your Trainer Profile</CardTitle>
+
+              {/* Progress Indicator */}
+              <div className="mt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">
+                    Step {currentStep + 1} of {formSteps.length}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    {getTotalFilledFields()} of {getRequiredFieldsCount()} fields completed
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-[#D2FF28] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
               </div>
             </CardHeader>
-            
-            <CardContent className="space-y-6">
-              {renderStep()}
-              
-              {submitError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-red-700 text-sm">{submitError}</p>
-                </div>
-              )}
-              
-              <div className="flex justify-between pt-4">
-                {currentStep > 1 && (
-                  <Button 
-                    variant="outline" 
+
+            <CardContent className="p-8">
+              <form onSubmit={handleFormSubmit}>
+                <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
+
+                {/* Error Display */}
+                {submitError && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm">{submitError}</p>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between items-center pt-8 mt-8 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={prevStep}
-                    className="border-lime-200 text-lime-700 hover:bg-lime-50"
+                    disabled={currentStep === 0}
+                    className="flex items-center gap-2 bg-transparent"
                   >
+                    <ChevronLeft className="w-4 h-4" />
                     Previous
                   </Button>
-                )}
-                
-                <div className="ml-auto">
-                  {currentStep < 4 ? (
-                    <Button 
+
+                  {currentStep < formSteps.length - 1 ? (
+                    <Button
+                      type="button"
                       onClick={nextStep}
-                      disabled={!validateStep(currentStep)}
-                      className="bg-lime-500 hover:bg-lime-600 text-white"
+                      disabled={!canProceedToNext()}
+                      className="bg-[#D2FF28] hover:bg-[#B8E625] text-black flex items-center gap-2"
                     >
-                      Next Step
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      Next
+                      <ChevronRight className="w-4 h-4" />
                     </Button>
                   ) : (
-                    <Button 
-                      onClick={handleSubmit}
-                      disabled={!validateStep(4) || isSubmitting}
-                      className="bg-lime-500 hover:bg-lime-600 text-white"
+                    <Button
+                      type="button"
+                      onClick={handleExplicitSubmit}
+                      disabled={isSubmitting}
+                      className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-3"
                     >
-                      {isSubmitting ? 'Creating...' : 'Show Preview'}
-                      {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                          Creating...
+                        </>
+                      ) : (
+                        "Show Preview"
+                      )}
                     </Button>
                   )}
                 </div>
-              </div>
+              </form>
+
+              <p className="text-center text-sm text-gray-600 mt-4">
+                Your website will be generated instantly. You can edit and activate it for{" "}
+                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>{" "}
+                <strong>You will not be charged anything by creating the Preview.</strong>
+              </p>
             </CardContent>
           </Card>
         </div>
