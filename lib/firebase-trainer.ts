@@ -148,7 +148,10 @@ export class TrainerService {
       const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
       const docSnap = await docRef.get()
 
-      if (docSnap.exists()) {
+      console.log("🔍 [FIREBASE TRAINER] Document snapshot obtained, checking exists property...")
+      console.log("📋 [FIREBASE TRAINER] Document exists:", docSnap.exists)
+
+      if (docSnap.exists) {
         const data = docSnap.data() as TempTrainer
         console.log("✅ [FIREBASE TRAINER] Temp trainer found:", data)
         return { ...data, id: docSnap.id }
@@ -236,7 +239,7 @@ export class TrainerService {
       const docRef = db.collection(this.TRAINERS_COLLECTION).doc(id)
       const docSnap = await docRef.get()
 
-      if (docSnap.exists()) {
+      if (docSnap.exists) {
         const data = docSnap.data()
         console.log("✅ [FIREBASE TRAINER] Trainer found:", data)
         return { ...data, id: docSnap.id }
