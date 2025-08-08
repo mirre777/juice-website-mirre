@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { PersonalTrainerWebsitePage } from './PersonalTrainerWebsitePage'
+import PersonalTrainerWebsitePage from './PersonalTrainerWebsitePage'
 
 export const metadata: Metadata = {
   title: 'Personal Trainer Website Builder – Go Live in 10 Minutes | Juice',
