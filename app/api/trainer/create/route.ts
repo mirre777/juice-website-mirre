@@ -25,7 +25,7 @@ function makeTempId() {
 }
 
 export async function POST(request: NextRequest) {
-  // Parse body with defensive error handling
+  // Parse body defensively to avoid throwing generic 500s
   let body: CreateBody
   try {
     body = await request.json()
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     services = [],
   } = body
 
-  // Validate required fields
+  // Validate required fields early; return structured JSON on failure
   const errors: Record<string, string> = {}
   if (!fullName.trim()) errors.fullName = "Full name is required"
   if (!email.trim()) errors.email = "Email is required"
@@ -58,16 +58,16 @@ export async function POST(request: NextRequest) {
     return json(400, { error: "Validation failed", details: errors })
   }
 
-  // Ensure Firestore is available
+  // Ensure Firestore is available on the server
   if (!db) {
     return json(500, {
-      error: "Server not configured",
+      error: "Server misconfiguration",
       details:
         "Firebase Admin is not initialized. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
     })
   }
 
-  // Build document
+  // Build preview doc
   const now = new Date()
   const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000) // +24h
   const tempId = makeTempId()
@@ -109,7 +109,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (err) {
     console.error("Error creating trainer doc:", err)
-    // Always return JSON so the client doesn't attempt to parse plain text
     return json(500, {
       error: "Failed to create trainer profile",
       details: err instanceof Error ? err.message : "Unknown error",
