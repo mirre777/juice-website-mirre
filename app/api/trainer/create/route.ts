@@ -1,100 +1,74 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { TrainerService } from '@/lib/firebase-trainer'
+import { type NextRequest, NextResponse } from "next/server"
+import { TrainerService } from "@/lib/firebase-trainer"
 
 export async function POST(request: NextRequest) {
-  console.log('🚀 [TRAINER CREATE API] Starting request processing...')
-  
   try {
-    console.log('📥 [TRAINER CREATE API] Parsing request body...')
     const body = await request.json()
-    
-    console.log('✅ [TRAINER CREATE API] Request body parsed successfully:', {
-      hasFullName: !!body.fullName,
-      hasEmail: !!body.email,
-      hasPhone: !!body.phone,
-      hasCity: !!body.city,
-      hasDistrict: !!body.district,
-      hasSpecialty: !!body.specialty,
-      hasCertifications: !!body.certifications,
-      hasBio: !!body.bio,
-      servicesCount: body.services?.length || 0,
-      fullBody: JSON.stringify(body, null, 2)
-    })
-    
-    // Validate required fields
-    console.log('🔍 [TRAINER CREATE API] Validating required fields...')
-    const requiredFields = ['fullName', 'email', 'city', 'district', 'specialty']
-    const missingFields = requiredFields.filter(field => !body[field]?.trim())
-    
-    if (missingFields.length > 0) {
-      console.log('❌ [TRAINER CREATE API] Missing required fields:', missingFields)
+
+    const { fullName, email, phone, city, district, specialty, certifications, bio, services } = body
+
+    // Validate required fields (updated for new structure)
+    if (!fullName || !email || !city || !district || !specialty) {
       return NextResponse.json(
-        { error: `Missing required fields: ${missingFields.join(', ')}` },
-        { status: 400 }
+        {
+          error: "Missing required fields",
+          details: "Full name, email, city, district, and specialty are required",
+        },
+        { status: 400 },
       )
     }
-    
-    console.log('✅ [TRAINER CREATE API] Required fields validation passed')
-    
+
     // Validate email format
-    console.log('🔍 [TRAINER CREATE API] Validating email format...')
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
-      console.log('❌ [TRAINER CREATE API] Invalid email format:', body.email)
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
+        {
+          error: "Invalid email format",
+        },
+        { status: 400 },
       )
     }
-    
-    console.log('✅ [TRAINER CREATE API] Email format validation passed')
-    
-    // Prepare trainer data
-    console.log('📋 [TRAINER CREATE API] Preparing trainer data...')
-    const trainerData = {
-      fullName: body.fullName.trim(),
-      email: body.email.trim().toLowerCase(),
-      phone: body.phone?.trim() || '',
-      city: body.city.trim(),
-      district: body.district.trim(),
-      specialty: body.specialty.trim(),
-      certifications: body.certifications?.trim() || '',
-      bio: body.bio?.trim() || '',
-      services: body.services || [],
-      status: 'pending'
+
+    // Validate city and district are not empty strings
+    if (city.trim().length === 0 || district.trim().length === 0) {
+      return NextResponse.json(
+        {
+          error: "City and district cannot be empty",
+        },
+        { status: 400 },
+      )
     }
-    
-    console.log('✅ [TRAINER CREATE API] Trainer data prepared successfully:', JSON.stringify(trainerData, null, 2))
-    
-    // Create temp trainer
-    console.log('🚀 [TRAINER CREATE API] Calling TrainerService.createTempTrainer...')
-    const result = await TrainerService.createTempTrainer(trainerData)
-    
-    console.log('🎉 [TRAINER CREATE API] Trainer created successfully:', JSON.stringify(result, null, 2))
-    
-    return NextResponse.json(result)
-    
-  } catch (error) {
-    console.error('💥 [TRAINER CREATE API] Error processing request:', error)
-    
-    // Return detailed error information
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-    const errorStack = error instanceof Error ? error.stack : 'No stack trace available'
-    
-    console.error('Error details:', {
-      message: errorMessage,
-      stack: errorStack,
-      type: typeof error,
-      constructor: error?.constructor?.name
+
+    // Create temp trainer with new field structure
+    const tempId = await TrainerService.createTempTrainer({
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone?.trim() || "",
+      city: city.trim(),
+      district: district.trim(),
+      specialty: specialty.trim(),
+      certifications: certifications?.trim() || "",
+      bio: bio?.trim() || "",
+      services: services || [],
+      status: "pending",
     })
-    
+
+    const redirectUrl = `/marketplace/trainer/temp/${tempId}`
+
+    return NextResponse.json({
+      success: true,
+      tempId,
+      redirectUrl,
+      message: "Trainer profile created successfully",
+    })
+  } catch (error) {
+    console.error("Error creating trainer:", error)
     return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: errorMessage,
-        timestamp: new Date().toISOString()
+      {
+        error: "Failed to create trainer profile",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

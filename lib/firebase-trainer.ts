@@ -1,302 +1,174 @@
-import { 
-  collection, 
-  addDoc, 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  deleteDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  serverTimestamp,
-  Timestamp 
-} from 'firebase/firestore'
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
+import type { TrainerFormData, TrainerContent } from "@/types/trainer"
 
-export interface TempTrainer {
-  id?: string
-  fullName: string
-  email: string
-  phone: string
-  city: string
-  district: string
-  specialty: string
-  certifications: string
-  bio: string
-  services: string[]
-  status: 'pending' | 'approved' | 'rejected'
-  createdAt?: any
-  updatedAt?: any
-  expiresAt?: any
-}
-
-export interface Trainer extends TempTrainer {
-  id: string
-  isActive: boolean
-  activatedAt?: any
-  paymentStatus?: 'pending' | 'completed' | 'failed'
-  websiteUrl?: string
-}
-
-// Initialize Firebase Admin SDK
-function initializeFirebaseAdmin() {
-  console.log('🔥 [FIREBASE ADMIN] Initializing Firebase Admin SDK...')
-  
-  // Check if we have the required environment variables
-  const requiredEnvVars = [
-    'FIREBASE_PROJECT_ID',
-    'FIREBASE_CLIENT_EMAIL', 
-    'FIREBASE_PRIVATE_KEY'
-  ]
-  
-  const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
-  
-  if (missingVars.length > 0) {
-    console.error('❌ [FIREBASE ADMIN] Missing required environment variables:', missingVars)
-    throw new Error(`Missing Firebase Admin environment variables: ${missingVars.join(', ')}`)
-  }
-  
-  console.log('✅ [FIREBASE ADMIN] All required environment variables present')
-  
-  // Check if Firebase Admin is already initialized
-  if (getApps().length > 0) {
-    console.log('✅ [FIREBASE ADMIN] Firebase Admin already initialized')
-    return getApps()[0]
-  }
-  
+// Initialize Firebase Admin if not already initialized
+if (!getApps().length) {
   try {
-    // Initialize Firebase Admin with service account
-    const app = initializeApp({
+    initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
       }),
-      projectId: process.env.FIREBASE_PROJECT_ID,
     })
-    
-    console.log('🎉 [FIREBASE ADMIN] Firebase Admin initialized successfully!')
-    return app
   } catch (error) {
-    console.error('💥 [FIREBASE ADMIN] Failed to initialize Firebase Admin:', error)
-    throw error
+    console.error("Firebase Admin initialization error:", error)
   }
 }
 
-// Get Firestore instance
-function getFirestoreAdmin() {
-  console.log('🔍 [FIREBASE ADMIN] Getting Firestore instance...')
-  
-  try {
-    const app = initializeFirebaseAdmin()
-    const db = getFirestore(app)
-    
-    console.log('✅ [FIREBASE ADMIN] Firestore instance obtained successfully')
-    return db
-  } catch (error) {
-    console.error('💥 [FIREBASE ADMIN] Failed to get Firestore instance:', error)
-    throw error
-  }
-}
+const db = getFirestore()
 
 export class TrainerService {
-  private static readonly TEMP_COLLECTION = 'temp_trainers'
-  private static readonly TRAINERS_COLLECTION = 'trainers'
-
-  static async createTempTrainer(trainerData: any) {
-    console.log('🚀 [TRAINER SERVICE] Creating temp trainer...')
-    console.log('📋 [TRAINER SERVICE] Input data:', JSON.stringify(trainerData, null, 2))
-    
+  static async createTempTrainer(trainerData: Partial<TrainerFormData>): Promise<string> {
     try {
-      const db = getFirestoreAdmin()
-      console.log('✅ [TRAINER SERVICE] Firestore connection established')
-      
-      // Create expiration date (24 hours from now)
-      const now = new Date()
-      const expiresAt = new Date(now.getTime() + (24 * 60 * 60 * 1000))
-      
-      // Prepare document data
-      const docData = {
-        ...trainerData,
-        createdAt: now,
-        updatedAt: now,
-        expiresAt: expiresAt,
-        status: 'pending'
+      console.log("Creating temp trainer with data:", trainerData)
+
+      // Generate temp ID
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // Create expiration time (24 hours from now)
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 24)
+
+      // Generate default content with new field structure
+      const defaultContent: TrainerContent = {
+        hero: {
+          title: `Transform Your Fitness with ${trainerData.fullName}`,
+          subtitle: `Professional ${trainerData.specialty} trainer in ${trainerData.city}, ${trainerData.district}`,
+          description:
+            trainerData.bio ||
+            "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+        },
+        about: {
+          title: `About ${trainerData.fullName}`,
+          content:
+            trainerData.bio ||
+            "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+        },
+        services: trainerData.services?.map((service: string, index: number) => ({
+          id: String(index + 1),
+          title: service,
+          description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+          price: 60,
+          duration: "60 minutes",
+          featured: index === 0,
+        })) || [
+          {
+            id: "1",
+            title: "Personal Training",
+            description: "Personalized training sessions tailored to your goals",
+            price: 60,
+            duration: "60 minutes",
+            featured: true,
+          },
+        ],
+        contact: {
+          title: "Let's Start Your Fitness Journey",
+          description:
+            "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+          email: trainerData.email || "",
+          phone: trainerData.phone || "",
+          city: trainerData.city || "",
+          district: trainerData.district || "",
+        },
+        seo: {
+          title: `${trainerData.fullName} - Personal Trainer in ${trainerData.city}, ${trainerData.district}`,
+          description: `Professional ${trainerData.specialty} training with ${trainerData.fullName}. Transform your fitness with personalized programs in ${trainerData.city}, ${trainerData.district}.`,
+        },
       }
-      
-      console.log('📄 [TRAINER SERVICE] Document data prepared:', JSON.stringify(docData, null, 2))
-      
-      // Add document to Firestore
-      console.log('💾 [TRAINER SERVICE] Adding document to temp_trainers collection...')
-      const docRef = await db.collection('temp_trainers').add(docData)
-      
-      console.log('🎉 [TRAINER SERVICE] Document created successfully with ID:', docRef.id)
-      
-      // Verify the document was created by reading it back
-      console.log('🔍 [TRAINER SERVICE] Verifying document creation...')
-      const createdDoc = await docRef.get()
-      
-      if (createdDoc.exists) {
-        console.log('✅ [TRAINER SERVICE] Document verified in database:', createdDoc.data())
-      } else {
-        console.error('❌ [TRAINER SERVICE] Document not found after creation!')
-        throw new Error('Document creation verification failed')
+
+      // Create trainer document with new structure
+      const trainerDoc = {
+        id: tempId,
+        fullName: trainerData.fullName,
+        email: trainerData.email,
+        phone: trainerData.phone || "",
+        city: trainerData.city,
+        district: trainerData.district,
+        specialty: trainerData.specialty,
+        certifications: trainerData.certifications || "",
+        bio: trainerData.bio || "",
+        services: trainerData.services || [],
+        status: "temp",
+        isPaid: false,
+        isActive: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        content: defaultContent,
+        customization: {
+          lastUpdated: new Date().toISOString(),
+          version: 1,
+          isDraft: false,
+        },
       }
-      
-      return {
-        success: true,
-        id: docRef.id,
-        redirectUrl: `/marketplace/trainer/temp/${docRef.id}`
-      }
+
+      // Save to Firebase
+      await db.collection("trainers").doc(tempId).set(trainerDoc)
+
+      console.log("Temp trainer created successfully:", tempId)
+      return tempId
     } catch (error) {
-      console.error('💥 [TRAINER SERVICE] Error creating temp trainer:', error)
-      
-      // Log detailed error information
-      if (error instanceof Error) {
-        console.error('Error name:', error.name)
-        console.error('Error message:', error.message)
-        console.error('Error stack:', error.stack)
+      console.error("Error creating temp trainer:", error)
+      throw new Error("Failed to create temp trainer")
+    }
+  }
+
+  static async getTempTrainer(tempId: string) {
+    try {
+      const doc = await db.collection("trainers").doc(tempId).get()
+
+      if (!doc.exists) {
+        throw new Error("Trainer not found")
       }
-      
+
+      const data = doc.data()
+
+      // Check if expired
+      if (data?.expiresAt && new Date(data.expiresAt) < new Date()) {
+        throw new Error("Trainer session expired")
+      }
+
+      return { id: doc.id, ...data }
+    } catch (error) {
+      console.error("Error getting temp trainer:", error)
       throw error
     }
   }
 
-  static async getTempTrainer(id: string): Promise<TempTrainer | null> {
-    console.log("🔥 [FIREBASE TRAINER] Getting temp trainer with ID:", id)
-
+  static async activateTrainer(tempId: string, paymentIntentId: string): Promise<string> {
     try {
-      const db = getFirestoreAdmin()
-      const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
-      const docSnap = await docRef.get()
-
-      console.log("🔍 [FIREBASE TRAINER] Document snapshot obtained, checking exists property...")
-      console.log("📋 [FIREBASE TRAINER] Document exists:", docSnap.exists)
-
-      if (docSnap.exists) {
-        const data = docSnap.data() as TempTrainer
-        console.log("✅ [FIREBASE TRAINER] Temp trainer found:", JSON.stringify(data, null, 2))
-        return { ...data, id: docSnap.id }
-      } else {
-        console.log("❌ [FIREBASE TRAINER] Temp trainer not found")
-        return null
-      }
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER] Error getting temp trainer:", error)
-      throw new Error(`Failed to get temp trainer: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  static async updateTempTrainer(id: string, updates: Partial<TempTrainer>): Promise<void> {
-    console.log("🔥 [FIREBASE TRAINER] Updating temp trainer:", id, updates)
-
-    try {
-      const db = getFirestoreAdmin()
-      const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
-      await docRef.update({
-        ...updates,
-        updatedAt: new Date(),
-      })
-
-      console.log("✅ [FIREBASE TRAINER] Temp trainer updated successfully")
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER] Error updating temp trainer:", error)
-      throw new Error(`Failed to update temp trainer: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  static async deleteTempTrainer(id: string): Promise<void> {
-    console.log("🔥 [FIREBASE TRAINER] Deleting temp trainer:", id)
-
-    try {
-      const db = getFirestoreAdmin()
-      const docRef = db.collection(this.TEMP_COLLECTION).doc(id)
-      await docRef.delete()
-
-      console.log("✅ [FIREBASE TRAINER] Temp trainer deleted successfully")
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER] Error deleting temp trainer:", error)
-      throw new Error(`Failed to delete temp trainer: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  static async activateTrainer(tempId: string): Promise<string> {
-    console.log("🔥 [FIREBASE TRAINER] Activating trainer from temp ID:", tempId)
-
-    try {
-      const db = getFirestoreAdmin()
-      // Get temp trainer data
       const tempTrainer = await this.getTempTrainer(tempId)
-      if (!tempTrainer) {
-        throw new Error('Temp trainer not found')
-      }
 
-      // Create active trainer
-      const trainerData: any = {
+      // Generate permanent ID
+      const permanentId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // Update trainer data for activation
+      const activatedTrainer = {
         ...tempTrainer,
+        id: permanentId,
+        status: "active",
+        isPaid: true,
         isActive: true,
-        activatedAt: new Date(),
-        paymentStatus: 'completed',
+        activatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        paymentIntentId,
+        // Remove temp-specific fields
+        expiresAt: null,
       }
 
-      const trainersRef = db.collection(this.TRAINERS_COLLECTION)
-      const docRef = await trainersRef.add(trainerData)
+      // Save activated trainer
+      await db.collection("trainers").doc(permanentId).set(activatedTrainer)
 
       // Delete temp trainer
-      await this.deleteTempTrainer(tempId)
+      await db.collection("trainers").doc(tempId).delete()
 
-      console.log("✅ [FIREBASE TRAINER] Trainer activated successfully with ID:", docRef.id)
-      return docRef.id
+      console.log("Trainer activated successfully:", permanentId)
+      return permanentId
     } catch (error) {
-      console.log("💥 [FIREBASE TRAINER] Error activating trainer:", error)
-      throw new Error(`Failed to activate trainer: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  static async getTrainer(id: string): Promise<any | null> {
-    console.log("🔥 [FIREBASE TRAINER] Getting trainer with ID:", id)
-
-    try {
-      const db = getFirestoreAdmin()
-      const docRef = db.collection(this.TRAINERS_COLLECTION).doc(id)
-      const docSnap = await docRef.get()
-
-      if (docSnap.exists) {
-        const data = docSnap.data()
-        console.log("✅ [FIREBASE TRAINER] Trainer found:", data)
-        return { ...data, id: docSnap.id }
-      } else {
-        console.log("❌ [FIREBASE TRAINER] Trainer not found")
-        return null
-      }
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER] Error getting trainer:", error)
-      throw new Error(`Failed to get trainer: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  static async getAllTrainers(): Promise<any[]> {
-    console.log("🔥 [FIREBASE TRAINER] Getting all trainers...")
-
-    try {
-      const db = getFirestoreAdmin()
-      const trainersRef = db.collection(this.TRAINERS_COLLECTION)
-      const q = trainersRef.where('isActive', '==', true).orderBy('createdAt', 'desc')
-      const querySnapshot = await q.get()
-
-      const trainers: any[] = []
-      querySnapshot.forEach((doc) => {
-        trainers.push({ ...doc.data(), id: doc.id })
-      })
-
-      console.log("✅ [FIREBASE TRAINER] Found trainers:", trainers.length)
-      return trainers
-    } catch (error) {
-      console.log("💥 [FIREBASE TRAINER] Error getting all trainers:", error)
-      throw new Error(`Failed to get trainers: ${error instanceof Error ? error.message : String(error)}`)
+      console.error("Error activating trainer:", error)
+      throw new Error("Failed to activate trainer")
     }
   }
 }
