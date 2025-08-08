@@ -98,9 +98,7 @@ export async function POST(request: NextRequest) {
 
   try {
     await db.collection("trainers").doc(tempId).set(doc, { merge: false })
-
     const redirectUrl = `/marketplace/trainer/temp/${tempId}`
-
     return json(200, {
       success: true,
       tempId,
