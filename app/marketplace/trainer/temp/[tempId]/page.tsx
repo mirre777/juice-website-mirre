@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Clock } from "lucide-react"
+import { AlertCircle, Clock } from 'lucide-react'
 
 interface TempTrainerPageProps {
   params: {
@@ -25,7 +25,9 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [isEditing, setIsEditing] = useState(false)
+  const [verifyingPayment, setVerifyingPayment] = useState(false)
   const router = useRouter()
+  const hasAttemptedActivationRef = useRef(false)
 
   // Fetch temp trainer data
   useEffect(() => {
@@ -39,21 +41,19 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         }
 
         if (data.success && data.trainer) {
-          // Check if trainer is already activated - redirect to live trainer page
-          if (data.trainer.status === "active" && data.trainer.isPaid) {
-            console.log("Trainer already activated, redirecting to live trainer page...")
+          // If already activated, redirect to live trainer page
+          if (data.trainer.status === "active") {
             router.push(`/marketplace/trainer/${data.trainer.id}`)
             return
           }
 
           setTrainer(data.trainer)
 
-          // Use existing content or generate default
           const trainerContent = data.content || generateDefaultContent(data.trainer)
           setContent(trainerContent)
           setEditingContent(trainerContent)
 
-          // Calculate initial time left (only for temp trainers)
+          // Countdown setup
           if (data.trainer.expiresAt) {
             const expiresAt = new Date(data.trainer.expiresAt).getTime()
             const now = Date.now()
@@ -96,6 +96,52 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     return () => clearInterval(interval)
   }, [timeLeft, router])
 
+  // Verify payment and attempt activation if user returns to this page after paying.
+  useEffect(() => {
+    const verifyAndActivate = async () => {
+      if (hasAttemptedActivationRef.current) return
+      if (!trainer) return
+
+      const paymentIntentId = localStorage.getItem("juice_payment_reference")
+      if (!paymentIntentId) return
+
+      setVerifyingPayment(true)
+      try {
+        // 1) Verify payment status server-side (read-only)
+        const verifyRes = await fetch("/api/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentIntentId }),
+        })
+        const verifyData = await verifyRes.json()
+
+        if (verifyRes.ok && verifyData?.success) {
+          // 2) If payment succeeded but trainer still temp, call activate (idempotent)
+          if (trainer.status !== "active") {
+            const activateRes = await fetch("/api/trainer/activate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentIntentId }),
+            })
+            const activateData = await activateRes.json()
+            if (activateRes.ok && activateData?.success) {
+              localStorage.removeItem("juice_payment_reference")
+              hasAttemptedActivationRef.current = true
+              router.replace(`/marketplace/trainer/${activateData.trainerId}`)
+              return
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Temp page verify/activate error:", e)
+      } finally {
+        setVerifyingPayment(false)
+      }
+    }
+
+    verifyAndActivate()
+  }, [trainer, router])
+
   // Generate default content for new trainers
   const generateDefaultContent = (trainerData: any): TrainerContent => {
     const location =
@@ -117,23 +163,24 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           trainerData.bio ||
           "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
       },
-      services: trainerData.services?.map((service: string, index: number) => ({
-        id: String(index + 1),
-        title: service,
-        description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
-        price: 60,
-        duration: "60 minutes",
-        featured: index === 0,
-      })) || [
-        {
-          id: "1",
-          title: "Personal Training",
-          description: "Personalized training sessions tailored to your goals",
+      services:
+        trainerData.services?.map((service: string, index: number) => ({
+          id: String(index + 1),
+          title: service,
+          description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
           price: 60,
           duration: "60 minutes",
-          featured: true,
-        },
-      ],
+          featured: index === 0,
+        })) || [
+          {
+            id: "1",
+            title: "Personal Training",
+            description: "Personalized training sessions tailored to your goals",
+            price: 60,
+            duration: "60 minutes",
+            featured: true,
+          },
+        ],
       contact: {
         title: "Let's Start Your Fitness Journey",
         description:
@@ -145,35 +192,25 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     }
   }
 
-  // Format time for display
   const formatTimeLeft = (seconds: number): string => {
     if (seconds <= 0) return "Expired"
-
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     const secs = seconds % 60
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${secs}s`
-    } else if (minutes > 0) {
-      return `${minutes}m ${secs}s`
-    } else {
-      return `${secs}s`
-    }
+    if (hours > 0) return `${hours}h ${minutes}m ${secs}s`
+    if (minutes > 0) return `${minutes}m ${secs}s`
+    return `${secs}s`
   }
 
-  // Handle edit mode
   const handleEdit = () => {
     setIsEditing(true)
     setEditingContent({ ...content! })
   }
 
-  // Handle content changes
   const handleContentChange = (updatedContent: TrainerContent) => {
     setEditingContent(updatedContent)
   }
 
-  // Save changes
   const handleSave = async () => {
     if (!editingContent || !trainer) return
 
@@ -188,9 +225,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
       const data = await response.json()
 
       if (!response.ok) {
-        // Handle redirect case for activated trainers
         if (data.redirectTo) {
-          console.log("Trainer activated during editing, redirecting...")
           router.push(data.redirectTo)
           return
         }
@@ -199,7 +234,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
 
       setContent(editingContent)
       setIsEditing(false)
-      setError(null) // Clear any previous errors
+      setError(null)
     } catch (err) {
       console.error("Error saving changes:", err)
       setError(err instanceof Error ? err.message : "Failed to save changes. Please try again.")
@@ -208,23 +243,20 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     }
   }
 
-  // Cancel changes
   const handleCancel = () => {
     setEditingContent(content)
     setIsEditing(false)
   }
 
-  // Handle activation
   const handleActivate = () => {
-    // Store temp trainer data for payment flow
+    // Persist temp trainer data for payment flow
     sessionStorage.setItem("tempTrainerData", JSON.stringify(trainer))
     sessionStorage.setItem("tempTrainerToken", tempId)
 
-    // Redirect to payment
-    router.push("/payment?plan=trainer&tempId=" + tempId)
+    // Redirect to payment page; Payment page will use trainerId=tempId
+    router.push(`/payment?plan=trainer&tempId=${tempId}`)
   }
 
-  // Handle consultation booking (preview only)
   const handleBookConsultation = () => {
     alert("This is a preview! Activate your profile to enable client bookings.")
   }
@@ -233,8 +265,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading trainer preview...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading trainer preview...</p>
         </div>
       </div>
     )
@@ -247,8 +279,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           <CardContent className="pt-6">
             <div className="text-center">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Not Found</h2>
-              <p className="text-gray-600 mb-4">{error || "This trainer preview has expired or doesn't exist."}</p>
+              <h2 className="text-xl font-semibold mb-2">Preview Not Found</h2>
+              <p className="text-muted-foreground mb-4">{error || "This trainer preview has expired or doesn't exist."}</p>
               <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
             </div>
           </CardContent>
@@ -257,9 +289,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     )
   }
 
-  // Check if expired
   const isExpired = timeLeft <= 0
-
   if (isExpired) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -267,10 +297,8 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           <CardContent className="pt-6">
             <div className="text-center">
               <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Preview Expired</h2>
-              <p className="text-gray-600 mb-4">
-                This trainer preview has expired. Create a new profile to get started.
-              </p>
+              <h2 className="text-xl font-semibold mb-2">Preview Expired</h2>
+              <p className="text-muted-foreground mb-4">This trainer preview has expired. Create a new profile to get started.</p>
               <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
             </div>
           </CardContent>
@@ -283,7 +311,6 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with temp-specific controls */}
       <TrainerProfileHeader
         mode="temp"
         timeLeft={formatTimeLeft(timeLeft)}
@@ -297,7 +324,12 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
         activationPrice="€70"
       />
 
-      {/* Main display component */}
+      {verifyingPayment && (
+        <div className="bg-yellow-100 text-yellow-800 text-sm py-2 px-4 text-center">
+          Verifying your recent payment... If successful, we&apos;ll activate your profile automatically.
+        </div>
+      )}
+
       <TrainerProfileDisplay
         trainer={trainer}
         content={content}

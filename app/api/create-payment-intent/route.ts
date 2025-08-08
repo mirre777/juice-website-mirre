@@ -5,35 +5,46 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
+/**
+ * Creates a Payment Intent for Trainer Activation.
+ * Expects JSON body with:
+ * - trainerId (preferred) OR tempId (backward compatibility)
+ * - email (optional)
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tempId, email } = body
-
-    console.log("Creating payment intent with:", { tempId, email })
-
-    if (!tempId) {
-      console.error("Missing tempId in request")
-      return NextResponse.json({ error: "Trainer ID is required" }, { status: 400 })
+    const { trainerId: rawTrainerId, tempId: rawTempId, email } = body as {
+      trainerId?: string
+      tempId?: string
+      email?: string
     }
 
-    // Create payment intent with €69 (6900 cents)
+    // Prefer trainerId; if only tempId is provided, use that as trainerId for now.
+    const trainerId = rawTrainerId || rawTempId
+    if (!trainerId) {
+      console.error("Missing trainerId in request body")
+      return NextResponse.json({ error: "trainerId is required" }, { status: 400 })
+    }
+
+    console.log("Creating payment intent with:", { trainerId, email })
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 6900, // €69 in cents
       currency: "eur",
-      description: `Trainer Website Activation - ${tempId}`,
+      description: `Trainer Website Activation - ${trainerId}`,
       metadata: {
-        tempId: tempId,
+        trainerId,
+        // Keep tempId too for full backward compatibility during transition
+        ...(rawTempId ? { tempId: rawTempId } : {}),
+        ...(email ? { email } : {}),
         plan: "trainer-activation",
         planType: "Trainer Website Activation",
-        ...(email && { email }),
       },
       automatic_payment_methods: {
         enabled: true,
-        allow_redirects: "never", // Prevent redirects for better UX
+        allow_redirects: "never",
       },
-      // REMOVED: allow_promotion_codes - this parameter doesn't exist for PaymentIntents
-      // Promotion codes are handled by the PaymentElement frontend configuration
     })
 
     console.log("Payment intent created successfully:", paymentIntent.id)

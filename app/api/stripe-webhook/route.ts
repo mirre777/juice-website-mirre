@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin once
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -17,20 +17,89 @@ if (!getApps().length) {
     }),
   })
 }
-
 const db = getFirestore()
+
+// Helper: Idempotent update of trainers/<trainerId>
+async function activateTrainerDocInPlace(trainerId: string, paymentIntentId: string) {
+  const ref = db.collection("trainers").doc(trainerId)
+  const snap = await ref.get()
+  if (!snap.exists) {
+    console.warn("Webhook: trainer doc not found for trainerId:", trainerId)
+    return { updated: false, reason: "not-found" as const }
+  }
+
+  const data = snap.data() || {}
+  // Idempotency: if already active/paid, no-op
+  if (data.isPaid === true || data.status === "active" || data.isActive === true) {
+    // Still update paymentIntentId if missing for completeness
+    await ref.set(
+      {
+        paymentIntentId,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    )
+    console.log("Webhook: trainer already active/paid, no-op update:", trainerId)
+    return { updated: false, reason: "already-active" as const }
+  }
+
+  await ref.set(
+    {
+      status: "active",
+      isActive: true,
+      isPaid: true,
+      paymentIntentId,
+      activatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  )
+  console.log("Webhook: trainer activated:", trainerId)
+  return { updated: true as const }
+}
+
+// Helper: Try to resolve trainerId for a PaymentIntent (metadata or via Checkout Session)
+async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string, pi?: Stripe.PaymentIntent) {
+  let trainerId: string | undefined
+
+  const paymentIntent =
+    pi ??
+    (await stripe.paymentIntents.retrieve(paymentIntentId).catch((e) => {
+      console.error("Webhook: failed to retrieve PaymentIntent:", e?.message)
+      return undefined
+    }))
+
+  if (paymentIntent?.metadata) {
+    trainerId = (paymentIntent.metadata as any).trainerId || (paymentIntent.metadata as any).tempId
+  }
+
+  if (!trainerId) {
+    // Try to locate a Checkout Session by payment_intent
+    const sessions = await stripe.checkout.sessions
+      .list({ payment_intent: paymentIntentId, limit: 1 })
+      .catch((e) => {
+        console.error("Webhook: failed to list checkout sessions:", e?.message)
+        return { data: [] }
+      })
+    const session = sessions?.data?.[0]
+    if (session?.client_reference_id) {
+      trainerId = session.client_reference_id
+    }
+  }
+
+  return trainerId
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get("stripe-signature")
 
   if (!signature) {
-    console.error("No Stripe signature found")
+    console.error("Webhook: No Stripe signature found")
     return NextResponse.json({ error: "No signature" }, { status: 400 })
   }
 
   let event: Stripe.Event
-
   try {
     event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err: any) {
@@ -40,110 +109,54 @@ export async function POST(request: NextRequest) {
 
   console.log("Webhook event received:", event.type)
 
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent
-    console.log("Payment succeeded:", paymentIntent.id)
+  try {
+    switch (event.type) {
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        const paymentIntentId = paymentIntent.id
 
-    try {
-      const tempId = paymentIntent.metadata.tempId
-      if (!tempId) {
-        console.error("No tempId in payment metadata")
-        return NextResponse.json({ error: "Missing tempId" }, { status: 400 })
+        const trainerId =
+          (paymentIntent.metadata as any)?.trainerId ||
+          (paymentIntent.metadata as any)?.tempId ||
+          (await resolveTrainerIdFromPaymentIntent(paymentIntentId, paymentIntent))
+
+        if (!trainerId) {
+          console.warn("Webhook: Missing trainerId for payment_intent.succeeded", { paymentIntentId })
+          return NextResponse.json({ received: true, handled: false })
+        }
+
+        await activateTrainerDocInPlace(trainerId, paymentIntentId)
+        break
       }
 
-      // Get temp trainer data
-      const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
-      if (!tempDoc.exists) {
-        console.error("Temp trainer not found:", tempId)
-        return NextResponse.json({ error: "Temp trainer not found" }, { status: 404 })
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session
+        const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
+
+        const trainerId =
+          session.client_reference_id ||
+          (paymentIntentId ? await resolveTrainerIdFromPaymentIntent(paymentIntentId) : undefined)
+
+        if (!trainerId || !paymentIntentId) {
+          console.warn("Webhook: checkout.session.completed missing trainerId/paymentIntentId", {
+            trainerId,
+            paymentIntentId,
+          })
+          return NextResponse.json({ received: true, handled: false })
+        }
+
+        await activateTrainerDocInPlace(trainerId, paymentIntentId)
+        break
       }
 
-      const tempData = tempDoc.data()!
-      console.log("Activating trainer:", tempData.name)
-
-      // Generate final trainer ID
-      const finalId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-      // Generate AI content for the trainer
-      const aiContent = await generateTrainerContent(tempData)
-
-      // Create final trainer document
-      const finalTrainerData = {
-        ...tempData,
-        id: finalId,
-        content: aiContent,
-        isActive: true,
-        activatedAt: new Date().toISOString(),
-        paymentIntentId: paymentIntent.id,
-        status: "active",
-      }
-
-      await db.collection("trainers").doc(finalId).set(finalTrainerData)
-      console.log("Trainer activated successfully:", finalId)
-
-      // Clean up temp data
-      await db.collection("tempTrainers").doc(tempId).delete()
-
-      return NextResponse.json({ success: true, finalId })
-    } catch (error) {
-      console.error("Error activating trainer:", error)
-      return NextResponse.json({ error: "Activation failed" }, { status: 500 })
+      default:
+        // Ignore other events
+        break
     }
-  }
 
-  return NextResponse.json({ received: true })
-}
-
-async function generateTrainerContent(trainerData: any) {
-  return {
-    hero: {
-      title: `Transform Your Fitness with ${trainerData.name}`,
-      subtitle: `Professional ${trainerData.specialization} in ${trainerData.location}`,
-      description: `With ${trainerData.experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
-    },
-    about: {
-      title: "About Me",
-      content: `I'm ${trainerData.name}, a certified ${trainerData.specialization} based in ${trainerData.location}. With ${trainerData.experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results. My approach combines proven training methods with personalized attention to help you reach your fitness goals safely and effectively.`,
-    },
-    services: [
-      {
-        title: "Personal Training",
-        description: "One-on-one sessions tailored to your specific goals and fitness level",
-        price: "€80/session",
-      },
-      {
-        title: "Group Training",
-        description: "Small group sessions for motivation and cost-effective training",
-        price: "€35/session",
-      },
-      {
-        title: "Online Coaching",
-        description: "Remote coaching with custom workout plans and nutrition guidance",
-        price: "€150/month",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Working with this trainer has completely transformed my approach to fitness. The personalized programs really work!",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Professional, knowledgeable, and motivating. I've seen incredible results in just 3 months.",
-        rating: 5,
-      },
-      {
-        name: "Emma L.",
-        text: "The best investment I've made in my health. Highly recommend to anyone serious about fitness.",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData.email,
-      phone: trainerData.phone || "+31 6 1234 5678",
-      location: trainerData.location,
-      availability: "Monday - Saturday, 6:00 AM - 8:00 PM",
-    },
+    return NextResponse.json({ received: true })
+  } catch (error) {
+    console.error("Webhook handling error:", error)
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
   }
 }
