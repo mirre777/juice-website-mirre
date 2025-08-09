@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/firebase-admin"
 
 type CreateBody = {
   fullName?: string
@@ -24,7 +25,7 @@ function makeTempId() {
 }
 
 export async function POST(request: NextRequest) {
-  // 1) Parse body safely
+  // Parse body defensively to avoid throwing generic 500s
   let body: CreateBody
   try {
     body = await request.json()
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     services = [],
   } = body
 
-  // 2) Validate inputs (expected error handling)
+  // Validate required fields early; return structured JSON on failure
   const errors: Record<string, string> = {}
   if (!fullName.trim()) errors.fullName = "Full name is required"
   if (!email.trim()) errors.email = "Email is required"
@@ -57,7 +58,16 @@ export async function POST(request: NextRequest) {
     return json(400, { error: "Validation failed", details: errors })
   }
 
-  // 3) Build the document
+  // Ensure Firestore is available on the server
+  if (!db) {
+    return json(500, {
+      error: "Server misconfiguration",
+      details:
+        "Firebase Admin is not initialized. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
+    })
+  }
+
+  // Build preview doc
   const now = new Date()
   const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000) // +24h
   const tempId = makeTempId()
@@ -86,39 +96,8 @@ export async function POST(request: NextRequest) {
     },
   }
 
-  // 4) Lazy-initialize Firebase Admin and write to Firestore
   try {
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
-    let privateKey = process.env.FIREBASE_PRIVATE_KEY
-
-    if (!privateKey && typeof privateKey === "string") {
-      // no-op; guard to satisfy types
-    }
-    if (privateKey && privateKey.includes("\\n")) {
-      privateKey = privateKey.replace(/\\n/g, "\n")
-    }
-
-    // Dynamic import to avoid crashing at module load time
-    const { getApps, initializeApp, cert } = await import("firebase-admin/app")
-    const { getFirestore } = await import("firebase-admin/firestore")
-
-    if (getApps().length === 0) {
-      if (!projectId || !clientEmail || !privateKey) {
-        return json(500, {
-          error: "Server misconfiguration",
-          details:
-            "Firebase Admin is not initialized. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
-        })
-      }
-      initializeApp({
-        credential: cert({ projectId, clientEmail, privateKey }),
-      })
-    }
-
-    const db = getFirestore()
     await db.collection("trainers").doc(tempId).set(doc, { merge: false })
-
     const redirectUrl = `/marketplace/trainer/temp/${tempId}`
     return json(200, {
       success: true,
