@@ -3,6 +3,13 @@ import Stripe from "stripe"
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
 
+// ---------- Helpers ----------
+const mask = (val?: string, visible = 6) => {
+  if (!val) return "(unset)"
+  const tail = val.slice(-visible)
+  return `***${tail}`
+}
+
 // ---------- Stripe client ----------
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -21,6 +28,7 @@ if (!getApps().length) {
 }
 const db = getFirestore()
 
+// Per-request debugId for correlation
 // ---------- Helpers ----------
 type ActivationExtras = {
   mode: "pi" | "checkout" | "invoice"
@@ -148,58 +156,91 @@ async function resolveTrainerIdFromSubscriptionOrInvoice(params: {
 
 // ---------- Route handler ----------
 export async function POST(request: NextRequest) {
-  const signature = request.headers.get("stripe-signature")
-  if (!signature) {
-    console.error("[webhook] Missing stripe-signature header")
-    return NextResponse.json({ error: "No signature" }, { status: 400 })
+  const debugId = Math.random().toString(36).slice(2, 10)
+
+  // Log request context early
+  const method = request.method
+  const url = request.url
+  const host = request.headers.get("host")
+  const xfHost = request.headers.get("x-forwarded-host")
+  const xfProto = request.headers.get("x-forwarded-proto")
+  const sig = request.headers.get("stripe-signature")
+  const envIsVercel = !!process.env.VERCEL
+  const whSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+  console.log("[webhook] incoming", {
+    debugId,
+    method,
+    url,
+    host,
+    "x-forwarded-host": xfHost,
+    "x-forwarded-proto": xfProto,
+    signaturePresent: !!sig,
+    signatureLength: sig?.length ?? 0,
+    env: envIsVercel ? "vercel" : "unknown",
+    secretTail: mask(whSecret),
+  })
+
+  if (!sig) {
+    console.error("[webhook] missing stripe-signature header", { debugId })
+    return NextResponse.json({ error: "No signature", debugId }, { status: 400 })
   }
 
-  // Raw body is required for signature verification
-  const body = await request.text()
+  // Stripe requires the raw body for signature verification.
+  const rawBody = await request.text()
+  console.log("[webhook] raw body length", { debugId, length: rawBody.length })
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = stripe.webhooks.constructEvent(rawBody, sig, whSecret!)
   } catch (err: any) {
-    console.error("[webhook] Signature verification failed:", err?.message)
-    return NextResponse.json({ error: `Webhook Error: ${err?.message}` }, { status: 400 })
+    console.error("[webhook] signature verification failed", {
+      debugId,
+      message: err?.message,
+      name: err?.name,
+      type: err?.type,
+    })
+    return NextResponse.json({ error: "Invalid signature", debugId }, { status: 400 })
   }
 
-  console.log("[webhook] Event received:", event.type)
+  console.log("[webhook] event received", {
+    debugId,
+    id: event.id,
+    type: event.type,
+    api_version: event.api_version,
+    created: event.created,
+    livemode: (event as any).livemode,
+  })
 
   try {
     switch (event.type) {
-      // Payment Element flow (one-time PI)
       case "payment_intent.succeeded": {
         const pi = event.data.object as Stripe.PaymentIntent
         const paymentIntentId = pi.id
-
         const trainerId =
           (pi.metadata as any)?.trainerId ||
           (pi.metadata as any)?.tempId ||
           (await resolveTrainerIdFromPaymentIntent(paymentIntentId, pi))
 
         if (!trainerId) {
-          console.warn("[webhook] payment_intent.succeeded: missing trainerId", {
-            paymentIntentId,
-          })
-          break // Return 200 to avoid retries; client fallback can handle it
+          console.warn("[webhook] pi.succeeded missing trainerId", { debugId, paymentIntentId })
+          break
         }
 
         await activateTrainerInPlace(trainerId, {
           mode: "pi",
           paymentIntentId,
         })
+        console.log("[webhook] activated via PI", { debugId, trainerId, paymentIntentId })
         break
       }
 
-      // Checkout subscription flow (no PI on session)
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
 
-        // Only proceed when Checkout reports paid or complete
         if (session.payment_status !== "paid") {
-          console.warn("[webhook] Session completed but not paid:", {
+          console.warn("[webhook] session completed but not paid", {
+            debugId,
             sessionId: session.id,
             payment_status: session.payment_status,
           })
@@ -207,8 +248,13 @@ export async function POST(request: NextRequest) {
         }
 
         const trainerId = session.client_reference_id
+        const subscriptionId =
+          typeof session.subscription === "string" ? session.subscription : session.subscription?.id
+        const invoiceId = typeof session.invoice === "string" ? session.invoice : session.invoice?.id
+
         if (!trainerId) {
-          console.warn("[webhook] checkout.session.completed: missing client_reference_id", {
+          console.warn("[webhook] session.completed missing client_reference_id", {
+            debugId,
             sessionId: session.id,
           })
           break
@@ -216,14 +262,20 @@ export async function POST(request: NextRequest) {
 
         await activateTrainerInPlace(trainerId, {
           mode: "checkout",
-          subscriptionId: typeof session.subscription === "string" ? session.subscription : session.subscription?.id,
+          subscriptionId,
           sessionId: session.id,
-          invoiceId: typeof session.invoice === "string" ? session.invoice : session.invoice?.id,
+          invoiceId,
+        })
+        console.log("[webhook] activated via Checkout", {
+          debugId,
+          trainerId,
+          sessionId: session.id,
+          subscriptionId,
+          invoiceId,
         })
         break
       }
 
-      // Redundant activation path for subscriptions; useful when amount_total is 0 (promos)
       case "invoice.payment_succeeded":
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice
@@ -237,7 +289,8 @@ export async function POST(request: NextRequest) {
         })
 
         if (!trainerId) {
-          console.warn("[webhook] invoice event: unable to resolve trainerId", {
+          console.warn("[webhook] invoice event unable to resolve trainerId", {
+            debugId,
             invoiceId,
             subscriptionId,
           })
@@ -250,19 +303,26 @@ export async function POST(request: NextRequest) {
           invoiceId,
           sessionId,
         })
+        console.log("[webhook] activated via Invoice", {
+          debugId,
+          trainerId,
+          subscriptionId,
+          invoiceId,
+          sessionId,
+        })
         break
       }
 
       default:
-        // Ignore other events
+        // Ignore other events, but log for traceability
+        console.log("[webhook] ignored event type", { debugId, type: event.type })
         break
     }
 
-    // Always acknowledge to prevent Stripe retries (idempotency handled server-side)
-    return NextResponse.json({ received: true })
-  } catch (error) {
-    console.error("[webhook] Handler error:", error)
-    // Return 200 to avoid repeated retries if the error is not transient; adjust if you want retries
-    return NextResponse.json({ received: true, handled: false })
+    return NextResponse.json({ received: true, debugId })
+  } catch (error: any) {
+    console.error("[webhook] handler error", { debugId, message: error?.message })
+    // Acknowledge to prevent retries while we diagnose; activation is idempotent.
+    return NextResponse.json({ received: true, handled: false, debugId })
   }
 }
