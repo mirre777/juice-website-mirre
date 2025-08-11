@@ -13,12 +13,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}))
-    const {
-      trainerId: rawTrainerId,
-      tempId: rawTempId,
-      email,
-    } = body as {
+    const body = await request.json()
+    const { trainerId: rawTrainerId, tempId: rawTempId, email } = body as {
       trainerId?: string
       tempId?: string
       email?: string
@@ -27,6 +23,7 @@ export async function POST(request: NextRequest) {
     // Prefer trainerId; if only tempId is provided, use that as trainerId for now.
     const trainerId = rawTrainerId || rawTempId
     if (!trainerId) {
+      console.error("Missing trainerId in request body")
       return NextResponse.json({ error: "trainerId is required" }, { status: 400 })
     }
 
@@ -38,6 +35,7 @@ export async function POST(request: NextRequest) {
       description: `Trainer Website Activation - ${trainerId}`,
       metadata: {
         trainerId,
+        // Keep tempId too for full backward compatibility during transition
         ...(rawTempId ? { tempId: rawTempId } : {}),
         ...(email ? { email } : {}),
         plan: "trainer-activation",

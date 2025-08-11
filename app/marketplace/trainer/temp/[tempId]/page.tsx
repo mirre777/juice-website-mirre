@@ -1,147 +1,353 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { AlertCircle, Loader2 } from "lucide-react"
+import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
+import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
+import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { AlertCircle, Clock } from 'lucide-react'
 
-interface PageProps {
-  params: { tempId: string }
+interface TempTrainerPageProps {
+  params: {
+    tempId: string
+  }
 }
 
-export default function TempTrainerPage({ params }: PageProps) {
+export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const { tempId } = params
+  const [trainer, setTrainer] = useState<TrainerData | null>(null)
+  const [content, setContent] = useState<TrainerContent | null>(null)
+  const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [verifyingPayment, setVerifyingPayment] = useState(false)
   const router = useRouter()
-  const [state, setState] = useState<
-    { status: "loading" } | { status: "error"; message: string } | { status: "ready"; trainer: any; verifying: boolean }
-  >({ status: "loading" })
+  const hasAttemptedActivationRef = useRef(false)
 
-  const paymentIntentId = useMemo(() => localStorage.getItem("lastPaymentIntentId") || "", [])
-  const sessionId = useMemo(() => localStorage.getItem("lastStripeSessionId") || "", [])
-
+  // Fetch temp trainer data
   useEffect(() => {
-    let cancelled = false
-
-    async function fetchTrainer() {
+    const fetchTempTrainer = async () => {
       try {
-        const res = await fetch(`/api/trainer/temp/${tempId}`)
-        if (res.status === 410) {
-          setState({ status: "error", message: "Preview expired. Please create a new profile." })
-          return
+        const response = await fetch(`/api/trainer/temp/${tempId}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load trainer preview")
         }
-        const data = await res.json().catch(() => ({}) as any)
-        if (!res.ok || !data?.success || !data?.trainer) {
-          setState({ status: "error", message: data?.error || "Failed to load preview." })
-          return
+
+        if (data.success && data.trainer) {
+          // If already activated, redirect to live trainer page
+          if (data.trainer.status === "active") {
+            router.push(`/marketplace/trainer/${data.trainer.id}`)
+            return
+          }
+
+          setTrainer(data.trainer)
+
+          const trainerContent = data.content || generateDefaultContent(data.trainer)
+          setContent(trainerContent)
+          setEditingContent(trainerContent)
+
+          // Countdown setup
+          if (data.trainer.expiresAt) {
+            const expiresAt = new Date(data.trainer.expiresAt).getTime()
+            const now = Date.now()
+            const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+            setTimeLeft(remaining)
+          }
+        } else {
+          throw new Error("Trainer preview not found")
         }
-        if (!cancelled) setState({ status: "ready", trainer: data.trainer, verifying: false })
-      } catch (e: any) {
-        if (!cancelled) setState({ status: "error", message: e?.message || "Failed to load preview." })
+      } catch (err) {
+        console.error("Error fetching temp trainer:", err)
+        setError(err instanceof Error ? err.message : "Failed to load trainer preview")
+      } finally {
+        setLoading(false)
       }
     }
 
-    fetchTrainer()
-    return () => {
-      cancelled = true
+    if (tempId) {
+      fetchTempTrainer()
     }
-  }, [tempId])
+  }, [tempId, router])
 
-  // After load, if we have recent payment reference, verify/activate as a fallback.
+  // Countdown timer
   useEffect(() => {
-    async function verifyAndActivate() {
-      if (state.status !== "ready") return
-      if (!paymentIntentId && !sessionId) return
-      if (state.trainer?.status === "active" || state.trainer?.isPaid === true) return
+    if (timeLeft <= 0) return
 
-      setState((s) => (s.status === "ready" ? { ...s, verifying: true } : s))
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        const newTime = prev - 1
+        if (newTime <= 0) {
+          // Mark as expired and redirect
+          setTimeout(() => {
+            router.push("/marketplace/personal-trainer-website")
+          }, 3000)
+        }
+        return Math.max(0, newTime)
+      })
+    }, 1000)
 
+    return () => clearInterval(interval)
+  }, [timeLeft, router])
+
+  // Verify payment and attempt activation if user returns to this page after paying.
+  useEffect(() => {
+    const verifyAndActivate = async () => {
+      if (hasAttemptedActivationRef.current) return
+      if (!trainer) return
+
+      const paymentIntentId = localStorage.getItem("juice_payment_reference")
+      if (!paymentIntentId) return
+
+      setVerifyingPayment(true)
       try {
-        // Verify first
+        // 1) Verify payment status server-side (read-only)
         const verifyRes = await fetch("/api/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...(sessionId ? { sessionId } : {}),
-            ...(paymentIntentId ? { paymentIntentId } : {}),
-          }),
+          body: JSON.stringify({ paymentIntentId }),
         })
-        const verify = await verifyRes.json().catch(() => ({}) as any)
-        if (verify?.success !== true) {
-          setState((s) => (s.status === "ready" ? { ...s, verifying: false } : s))
-          return
-        }
+        const verifyData = await verifyRes.json()
 
-        // Activate (idempotent)
-        const actRes = await fetch("/api/trainer/activate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...(sessionId ? { sessionId } : {}),
-            ...(paymentIntentId ? { paymentIntentId } : {}),
-          }),
-        })
-        const act = await actRes.json().catch(() => ({}) as any)
-        if (act?.success) {
-          const id = act?.trainerId || tempId
-          router.replace(`/marketplace/trainer/${id}`)
-        } else {
-          setState((s) => (s.status === "ready" ? { ...s, verifying: false } : s))
+        if (verifyRes.ok && verifyData?.success) {
+          // 2) If payment succeeded but trainer still temp, call activate (idempotent)
+          if (trainer.status !== "active") {
+            const activateRes = await fetch("/api/trainer/activate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentIntentId }),
+            })
+            const activateData = await activateRes.json()
+            if (activateRes.ok && activateData?.success) {
+              localStorage.removeItem("juice_payment_reference")
+              hasAttemptedActivationRef.current = true
+              router.replace(`/marketplace/trainer/${activateData.trainerId}`)
+              return
+            }
+          }
         }
-      } catch (_err) {
-        setState((s) => (s.status === "ready" ? { ...s, verifying: false } : s))
+      } catch (e) {
+        console.error("Temp page verify/activate error:", e)
+      } finally {
+        setVerifyingPayment(false)
       }
     }
 
     verifyAndActivate()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status])
+  }, [trainer, router])
 
-  if (state.status === "loading") {
+  // Generate default content for new trainers
+  const generateDefaultContent = (trainerData: any): TrainerContent => {
+    const location =
+      trainerData.city && trainerData.district
+        ? `${trainerData.city}, ${trainerData.district}`
+        : trainerData.location || "Location not specified"
+
+    return {
+      hero: {
+        title: `Transform Your Fitness with ${trainerData.fullName}`,
+        subtitle: `Professional ${trainerData.specialty} trainer in ${location}`,
+        description:
+          trainerData.bio ||
+          "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+      },
+      about: {
+        title: `About ${trainerData.fullName}`,
+        bio:
+          trainerData.bio ||
+          "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+      },
+      services:
+        trainerData.services?.map((service: string, index: number) => ({
+          id: String(index + 1),
+          title: service,
+          description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+          price: 60,
+          duration: "60 minutes",
+          featured: index === 0,
+        })) || [
+          {
+            id: "1",
+            title: "Personal Training",
+            description: "Personalized training sessions tailored to your goals",
+            price: 60,
+            duration: "60 minutes",
+            featured: true,
+          },
+        ],
+      contact: {
+        title: "Let's Start Your Fitness Journey",
+        description:
+          "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+        email: trainerData.email,
+        phone: trainerData.phone || "",
+        location: location,
+      },
+    }
+  }
+
+  const formatTimeLeft = (seconds: number): string => {
+    if (seconds <= 0) return "Expired"
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    if (hours > 0) return `${hours}h ${minutes}m ${secs}s`
+    if (minutes > 0) return `${minutes}m ${secs}s`
+    return `${secs}s`
+  }
+
+  const handleEdit = () => {
+    setIsEditing(true)
+    setEditingContent({ ...content! })
+  }
+
+  const handleContentChange = (updatedContent: TrainerContent) => {
+    setEditingContent(updatedContent)
+  }
+
+  const handleSave = async () => {
+    if (!editingContent || !trainer) return
+
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/trainer/temp/${tempId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editingContent }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (data.redirectTo) {
+          router.push(data.redirectTo)
+          return
+        }
+        throw new Error(data.error || "Failed to save changes")
+      }
+
+      setContent(editingContent)
+      setIsEditing(false)
+      setError(null)
+    } catch (err) {
+      console.error("Error saving changes:", err)
+      setError(err instanceof Error ? err.message : "Failed to save changes. Please try again.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setEditingContent(content)
+    setIsEditing(false)
+  }
+
+  const handleActivate = () => {
+    // Persist temp trainer data for payment flow
+    sessionStorage.setItem("tempTrainerData", JSON.stringify(trainer))
+    sessionStorage.setItem("tempTrainerToken", tempId)
+
+    // Redirect to payment page; Payment page will use trainerId=tempId
+    router.push(`/payment?plan=trainer&tempId=${tempId}`)
+  }
+
+  const handleBookConsultation = () => {
+    alert("This is a preview! Activate your profile to enable client bookings.")
+  }
+
+  if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading trainer preview...</p>
+        </div>
       </div>
     )
   }
 
-  if (state.status === "error") {
+  if (error || !trainer) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-8 text-center">
-            <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
-            <h2 className="text-xl font-semibold mb-2">Preview Not Available</h2>
-            <p className="text-gray-600 mb-4">{state.message}</p>
-            <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Preview Not Found</h2>
+              <p className="text-muted-foreground mb-4">{error || "This trainer preview has expired or doesn't exist."}</p>
+              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  // Minimal preview shell while verifying (we avoid heavy UI here)
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <Card className="w-full max-w-xl">
-        <CardContent className="pt-8 text-center space-y-2">
-          <h2 className="text-2xl font-semibold">Preview Mode</h2>
-          <p className="text-gray-600">Trainer: {state.trainer?.fullName || state.trainer?.name || tempId}</p>
-          {state.verifying ? (
-            <div className="mt-3 inline-flex items-center gap-2 text-gray-700">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Verifying recent payment...</span>
+  const isExpired = timeLeft <= 0
+  if (isExpired) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Preview Expired</h2>
+              <p className="text-muted-foreground mb-4">This trainer preview has expired. Create a new profile to get started.</p>
+              <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
             </div>
-          ) : (
-            <div className="text-gray-500">Expires at: {state.trainer?.expiresAt || "N/A"}</div>
-          )}
-          <div className="pt-4">
-            <Button variant="outline" onClick={() => router.push(`/marketplace/trainer/${tempId}`)}>
-              View Live
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const hasUnsavedChanges = isEditing && JSON.stringify(content) !== JSON.stringify(editingContent)
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <TrainerProfileHeader
+        mode="temp"
+        timeLeft={formatTimeLeft(timeLeft)}
+        onActivate={handleActivate}
+        onEdit={handleEdit}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        isEditing={isEditing}
+        hasUnsavedChanges={hasUnsavedChanges}
+        saving={saving}
+        activationPrice="€70"
+      />
+
+      {verifyingPayment && (
+        <div className="bg-yellow-100 text-yellow-800 text-sm py-2 px-4 text-center">
+          Verifying your recent payment... If successful, we&apos;ll activate your profile automatically.
+        </div>
+      )}
+
+      <TrainerProfileDisplay
+        trainer={trainer}
+        content={content}
+        editingContent={editingContent}
+        mode="temp-edit"
+        isEditing={isEditing}
+        onEdit={handleEdit}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        onContentChange={handleContentChange}
+        hasUnsavedChanges={hasUnsavedChanges}
+        saving={saving}
+        onBookConsultation={handleBookConsultation}
+        onActivate={handleActivate}
+        timeLeft={formatTimeLeft(timeLeft)}
+        isExpired={isExpired}
+        activationPrice="€70"
+      />
     </div>
   )
 }
