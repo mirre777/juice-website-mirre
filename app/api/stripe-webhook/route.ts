@@ -210,6 +210,15 @@ function constructEventWithAnySecret(rawBody: string, signature: string, debugId
 export async function POST(request: NextRequest) {
   const debugId = Math.random().toString(36).slice(2, 10)
 
+  console.log("=== WEBHOOK DEPLOYMENT CHECK ===", {
+    debugId,
+    timestamp: new Date().toISOString(),
+    nodeVersion: process.version,
+    vercelEnv: process.env.VERCEL_ENV,
+    hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+    hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+  })
+
   const method = request.method
   const url = request.url
   const host = request.headers.get("host")
