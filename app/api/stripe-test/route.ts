@@ -1,74 +1,80 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
+import Stripe from "stripe"
 
-// Add basic authentication to the API
-function isAuthenticated(request: Request): boolean {
-  // In production, you would implement proper authentication
-  // This is a simple example using a query parameter
-  const url = new URL(request.url)
-  const debugToken = url.searchParams.get("debug_token")
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
-  // Use an environment variable for the token or a more secure method
-  return debugToken === process.env.DEBUG_TOKEN
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+})
 
-export async function GET(request: Request) {
-  // Check if authenticated
-  if (!isAuthenticated(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+export async function POST(request: NextRequest) {
+  const debugId = Math.random().toString(36).slice(2, 8)
+
+  console.log(`[test-webhook-${debugId}] === INCOMING REQUEST ===`)
+  console.log(`[test-webhook-${debugId}] URL: ${request.url}`)
+  console.log(`[test-webhook-${debugId}] Host: ${request.headers.get("host")}`)
+  console.log(`[test-webhook-${debugId}] X-Forwarded-Host: ${request.headers.get("x-forwarded-host")}`)
+
+  // Check signature header
+  const sig = request.headers.get("stripe-signature")
+  console.log(`[test-webhook-${debugId}] Signature present: ${!!sig}`)
+  console.log(`[test-webhook-${debugId}] Signature length: ${sig?.length || 0}`)
+  console.log(`[test-webhook-${debugId}] Signature preview: ${sig?.substring(0, 100)}...`)
+
+  // Check environment variables
+  const secret1 = process.env.STRIPE_WEBHOOK_SECRET
+  const secret2 = process.env.STRIPE_WEBHOOK_SECRET_2
+  console.log(`[test-webhook-${debugId}] Secret 1 present: ${!!secret1}`)
+  console.log(`[test-webhook-${debugId}] Secret 1 tail: ${secret1?.slice(-6) || "none"}`)
+  console.log(`[test-webhook-${debugId}] Secret 2 present: ${!!secret2}`)
+  console.log(`[test-webhook-${debugId}] Secret 2 tail: ${secret2?.slice(-6) || "none"}`)
+
+  if (!sig) {
+    console.log(`[test-webhook-${debugId}] ERROR: No signature header`)
+    return NextResponse.json({ error: "No signature", debugId }, { status: 400 })
   }
 
-  try {
-    // Check if the Stripe secret key is set
-    const stripeKey = process.env.STRIPE_SECRET_KEY
-    const hasStripeKey = !!stripeKey
+  // Get raw body
+  const rawBody = await request.text()
+  console.log(`[test-webhook-${debugId}] Body length: ${rawBody.length}`)
+  console.log(`[test-webhook-${debugId}] Body start: ${rawBody.substring(0, 200)}...`)
+  console.log(`[test-webhook-${debugId}] Body end: ...${rawBody.slice(-50)}`)
 
-    // Get basic info about the key without exposing it
-    let keyInfo = "not set"
-    if (hasStripeKey) {
-      const firstFour = stripeKey?.substring(0, 4) || ""
-      const lastFour = stripeKey?.slice(-4) || ""
-      const keyLength = stripeKey?.length || 0
-      keyInfo = `${firstFour}...${lastFour} (length: ${keyLength})`
+  // Try signature verification with each secret
+  const secrets = [secret1, secret2].filter(Boolean) as string[]
 
-      // Check if it's a test key
-      const isTestKey = firstFour === "sk_t" || stripeKey?.includes("_test_")
-      keyInfo += isTestKey ? " (TEST MODE)" : " (LIVE MODE)"
+  for (let i = 0; i < secrets.length; i++) {
+    const secret = secrets[i]
+    console.log(`[test-webhook-${debugId}] Trying secret ${i + 1} (tail: ${secret.slice(-6)})`)
+
+    try {
+      const event = stripe.webhooks.constructEvent(rawBody, sig, secret)
+      console.log(`[test-webhook-${debugId}] SUCCESS with secret ${i + 1}!`)
+      console.log(`[test-webhook-${debugId}] Event ID: ${event.id}`)
+      console.log(`[test-webhook-${debugId}] Event type: ${event.type}`)
+
+      return NextResponse.json({
+        success: true,
+        debugId,
+        usedSecret: i + 1,
+        eventId: event.id,
+        eventType: event.type,
+      })
+    } catch (err: any) {
+      console.log(`[test-webhook-${debugId}] FAILED with secret ${i + 1}`)
+      console.log(`[test-webhook-${debugId}] Error type: ${err?.type}`)
+      console.log(`[test-webhook-${debugId}] Error message: ${err?.message}`)
     }
-
-    // Check if the publishable key is set
-    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    const hasPublishableKey = !!publishableKey
-
-    // Get basic info about the publishable key
-    let publishableKeyInfo = "not set"
-    if (hasPublishableKey) {
-      const firstFour = publishableKey?.substring(0, 4) || ""
-      const lastFour = publishableKey?.slice(-4) || ""
-      const keyLength = publishableKey?.length || 0
-      publishableKeyInfo = `${firstFour}...${lastFour} (length: ${keyLength})`
-
-      // Check if it's a test key
-      const isTestKey = firstFour === "pk_t" || publishableKey?.includes("_test_")
-      publishableKeyInfo += isTestKey ? " (TEST MODE)" : " (LIVE MODE)"
-    }
-
-    // Return the status of the Stripe configuration
-    return NextResponse.json({
-      stripeSecretKeySet: hasStripeKey,
-      keyInfo,
-      publishableKeySet: hasPublishableKey,
-      publishableKeyInfo,
-      environment: process.env.NODE_ENV,
-      timestamp: new Date().toISOString(),
-    })
-  } catch (error) {
-    console.error("Error in stripe-test route:", error)
-    return NextResponse.json(
-      {
-        error: "Failed to check Stripe configuration",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
   }
+
+  console.log(`[test-webhook-${debugId}] ALL SECRETS FAILED`)
+  return NextResponse.json(
+    {
+      error: "All signature verifications failed",
+      debugId,
+      triedSecrets: secrets.length,
+    },
+    { status: 400 },
+  )
 }
