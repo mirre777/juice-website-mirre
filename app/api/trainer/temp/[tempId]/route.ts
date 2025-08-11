@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getApps, initializeApp, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
 
-// Initialize Firebase Admin exactly once
+// Initialize Firebase Admin once
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -16,35 +16,21 @@ if (!getApps().length) {
 
 const db = getFirestore()
 
-/**
- * Helper to build a safe JSON response shape consistently across the route.
- */
-function json(
-  body: Record<string, any>,
-  init?: { status?: number; headers?: Record<string, string> },
-) {
-  return NextResponse.json(
-    body,
-    {
-      status: init?.status ?? 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers || {}),
-      },
+function json(body: Record<string, any>, init?: { status?: number; headers?: Record<string, string> }) {
+  return NextResponse.json(body, {
+    status: init?.status ?? 200,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
     },
-  )
+  })
 }
 
-/**
- * Helper to determine if a preview has expired.
- * Accepts ISO string or Date; returns boolean.
- */
-function isExpired(expiresAt?: string | Date | null) {
+function isExpired(expiresAt?: unknown) {
   if (!expiresAt) return false
   try {
-    const ts = typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt
-    if (Number.isNaN(ts.getTime())) return false
-    return ts.getTime() < Date.now()
+    const dt = typeof expiresAt === "string" ? new Date(expiresAt) : (expiresAt as Date)
+    return Number.isNaN(dt.getTime()) ? false : dt.getTime() < Date.now()
   } catch {
     return false
   }
@@ -52,11 +38,11 @@ function isExpired(expiresAt?: string | Date | null) {
 
 /**
  * GET /api/trainer/temp/:tempId
- * - Reads from the "trainers" collection using the provided tempId.
- * - Returns 200 with { success: true, trainer } when found and not expired.
- * - Returns 410 with { success: false, code: "EXPIRED" } when expired.
- * - Returns 404 with { success: false } when not found.
- * - Never throws a 500 for expected conditions; all responses are JSON.
+ * - Reads directly from "trainers/:tempId"
+ * - 200 with { success: true, trainer } when found and not expired
+ * - 410 with { success: false, code: "EXPIRED" } when preview expired
+ * - 404 with { success: false, error } when not found
+ * - 500 only for unexpected errors (always JSON)
  */
 export async function GET(_request: NextRequest, { params }: { params: { tempId: string } }) {
   try {
@@ -65,48 +51,43 @@ export async function GET(_request: NextRequest, { params }: { params: { tempId:
       return json({ success: false, error: "Temp ID is required" }, { status: 400 })
     }
 
-    // Fetch the trainer doc directly from "trainers"
-    const docRef = db.collection("trainers").doc(tempId)
-    const snapshot = await docRef.get()
+    const ref = db.collection("trainers").doc(tempId)
+    const snap = await ref.get()
 
-    if (!snapshot.exists) {
+    if (!snap.exists) {
       return json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainer = snapshot.data() || {}
+    const trainer = snap.data() || {}
 
-    // Guard: Only allow preview for temp/draft trainers (do not change design/flow here)
-    // We keep returning the trainer even if it's already active, so existing preview UI continues to work.
-    // If you want to redirect to live later, do that in a later phase.
-
-    // Preview expiration check
+    // Expiration check for preview
     if (isExpired(trainer.expiresAt)) {
-      // Return a structured "expired" response (410 Gone), not a 500
       return json(
         {
           success: false,
           error: "Preview expired",
           code: "EXPIRED",
-          // You can optionally include where to go next; UI can decide what to do
-          // redirectTo: "/marketplace/personal-trainer-website",
         },
         { status: 410 },
       )
     }
 
-    return json({ success: true, trainer }, { status: 200 })
-  } catch (error: any) {
-    console.error("❌ Error in GET /api/trainer/temp/[tempId]:", error?.message || error)
-    // Return a structured 500 JSON instead of leaking plain text
+    // Keep returning trainer data for preview (no design/flow changes here)
+    return json({ success: true, trainer })
+  } catch (err: any) {
+    console.error("❌ GET /api/trainer/temp/[tempId] error:", err?.message || err)
     return json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
 
 /**
  * PUT /api/trainer/temp/:tempId
- * - Safely updates content for a temp trainer doc in "trainers".
- * - Rejects updates for already activated/paid trainers (points the client to use live endpoints).
- * - Returns JSON for all outcomes, avoiding 500 for expected conditions.
+ * - Updates temp trainer content in "trainers/:tempId" when not active/paid/expired
+ * - 400 for missing inputs
+ * - 404 when doc not found
+ * - 410 when preview expired
+ * - 400 when already activated (with redirect hint)
+ * - 200 on success
  */
 export async function PUT(request: NextRequest, { params }: { params: { tempId: string } }) {
   try {
@@ -115,28 +96,28 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       return json({ success: false, error: "Temp ID is required" }, { status: 400 })
     }
 
-    let payload: any = null
+    let body: any
     try {
-      payload = await request.json()
+      body = await request.json()
     } catch {
       return json({ success: false, error: "Invalid JSON body" }, { status: 400 })
     }
 
-    const { content } = payload || {}
+    const { content } = body || {}
     if (!content) {
       return json({ success: false, error: "Content is required" }, { status: 400 })
     }
 
-    const docRef = db.collection("trainers").doc(tempId)
-    const snapshot = await docRef.get()
+    const ref = db.collection("trainers").doc(tempId)
+    const snap = await ref.get()
 
-    if (!snapshot.exists) {
+    if (!snap.exists) {
       return json({ success: false, error: "Trainer not found" }, { status: 404 })
     }
 
-    const trainer = snapshot.data() || {}
+    const trainer = snap.data() || {}
 
-    // Do not allow editing via temp endpoint if already active/paid
+    // Block edits when already live
     if (trainer.status === "active" || trainer.isActive === true || trainer.isPaid === true) {
       return json(
         {
@@ -148,7 +129,7 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       )
     }
 
-    // Optional: also block updates if preview expired (keeps flow consistent)
+    // Block edits when expired
     if (isExpired(trainer.expiresAt)) {
       return json(
         {
@@ -160,7 +141,7 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       )
     }
 
-    await docRef.set(
+    await ref.set(
       {
         content,
         updatedAt: new Date().toISOString(),
@@ -168,9 +149,9 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       { merge: true },
     )
 
-    return json({ success: true }, { status: 200 })
-  } catch (error: any) {
-    console.error("❌ Error in PUT /api/trainer/temp/[tempId]:", error?.message || error)
+    return json({ success: true })
+  } catch (err: any) {
+    console.error("❌ PUT /api/trainer/temp/[tempId] error:", err?.message || err)
     return json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
