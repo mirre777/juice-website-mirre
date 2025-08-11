@@ -3,9 +3,10 @@ import { NextResponse } from "next/server"
 export async function GET() {
   console.log("GET request received at test-simple")
   return NextResponse.json({
-    status: "success",
+    message: "Simple test endpoint working",
     method: "GET",
-    message: "Test endpoint working",
+    timestamp: new Date().toISOString(),
+    env_check: process.env.STRIPE_WEBHOOK_SECRET ? "webhook_secret_exists" : "no_webhook_secret",
   })
 }
 
@@ -14,16 +15,17 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.text()
-    console.log("POST body:", body.substring(0, 200))
+    console.log("POST body length:", body.length)
 
     return NextResponse.json({
-      status: "success",
+      message: "Simple test endpoint working",
       method: "POST",
-      message: "Test endpoint working",
-      bodyLength: body.length,
+      timestamp: new Date().toISOString(),
+      env_check: process.env.STRIPE_WEBHOOK_SECRET ? "webhook_secret_exists" : "no_webhook_secret",
+      body_received: body.length > 0,
     })
   } catch (error) {
-    console.error("Error processing POST:", error)
-    return NextResponse.json({ error: "Failed to process request" }, { status: 500 })
+    console.error("POST error:", error)
+    return NextResponse.json({ error: "Failed to process POST" }, { status: 500 })
   }
 }
