@@ -156,21 +156,45 @@ function getCandidateSecrets(): string[] {
   return [s1, s2, s3].filter((s): s is string => !!s && s.length > 0)
 }
 
-function constructEventWithAnySecret(rawBody: string, signature: string) {
+function constructEventWithAnySecret(rawBody: string, signature: string, debugId: string) {
   const candidates = getCandidateSecrets()
   let lastErr: any = null
 
-  for (const secret of candidates) {
+  console.log("[webhook] signature verification attempt", {
+    debugId,
+    signatureHeader: signature.substring(0, 50) + "...", // First 50 chars of signature
+    bodyLength: rawBody.length,
+    bodyStart: rawBody.substring(0, 100), // First 100 chars of body
+    candidateCount: candidates.length,
+    candidateTails: candidates.map((s) => mask(s)),
+  })
+
+  for (let i = 0; i < candidates.length; i++) {
+    const secret = candidates[i]
     try {
+      console.log("[webhook] trying secret", { debugId, index: i, tail: mask(secret) })
       const event = stripe.webhooks.constructEvent(rawBody, signature, secret)
+      console.log("[webhook] signature verification SUCCESS", { debugId, usedIndex: i, usedTail: mask(secret) })
       return { event, usedSecretTail: mask(secret) }
     } catch (err: any) {
+      console.log("[webhook] signature verification failed for secret", {
+        debugId,
+        index: i,
+        tail: mask(secret),
+        errorType: err?.type,
+        errorMessage: err?.message?.substring(0, 200),
+      })
       lastErr = err
       continue
     }
   }
 
   // If we reach here, all secrets failed
+  console.error("[webhook] ALL signature verifications failed", {
+    debugId,
+    finalError: lastErr?.message,
+    triedCount: candidates.length,
+  })
   throw lastErr
 }
 
@@ -213,7 +237,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
   let usedSecretTail = "(none)"
   try {
-    const verified = constructEventWithAnySecret(rawBody, sig)
+    const verified = constructEventWithAnySecret(rawBody, sig, debugId)
     event = verified.event
     usedSecretTail = verified.usedSecretTail
   } catch (err: any) {
