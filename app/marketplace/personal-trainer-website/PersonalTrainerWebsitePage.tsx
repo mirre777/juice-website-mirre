@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useRouter } from "next/navigation"
 
 interface FormData {
@@ -261,7 +261,9 @@ export default function PersonalTrainerWebsitePage() {
         return router.push(body.redirectUrl)
       }
       const msg =
-        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
+        body?.error ||
+        body?.message ||
+        `Failed to create trainer profile. Server responded with status ${status}.`
       console.error("Form submission failed:", { status, body })
       alert(msg)
     } catch (err) {
@@ -284,7 +286,9 @@ export default function PersonalTrainerWebsitePage() {
         return router.push(body.redirectUrl)
       }
       const msg =
-        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
+        body?.error ||
+        body?.message ||
+        `Failed to create trainer profile. Server responded with status ${status}.`
       console.error("Form submission failed:", { status, body })
       alert(msg)
     } catch (err) {
@@ -699,7 +703,7 @@ export default function PersonalTrainerWebsitePage() {
 
               <p className="text-center text-sm text-gray-600 mt-4">
                 Your website will be generated instantly. You can edit and activate it for{" "}
-                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70</span>.{" "}
+                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>{" "}
                 <strong>You will not be charged anything by creating the Preview.</strong>
               </p>
             </CardContent>

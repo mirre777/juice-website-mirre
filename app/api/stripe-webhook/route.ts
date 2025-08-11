@@ -19,8 +19,15 @@ if (!getApps().length) {
 }
 const db = getFirestore()
 
-// Helper: Idempotent update of trainers/<trainerId>
-async function activateTrainerDocInPlace(trainerId: string, paymentIntentId: string) {
+async function updateTrainerInPlace(
+  trainerId: string,
+  extra: Partial<{
+    paymentIntentId: string
+    checkoutSessionId: string
+    subscriptionId: string
+    invoiceId: string
+  }>,
+) {
   const ref = db.collection("trainers").doc(trainerId)
   const snap = await ref.get()
   if (!snap.exists) {
@@ -29,36 +36,26 @@ async function activateTrainerDocInPlace(trainerId: string, paymentIntentId: str
   }
 
   const data = snap.data() || {}
-  // Idempotency: if already active/paid, no-op
-  if (data.isPaid === true || data.status === "active" || data.isActive === true) {
-    // Still update paymentIntentId if missing for completeness
-    await ref.set(
-      {
-        paymentIntentId,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    )
-    console.log("Webhook: trainer already active/paid, no-op update:", trainerId)
-    return { updated: false, reason: "already-active" as const }
-  }
+  const alreadyActive = data.isPaid === true || data.status === "active" || data.isActive === true
 
   await ref.set(
     {
       status: "active",
       isActive: true,
       isPaid: true,
-      paymentIntentId,
-      activatedAt: new Date().toISOString(),
+      activatedAt: data.activatedAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      ...(extra.paymentIntentId ? { paymentIntentId: extra.paymentIntentId } : {}),
+      ...(extra.checkoutSessionId ? { checkoutSessionId: extra.checkoutSessionId } : {}),
+      ...(extra.subscriptionId ? { subscriptionId: extra.subscriptionId } : {}),
+      ...(extra.invoiceId ? { invoiceId: extra.invoiceId } : {}),
     },
-    { merge: true }
+    { merge: true },
   )
-  console.log("Webhook: trainer activated:", trainerId)
-  return { updated: true as const }
+
+  return { updated: !alreadyActive, reason: alreadyActive ? "already-active" : "activated" }
 }
 
-// Helper: Try to resolve trainerId for a PaymentIntent (metadata or via Checkout Session)
 async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string, pi?: Stripe.PaymentIntent) {
   let trainerId: string | undefined
 
@@ -75,12 +72,10 @@ async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string, pi?: S
 
   if (!trainerId) {
     // Try to locate a Checkout Session by payment_intent
-    const sessions = await stripe.checkout.sessions
-      .list({ payment_intent: paymentIntentId, limit: 1 })
-      .catch((e) => {
-        console.error("Webhook: failed to list checkout sessions:", e?.message)
-        return { data: [] }
-      })
+    const sessions = await stripe.checkout.sessions.list({ payment_intent: paymentIntentId, limit: 1 }).catch((e) => {
+      console.error("Webhook: failed to list checkout sessions:", e?.message)
+      return { data: [] }
+    })
     const session = sessions?.data?.[0]
     if (session?.client_reference_id) {
       trainerId = session.client_reference_id
@@ -125,27 +120,66 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ received: true, handled: false })
         }
 
-        await activateTrainerDocInPlace(trainerId, paymentIntentId)
+        const result = await updateTrainerInPlace(trainerId, { paymentIntentId })
+        console.log("Webhook: payment_intent.succeeded handled", { trainerId, result })
         break
       }
 
       case "checkout.session.completed": {
+        // This path covers Stripe Checkout including subscription mode and Payment Links.
         const session = event.data.object as Stripe.Checkout.Session
-        const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
 
-        const trainerId =
-          session.client_reference_id ||
-          (paymentIntentId ? await resolveTrainerIdFromPaymentIntent(paymentIntentId) : undefined)
+        const trainerId = session.client_reference_id || undefined
+        const checkoutSessionId = session.id
+        const subscriptionId =
+          typeof session.subscription === "string" ? session.subscription : session.subscription?.id
+        const invoiceId = typeof session.invoice === "string" ? session.invoice : session.invoice?.id
 
-        if (!trainerId || !paymentIntentId) {
-          console.warn("Webhook: checkout.session.completed missing trainerId/paymentIntentId", {
+        if (!trainerId) {
+          console.warn("Webhook: checkout.session.completed missing client_reference_id", { checkoutSessionId })
+          return NextResponse.json({ received: true, handled: false })
+        }
+
+        // If the session payment_status is "paid" or the mode is subscription and completed, treat as success.
+        const paid = session.payment_status === "paid" || !!subscriptionId
+        if (!paid) {
+          console.warn("Webhook: session not paid; skipping activation", {
             trainerId,
-            paymentIntentId,
+            payment_status: session.payment_status,
+            checkoutSessionId,
           })
           return NextResponse.json({ received: true, handled: false })
         }
 
-        await activateTrainerDocInPlace(trainerId, paymentIntentId)
+        const result = await updateTrainerInPlace(trainerId, { checkoutSessionId, subscriptionId, invoiceId })
+        console.log("Webhook: checkout.session.completed handled", { trainerId, result })
+        break
+      }
+
+      // Optional redundancy for invoices paid in subscription flow
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId =
+          typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id
+        if (!subscriptionId) {
+          return NextResponse.json({ received: true, handled: false })
+        }
+
+        // Try to connect invoice back to a session (best effort).
+        const sessions = await stripe.checkout.sessions
+          .list({ subscription: subscriptionId, limit: 1 })
+          .catch(() => ({ data: [] as Stripe.Checkout.Session[] }))
+        const session = sessions.data[0]
+        const trainerId = session?.client_reference_id
+
+        if (trainerId) {
+          const result = await updateTrainerInPlace(trainerId, {
+            subscriptionId,
+            invoiceId: invoice.id,
+            checkoutSessionId: session.id,
+          })
+          console.log("Webhook: invoice.payment_succeeded handled", { trainerId, result })
+        }
         break
       }
 

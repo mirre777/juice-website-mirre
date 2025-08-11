@@ -26,6 +26,7 @@ export default function TrainerPage({ params }: PageProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
   const router = useRouter()
+  const [canViewPublic, setCanViewPublic] = useState(false)
 
   // Fetch live trainer data
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function TrainerPage({ params }: PageProps) {
           const trainerContent = data.content || generateDefaultContent(data.trainer)
           setContent(trainerContent)
           setEditingContent(trainerContent)
+          setCanViewPublic(Boolean(data.trainer?.status === "active" && data.trainer?.isPaid && data.trainer?.isActive))
         } else {
           throw new Error("Trainer profile not found")
         }
@@ -207,6 +209,25 @@ export default function TrainerPage({ params }: PageProps) {
     )
   }
 
+  if (isPublicView && !canViewPublic) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-lg">
+          <CardContent className="pt-8 text-center">
+            <h2 className="text-2xl font-semibold mb-2">This profile is not active yet</h2>
+            <p className="text-gray-600 mb-4">Activate your profile to publish it live.</p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => router.push(`/marketplace/trainer/temp/${id}`)}>Return to Preview</Button>
+              <Button variant="secondary" onClick={() => router.push("/payment")}>
+                Activate Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Public view mode
   if (isPublicView) {
     return (
@@ -239,10 +260,19 @@ export default function TrainerPage({ params }: PageProps) {
   }
 
   const hasUnsavedChanges = isEditing && JSON.stringify(content) !== JSON.stringify(editingContent)
+  const showPaywallBanner = !canViewPublic
 
   // Edit mode
   return (
     <div className="min-h-screen bg-gray-50">
+      {showPaywallBanner && (
+        <div className="bg-yellow-100 border-b border-yellow-200 text-yellow-900 p-3 text-center">
+          This profile is in preview. Activate to go live.
+          <Button className="ml-3" size="sm" variant="secondary" onClick={() => router.push("/payment")}>
+            Activate
+          </Button>
+        </div>
+      )}
       {/* Header with live-specific controls */}
       <TrainerProfileHeader
         mode="live"
