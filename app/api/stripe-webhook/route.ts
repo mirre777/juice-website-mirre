@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
+import crypto from "crypto"
 
 // Ensure Node runtime and no caching for webhooks
 export const runtime = "nodejs"
@@ -163,10 +164,14 @@ function constructEventWithAnySecret(rawBody: string, signature: string, debugId
   console.log("[webhook] signature verification attempt", {
     debugId,
     signatureHeader: signature.substring(0, 50) + "...", // First 50 chars of signature
+    signatureFormat: signature.includes("t=") ? "valid-format" : "invalid-format",
     bodyLength: rawBody.length,
     bodyStart: rawBody.substring(0, 100), // First 100 chars of body
+    bodyHash: crypto.createHash("sha256").update(rawBody).digest("hex").substring(0, 16),
     candidateCount: candidates.length,
     candidateTails: candidates.map((s) => mask(s)),
+    nodeVersion: process.version,
+    runtime: process.env.VERCEL ? "vercel" : "local",
   })
 
   for (let i = 0; i < candidates.length; i++) {
@@ -183,6 +188,8 @@ function constructEventWithAnySecret(rawBody: string, signature: string, debugId
         tail: mask(secret),
         errorType: err?.type,
         errorMessage: err?.message?.substring(0, 200),
+        errorCode: err?.code,
+        stripeErrorType: err?.type,
       })
       lastErr = err
       continue
@@ -193,6 +200,7 @@ function constructEventWithAnySecret(rawBody: string, signature: string, debugId
   console.error("[webhook] ALL signature verifications failed", {
     debugId,
     finalError: lastErr?.message,
+    finalErrorType: lastErr?.type,
     triedCount: candidates.length,
   })
   throw lastErr
@@ -202,13 +210,15 @@ function constructEventWithAnySecret(rawBody: string, signature: string, debugId
 export async function POST(request: NextRequest) {
   const debugId = Math.random().toString(36).slice(2, 10)
 
-  // Log request context early
   const method = request.method
   const url = request.url
   const host = request.headers.get("host")
   const xfHost = request.headers.get("x-forwarded-host")
   const xfProto = request.headers.get("x-forwarded-proto")
   const sig = request.headers.get("stripe-signature")
+  const contentType = request.headers.get("content-type")
+  const contentLength = request.headers.get("content-length")
+  const userAgent = request.headers.get("user-agent")
   const envIsVercel = !!process.env.VERCEL
   const tails = listSecretTails(getCandidateSecrets())
 
@@ -219,10 +229,15 @@ export async function POST(request: NextRequest) {
     host,
     "x-forwarded-host": xfHost,
     "x-forwarded-proto": xfProto,
+    "content-type": contentType,
+    "content-length": contentLength,
+    "user-agent": userAgent?.substring(0, 50),
     signaturePresent: !!sig,
     signatureLength: sig?.length ?? 0,
+    signatureStart: sig?.substring(0, 30),
     env: envIsVercel ? "vercel" : "unknown",
     secretTails: tails,
+    secretCount: tails.length,
   })
 
   if (!sig) {
@@ -230,10 +245,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No signature", debugId }, { status: 400 })
   }
 
-  // Stripe requires the raw body for signature verification.
   const rawBodyBuffer = await request.arrayBuffer()
   const rawBody = Buffer.from(rawBodyBuffer).toString("utf8")
-  console.log("[webhook] raw body length", { debugId, length: rawBody.length })
+
+  console.log("[webhook] raw body processing", {
+    debugId,
+    bufferLength: rawBodyBuffer.byteLength,
+    stringLength: rawBody.length,
+    firstChar: rawBody.charCodeAt(0),
+    lastChar: rawBody.charCodeAt(rawBody.length - 1),
+    containsJson: rawBody.includes('{"'),
+    startsWithBrace: rawBody.startsWith("{"),
+  })
 
   let event: Stripe.Event
   let usedSecretTail = "(none)"
