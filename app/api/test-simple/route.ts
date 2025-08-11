@@ -1,15 +1,19 @@
+import { NextResponse } from "next/server"
+
 export async function GET() {
-  return Response.json({
-    message: "API route working",
+  return NextResponse.json({
+    message: "Simple test endpoint working",
+    method: "GET",
     timestamp: new Date().toISOString(),
-    env_check: process.env.STRIPE_WEBHOOK_SECRET ? "secret_exists" : "no_secret",
+    env_check: process.env.STRIPE_WEBHOOK_SECRET ? "webhook_secret_exists" : "no_webhook_secret",
   })
 }
 
 export async function POST() {
-  return Response.json({
-    message: "POST working",
+  return NextResponse.json({
+    message: "Simple test endpoint working",
+    method: "POST",
     timestamp: new Date().toISOString(),
-    env_check: process.env.STRIPE_WEBHOOK_SECRET ? "secret_exists" : "no_secret",
+    env_check: process.env.STRIPE_WEBHOOK_SECRET ? "webhook_secret_exists" : "no_webhook_secret",
   })
 }
