@@ -231,7 +231,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Stripe requires the raw body for signature verification.
-  const rawBody = await request.text()
+  const rawBodyBuffer = await request.arrayBuffer()
+  const rawBody = Buffer.from(rawBodyBuffer).toString("utf8")
   console.log("[webhook] raw body length", { debugId, length: rawBody.length })
 
   let event: Stripe.Event
