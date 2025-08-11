@@ -211,15 +211,16 @@ export function ClientTabHandler() {
                 <p>We use trusted third-party services to operate our app:</p>
                 <ul className="list-disc pl-6 mt-2">
                   <li>Firebase (Authentication, Firestore, Analytics)</li>
+                  <li>Amplitude (User behavior analytics — hosted in EU data centers)</li>
                   <li>Stripe / Apple Pay / Google Pay (Payment Processing)</li>
                   <li>Crashlytics and Sentry (App Monitoring and Bug Reporting)</li>
                   <li>Facebook SDK (Analytics and Social Features)</li>
                   <li>Apple HealthKit / Google Fit (Fitness Data Syncing)</li>
-                  <li>One Signal (Push Notifications)</li>
+                  <li>OneSignal (Push Notifications)</li>
                 </ul>
                 <p className="mt-2">
-                  These services may process some user data on our behalf, but no third parties collect data directly
-                  through our app.
+                  These services may process some user data on our behalf. However, no third parties collect data
+                  directly through our app without our oversight.
                 </p>
               </section>
 
