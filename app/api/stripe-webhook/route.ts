@@ -3,11 +3,19 @@ import Stripe from "stripe"
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
 
+// Ensure Node runtime and no caching for webhooks
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 // ---------- Helpers ----------
 const mask = (val?: string, visible = 6) => {
   if (!val) return "(unset)"
   const tail = val.slice(-visible)
   return `***${tail}`
+}
+
+function listSecretTails(secrets: (string | undefined)[]) {
+  return secrets.filter(Boolean).map((s) => mask(s!))
 }
 
 // ---------- Stripe client ----------
@@ -28,8 +36,7 @@ if (!getApps().length) {
 }
 const db = getFirestore()
 
-// Per-request debugId for correlation
-// ---------- Helpers ----------
+// ---------- Activation helpers ----------
 type ActivationExtras = {
   mode: "pi" | "checkout" | "invoice"
   paymentIntentId?: string
@@ -38,12 +45,6 @@ type ActivationExtras = {
   invoiceId?: string
 }
 
-/**
- * Idempotent in-place activation: updates the existing trainers/{trainerId} document.
- * - Sets status: "active", isActive: true, isPaid: true
- * - Stores Stripe references depending on the flow (PI, subscription, invoice)
- * - If already active/paid, it's a no-op aside from backfilling missing identifiers and timestamps
- */
 async function activateTrainerInPlace(trainerId: string, extras: ActivationExtras) {
   const ref = db.collection("trainers").doc(trainerId)
   const snap = await ref.get()
@@ -87,9 +88,6 @@ async function activateTrainerInPlace(trainerId: string, extras: ActivationExtra
   return { updated: true as const }
 }
 
-/**
- * Resolve trainerId from a PaymentIntent, falling back to related Checkout Session if necessary.
- */
 async function resolveTrainerIdFromPaymentIntent(piId: string, pi?: Stripe.PaymentIntent) {
   const paymentIntent =
     pi ??
@@ -118,9 +116,6 @@ async function resolveTrainerIdFromPaymentIntent(piId: string, pi?: Stripe.Payme
   return trainerId
 }
 
-/**
- * Resolve a trainerId from a subscription or invoice by looking up the related Checkout Session(s).
- */
 async function resolveTrainerIdFromSubscriptionOrInvoice(params: {
   subscriptionId?: string
   invoiceId?: string
@@ -144,14 +139,39 @@ async function resolveTrainerIdFromSubscriptionOrInvoice(params: {
   }
 
   if (invoiceId && !trainerId) {
-    // Try searching invoice object for a linked session via lines or metadata (best-effort)
-    // As a fallback, do nothing here; other events should cover activation.
     console.warn("[webhook] No session found via subscription; invoice fallback not implemented", {
       invoiceId,
     })
   }
 
   return { trainerId, sessionId }
+}
+
+// ---------- Multi-secret verification ----------
+function getCandidateSecrets(): string[] {
+  // Support multiple endpoints (e.g., https://app.juice.fitness and https://juice.fitness)
+  const s1 = process.env.STRIPE_WEBHOOK_SECRET
+  const s2 = process.env.STRIPE_WEBHOOK_SECRET_2
+  const s3 = process.env.STRIPE_WEBHOOK_SECRET_FALLBACK
+  return [s1, s2, s3].filter((s): s is string => !!s && s.length > 0)
+}
+
+function constructEventWithAnySecret(rawBody: string, signature: string) {
+  const candidates = getCandidateSecrets()
+  let lastErr: any = null
+
+  for (const secret of candidates) {
+    try {
+      const event = stripe.webhooks.constructEvent(rawBody, signature, secret)
+      return { event, usedSecretTail: mask(secret) }
+    } catch (err: any) {
+      lastErr = err
+      continue
+    }
+  }
+
+  // If we reach here, all secrets failed
+  throw lastErr
 }
 
 // ---------- Route handler ----------
@@ -166,7 +186,7 @@ export async function POST(request: NextRequest) {
   const xfProto = request.headers.get("x-forwarded-proto")
   const sig = request.headers.get("stripe-signature")
   const envIsVercel = !!process.env.VERCEL
-  const whSecret = process.env.STRIPE_WEBHOOK_SECRET
+  const tails = listSecretTails(getCandidateSecrets())
 
   console.log("[webhook] incoming", {
     debugId,
@@ -178,7 +198,7 @@ export async function POST(request: NextRequest) {
     signaturePresent: !!sig,
     signatureLength: sig?.length ?? 0,
     env: envIsVercel ? "vercel" : "unknown",
-    secretTail: mask(whSecret),
+    secretTails: tails,
   })
 
   if (!sig) {
@@ -191,14 +211,18 @@ export async function POST(request: NextRequest) {
   console.log("[webhook] raw body length", { debugId, length: rawBody.length })
 
   let event: Stripe.Event
+  let usedSecretTail = "(none)"
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, whSecret!)
+    const verified = constructEventWithAnySecret(rawBody, sig)
+    event = verified.event
+    usedSecretTail = verified.usedSecretTail
   } catch (err: any) {
     console.error("[webhook] signature verification failed", {
       debugId,
       message: err?.message,
       name: err?.name,
       type: err?.type,
+      triedSecrets: tails,
     })
     return NextResponse.json({ error: "Invalid signature", debugId }, { status: 400 })
   }
@@ -210,10 +234,12 @@ export async function POST(request: NextRequest) {
     api_version: event.api_version,
     created: event.created,
     livemode: (event as any).livemode,
+    usedSecretTail,
   })
 
   try {
     switch (event.type) {
+      // Payment Element flow (one-time PI)
       case "payment_intent.succeeded": {
         const pi = event.data.object as Stripe.PaymentIntent
         const paymentIntentId = pi.id
@@ -235,6 +261,7 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      // Checkout subscription flow (no PI on session)
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
 
@@ -276,6 +303,7 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      // Redundant activation path for subscriptions
       case "invoice.payment_succeeded":
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice
