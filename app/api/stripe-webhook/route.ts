@@ -8,6 +8,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: NextRequest) {
   const debugId = Math.random().toString(36).slice(2, 10)
 
+  console.log("🚀 WEBHOOK ENTRY POINT", { debugId, timestamp: new Date().toISOString() })
+
   console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
     debugId,
     timestamp: new Date().toISOString(),
@@ -18,6 +20,15 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text()
     const signature = request.headers.get("stripe-signature")
+
+    console.log("=== RAW SIGNATURE ANALYSIS ===", {
+      debugId,
+      signature: signature,
+      signatureLength: signature?.length,
+      signatureParts: signature?.split(",").length,
+      bodyLength: rawBody.length,
+      bodyHash: Buffer.from(rawBody).toString("base64").substring(0, 20),
+    })
 
     console.log("=== DETAILED REQUEST DEBUG ===", {
       debugId,
@@ -39,12 +50,22 @@ export async function POST(request: NextRequest) {
       // Trim webhook secret to remove any whitespace
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!.trim()
 
+      console.log("=== WEBHOOK SECRET ANALYSIS ===", {
+        debugId,
+        webhookSecretLength: webhookSecret.length,
+        webhookSecretPrefix: webhookSecret.substring(0, 15),
+        webhookSecretSuffix: webhookSecret.substring(webhookSecret.length - 10),
+        startsWithWhsec: webhookSecret.startsWith("whsec_"),
+      })
+
       console.log("=== SIGNATURE VERIFICATION ATTEMPT ===", {
         debugId,
         webhookSecretLength: webhookSecret.length,
         webhookSecretPrefix: webhookSecret.substring(0, 10),
         signaturePrefix: signature.substring(0, 20),
       })
+
+      console.log("🔐 CALLING stripe.webhooks.constructEvent", { debugId })
 
       event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
 
@@ -57,11 +78,16 @@ export async function POST(request: NextRequest) {
       console.error("=== SIGNATURE VERIFICATION FAILED ===", {
         debugId,
         error: err.message,
+        errorName: err.name,
+        errorCode: err.code,
         webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
         webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
+        webhookSecretTrimmedLength: process.env.STRIPE_WEBHOOK_SECRET?.trim().length,
         signatureExists: !!signature,
+        signatureValue: signature,
         bodyLength: rawBody.length,
         errorType: err.constructor.name,
+        fullError: JSON.stringify(err, Object.getOwnPropertyNames(err)),
       })
       return NextResponse.json(
         {
