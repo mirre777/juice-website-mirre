@@ -133,3 +133,11 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export async function GET() {
+  return NextResponse.json({
+    message: "Stripe webhook endpoint is reachable",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+  })
+}
