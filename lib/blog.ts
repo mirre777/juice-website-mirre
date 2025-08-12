@@ -2871,7 +2871,7 @@ Berlin has always been a city of reinvention, and its strength training scene is
 **Smartphone apps and AI** are revolutionizing technique analysis and correction.
 
 **Popular applications:**
-- **MyLift** - Barbell velocity and technique analysis
+- **MyLift** app for velocity tracking
 - **Iron Path** - Bar path tracking for powerlifts
 - **Coach's Eye** - Slow-motion video analysis
 - **Hudl Technique** - Movement pattern analysis
@@ -3666,13 +3666,16 @@ export async function getPostSlugs(): Promise<string[]> {
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log("[getAllPosts] Fetching all blog posts...")
 
-  if (!BLOB_TOKEN) {
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+  console.log("[getAllPosts] BLOB_TOKEN available:", !!blobToken)
+
+  if (!blobToken) {
     console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
     return SAMPLE_POSTS
   }
 
   try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: blobToken })
     console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
     const posts: BlogPostFrontmatter[] = []
