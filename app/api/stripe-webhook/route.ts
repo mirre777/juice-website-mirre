@@ -1,14 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { initializeApp, getApps, cert } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  })
+}
+const db = getFirestore()
+
 export async function POST(request: NextRequest) {
   const debugId = Math.random().toString(36).slice(2, 10)
-
-  console.log("🚀 WEBHOOK ENTRY POINT", { debugId, timestamp: new Date().toISOString() })
 
   console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
     debugId,
@@ -20,15 +31,6 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text()
     const signature = request.headers.get("stripe-signature")
-
-    console.log("=== RAW SIGNATURE ANALYSIS ===", {
-      debugId,
-      signature: signature,
-      signatureLength: signature?.length,
-      signatureParts: signature?.split(",").length,
-      bodyLength: rawBody.length,
-      bodyHash: Buffer.from(rawBody).toString("base64").substring(0, 20),
-    })
 
     console.log("=== DETAILED REQUEST DEBUG ===", {
       debugId,
@@ -50,22 +52,12 @@ export async function POST(request: NextRequest) {
       // Trim webhook secret to remove any whitespace
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!.trim()
 
-      console.log("=== WEBHOOK SECRET ANALYSIS ===", {
-        debugId,
-        webhookSecretLength: webhookSecret.length,
-        webhookSecretPrefix: webhookSecret.substring(0, 15),
-        webhookSecretSuffix: webhookSecret.substring(webhookSecret.length - 10),
-        startsWithWhsec: webhookSecret.startsWith("whsec_"),
-      })
-
       console.log("=== SIGNATURE VERIFICATION ATTEMPT ===", {
         debugId,
         webhookSecretLength: webhookSecret.length,
         webhookSecretPrefix: webhookSecret.substring(0, 10),
         signaturePrefix: signature.substring(0, 20),
       })
-
-      console.log("🔐 CALLING stripe.webhooks.constructEvent", { debugId })
 
       event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
 
@@ -78,16 +70,11 @@ export async function POST(request: NextRequest) {
       console.error("=== SIGNATURE VERIFICATION FAILED ===", {
         debugId,
         error: err.message,
-        errorName: err.name,
-        errorCode: err.code,
         webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
         webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
-        webhookSecretTrimmedLength: process.env.STRIPE_WEBHOOK_SECRET?.trim().length,
         signatureExists: !!signature,
-        signatureValue: signature,
         bodyLength: rawBody.length,
         errorType: err.constructor.name,
-        fullError: JSON.stringify(err, Object.getOwnPropertyNames(err)),
       })
       return NextResponse.json(
         {
@@ -116,10 +103,71 @@ export async function POST(request: NextRequest) {
           clientReferenceId: session.client_reference_id,
         })
 
-        // TODO: Add your subscription processing logic here
-        // - Update user subscription status
-        // - Send confirmation emails
-        // - Update database records
+        if (session.client_reference_id && session.subscription) {
+          try {
+            const userId = session.client_reference_id
+
+            // Update user subscription status in Firebase
+            const userRef = db.collection("users").doc(userId)
+            await userRef.set(
+              {
+                subscriptionId: session.subscription,
+                customerId: session.customer,
+                subscriptionStatus: "active",
+                isPremium: true,
+                isActive: true,
+                activatedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ User subscription activated", {
+              debugId,
+              userId,
+              subscriptionId: session.subscription,
+            })
+          } catch (error: any) {
+            console.error("❌ Failed to activate user subscription", {
+              debugId,
+              error: error.message,
+              userId: session.client_reference_id,
+            })
+          }
+        }
+
+        if (session.client_reference_id && session.client_reference_id.startsWith("temp_")) {
+          try {
+            const trainerId = session.client_reference_id
+
+            // Update trainer status in Firebase
+            const trainerRef = db.collection("trainers").doc(trainerId)
+            await trainerRef.set(
+              {
+                status: "active",
+                isActive: true,
+                isPaid: true,
+                customerId: session.customer,
+                subscriptionId: session.subscription,
+                activatedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Trainer profile activated", {
+              debugId,
+              trainerId,
+              subscriptionId: session.subscription,
+            })
+          } catch (error: any) {
+            console.error("❌ Failed to activate trainer profile", {
+              debugId,
+              error: error.message,
+              trainerId: session.client_reference_id,
+            })
+          }
+        }
 
         break
 
@@ -131,6 +179,36 @@ export async function POST(request: NextRequest) {
           customerId: subscription.customer,
           status: subscription.status,
         })
+
+        try {
+          // Find user by customer ID and update subscription status
+          const usersQuery = await db.collection("users").where("customerId", "==", subscription.customer).get()
+
+          if (!usersQuery.empty) {
+            const userDoc = usersQuery.docs[0]
+            await userDoc.ref.set(
+              {
+                subscriptionId: subscription.id,
+                subscriptionStatus: subscription.status,
+                isPremium: subscription.status === "active",
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Subscription status updated", {
+              debugId,
+              userId: userDoc.id,
+              subscriptionStatus: subscription.status,
+            })
+          }
+        } catch (error: any) {
+          console.error("❌ Failed to update subscription status", {
+            debugId,
+            error: error.message,
+            customerId: subscription.customer,
+          })
+        }
         break
 
       case "customer.subscription.updated":
@@ -140,6 +218,34 @@ export async function POST(request: NextRequest) {
           subscriptionId: updatedSubscription.id,
           status: updatedSubscription.status,
         })
+
+        try {
+          const usersQuery = await db.collection("users").where("subscriptionId", "==", updatedSubscription.id).get()
+
+          if (!usersQuery.empty) {
+            const userDoc = usersQuery.docs[0]
+            await userDoc.ref.set(
+              {
+                subscriptionStatus: updatedSubscription.status,
+                isPremium: updatedSubscription.status === "active",
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Subscription status updated", {
+              debugId,
+              userId: userDoc.id,
+              newStatus: updatedSubscription.status,
+            })
+          }
+        } catch (error: any) {
+          console.error("❌ Failed to update subscription", {
+            debugId,
+            error: error.message,
+            subscriptionId: updatedSubscription.id,
+          })
+        }
         break
 
       case "invoice.payment_succeeded":
