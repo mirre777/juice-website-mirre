@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: NextRequest) {
   const debugId = Math.random().toString(36).slice(2, 10)
 
-  console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION DISABLED) ===", {
+  console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
     debugId,
     timestamp: new Date().toISOString(),
     hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
@@ -29,22 +29,47 @@ export async function POST(request: NextRequest) {
       userAgent: request.headers.get("user-agent"),
     })
 
+    if (!signature) {
+      console.error("Missing Stripe signature header", { debugId })
+      return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 })
+    }
+
     let event: Stripe.Event
     try {
-      // Parse the event directly without signature verification
-      event = JSON.parse(rawBody) as Stripe.Event
-      console.log("⚠️  SIGNATURE VERIFICATION BYPASSED - Event parsed directly", {
+      // Trim webhook secret to remove any whitespace
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!.trim()
+
+      console.log("=== SIGNATURE VERIFICATION ATTEMPT ===", {
+        debugId,
+        webhookSecretLength: webhookSecret.length,
+        webhookSecretPrefix: webhookSecret.substring(0, 10),
+        signaturePrefix: signature.substring(0, 20),
+      })
+
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+
+      console.log("✅ SIGNATURE VERIFICATION SUCCESSFUL", {
         debugId,
         eventId: event.id,
         eventType: event.type,
       })
     } catch (err: any) {
-      console.error("Failed to parse webhook body as JSON", {
+      console.error("=== SIGNATURE VERIFICATION FAILED ===", {
         debugId,
         error: err.message,
-        bodyPreview: rawBody.substring(0, 200),
+        webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
+        webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
+        signatureExists: !!signature,
+        bodyLength: rawBody.length,
+        errorType: err.constructor.name,
       })
-      return NextResponse.json({ error: `JSON Parse Error: ${err.message}` }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: `Webhook signature verification failed: ${err.message}`,
+          debugId,
+        },
+        { status: 400 },
+      )
     }
 
     console.log("Processing webhook event", {
@@ -113,7 +138,7 @@ export async function POST(request: NextRequest) {
       debugId,
       eventType: event.type,
       eventId: event.id,
-      message: "⚠️  Webhook processed successfully (SIGNATURE VERIFICATION DISABLED)",
+      message: "✅ Webhook processed successfully with signature verification",
     })
   } catch (error: any) {
     console.error("Webhook processing error", {
