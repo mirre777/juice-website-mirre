@@ -1,4 +1,4 @@
-import { getPostBySlug, getPostSlugs } from "@/lib/blog"
+import { getPostBySlug, getPostSlugs, getAllPosts } from "@/lib/blog"
 import { notFound } from "next/navigation"
 import { MdxRenderer } from "@/components/mdx-renderer"
 import { Navbar } from "@/components/navbar"
@@ -30,7 +30,6 @@ export async function generateStaticParams() {
 
 // Helper function to get related articles (excluding current post)
 async function getRelatedArticles(currentSlug: string, limit = 2): Promise<BlogPostFrontmatter[]> {
-  const { getAllPosts } = await import("@/lib/blog")
   const allPosts = await getAllPosts()
 
   // Filter out current post and get random selection
