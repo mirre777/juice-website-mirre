@@ -19,11 +19,18 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text()
     const signature = request.headers.get("stripe-signature")
 
-    console.log("Webhook signature verification", {
+    console.log("=== DETAILED SIGNATURE DEBUG ===", {
       debugId,
       hasSignature: !!signature,
+      signatureLength: signature?.length,
+      fullSignature: signature, // Log full signature for debugging
       bodyLength: rawBody.length,
-      webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
+      bodyFirstChars: rawBody.substring(0, 100),
+      bodyLastChars: rawBody.substring(rawBody.length - 100),
+      webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
+      webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 10),
+      contentType: request.headers.get("content-type"),
+      userAgent: request.headers.get("user-agent"),
     })
 
     if (!signature) {
@@ -40,10 +47,14 @@ export async function POST(request: NextRequest) {
         eventType: event.type,
       })
     } catch (err: any) {
-      console.error("Webhook signature verification failed", {
+      console.error("=== SIGNATURE VERIFICATION FAILED ===", {
         debugId,
         error: err.message,
-        signatureHeader: signature?.substring(0, 20) + "...",
+        errorType: err.constructor.name,
+        signatureHeader: signature,
+        bodyHash: require("crypto").createHash("sha256").update(rawBody).digest("hex").substring(0, 16),
+        webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
+        stripeVersion: stripe.VERSION,
       })
       return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
     }
