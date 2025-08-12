@@ -103,7 +103,7 @@ importers:
         version: 7.8.0
       '@sveltejs/kit':
         specifier: latest
-        version: 2.27.3(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1))
+        version: 2.28.0(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1))
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
@@ -112,7 +112,7 @@ importers:
         version: 1.1.1
       '@vercel/speed-insights':
         specifier: latest
-        version: 1.2.0(@sveltejs/kit@2.27.3(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(next@15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(svelte@5.38.1)(vue-router@4.5.1(vue@3.5.18(typescript@5.0.2)))(vue@3.5.18(typescript@5.0.2))
+        version: 1.2.0(@sveltejs/kit@2.28.0(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(next@15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(svelte@5.38.1)(vue-router@4.5.1(vue@3.5.18(typescript@5.0.2)))(vue@3.5.18(typescript@5.0.2))
       child_process:
         specifier: latest
         version: 1.0.2
@@ -125,6 +125,9 @@ importers:
       cmdk:
         specifier: ^1.0.0
         version: 1.0.0(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      crypto:
+        specifier: latest
+        version: 1.0.1
       date-fns:
         specifier: latest
         version: 4.1.0
@@ -2062,8 +2065,8 @@ packages:
     peerDependencies:
       acorn: ^8.9.0
 
-  '@sveltejs/kit@2.27.3':
-    resolution: {integrity: sha512-jiG3NGZ8RRpi+ncjVnX+oR7uWEgzy//3YLGcTU5mHtjGraeGyNDr7GJFHlk7z0vi8bMXpXIUkEXj6p70FJmHvw==}
+  '@sveltejs/kit@2.28.0':
+    resolution: {integrity: sha512-qrhygwHV5r6JrvCw4gwNqqxYGDi5YbajocxfKgFXmSFpFo8wQobUvsM0OfakN4h+0LEmXtqHRrC6BcyAkOwyoQ==}
     engines: {node: '>=18.13'}
     hasBin: true
     peerDependencies:
@@ -2705,6 +2708,10 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
+
+  crypto@1.0.1:
+    resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
+    deprecated: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.
 
   cssesc@3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
@@ -6801,7 +6808,7 @@ snapshots:
     dependencies:
       acorn: 8.15.0
 
-  '@sveltejs/kit@2.27.3(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1))':
+  '@sveltejs/kit@2.28.0(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1))':
     dependencies:
       '@standard-schema/spec': 1.0.0
       '@sveltejs/acorn-typescript': 1.0.5(acorn@8.15.0)
@@ -7154,9 +7161,9 @@ snapshots:
       throttleit: 2.1.0
       undici: 5.29.0
 
-  '@vercel/speed-insights@1.2.0(@sveltejs/kit@2.27.3(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(next@15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(svelte@5.38.1)(vue-router@4.5.1(vue@3.5.18(typescript@5.0.2)))(vue@3.5.18(typescript@5.0.2))':
+  '@vercel/speed-insights@1.2.0(@sveltejs/kit@2.28.0(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(next@15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(svelte@5.38.1)(vue-router@4.5.1(vue@3.5.18(typescript@5.0.2)))(vue@3.5.18(typescript@5.0.2))':
     optionalDependencies:
-      '@sveltejs/kit': 2.27.3(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1))
+      '@sveltejs/kit': 2.28.0(@sveltejs/vite-plugin-svelte@6.1.0(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1)))(svelte@5.38.1)(vite@7.0.6(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.1))
       next: 15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react: 19.0.0
       svelte: 5.38.1
@@ -7511,6 +7518,8 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  crypto@1.0.1: {}
 
   cssesc@3.0.0: {}
 
