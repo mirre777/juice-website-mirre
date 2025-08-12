@@ -7,7 +7,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
-// Initialize Firebase Admin
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -17,133 +16,284 @@ if (!getApps().length) {
     }),
   })
 }
-
 const db = getFirestore()
 
 export async function POST(request: NextRequest) {
-  const body = await request.text()
-  const signature = request.headers.get("stripe-signature")
+  const debugId = Math.random().toString(36).slice(2, 10)
 
-  if (!signature) {
-    console.error("No Stripe signature found")
-    return NextResponse.json({ error: "No signature" }, { status: 400 })
-  }
-
-  let event: Stripe.Event
+  console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
+    debugId,
+    timestamp: new Date().toISOString(),
+    hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+    hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+  })
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
-  } catch (err: any) {
-    console.error("Webhook signature verification failed:", err.message)
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
-  }
+    const rawBody = await request.text()
+    const signature = request.headers.get("stripe-signature")
 
-  console.log("Webhook event received:", event.type)
+    console.log("=== DETAILED REQUEST DEBUG ===", {
+      debugId,
+      hasSignature: !!signature,
+      signatureLength: signature?.length,
+      bodyLength: rawBody.length,
+      bodyFirstChars: rawBody.substring(0, 100),
+      contentType: request.headers.get("content-type"),
+      userAgent: request.headers.get("user-agent"),
+    })
 
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent
-    console.log("Payment succeeded:", paymentIntent.id)
-
-    try {
-      const tempId = paymentIntent.metadata.tempId
-      if (!tempId) {
-        console.error("No tempId in payment metadata")
-        return NextResponse.json({ error: "Missing tempId" }, { status: 400 })
-      }
-
-      // Get temp trainer data
-      const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
-      if (!tempDoc.exists) {
-        console.error("Temp trainer not found:", tempId)
-        return NextResponse.json({ error: "Temp trainer not found" }, { status: 404 })
-      }
-
-      const tempData = tempDoc.data()!
-      console.log("Activating trainer:", tempData.name)
-
-      // Generate final trainer ID
-      const finalId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-      // Generate AI content for the trainer
-      const aiContent = await generateTrainerContent(tempData)
-
-      // Create final trainer document
-      const finalTrainerData = {
-        ...tempData,
-        id: finalId,
-        content: aiContent,
-        isActive: true,
-        activatedAt: new Date().toISOString(),
-        paymentIntentId: paymentIntent.id,
-        status: "active",
-      }
-
-      await db.collection("trainers").doc(finalId).set(finalTrainerData)
-      console.log("Trainer activated successfully:", finalId)
-
-      // Clean up temp data
-      await db.collection("tempTrainers").doc(tempId).delete()
-
-      return NextResponse.json({ success: true, finalId })
-    } catch (error) {
-      console.error("Error activating trainer:", error)
-      return NextResponse.json({ error: "Activation failed" }, { status: 500 })
+    if (!signature) {
+      console.error("Missing Stripe signature header", { debugId })
+      return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 })
     }
-  }
 
-  return NextResponse.json({ received: true })
+    let event: Stripe.Event
+    try {
+      // Trim webhook secret to remove any whitespace
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!.trim()
+
+      console.log("=== SIGNATURE VERIFICATION ATTEMPT ===", {
+        debugId,
+        webhookSecretLength: webhookSecret.length,
+        webhookSecretPrefix: webhookSecret.substring(0, 10),
+        signaturePrefix: signature.substring(0, 20),
+      })
+
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+
+      console.log("✅ SIGNATURE VERIFICATION SUCCESSFUL", {
+        debugId,
+        eventId: event.id,
+        eventType: event.type,
+      })
+    } catch (err: any) {
+      console.error("=== SIGNATURE VERIFICATION FAILED ===", {
+        debugId,
+        error: err.message,
+        webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
+        webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
+        signatureExists: !!signature,
+        bodyLength: rawBody.length,
+        errorType: err.constructor.name,
+      })
+      return NextResponse.json(
+        {
+          error: `Webhook signature verification failed: ${err.message}`,
+          debugId,
+        },
+        { status: 400 },
+      )
+    }
+
+    console.log("Processing webhook event", {
+      debugId,
+      eventId: event.id,
+      eventType: event.type,
+      livemode: event.livemode,
+    })
+
+    switch (event.type) {
+      case "checkout.session.completed":
+        const session = event.data.object as Stripe.Checkout.Session
+        console.log("✅ Processing checkout.session.completed", {
+          debugId,
+          sessionId: session.id,
+          customerId: session.customer,
+          subscriptionId: session.subscription,
+          clientReferenceId: session.client_reference_id,
+        })
+
+        if (session.client_reference_id && session.subscription) {
+          try {
+            const userId = session.client_reference_id
+
+            // Update user subscription status in Firebase
+            const userRef = db.collection("users").doc(userId)
+            await userRef.set(
+              {
+                subscriptionId: session.subscription,
+                customerId: session.customer,
+                subscriptionStatus: "active",
+                isPremium: true,
+                isActive: true,
+                activatedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ User subscription activated", {
+              debugId,
+              userId,
+              subscriptionId: session.subscription,
+            })
+          } catch (error: any) {
+            console.error("❌ Failed to activate user subscription", {
+              debugId,
+              error: error.message,
+              userId: session.client_reference_id,
+            })
+          }
+        }
+
+        if (session.client_reference_id && session.client_reference_id.startsWith("temp_")) {
+          try {
+            const trainerId = session.client_reference_id
+
+            // Update trainer status in Firebase
+            const trainerRef = db.collection("trainers").doc(trainerId)
+            await trainerRef.set(
+              {
+                status: "active",
+                isActive: true,
+                isPaid: true,
+                customerId: session.customer,
+                subscriptionId: session.subscription,
+                activatedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Trainer profile activated", {
+              debugId,
+              trainerId,
+              subscriptionId: session.subscription,
+            })
+          } catch (error: any) {
+            console.error("❌ Failed to activate trainer profile", {
+              debugId,
+              error: error.message,
+              trainerId: session.client_reference_id,
+            })
+          }
+        }
+
+        break
+
+      case "customer.subscription.created":
+        const subscription = event.data.object as Stripe.Subscription
+        console.log("✅ Processing customer.subscription.created", {
+          debugId,
+          subscriptionId: subscription.id,
+          customerId: subscription.customer,
+          status: subscription.status,
+        })
+
+        try {
+          // Find user by customer ID and update subscription status
+          const usersQuery = await db.collection("users").where("customerId", "==", subscription.customer).get()
+
+          if (!usersQuery.empty) {
+            const userDoc = usersQuery.docs[0]
+            await userDoc.ref.set(
+              {
+                subscriptionId: subscription.id,
+                subscriptionStatus: subscription.status,
+                isPremium: subscription.status === "active",
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Subscription status updated", {
+              debugId,
+              userId: userDoc.id,
+              subscriptionStatus: subscription.status,
+            })
+          }
+        } catch (error: any) {
+          console.error("❌ Failed to update subscription status", {
+            debugId,
+            error: error.message,
+            customerId: subscription.customer,
+          })
+        }
+        break
+
+      case "customer.subscription.updated":
+        const updatedSubscription = event.data.object as Stripe.Subscription
+        console.log("✅ Processing customer.subscription.updated", {
+          debugId,
+          subscriptionId: updatedSubscription.id,
+          status: updatedSubscription.status,
+        })
+
+        try {
+          const usersQuery = await db.collection("users").where("subscriptionId", "==", updatedSubscription.id).get()
+
+          if (!usersQuery.empty) {
+            const userDoc = usersQuery.docs[0]
+            await userDoc.ref.set(
+              {
+                subscriptionStatus: updatedSubscription.status,
+                isPremium: updatedSubscription.status === "active",
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Subscription status updated", {
+              debugId,
+              userId: userDoc.id,
+              newStatus: updatedSubscription.status,
+            })
+          }
+        } catch (error: any) {
+          console.error("❌ Failed to update subscription", {
+            debugId,
+            error: error.message,
+            subscriptionId: updatedSubscription.id,
+          })
+        }
+        break
+
+      case "invoice.payment_succeeded":
+        const invoice = event.data.object as Stripe.Invoice
+        console.log("✅ Processing invoice.payment_succeeded", {
+          debugId,
+          invoiceId: invoice.id,
+          subscriptionId: invoice.subscription,
+          amountPaid: invoice.amount_paid,
+        })
+        break
+
+      default:
+        console.log("Unhandled event type", {
+          debugId,
+          eventType: event.type,
+        })
+    }
+
+    return NextResponse.json({
+      success: true,
+      debugId,
+      eventType: event.type,
+      eventId: event.id,
+      message: "✅ Webhook processed successfully with signature verification",
+    })
+  } catch (error: any) {
+    console.error("Webhook processing error", {
+      debugId,
+      errorMessage: error.message,
+      errorStack: error.stack,
+    })
+
+    return NextResponse.json(
+      {
+        error: "Webhook processing failed",
+        debugId,
+        details: error.message,
+      },
+      { status: 500 },
+    )
+  }
 }
 
-async function generateTrainerContent(trainerData: any) {
-  return {
-    hero: {
-      title: `Transform Your Fitness with ${trainerData.name}`,
-      subtitle: `Professional ${trainerData.specialization} in ${trainerData.location}`,
-      description: `With ${trainerData.experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
-    },
-    about: {
-      title: "About Me",
-      content: `I'm ${trainerData.name}, a certified ${trainerData.specialization} based in ${trainerData.location}. With ${trainerData.experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results. My approach combines proven training methods with personalized attention to help you reach your fitness goals safely and effectively.`,
-    },
-    services: [
-      {
-        title: "Personal Training",
-        description: "One-on-one sessions tailored to your specific goals and fitness level",
-        price: "€80/session",
-      },
-      {
-        title: "Group Training",
-        description: "Small group sessions for motivation and cost-effective training",
-        price: "€35/session",
-      },
-      {
-        title: "Online Coaching",
-        description: "Remote coaching with custom workout plans and nutrition guidance",
-        price: "€150/month",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Working with this trainer has completely transformed my approach to fitness. The personalized programs really work!",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Professional, knowledgeable, and motivating. I've seen incredible results in just 3 months.",
-        rating: 5,
-      },
-      {
-        name: "Emma L.",
-        text: "The best investment I've made in my health. Highly recommend to anyone serious about fitness.",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData.email,
-      phone: trainerData.phone || "+31 6 1234 5678",
-      location: trainerData.location,
-      availability: "Monday - Saturday, 6:00 AM - 8:00 PM",
-    },
-  }
+export async function GET() {
+  return NextResponse.json({
+    message: "Stripe webhook endpoint is reachable",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+  })
 }

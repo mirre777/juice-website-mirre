@@ -1,74 +1,136 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { TrainerService } from "@/lib/firebase-trainer"
+
+type CreateBody = {
+  fullName?: string
+  email?: string
+  phone?: string
+  city?: string
+  district?: string
+  specialty?: string
+  certifications?: string
+  bio?: string
+  services?: string[]
+}
+
+function json(status: number, data: any) {
+  return new NextResponse(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json" },
+  })
+}
+
+function makeTempId() {
+  return `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+}
 
 export async function POST(request: NextRequest) {
+  // 1) Parse body safely
+  let body: CreateBody
   try {
-    const body = await request.json()
+    body = await request.json()
+  } catch {
+    return json(400, { error: "Invalid request body", details: "Expected JSON payload." })
+  }
 
-    const { fullName, email, phone, city, district, specialty, certifications, bio, services } = body
+  const {
+    fullName = "",
+    email = "",
+    phone = "",
+    city = "",
+    district = "",
+    specialty = "",
+    certifications = "",
+    bio = "",
+    services = [],
+  } = body
 
-    // Validate required fields (updated for new structure)
-    if (!fullName || !email || !city || !district || !specialty) {
-      return NextResponse.json(
-        {
-          error: "Missing required fields",
-          details: "Full name, email, city, district, and specialty are required",
-        },
-        { status: 400 },
-      )
+  // 2) Validate inputs (expected error handling)
+  const errors: Record<string, string> = {}
+  if (!fullName.trim()) errors.fullName = "Full name is required"
+  if (!email.trim()) errors.email = "Email is required"
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Invalid email format"
+  if (!city.trim()) errors.city = "City is required"
+  if (!district.trim()) errors.district = "District is required"
+  if (!specialty.trim()) errors.specialty = "Specialty is required"
+
+  if (Object.keys(errors).length > 0) {
+    return json(400, { error: "Validation failed", details: errors })
+  }
+
+  // 3) Build the document
+  const now = new Date()
+  const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000) // +24h
+  const tempId = makeTempId()
+
+  const doc = {
+    id: tempId,
+    fullName: fullName.trim(),
+    email: email.trim().toLowerCase(),
+    phone: phone?.trim() || "",
+    city: city.trim(),
+    district: district.trim(),
+    specialty: specialty.trim(),
+    certifications: certifications?.trim() || "",
+    bio: bio?.trim() || "",
+    services: Array.isArray(services) ? services : [],
+    status: "temp" as const,
+    isActive: false,
+    isPaid: false,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    expiresAt: expires.toISOString(),
+    customization: {
+      isDraft: false,
+      lastUpdated: now.toISOString(),
+      version: 1,
+    },
+  }
+
+  // 4) Lazy-initialize Firebase Admin and write to Firestore
+  try {
+    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY
+
+    if (!privateKey && typeof privateKey === "string") {
+      // no-op; guard to satisfy types
+    }
+    if (privateKey && privateKey.includes("\\n")) {
+      privateKey = privateKey.replace(/\\n/g, "\n")
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        {
-          error: "Invalid email format",
-        },
-        { status: 400 },
-      )
+    // Dynamic import to avoid crashing at module load time
+    const { getApps, initializeApp, cert } = await import("firebase-admin/app")
+    const { getFirestore } = await import("firebase-admin/firestore")
+
+    if (getApps().length === 0) {
+      if (!projectId || !clientEmail || !privateKey) {
+        return json(500, {
+          error: "Server misconfiguration",
+          details:
+            "Firebase Admin is not initialized. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
+        })
+      }
+      initializeApp({
+        credential: cert({ projectId, clientEmail, privateKey }),
+      })
     }
 
-    // Validate city and district are not empty strings
-    if (city.trim().length === 0 || district.trim().length === 0) {
-      return NextResponse.json(
-        {
-          error: "City and district cannot be empty",
-        },
-        { status: 400 },
-      )
-    }
-
-    // Create temp trainer with new field structure
-    const tempId = await TrainerService.createTempTrainer({
-      fullName: fullName.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone?.trim() || "",
-      city: city.trim(),
-      district: district.trim(),
-      specialty: specialty.trim(),
-      certifications: certifications?.trim() || "",
-      bio: bio?.trim() || "",
-      services: services || [],
-      status: "pending",
-    })
+    const db = getFirestore()
+    await db.collection("trainers").doc(tempId).set(doc, { merge: false })
 
     const redirectUrl = `/marketplace/trainer/temp/${tempId}`
-
-    return NextResponse.json({
+    return json(200, {
       success: true,
       tempId,
       redirectUrl,
       message: "Trainer profile created successfully",
     })
-  } catch (error) {
-    console.error("Error creating trainer:", error)
-    return NextResponse.json(
-      {
-        error: "Failed to create trainer profile",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+  } catch (err) {
+    console.error("Error creating trainer doc:", err)
+    return json(500, {
+      error: "Failed to create trainer profile",
+      details: err instanceof Error ? err.message : "Unknown error",
+    })
   }
 }

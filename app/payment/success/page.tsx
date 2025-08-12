@@ -1,127 +1,115 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
-import { PaymentSuccess } from "@/components/payment/payment-success"
-import { useTheme } from "@/components/theme-provider"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
 
-// API URL for your separate API project
-const API_URL = "https://juice-api.vercel.app" // Replace with your actual API URL
+type Status = "initial" | "verifying" | "activating" | "success" | "error"
 
 export default function PaymentSuccessPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const { isCoach } = useTheme()
-  const [verificationStatus, setVerificationStatus] = useState<"loading" | "success" | "error">("loading")
-  const [planName, setPlanName] = useState("Premium")
+
+  const [status, setStatus] = useState<Status>("initial")
+  const [message, setMessage] = useState<string>("")
+  const [trainerId, setTrainerId] = useState<string | null>(null)
 
   useEffect(() => {
-    const verifyPayment = async () => {
+    const run = async () => {
+      setStatus("verifying")
+
+      // payment_intent from Stripe redirect; fallback to local storage
+      const paymentIntentId =
+        searchParams.get("payment_intent") ||
+        localStorage.getItem("juice_payment_reference") ||
+        ""
+
+      if (!paymentIntentId) {
+        setStatus("error")
+        setMessage("No payment reference found.")
+        return
+      }
+
       try {
-        // Get payment_intent from URL or localStorage
-        const paymentIntentId = searchParams.get("payment_intent") || localStorage.getItem("juice_payment_reference")
-
-        if (!paymentIntentId) {
-          console.error("No payment reference found")
-          setVerificationStatus("error")
-          return
-        }
-
-        // Call your verification API - updated to use the new API URL
-        const response = await fetch(`${API_URL}/api/verify-payment`, {
+        // Activate on the backend (idempotent). This verifies payment server-side.
+        setStatus("activating")
+        const res = await fetch("/api/trainer/activate", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ paymentIntentId }),
         })
+        const data = await res.json()
 
-        const data = await response.json()
-
-        if (response.ok && data.success) {
-          setVerificationStatus("success")
-          // If the API returns plan info, use it
-          if (data.plan) {
-            setPlanName(data.plan)
-          }
-
-          // Store subscription data in localStorage before redirecting
-          const subscriptionData = {
-            id: paymentIntentId,
-            status: "active",
-            plan: data.plan || "premium",
-            planType: data.planType || "Premium Subscription",
-            paymentDate: new Date().toISOString(),
-            nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            isPremium: true,
-          }
-
-          localStorage.setItem("juice_user_subscription", JSON.stringify(subscriptionData))
-        } else {
-          console.error("Payment verification failed:", data.message)
-          setVerificationStatus("error")
+        if (!res.ok || !data?.success) {
+          throw new Error(data?.error || "Activation failed")
         }
-      } catch (error) {
-        console.error("Error verifying payment:", error)
-        setVerificationStatus("error")
+
+        const id = data.trainerId as string
+        setTrainerId(id)
+        setStatus("success")
+        setMessage("Your trainer profile has been activated successfully.")
+
+        // Cleanup local reference (if any)
+        localStorage.removeItem("juice_payment_reference")
+
+        // Redirect to the live trainer page after a short delay
+        setTimeout(() => {
+          router.replace(`/marketplace/trainer/${id}`)
+        }, 1200)
+      } catch (e: any) {
+        console.error("Payment success page error:", e?.message || e)
+        setStatus("error")
+        setMessage(e?.message || "We couldn't activate your profile. Please try again.")
       }
     }
 
-    verifyPayment()
-  }, [searchParams])
+    run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  if (verificationStatus === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div
-            className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-juice border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-            role="status"
-          >
-            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-              Verifying payment...
-            </span>
-          </div>
-          <p className={`mt-4 text-lg font-medium ${isCoach ? "text-black" : "text-white"}`}>
-            Verifying your payment...
-          </p>
-        </div>
+  return (
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-lg border p-6">
+        {status === "verifying" || status === "activating" ? (
+          <>
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-r-transparent" />
+            <h1 className="text-xl font-semibold text-center">
+              {status === "verifying" ? "Verifying your payment..." : "Activating your profile..."}
+            </h1>
+            <p className="mt-2 text-center text-muted-foreground">
+              This only takes a few seconds. Please don&apos;t close this page.
+            </p>
+          </>
+        ) : status === "success" ? (
+          <>
+            <h1 className="text-xl font-semibold text-center">Success!</h1>
+            <p className="mt-2 text-center text-muted-foreground">{message}</p>
+            {trainerId && (
+              <div className="mt-6 flex justify-center">
+                <Button onClick={() => router.replace(`/marketplace/trainer/${trainerId}`)}>
+                  View Your Live Page
+                </Button>
+              </div>
+            )}
+          </>
+        ) : status === "error" ? (
+          <>
+            <h1 className="text-xl font-semibold text-center text-red-600">Activation Problem</h1>
+            <p className="mt-2 text-center text-muted-foreground">{message}</p>
+            <div className="mt-6 flex justify-center gap-3">
+              <Button variant="secondary" onClick={() => router.replace("/marketplace/personal-trainer-website")}>
+                Back to Start
+              </Button>
+              <Button onClick={() => router.refresh()}>Try Again</Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-semibold text-center">Finalizing...</h1>
+            <p className="mt-2 text-center text-muted-foreground">Preparing your confirmation.</p>
+          </>
+        )}
       </div>
-    )
-  }
-
-  if (verificationStatus === "error") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-          <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/30">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <h2 className={`mt-4 text-xl font-bold ${isCoach ? "text-black" : "text-white"}`}>
-            Payment Verification Failed
-          </h2>
-          <p className={`mt-2 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-            We couldn't verify your payment. Please contact our support team for assistance.
-          </p>
-          <div className="mt-6">
-            <a
-              href="/contact"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-juice hover:bg-juice/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-juice"
-            >
-              Contact Support
-            </a>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return <PaymentSuccess planName={planName} />
+    </main>
+  )
 }

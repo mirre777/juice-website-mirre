@@ -1,13 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
+import Stripe from "stripe"
 import { initializeApp, getApps, cert } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
-import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 })
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin once
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -17,108 +17,96 @@ if (!getApps().length) {
     }),
   })
 }
-
 const db = getFirestore()
 
-export async function POST(request: NextRequest) {
-  try {
-    const { tempId, paymentIntentId } = await request.json()
+async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string) {
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
 
-    if (!tempId || !paymentIntentId) {
-      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 })
+  let trainerId =
+    (pi.metadata as any)?.trainerId ||
+    (pi.metadata as any)?.tempId ||
+    undefined
+
+  if (!trainerId) {
+    // Fall back to checkout session if used
+    const sessions = await stripe.checkout.sessions.list({ payment_intent: paymentIntentId, limit: 1 })
+    const session = sessions.data[0]
+    if (session?.client_reference_id) {
+      trainerId = session.client_reference_id
     }
-
-    console.log("Activating trainer:", { tempId, paymentIntentId })
-
-    // Verify payment intent
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-    if (paymentIntent.status !== "succeeded") {
-      return NextResponse.json({ error: "Payment not completed" }, { status: 400 })
-    }
-
-    // Get temp trainer data
-    const tempDoc = await db.collection("tempTrainers").doc(tempId).get()
-    if (!tempDoc.exists) {
-      return NextResponse.json({ error: "Temp trainer not found" }, { status: 404 })
-    }
-
-    const tempData = tempDoc.data()!
-
-    // Generate final trainer ID
-    const finalId = `trainer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-    // Generate AI content
-    const aiContent = await generateTrainerContent(tempData)
-
-    // Create final trainer document
-    const finalTrainerData = {
-      ...tempData,
-      id: finalId,
-      content: aiContent,
-      isActive: true,
-      activatedAt: new Date().toISOString(),
-      paymentIntentId,
-      status: "active",
-    }
-
-    await db.collection("trainers").doc(finalId).set(finalTrainerData)
-    console.log("Trainer activated successfully:", finalId)
-
-    // Clean up temp data
-    await db.collection("tempTrainers").doc(tempId).delete()
-
-    return NextResponse.json({ success: true, finalId })
-  } catch (error) {
-    console.error("Activation error:", error)
-    return NextResponse.json({ error: "Activation failed" }, { status: 500 })
   }
+  return trainerId
 }
 
-async function generateTrainerContent(trainerData: any) {
-  return {
-    hero: {
-      title: `Transform Your Fitness with ${trainerData.name}`,
-      subtitle: `Professional ${trainerData.specialization} in ${trainerData.location}`,
-      description: `With ${trainerData.experience} of experience, I help clients achieve their fitness goals through personalized training programs and expert guidance.`,
+async function activateTrainerDocInPlace(trainerId: string, paymentIntentId: string) {
+  const ref = db.collection("trainers").doc(trainerId)
+  const snap = await ref.get()
+  if (!snap.exists) {
+    return { ok: false as const, status: 404, message: "Trainer not found" }
+  }
+
+  const data = snap.data() || {}
+  if (data.isPaid === true || data.status === "active" || data.isActive === true) {
+    // idempotent no-op
+    await ref.set(
+      {
+        paymentIntentId,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    )
+    return { ok: true as const, trainerId, alreadyActive: true as const }
+  }
+
+  await ref.set(
+    {
+      status: "active",
+      isActive: true,
+      isPaid: true,
+      paymentIntentId,
+      activatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
-    about: {
-      title: "About Me",
-      content: `I'm ${trainerData.name}, a certified ${trainerData.specialization} based in ${trainerData.location}. With ${trainerData.experience} in the fitness industry, I specialize in creating customized workout plans that deliver real results.`,
-    },
-    services: [
-      {
-        title: "Personal Training",
-        description: "One-on-one sessions tailored to your specific goals",
-        price: "€80/session",
-      },
-      {
-        title: "Group Training",
-        description: "Small group sessions for motivation",
-        price: "€35/session",
-      },
-      {
-        title: "Online Coaching",
-        description: "Remote coaching with custom plans",
-        price: "€150/month",
-      },
-    ],
-    testimonials: [
-      {
-        name: "Sarah M.",
-        text: "Working with this trainer has completely transformed my approach to fitness!",
-        rating: 5,
-      },
-      {
-        name: "Mike R.",
-        text: "Professional, knowledgeable, and motivating. Incredible results!",
-        rating: 5,
-      },
-    ],
-    contact: {
-      email: trainerData.email,
-      phone: trainerData.phone || "+31 6 1234 5678",
-      location: trainerData.location,
-      availability: "Monday - Saturday, 6:00 AM - 8:00 PM",
-    },
+    { merge: true }
+  )
+  return { ok: true as const, trainerId }
+}
+
+/**
+ * POST /api/trainer/activate
+ * Body: { paymentIntentId: string }
+ * Verifies payment with Stripe and flips status/isActive/isPaid on trainers/<trainerId> idempotently.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const { paymentIntentId } = await request.json()
+
+    if (!paymentIntentId) {
+      return NextResponse.json({ error: "paymentIntentId is required" }, { status: 400 })
+    }
+
+    const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
+    if (pi.status !== "succeeded") {
+      return NextResponse.json({ error: "Payment not completed", status: pi.status }, { status: 400 })
+    }
+
+    const trainerId =
+      (pi.metadata as any)?.trainerId ||
+      (pi.metadata as any)?.tempId ||
+      (await resolveTrainerIdFromPaymentIntent(paymentIntentId))
+
+    if (!trainerId) {
+      return NextResponse.json({ error: "Unable to resolve trainerId from payment" }, { status: 400 })
+    }
+
+    const result = await activateTrainerDocInPlace(trainerId, paymentIntentId)
+    if (!("ok" in result) || !result.ok) {
+      return NextResponse.json({ error: result.message || "Activation failed" }, { status: result.status || 500 })
+    }
+
+    return NextResponse.json({ success: true, trainerId, alreadyActive: (result as any).alreadyActive === true })
+  } catch (error: any) {
+    console.error("Activation error:", error?.message || error)
+    return NextResponse.json({ error: "Activation failed" }, { status: 500 })
   }
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useRouter } from "next/navigation"
 
 interface FormData {
@@ -85,6 +84,22 @@ const TrustShield = ({ className = "w-8 h-8" }: { className?: string }) => (
   </svg>
 )
 
+async function parseApiResponse(response: Response): Promise<{ ok: boolean; status: number; body: any }> {
+  const contentType = response.headers.get("content-type") || ""
+  try {
+    if (contentType.includes("application/json")) {
+      const json = await response.json()
+      return { ok: response.ok, status: response.status, body: json }
+    } else {
+      const text = await response.text()
+      return { ok: response.ok, status: response.status, body: text ? { message: text } : {} }
+    }
+  } catch (err) {
+    console.error("Failed to parse API response", err)
+    return { ok: response.ok, status: response.status, body: {} }
+  }
+}
+
 export default function PersonalTrainerWebsitePage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -112,14 +127,6 @@ export default function PersonalTrainerWebsitePage() {
     }
   }
 
-  // Calculate progress
-  const getFieldValue = (field: string) => {
-    if (field === "services") {
-      return formData.services.length > 0
-    }
-    return formData[field as keyof FormData] !== ""
-  }
-
   const getTotalFilledFields = () => {
     const allFields = [
       "fullName",
@@ -137,15 +144,14 @@ export default function PersonalTrainerWebsitePage() {
         return formData.services.length > 0
       }
       if (field === "bio" || field === "certifications" || field === "phone") {
-        // Optional fields
         return true
       }
-      return formData[field as keyof FormData] !== ""
+      return (formData as any)[field] !== ""
     }).length
   }
 
   const getRequiredFieldsCount = () => {
-    return 6 // fullName, email, specialty, city, district + at least one optional field
+    return 6 // informational only
   }
 
   const validateCurrentStep = (): boolean => {
@@ -185,11 +191,7 @@ export default function PersonalTrainerWebsitePage() {
   }
 
   const canProceedToNext = (): boolean => {
-    const currentFields = formSteps[currentStep].fields
-
-    // For required fields steps
     if (currentStep === 0) {
-      // Basic info
       return (
         formData.fullName.trim() !== "" &&
         formData.email.trim() !== "" &&
@@ -197,28 +199,22 @@ export default function PersonalTrainerWebsitePage() {
       )
     }
     if (currentStep === 1) {
-      // Contact & Specialty
       return formData.specialty !== ""
     }
     if (currentStep === 2) {
-      // Location
       return formData.city.trim() !== "" && formData.district.trim() !== ""
     }
-
-    // Optional steps can always proceed
     return true
   }
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
+    if ((errors as any)[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
   }
 
   const handleServiceToggle = (service: string, event?: React.MouseEvent) => {
-    // Prevent any event bubbling that might trigger form submission
     if (event) {
       event.preventDefault()
       event.stopPropagation()
@@ -244,40 +240,34 @@ export default function PersonalTrainerWebsitePage() {
     }
   }
 
+  const doSubmit = async () => {
+    const response = await fetch("/api/trainer/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+    return parseApiResponse(response)
+  }
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
-    // Only submit if we're on the last step
-    if (currentStep !== formSteps.length - 1) {
-      return
-    }
-
-    if (!validateCurrentStep()) {
-      return
-    }
-
+    if (currentStep !== formSteps.length - 1) return
+    if (!validateCurrentStep()) return
     setIsSubmitting(true)
-
     try {
-      const response = await fetch("/api/trainer/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        router.push(data.redirectUrl)
-      } else {
-        console.error("Form submission failed:", data.error)
-        alert(data.error || "Failed to create trainer profile. Please try again.")
+      const { ok, status, body } = await doSubmit()
+      if (ok && body?.success) {
+        return router.push(body.redirectUrl)
       }
-    } catch (error) {
-      console.error("Form submission error:", error)
+      const msg =
+        body?.error ||
+        body?.message ||
+        `Failed to create trainer profile. Server responded with status ${status}.`
+      console.error("Form submission failed:", { status, body })
+      alert(msg)
+    } catch (err) {
+      console.error("Form submission error:", err)
       alert("An unexpected error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
@@ -287,37 +277,22 @@ export default function PersonalTrainerWebsitePage() {
   const handleExplicitSubmit = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
-    // Only submit if we're on the last step
-    if (currentStep !== formSteps.length - 1) {
-      return
-    }
-
-    if (!validateCurrentStep()) {
-      return
-    }
-
+    if (currentStep !== formSteps.length - 1) return
+    if (!validateCurrentStep()) return
     setIsSubmitting(true)
-
     try {
-      const response = await fetch("/api/trainer/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        router.push(data.redirectUrl)
-      } else {
-        console.error("Form submission failed:", data.error)
-        alert(data.error || "Failed to create trainer profile. Please try again.")
+      const { ok, status, body } = await doSubmit()
+      if (ok && body?.success) {
+        return router.push(body.redirectUrl)
       }
-    } catch (error) {
-      console.error("Form submission error:", error)
+      const msg =
+        body?.error ||
+        body?.message ||
+        `Failed to create trainer profile. Server responded with status ${status}.`
+      console.error("Form submission failed:", { status, body })
+      alert(msg)
+    } catch (err) {
+      console.error("Form submission error:", err)
       alert("An unexpected error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
@@ -326,7 +301,6 @@ export default function PersonalTrainerWebsitePage() {
 
   const renderCurrentStepFields = () => {
     const step = formSteps[currentStep]
-
     switch (step.id) {
       case "basic":
         return (
@@ -345,7 +319,6 @@ export default function PersonalTrainerWebsitePage() {
               />
               {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
             </div>
-
             <div>
               <Label htmlFor="email" className="text-base font-medium">
                 Email Address <span className="text-red-500">*</span>
@@ -363,7 +336,6 @@ export default function PersonalTrainerWebsitePage() {
             </div>
           </div>
         )
-
       case "contact":
         return (
           <div className="space-y-6">
@@ -380,7 +352,6 @@ export default function PersonalTrainerWebsitePage() {
                 disabled={isSubmitting}
               />
             </div>
-
             <div>
               <Label htmlFor="specialty" className="text-base font-medium">
                 Primary Specialty <span className="text-red-500">*</span>
@@ -405,7 +376,6 @@ export default function PersonalTrainerWebsitePage() {
             </div>
           </div>
         )
-
       case "location":
         return (
           <div className="space-y-6">
@@ -423,7 +393,6 @@ export default function PersonalTrainerWebsitePage() {
               />
               {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
             </div>
-
             <div>
               <Label htmlFor="district" className="text-base font-medium">
                 District <span className="text-red-500">*</span>
@@ -440,7 +409,6 @@ export default function PersonalTrainerWebsitePage() {
             </div>
           </div>
         )
-
       case "bio":
         return (
           <div>
@@ -470,7 +438,6 @@ export default function PersonalTrainerWebsitePage() {
             </div>
           </div>
         )
-
       case "certifications":
         return (
           <div>
@@ -490,7 +457,6 @@ export default function PersonalTrainerWebsitePage() {
             />
           </div>
         )
-
       case "services":
         return (
           <div>
@@ -504,10 +470,7 @@ export default function PersonalTrainerWebsitePage() {
                   <Checkbox
                     id={service}
                     checked={formData.services?.includes(service) || false}
-                    onCheckedChange={(checked) => {
-                      // Only update the state, don't trigger any form submission
-                      handleServiceToggle(service)
-                    }}
+                    onCheckedChange={() => handleServiceToggle(service)}
                     disabled={isSubmitting}
                   />
                   <Label
@@ -526,7 +489,6 @@ export default function PersonalTrainerWebsitePage() {
             </div>
           </div>
         )
-
       default:
         return null
     }
@@ -686,7 +648,7 @@ export default function PersonalTrainerWebsitePage() {
                   <div
                     className="bg-[#D2FF28] h-2 rounded-full transition-all duration-300"
                     style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
-                  ></div>
+                  />
                 </div>
                 <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
               </div>
