@@ -241,12 +241,24 @@ function extractTitleAndExcerpt(content: string): { title: string | null; excerp
 }
 
 // Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(url: string): Promise<string> {
-  console.log(`[fetchBlobContent] Fetching: ${url}`)
+async function fetchBlobContent(pathname: string): Promise<string> {
+  console.log(`[fetchBlobContent] Fetching blob: ${pathname}`)
+
+  if (!BLOB_TOKEN) {
+    throw new Error("BLOB_TOKEN is required")
+  }
 
   try {
-    // For Vercel Blob, the URLs should be publicly accessible
-    const response = await fetch(url)
+    // Use the Vercel Blob SDK to get the content
+    const { blobs } = await list({ prefix: pathname, token: BLOB_TOKEN })
+    const targetBlob = blobs.find((b) => b.pathname === pathname)
+
+    if (!targetBlob) {
+      throw new Error(`Blob not found: ${pathname}`)
+    }
+
+    // Fetch the content using the blob URL
+    const response = await fetch(targetBlob.url)
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -256,7 +268,7 @@ async function fetchBlobContent(url: string): Promise<string> {
     console.log(`[fetchBlobContent] ✅ Success, content length: ${content.length}`)
     return content
   } catch (error) {
-    console.error(`[fetchBlobContent] ❌ Failed to fetch ${url}:`, error)
+    console.error(`[fetchBlobContent] ❌ Failed to fetch ${pathname}:`, error)
     throw error
   }
 }
@@ -305,13 +317,17 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
 
           try {
-            const fileContents = await fetchBlobContent(blob.url)
+            const fileContents = await fetchBlobContent(blob.pathname)
 
             const slug = blob.pathname
               .replace(BLOG_CONTENT_PATH, "")
               .replace(/\.md$/, "")
-              .replace(/^-/, "") // Remove leading dash
-              .replace(/-$/, "") // Remove trailing dash
+              .replace(/^-+/, "") // Remove leading dashes
+              .replace(/-+$/, "") // Remove trailing dashes
+              .replace(/\s+$$\d+$$.*$/, "") // Remove "(1)" and everything after
+              .replace(/[^a-zA-Z0-9-]/g, "-") // Replace special chars with dashes
+              .replace(/-+/g, "-") // Collapse multiple dashes
+              .toLowerCase()
 
             console.log(`[getAllPosts] Extracted slug: ${slug}`)
 
