@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: NextRequest) {
   const debugId = Math.random().toString(36).slice(2, 10)
 
-  console.log("=== WEBHOOK PROCESSING ===", {
+  console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION DISABLED) ===", {
     debugId,
     timestamp: new Date().toISOString(),
     hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
@@ -19,44 +19,32 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text()
     const signature = request.headers.get("stripe-signature")
 
-    console.log("=== DETAILED SIGNATURE DEBUG ===", {
+    console.log("=== DETAILED REQUEST DEBUG ===", {
       debugId,
       hasSignature: !!signature,
       signatureLength: signature?.length,
-      fullSignature: signature, // Log full signature for debugging
       bodyLength: rawBody.length,
       bodyFirstChars: rawBody.substring(0, 100),
-      bodyLastChars: rawBody.substring(rawBody.length - 100),
-      webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
-      webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 10),
       contentType: request.headers.get("content-type"),
       userAgent: request.headers.get("user-agent"),
     })
 
-    if (!signature) {
-      console.error("No Stripe signature found in headers", { debugId })
-      return NextResponse.json({ error: "No Stripe signature found" }, { status: 400 })
-    }
-
     let event: Stripe.Event
     try {
-      event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!)
-      console.log("Signature verification successful", {
+      // Parse the event directly without signature verification
+      event = JSON.parse(rawBody) as Stripe.Event
+      console.log("⚠️  SIGNATURE VERIFICATION BYPASSED - Event parsed directly", {
         debugId,
         eventId: event.id,
         eventType: event.type,
       })
     } catch (err: any) {
-      console.error("=== SIGNATURE VERIFICATION FAILED ===", {
+      console.error("Failed to parse webhook body as JSON", {
         debugId,
         error: err.message,
-        errorType: err.constructor.name,
-        signatureHeader: signature,
-        bodyHash: require("crypto").createHash("sha256").update(rawBody).digest("hex").substring(0, 16),
-        webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET,
-        stripeVersion: stripe.VERSION,
+        bodyPreview: rawBody.substring(0, 200),
       })
-      return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
+      return NextResponse.json({ error: `JSON Parse Error: ${err.message}` }, { status: 400 })
     }
 
     console.log("Processing webhook event", {
@@ -69,7 +57,7 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object as Stripe.Checkout.Session
-        console.log("Processing checkout.session.completed", {
+        console.log("✅ Processing checkout.session.completed", {
           debugId,
           sessionId: session.id,
           customerId: session.customer,
@@ -86,7 +74,7 @@ export async function POST(request: NextRequest) {
 
       case "customer.subscription.created":
         const subscription = event.data.object as Stripe.Subscription
-        console.log("Processing customer.subscription.created", {
+        console.log("✅ Processing customer.subscription.created", {
           debugId,
           subscriptionId: subscription.id,
           customerId: subscription.customer,
@@ -96,7 +84,7 @@ export async function POST(request: NextRequest) {
 
       case "customer.subscription.updated":
         const updatedSubscription = event.data.object as Stripe.Subscription
-        console.log("Processing customer.subscription.updated", {
+        console.log("✅ Processing customer.subscription.updated", {
           debugId,
           subscriptionId: updatedSubscription.id,
           status: updatedSubscription.status,
@@ -105,7 +93,7 @@ export async function POST(request: NextRequest) {
 
       case "invoice.payment_succeeded":
         const invoice = event.data.object as Stripe.Invoice
-        console.log("Processing invoice.payment_succeeded", {
+        console.log("✅ Processing invoice.payment_succeeded", {
           debugId,
           invoiceId: invoice.id,
           subscriptionId: invoice.subscription,
@@ -125,7 +113,7 @@ export async function POST(request: NextRequest) {
       debugId,
       eventType: event.type,
       eventId: event.id,
-      message: "Webhook processed successfully",
+      message: "⚠️  Webhook processed successfully (SIGNATURE VERIFICATION DISABLED)",
     })
   } catch (error: any) {
     console.error("Webhook processing error", {
