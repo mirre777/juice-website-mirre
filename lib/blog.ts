@@ -3666,64 +3666,70 @@ export async function getPostSlugs(): Promise<string[]> {
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log("[getAllPosts] Fetching all blog posts...")
 
+  const allPosts: BlogPostFrontmatter[] = [
+    ...SAMPLE_POSTS.map((post) => ({
+      ...post,
+      source: "hardcoded" as const,
+    })),
+  ]
+
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN
   console.log("[getAllPosts] BLOB_TOKEN available:", !!blobToken)
 
-  if (!blobToken) {
-    console.log("[getAllPosts] No BLOB_TOKEN, using sample posts")
-    return SAMPLE_POSTS
-  }
+  if (blobToken) {
+    try {
+      const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: blobToken })
+      console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
-  try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: blobToken })
-    console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
+      for (const blob of blobs) {
+        if (blob.pathname.endsWith(".md")) {
+          console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
 
-    const posts: BlogPostFrontmatter[] = []
+          try {
+            const fileContents = await fetchBlobContent(blob.url)
+            console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
 
-    for (const blob of blobs) {
-      if (blob.pathname.endsWith(".md")) {
-        console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
+            const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+            console.log(`[getAllPosts] Extracted slug: ${slug}`)
 
-        try {
-          const fileContents = await fetchBlobContent(blob.url)
-          console.log(`[getAllPosts] Fetched content length: ${fileContents.length} chars`)
+            const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+            const extracted = extractTitleAndExcerpt(content)
 
-          const slug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+            const title = data.title || extracted.title || `Post: ${slug}`
+            const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-          console.log(`[getAllPosts] Extracted slug: ${slug}`)
+            console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
 
-          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-
-          const extracted = extractTitleAndExcerpt(content)
-
-          const title = data.title || extracted.title || `Post: ${slug}`
-          const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-          console.log(`[getAllPosts] Processed post - Title: ${title}, Excerpt length: ${excerpt.length}`)
-
-          posts.push({
-            title: title,
-            date: data.date || new Date().toISOString().split("T")[0],
-            category: data.category || "Uncategorized",
-            excerpt: excerpt,
-            image: data.image || undefined,
-            slug: slug,
-          })
-        } catch (error) {
-          console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
-          continue
+            allPosts.push({
+              title: title,
+              date: data.date || new Date().toISOString().split("T")[0],
+              category: data.category || "Uncategorized",
+              excerpt: excerpt,
+              image: data.image || undefined,
+              slug: slug,
+              source: "blob" as const,
+            })
+          } catch (error) {
+            console.error(`[getAllPosts] Error processing blob ${blob.pathname}:`, error)
+            continue
+          }
         }
       }
+
+      console.log(
+        `[getAllPosts] Successfully added ${blobs.filter((b) => b.pathname.endsWith(".md")).length} posts from blob storage`,
+      )
+    } catch (error) {
+      console.error("[getAllPosts] Error fetching from blob storage, continuing with hardcoded posts only:", error)
     }
-
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-    console.log(`[getAllPosts] Successfully processed ${posts.length} posts from blob storage`)
-    return posts.length > 0 ? posts : SAMPLE_POSTS
-  } catch (error) {
-    console.error("[getAllPosts] Error fetching from blob storage, falling back to samples:", error)
-    return SAMPLE_POSTS
+  } else {
+    console.log("[getAllPosts] No BLOB_TOKEN, using hardcoded posts only")
   }
+
+  allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  console.log(`[getAllPosts] Returning ${allPosts.length} total posts (hardcoded + blob)`)
+  return allPosts
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
