@@ -381,96 +381,61 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
       const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: blobToken })
       console.log(`[getAllPosts] 📁 Found ${blobs.length} total blobs with prefix "${BLOG_CONTENT_PATH}"`)
 
-      // Log all found blobs
-      blobs.forEach((blob, index) => {
-        console.log(`[getAllPosts] Blob ${index + 1}: ${blob.pathname} (${blob.size} bytes, ${blob.contentType})`)
-      })
-
       const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
       console.log(`[getAllPosts] 📝 Filtered to ${markdownBlobs.length} markdown files`)
 
-      let processedCount = 0
-      let errorCount = 0
-
-      for (let i = 0; i < markdownBlobs.length; i++) {
-        const blob = markdownBlobs[i]
-        console.log(
-          `[getAllPosts] ==================== PROCESSING BLOB ${i + 1}/${markdownBlobs.length} ====================`,
-        )
-        console.log(`[getAllPosts] 📄 Current blob:`, {
-          pathname: blob.pathname,
-          size: blob.size,
-          contentType: blob.contentType,
-          url: blob.url,
-        })
+      if (markdownBlobs.length > 0) {
+        const firstBlob = markdownBlobs[0]
+        console.log(`[getAllPosts] 🎯 TESTING FIRST BLOB ONLY: ${firstBlob.pathname}`)
 
         try {
-          console.log(`[getAllPosts] 🔄 STEP 1: Fetching content...`)
-          const fileContents = await fetchBlobContent(blob.pathname)
-          console.log(`[getAllPosts] ✅ STEP 1 COMPLETE: Content length ${fileContents.length}`)
+          console.log(`[getAllPosts] 🔄 Using downloadUrl directly: ${firstBlob.downloadUrl}`)
 
-          console.log(`[getAllPosts] 🔄 STEP 2: Processing filename...`)
-          const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-          console.log(`[getAllPosts] Raw slug extracted: "${rawSlug}"`)
+          // Try direct fetch from downloadUrl (should be publicly accessible)
+          const response = await fetch(firstBlob.downloadUrl)
+          console.log(`[getAllPosts] Response status: ${response.status} ${response.statusText}`)
 
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          }
+
+          const fileContents = await response.text()
+          console.log(`[getAllPosts] ✅ Got content! Length: ${fileContents.length}`)
+          console.log(`[getAllPosts] Content preview: ${fileContents.substring(0, 200)}...`)
+
+          // Process the content
+          const rawSlug = firstBlob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           const cleanSlug = cleanSlugFromFilename(rawSlug)
-          console.log(`[getAllPosts] ✅ STEP 2 COMPLETE: Clean slug: "${cleanSlug}"`)
+          console.log(`[getAllPosts] Slug: "${rawSlug}" -> "${cleanSlug}"`)
 
-          if (!cleanSlug) {
-            console.log(`[getAllPosts] ⏭️ SKIPPING: Empty slug after cleaning`)
-            continue
+          if (cleanSlug) {
+            const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+            const extracted = extractTitleAndExcerpt(content)
+
+            const blobPost = {
+              title: data.title || extracted.title || `Blog Post: ${cleanSlug.replace(/-/g, " ")}`,
+              date: data.date || new Date().toISOString().split("T")[0],
+              category: data.category || "Technology",
+              excerpt: data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available.",
+              image: data.image || undefined,
+              slug: cleanSlug,
+              source: "blob" as const,
+            }
+
+            allPosts.push(blobPost)
+            console.log(`[getAllPosts] 🎉 SUCCESS! Added blob post: "${blobPost.title}"`)
           }
-
-          console.log(`[getAllPosts] 🔄 STEP 3: Parsing frontmatter...`)
-          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-          console.log(`[getAllPosts] ✅ STEP 3 COMPLETE: Frontmatter keys: [${Object.keys(data).join(", ")}]`)
-          console.log(`[getAllPosts] Frontmatter data:`, data)
-
-          console.log(`[getAllPosts] 🔄 STEP 4: Extracting title and excerpt...`)
-          const extracted = extractTitleAndExcerpt(content)
-          const finalTitle = data.title || extracted.title || `Blog Post: ${cleanSlug.replace(/-/g, " ")}`
-          const finalExcerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-          console.log(`[getAllPosts] ✅ STEP 4 COMPLETE:`)
-          console.log(`[getAllPosts]   Title: "${finalTitle}"`)
-          console.log(`[getAllPosts]   Excerpt: "${finalExcerpt.substring(0, 100)}..."`)
-
-          console.log(`[getAllPosts] 🔄 STEP 5: Creating post object...`)
-          const blobPost = {
-            title: finalTitle,
-            date: data.date || new Date().toISOString().split("T")[0],
-            category: data.category || "Technology",
-            excerpt: finalExcerpt,
-            image: data.image || undefined,
-            slug: cleanSlug,
-            source: "blob" as const,
-          }
-
-          allPosts.push(blobPost)
-          processedCount++
-          console.log(`[getAllPosts] ✅ STEP 5 COMPLETE: Successfully added blob post!`)
-          console.log(`[getAllPosts] 🎉 BLOB ${i + 1} PROCESSING SUCCESSFUL!`)
         } catch (blobError) {
-          errorCount++
-          console.error(`[getAllPosts] ❌ BLOB ${i + 1} PROCESSING FAILED:`)
-          console.error(`[getAllPosts] Error details:`, {
-            pathname: blob.pathname,
-            url: blob.url,
-            size: blob.size,
+          console.error(`[getAllPosts] ❌ FIRST BLOB FAILED:`, {
+            pathname: firstBlob.pathname,
+            downloadUrl: firstBlob.downloadUrl,
             error: blobError instanceof Error ? blobError.message : String(blobError),
-            stack: blobError instanceof Error ? blobError.stack : undefined,
           })
         }
       }
-
-      console.log(`[getAllPosts] 🏁 BLOB PROCESSING COMPLETE:`)
-      console.log(`[getAllPosts]   ✅ Successful: ${processedCount}`)
-      console.log(`[getAllPosts]   ❌ Errors: ${errorCount}`)
-      console.log(`[getAllPosts]   📊 Success rate: ${Math.round((processedCount / markdownBlobs.length) * 100)}%`)
     } catch (listError) {
       console.error("[getAllPosts] ❌ CRITICAL ERROR: Failed to list blobs:", listError)
     }
-  } else {
-    console.log("[getAllPosts] ⏭️ No BLOB_TOKEN available, using only hardcoded posts")
   }
 
   // Sort by date
@@ -483,7 +448,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log(`[getAllPosts] 📊 Total posts: ${allPosts.length}`)
   console.log(`[getAllPosts] 📝 Hardcoded: ${hardcodedCount}`)
   console.log(`[getAllPosts] 💾 Blob: ${blobCount}`)
-  console.log(`[getAllPosts] 🎯 Expected total: ${SAMPLE_POSTS.length + 5} (11 hardcoded + 5 blob)`)
+  console.log(`[getAllPosts] 🎯 Expected: 12 (11 hardcoded + 1 test blob)`)
   console.log(`[getAllPosts] ==================== END BLOG FETCH ====================`)
 
   return allPosts
