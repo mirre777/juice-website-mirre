@@ -241,24 +241,11 @@ function extractTitleAndExcerpt(content: string): { title: string | null; excerp
 }
 
 // Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(pathname: string): Promise<string> {
-  console.log(`[fetchBlobContent] Fetching blob: ${pathname}`)
-
-  if (!BLOB_TOKEN) {
-    throw new Error("BLOB_TOKEN is required")
-  }
+async function fetchBlobContent(blobUrl: string): Promise<string> {
+  console.log(`[fetchBlobContent] Fetching from URL: ${blobUrl}`)
 
   try {
-    // Use the Vercel Blob SDK to get the content
-    const { blobs } = await list({ prefix: pathname, token: BLOB_TOKEN })
-    const targetBlob = blobs.find((b) => b.pathname === pathname)
-
-    if (!targetBlob) {
-      throw new Error(`Blob not found: ${pathname}`)
-    }
-
-    // Fetch the content using the blob URL
-    const response = await fetch(targetBlob.url)
+    const response = await fetch(blobUrl)
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -268,7 +255,7 @@ async function fetchBlobContent(pathname: string): Promise<string> {
     console.log(`[fetchBlobContent] ✅ Success, content length: ${content.length}`)
     return content
   } catch (error) {
-    console.error(`[fetchBlobContent] ❌ Failed to fetch ${pathname}:`, error)
+    console.error(`[fetchBlobContent] ❌ Failed to fetch ${blobUrl}:`, error)
     throw error
   }
 }
@@ -295,99 +282,103 @@ export async function getPostSlugs(): Promise<string[]> {
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[getAllPosts] Fetching all blog posts...")
+  console.log("[getAllPosts] Starting blog post fetch...")
 
+  // Always start with hardcoded posts
   const allPosts: BlogPostFrontmatter[] = [
     ...SAMPLE_POSTS.map((post) => ({
       ...post,
       source: "hardcoded" as const,
     })),
   ]
+  console.log(`[getAllPosts] Added ${SAMPLE_POSTS.length} hardcoded posts`)
 
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN
   console.log("[getAllPosts] BLOB_TOKEN available:", !!blobToken)
 
   if (blobToken) {
     try {
+      console.log("[getAllPosts] Fetching blobs from storage...")
       const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: blobToken })
       console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
-      for (const blob of blobs) {
-        if (blob.pathname.endsWith(".md")) {
-          console.log(`[getAllPosts] 🔄 Processing blob: ${blob.pathname}`)
+      for (let i = 0; i < blobs.length; i++) {
+        const blob = blobs[i]
+        console.log(`[getAllPosts] Processing blob ${i + 1}/${blobs.length}: ${blob.pathname}`)
 
-          try {
-            console.log(`[getAllPosts] Step 1: Fetching content for ${blob.pathname}`)
-            const fileContents = await fetchBlobContent(blob.pathname)
-            console.log(`[getAllPosts] Step 1 ✅: Content fetched, length: ${fileContents.length}`)
+        if (!blob.pathname.endsWith(".md")) {
+          console.log(`[getAllPosts] ⏭️ Skipping non-markdown: ${blob.pathname}`)
+          continue
+        }
 
-            console.log(`[getAllPosts] Step 2: Extracting slug from ${blob.pathname}`)
-            const slug = blob.pathname
-              .replace(BLOG_CONTENT_PATH, "")
-              .replace(/\.md$/, "")
-              .replace(/^-+/, "") // Remove leading dashes
-              .replace(/-+$/, "") // Remove trailing dashes
-              .replace(/\s+$$\d+$$.*$/, "") // Remove "(1)" and everything after
-              .replace(/[^a-zA-Z0-9-]/g, "-") // Replace special chars with dashes
-              .replace(/-+/g, "-") // Collapse multiple dashes
-              .toLowerCase()
-            console.log(`[getAllPosts] Step 2 ✅: Extracted slug: "${slug}"`)
+        try {
+          // Step 1: Fetch content directly from blob URL
+          console.log(`[getAllPosts] Step 1: Fetching content from ${blob.url}`)
+          const fileContents = await fetchBlobContent(blob.url)
+          console.log(`[getAllPosts] Step 1 ✅: Got ${fileContents.length} characters`)
 
-            console.log(`[getAllPosts] Step 3: Parsing frontmatter and content`)
-            const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-            console.log(`[getAllPosts] Step 3 ✅: Frontmatter parsed, data keys:`, Object.keys(data))
-            console.log(
-              `[getAllPosts] Step 3 ✅: Content length: ${content.length}, excerpt: ${matterExcerpt?.substring(0, 50)}...`,
-            )
+          // Step 2: Extract slug from filename
+          const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+          console.log(`[getAllPosts] Step 2: Raw slug from filename: "${rawSlug}"`)
 
-            console.log(`[getAllPosts] Step 4: Extracting title and excerpt from content`)
-            const extracted = extractTitleAndExcerpt(content)
-            console.log(
-              `[getAllPosts] Step 4 ✅: Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 50)}..."`,
-            )
+          // Clean up the slug
+          const cleanSlug = rawSlug
+            .replace(/^-+/, "") // Remove leading dashes
+            .replace(/-+$/, "") // Remove trailing dashes
+            .replace(/\s*$$\d+$$.*$/, "") // Remove "(1)" and everything after
+            .replace(/[^a-zA-Z0-9-_]/g, "-") // Replace special chars with dashes
+            .replace(/-+/g, "-") // Collapse multiple dashes
+            .toLowerCase()
+          console.log(`[getAllPosts] Step 2 ✅: Clean slug: "${cleanSlug}"`)
 
-            console.log(`[getAllPosts] Step 5: Building final post object`)
-            const title = data.title || extracted.title || `Post: ${slug}`
-            const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-            console.log(
-              `[getAllPosts] Step 5 ✅: Final title: "${title}", final excerpt: "${excerpt.substring(0, 50)}..."`,
-            )
+          // Step 3: Parse frontmatter
+          console.log(`[getAllPosts] Step 3: Parsing frontmatter...`)
+          const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+          console.log(`[getAllPosts] Step 3 ✅: Frontmatter keys: [${Object.keys(data).join(", ")}]`)
 
-            const newPost = {
-              title: title,
-              date: data.date || new Date().toISOString().split("T")[0],
-              category: data.category || "Uncategorized",
-              excerpt: excerpt,
-              image: data.image || undefined,
-              slug: slug,
-              source: "blob" as const,
-            }
+          // Step 4: Extract title and excerpt
+          const extracted = extractTitleAndExcerpt(content)
+          const finalTitle = data.title || extracted.title || `Blog Post: ${cleanSlug}`
+          const finalExcerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+          console.log(`[getAllPosts] Step 4 ✅: Title: "${finalTitle}"`)
+          console.log(`[getAllPosts] Step 4 ✅: Excerpt: "${finalExcerpt.substring(0, 50)}..."`)
 
-            allPosts.push(newPost)
-            console.log(`[getAllPosts] Step 6 ✅: Successfully added blob post: "${title}"`)
-          } catch (error) {
-            console.error(`[getAllPosts] ❌ Error processing blob ${blob.pathname}:`, error)
-            console.error(`[getAllPosts] ❌ Error stack:`, error instanceof Error ? error.stack : "No stack trace")
-            // Continue processing other blobs
+          // Step 5: Create post object
+          const blobPost = {
+            title: finalTitle,
+            date: data.date || new Date().toISOString().split("T")[0],
+            category: data.category || "Technology",
+            excerpt: finalExcerpt,
+            image: data.image || undefined,
+            slug: cleanSlug,
+            source: "blob" as const,
           }
-        } else {
-          console.log(`[getAllPosts] ⏭️ Skipping non-markdown file: ${blob.pathname}`)
+
+          allPosts.push(blobPost)
+          console.log(`[getAllPosts] Step 5 ✅: Successfully added blob post: "${finalTitle}"`)
+        } catch (blobError) {
+          console.error(`[getAllPosts] ❌ Failed to process blob ${blob.pathname}:`, blobError)
+          console.error(`[getAllPosts] ❌ Blob error details:`, {
+            pathname: blob.pathname,
+            url: blob.url,
+            size: blob.size,
+            error: blobError instanceof Error ? blobError.message : String(blobError),
+          })
+          // Continue with next blob
         }
       }
-
-      console.log(`[getAllPosts] Total posts after processing: ${allPosts.length}`)
-    } catch (error) {
-      console.error("[getAllPosts] ❌ Error fetching from blob storage:", error)
-      console.error("[getAllPosts] ❌ Error stack:", error instanceof Error ? error.stack : "No stack trace")
+    } catch (listError) {
+      console.error("[getAllPosts] ❌ Error listing blobs:", listError)
     }
   }
 
+  // Sort by date
   allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const hardcodedCount = allPosts.filter((p) => p.source === "hardcoded").length
   const blobCount = allPosts.filter((p) => p.source === "blob").length
   console.log(
-    `[getAllPosts] Returning ${allPosts.length} total posts (${hardcodedCount} hardcoded + ${blobCount} blob)`,
+    `[getAllPosts] Final result: ${allPosts.length} total posts (${hardcodedCount} hardcoded + ${blobCount} blob)`,
   )
 
   return allPosts
