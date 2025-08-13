@@ -1,4 +1,4 @@
-import { list } from "@vercel/blob"
+import { list, get } from "@vercel/blob"
 import matter from "gray-matter"
 import { serialize } from "next-mdx-remote/serialize"
 
@@ -241,12 +241,23 @@ function extractTitleAndExcerpt(content: string): { title: string | null; excerp
 }
 
 // Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(blobUrl: string): Promise<string> {
-  console.log(`[fetchBlobContent] Fetching from URL: ${blobUrl}`)
+async function fetchBlobContent(blobPathname: string): Promise<string> {
+  console.log(`[fetchBlobContent] Fetching blob: ${blobPathname}`)
+
+  if (!BLOB_TOKEN) {
+    throw new Error("BLOB_READ_WRITE_TOKEN not available")
+  }
 
   try {
-    const response = await fetch(blobUrl)
+    // Use Vercel Blob SDK's get method instead of direct HTTP fetch
+    const blob = await get(blobPathname, { token: BLOB_TOKEN })
 
+    if (!blob) {
+      throw new Error(`Blob not found: ${blobPathname}`)
+    }
+
+    // Get the content as text
+    const response = await fetch(blob.url)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -255,9 +266,20 @@ async function fetchBlobContent(blobUrl: string): Promise<string> {
     console.log(`[fetchBlobContent] ✅ Success, content length: ${content.length}`)
     return content
   } catch (error) {
-    console.error(`[fetchBlobContent] ❌ Failed to fetch ${blobUrl}:`, error)
+    console.error(`[fetchBlobContent] ❌ Failed to fetch ${blobPathname}:`, error)
     throw error
   }
+}
+
+function cleanSlugFromFilename(rawSlug: string): string {
+  return rawSlug
+    .replace(/^-+/, "") // Remove leading dashes
+    .replace(/-+$/, "") // Remove trailing dashes
+    .replace(/\s*$$\d+$$.*$/, "") // Remove "(1)" and everything after
+    .replace(/[^a-zA-Z0-9-_]/g, "-") // Replace special chars with dashes
+    .replace(/-+/g, "-") // Collapse multiple dashes
+    .replace(/^-|-$/g, "") // Remove leading/trailing dashes again
+    .toLowerCase()
 }
 
 export async function getPostSlugs(): Promise<string[]> {
@@ -302,6 +324,9 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
       const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: blobToken })
       console.log(`[getAllPosts] Found ${blobs.length} blobs with prefix ${BLOG_CONTENT_PATH}`)
 
+      let processedCount = 0
+      let errorCount = 0
+
       for (let i = 0; i < blobs.length; i++) {
         const blob = blobs[i]
         console.log(`[getAllPosts] Processing blob ${i + 1}/${blobs.length}: ${blob.pathname}`)
@@ -312,38 +337,35 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
         }
 
         try {
-          // Step 1: Fetch content directly from blob URL
-          console.log(`[getAllPosts] Step 1: Fetching content from ${blob.url}`)
-          const fileContents = await fetchBlobContent(blob.url)
+          console.log(`[getAllPosts] Step 1: Fetching content using SDK for ${blob.pathname}`)
+          const fileContents = await fetchBlobContent(blob.pathname)
           console.log(`[getAllPosts] Step 1 ✅: Got ${fileContents.length} characters`)
 
-          // Step 2: Extract slug from filename
           const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           console.log(`[getAllPosts] Step 2: Raw slug from filename: "${rawSlug}"`)
 
-          // Clean up the slug
-          const cleanSlug = rawSlug
-            .replace(/^-+/, "") // Remove leading dashes
-            .replace(/-+$/, "") // Remove trailing dashes
-            .replace(/\s*$$\d+$$.*$/, "") // Remove "(1)" and everything after
-            .replace(/[^a-zA-Z0-9-_]/g, "-") // Replace special chars with dashes
-            .replace(/-+/g, "-") // Collapse multiple dashes
-            .toLowerCase()
+          const cleanSlug = cleanSlugFromFilename(rawSlug)
           console.log(`[getAllPosts] Step 2 ✅: Clean slug: "${cleanSlug}"`)
 
-          // Step 3: Parse frontmatter
+          // Skip if slug is empty after cleaning
+          if (!cleanSlug) {
+            console.log(`[getAllPosts] ⏭️ Skipping blob with empty slug: ${blob.pathname}`)
+            continue
+          }
+
+          // Step 3: Parse frontmatter with better error handling
           console.log(`[getAllPosts] Step 3: Parsing frontmatter...`)
           const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
           console.log(`[getAllPosts] Step 3 ✅: Frontmatter keys: [${Object.keys(data).join(", ")}]`)
 
-          // Step 4: Extract title and excerpt
+          // Step 4: Extract title and excerpt with fallbacks
           const extracted = extractTitleAndExcerpt(content)
-          const finalTitle = data.title || extracted.title || `Blog Post: ${cleanSlug}`
+          const finalTitle = data.title || extracted.title || `Blog Post: ${cleanSlug.replace(/-/g, " ")}`
           const finalExcerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
           console.log(`[getAllPosts] Step 4 ✅: Title: "${finalTitle}"`)
           console.log(`[getAllPosts] Step 4 ✅: Excerpt: "${finalExcerpt.substring(0, 50)}..."`)
 
-          // Step 5: Create post object
+          // Step 5: Create post object with validation
           const blobPost = {
             title: finalTitle,
             date: data.date || new Date().toISOString().split("T")[0],
@@ -355,8 +377,10 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           }
 
           allPosts.push(blobPost)
+          processedCount++
           console.log(`[getAllPosts] Step 5 ✅: Successfully added blob post: "${finalTitle}"`)
         } catch (blobError) {
+          errorCount++
           console.error(`[getAllPosts] ❌ Failed to process blob ${blob.pathname}:`, blobError)
           console.error(`[getAllPosts] ❌ Blob error details:`, {
             pathname: blob.pathname,
@@ -367,6 +391,8 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           // Continue with next blob
         }
       }
+
+      console.log(`[getAllPosts] Blob processing complete: ${processedCount} successful, ${errorCount} errors`)
     } catch (listError) {
       console.error("[getAllPosts] ❌ Error listing blobs:", listError)
     }
@@ -436,42 +462,19 @@ This is a sample blog post. The full content would be available in a production 
     const targetPath = `${BLOG_CONTENT_PATH}${slug}.md`
     console.log(`[getPostBySlug] Target blob path: ${targetPath}`)
 
-    const { blobs } = await list({ prefix: targetPath, token: BLOB_TOKEN })
-    const targetBlob = blobs.find((b) => b.pathname === targetPath)
-
-    if (!targetBlob) {
-      console.warn(`[getPostBySlug] No blob found for path: ${targetPath}`)
-      console.log(
-        `[getPostBySlug] Available blobs:`,
-        blobs.map((b) => b.pathname),
-      )
-      return null
-    }
-
-    console.log(`[getPostBySlug] Found blob: ${targetBlob.pathname}, URL: ${targetBlob.url}`)
-
-    const fileContents = await fetchBlobContent(targetBlob.url)
+    const fileContents = await fetchBlobContent(targetPath)
     console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-    console.log(`[getPostBySlug] Content preview: ${fileContents.substring(0, 200)}...`)
 
     const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
     console.log(`[getPostBySlug] Frontmatter:`, data)
-    console.log(`[getPostBySlug] Content length after frontmatter: ${content.length} chars`)
 
     const extracted = extractTitleAndExcerpt(content)
-    console.log(
-      `[getPostBySlug] Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 100)}..."`,
-    )
-
     const title = data.title || extracted.title || `Post: ${slug}`
     const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-    console.log(`[getPostBySlug] Final title: "${title}", excerpt: "${excerpt.substring(0, 100)}..."`)
 
     const serializedContent = await serialize(content, {
       parseFrontmatter: false,
     })
-    console.log("[getPostBySlug] MDX serialized successfully")
 
     return {
       frontmatter: {
