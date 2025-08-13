@@ -314,11 +314,14 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 
       for (const blob of blobs) {
         if (blob.pathname.endsWith(".md")) {
-          console.log(`[getAllPosts] Processing blob: ${blob.pathname}`)
+          console.log(`[getAllPosts] 🔄 Processing blob: ${blob.pathname}`)
 
           try {
+            console.log(`[getAllPosts] Step 1: Fetching content for ${blob.pathname}`)
             const fileContents = await fetchBlobContent(blob.pathname)
+            console.log(`[getAllPosts] Step 1 ✅: Content fetched, length: ${fileContents.length}`)
 
+            console.log(`[getAllPosts] Step 2: Extracting slug from ${blob.pathname}`)
             const slug = blob.pathname
               .replace(BLOG_CONTENT_PATH, "")
               .replace(/\.md$/, "")
@@ -328,18 +331,29 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
               .replace(/[^a-zA-Z0-9-]/g, "-") // Replace special chars with dashes
               .replace(/-+/g, "-") // Collapse multiple dashes
               .toLowerCase()
+            console.log(`[getAllPosts] Step 2 ✅: Extracted slug: "${slug}"`)
 
-            console.log(`[getAllPosts] Extracted slug: ${slug}`)
-
+            console.log(`[getAllPosts] Step 3: Parsing frontmatter and content`)
             const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-            const extracted = extractTitleAndExcerpt(content)
+            console.log(`[getAllPosts] Step 3 ✅: Frontmatter parsed, data keys:`, Object.keys(data))
+            console.log(
+              `[getAllPosts] Step 3 ✅: Content length: ${content.length}, excerpt: ${matterExcerpt?.substring(0, 50)}...`,
+            )
 
+            console.log(`[getAllPosts] Step 4: Extracting title and excerpt from content`)
+            const extracted = extractTitleAndExcerpt(content)
+            console.log(
+              `[getAllPosts] Step 4 ✅: Extracted title: "${extracted.title}", excerpt: "${extracted.excerpt?.substring(0, 50)}..."`,
+            )
+
+            console.log(`[getAllPosts] Step 5: Building final post object`)
             const title = data.title || extracted.title || `Post: ${slug}`
             const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+            console.log(
+              `[getAllPosts] Step 5 ✅: Final title: "${title}", final excerpt: "${excerpt.substring(0, 50)}..."`,
+            )
 
-            console.log(`[getAllPosts] ✅ Successfully processed: ${title}`)
-
-            allPosts.push({
+            const newPost = {
               title: title,
               date: data.date || new Date().toISOString().split("T")[0],
               category: data.category || "Uncategorized",
@@ -347,17 +361,24 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
               image: data.image || undefined,
               slug: slug,
               source: "blob" as const,
-            })
+            }
+
+            allPosts.push(newPost)
+            console.log(`[getAllPosts] Step 6 ✅: Successfully added blob post: "${title}"`)
           } catch (error) {
             console.error(`[getAllPosts] ❌ Error processing blob ${blob.pathname}:`, error)
+            console.error(`[getAllPosts] ❌ Error stack:`, error instanceof Error ? error.stack : "No stack trace")
             // Continue processing other blobs
           }
+        } else {
+          console.log(`[getAllPosts] ⏭️ Skipping non-markdown file: ${blob.pathname}`)
         }
       }
 
       console.log(`[getAllPosts] Total posts after processing: ${allPosts.length}`)
     } catch (error) {
       console.error("[getAllPosts] ❌ Error fetching from blob storage:", error)
+      console.error("[getAllPosts] ❌ Error stack:", error instanceof Error ? error.stack : "No stack trace")
     }
   }
 
