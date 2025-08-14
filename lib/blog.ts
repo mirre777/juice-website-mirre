@@ -30,7 +30,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "AI isn't stealing your personal trainer's job. It's more like giving them superpowers. Think of it as the ultimate sidekick, making your coach even more awesome.",
     category: "Technology",
-    image: "/ai-personal-training-gym.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "ai-and-personal-training-bffs-or-frenemies-sample",
     source: "hardcoded",
   },
@@ -40,7 +40,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? That's where things get interesting.",
     category: "Technology",
-    image: "/fitness-wearables-weightlifting-gym.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
     source: "hardcoded",
   },
@@ -50,7 +50,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching.",
     category: "Technology",
-    image: "/biometric-fitness-analytics.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "tracking-biometrics-what-actually-moves-the-needle",
     source: "hardcoded",
   },
@@ -60,7 +60,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost.",
     category: "Marketing",
-    image: "/google-sheets-fitness-coaching-spreadsheet-laptop.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "google-sheets-for-coaching-a-trainers-secret-weapon-or-trap",
     source: "hardcoded",
   },
@@ -70,7 +70,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
     category: "Marketing",
-    image: "/online-booking-personal-trainer-phone.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "how-to-get-more-clients-with-a-booking-page",
     source: "hardcoded",
   },
@@ -80,7 +80,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients.",
     category: "Marketing",
-    image: "/personal-trainer-website-builder.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "top-5-free-personal-trainer-website-builders-2025",
     source: "hardcoded",
   },
@@ -90,7 +90,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
     category: "Technology",
-    image: "/berlin-fitness-tech.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-sample",
     source: "hardcoded",
   },
@@ -100,7 +100,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
     category: "Technology",
-    image: "/fitness-software-berlin.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year-sample",
     source: "hardcoded",
   },
@@ -110,7 +110,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's get something straight: SEO isn't for nerds in glasses, it's for smart coaches who want to get found online and stop chasing leads like they're training for a marathon.",
     category: "Visibility",
-    image: "/seo-fitness-coach-laptop.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "seo-tips-for-fitness-coaches-in-europe",
     source: "hardcoded",
   },
@@ -120,7 +120,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
     category: "Nutrition",
-    image: "/nutrition-coaching-berlin.png",
+    image: "/placeholder.svg?height=400&width=800",
     slug: "nutrition-coaching-trends-berlin-2025",
     source: "hardcoded",
   },
