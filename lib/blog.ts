@@ -11,6 +11,7 @@ export interface BlogPostFrontmatter {
   category: string
   image?: string
   slug: string
+  source?: "hardcoded" | "blob"
 }
 
 export interface BlogPost {
@@ -32,6 +33,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Technology",
     image: "/wearables-strength-training-squat-gym.png",
     slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
+    source: "hardcoded",
   },
   {
     title: "📊 Tracking Biometrics: What Actually Moves the Needle",
@@ -42,6 +44,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tracking%20biometrics%20%281%29-HWabjekyZFyyGIXge16oFoyfWB84nS.png",
     slug: "tracking-biometrics-what-actually-moves-the-needle",
+    source: "hardcoded",
   },
   {
     title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
@@ -52,6 +55,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/max_LS%20%281%29-xJVZRoneLwWk1GoQiKXIjSrxdTuBWz.png",
     slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
+    source: "hardcoded",
   },
   {
     title: "📱 How to Get More Clients with a Booking Page",
@@ -61,6 +65,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Marketing",
     image: "/personal-trainer-booking-page-mobile.png",
     slug: "how-to-get-more-clients-with-booking-page",
+    source: "hardcoded",
   },
   {
     title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
@@ -70,6 +75,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Technology",
     image: "/personal-trainer-website-builders-laptops.png",
     slug: "top-5-free-personal-trainer-website-builders-2025",
+    source: "hardcoded",
   },
   {
     title: "🔍 SEO Tips for Fitness Coaches in Europe",
@@ -79,6 +85,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Visibility",
     image: "/seo-tips-fitness-coaches-europe.png",
     slug: "seo-tips-for-fitness-coaches-in-europe",
+    source: "hardcoded",
   },
   {
     title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
@@ -89,6 +96,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dumbbells2%20%281%29-hPgb1H1OGLxgKaz93OKKd1FIFW8a45.png",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+    source: "hardcoded",
   },
   {
     title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
@@ -99,6 +107,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee%20%281%29-Ksk4c7bQl0eNUnhGiDUYQGzVhFZJJA.png",
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
+    source: "hardcoded",
   },
   {
     title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
@@ -108,6 +117,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Nutrition",
     image: "/nutrition-coaching-trends-berlin-woman-phone.png",
     slug: "nutrition-coaching-trends-berlin-2025",
+    source: "hardcoded",
   },
   {
     title: "🏋️ Strength Training Revolution: What's New in Berlin Gyms",
@@ -116,6 +126,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
     category: "Fitness",
     slug: "strength-training-revolution-berlin-gyms",
+    source: "hardcoded",
   },
   {
     title: "🧠 The Psychology of Fitness: Mental Coaching Techniques",
@@ -124,6 +135,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
     category: "Coaching",
     slug: "psychology-of-fitness-mental-coaching-techniques",
+    source: "hardcoded",
   },
 ]
 
@@ -360,12 +372,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log("[getAllPosts] ==================== STARTING BLOG FETCH ====================")
 
   // Always start with hardcoded posts
-  const allPosts: BlogPostFrontmatter[] = [
-    ...SAMPLE_POSTS.map((post) => ({
-      ...post,
-      source: "hardcoded" as const,
-    })),
-  ]
+  const allPosts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
   console.log(`[getAllPosts] ✅ Added ${SAMPLE_POSTS.length} hardcoded posts`)
 
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN
@@ -391,7 +398,6 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
         try {
           console.log(`[getAllPosts] 🔄 Using downloadUrl directly: ${firstBlob.downloadUrl}`)
 
-          // Try direct fetch from downloadUrl (should be publicly accessible)
           const response = await fetch(firstBlob.downloadUrl)
           console.log(`[getAllPosts] Response status: ${response.status} ${response.statusText}`)
 
@@ -403,7 +409,6 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           console.log(`[getAllPosts] ✅ Got content! Length: ${fileContents.length}`)
           console.log(`[getAllPosts] Content preview: ${fileContents.substring(0, 200)}...`)
 
-          // Process the content
           const rawSlug = firstBlob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           const cleanSlug = cleanSlugFromFilename(rawSlug)
           console.log(`[getAllPosts] Slug: "${rawSlug}" -> "${cleanSlug}"`)
@@ -412,14 +417,14 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
             const extracted = extractTitleAndExcerpt(content)
 
-            const blobPost = {
+            const blobPost: BlogPostFrontmatter = {
               title: data.title || extracted.title || `Blog Post: ${cleanSlug.replace(/-/g, " ")}`,
               date: data.date || new Date().toISOString().split("T")[0],
               category: data.category || "Technology",
               excerpt: data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available.",
               image: data.image || undefined,
               slug: cleanSlug,
-              source: "blob" as const,
+              source: "blob",
             }
 
             allPosts.push(blobPost)
@@ -441,14 +446,13 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   // Sort by date
   allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-  const hardcodedCount = allPosts.filter((p) => p.source === "hardcoded").length
+  const hardcodedCount = allPosts.filter((p) => !p.source || p.source === "hardcoded").length
   const blobCount = allPosts.filter((p) => p.source === "blob").length
 
   console.log(`[getAllPosts] ==================== FINAL RESULTS ====================`)
   console.log(`[getAllPosts] 📊 Total posts: ${allPosts.length}`)
   console.log(`[getAllPosts] 📝 Hardcoded: ${hardcodedCount}`)
   console.log(`[getAllPosts] 💾 Blob: ${blobCount}`)
-  console.log(`[getAllPosts] 🎯 Expected: 12 (11 hardcoded + 1 test blob)`)
   console.log(`[getAllPosts] ==================== END BLOG FETCH ====================`)
 
   return allPosts
@@ -528,6 +532,7 @@ This is a sample blog post. The full content would be available in a production 
         excerpt: excerpt,
         image: data.image || undefined,
         slug: slug,
+        source: "blob",
       },
       serializedContent,
       content,
