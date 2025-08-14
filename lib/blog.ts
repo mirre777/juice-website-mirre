@@ -26,90 +26,6 @@ const BLOG_CONTENT_PATH = "blog/"
 // Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
-    title: "⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?",
-    date: "2025-02-04",
-    excerpt:
-      "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
-    category: "Technology",
-    image: "/wearables-strength-training-squat-gym.png",
-    slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
-    source: "hardcoded",
-  },
-  {
-    title: "📊 Tracking Biometrics: What Actually Moves the Needle",
-    date: "2025-02-03",
-    excerpt:
-      "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tracking%20biometrics%20%281%29-HWabjekyZFyyGIXge16oFoyfWB84nS.png",
-    slug: "tracking-biometrics-what-actually-moves-the-needle",
-    source: "hardcoded",
-  },
-  {
-    title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
-    date: "2025-02-02",
-    excerpt:
-      "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/max_LS%20%281%29-xJVZRoneLwWk1GoQiKXIjSrxdTuBWz.png",
-    slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
-    source: "hardcoded",
-  },
-  {
-    title: "📱 How to Get More Clients with a Booking Page",
-    date: "2025-02-01",
-    excerpt:
-      "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
-    category: "Marketing",
-    image: "/personal-trainer-booking-page-mobile.png",
-    slug: "how-to-get-more-clients-with-booking-page",
-    source: "hardcoded",
-  },
-  {
-    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
-    date: "2025-01-31",
-    excerpt:
-      "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
-    category: "Technology",
-    image: "/personal-trainer-website-builders-laptops.png",
-    slug: "top-5-free-personal-trainer-website-builders-2025",
-    source: "hardcoded",
-  },
-  {
-    title: "🔍 SEO Tips for Fitness Coaches in Europe",
-    date: "2025-01-30",
-    excerpt:
-      "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
-    category: "Visibility",
-    image: "/seo-tips-fitness-coaches-europe.png",
-    slug: "seo-tips-for-fitness-coaches-in-europe",
-    source: "hardcoded",
-  },
-  {
-    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
-    date: "2025-01-15",
-    excerpt:
-      "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dumbbells2%20%281%29-hPgb1H1OGLxgKaz93OKKd1FIFW8a45.png",
-    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
-    source: "hardcoded",
-  },
-  {
-    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
-    date: "2025-01-10",
-    excerpt:
-      "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/coffee%20%281%29-Ksk4c7bQl0eNUnhGiDUYQGzVhFZJJA.png",
-    slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
-    source: "hardcoded",
-  },
-  {
     title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
     date: "2025-01-05",
     excerpt:
@@ -466,13 +382,11 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     try {
       console.log(`[getPostBySlug] Searching blob storage for slug: ${slug}`)
 
-      // List all markdown blobs to find the one that matches our cleaned slug
       const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
       const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
 
       console.log(`[getPostBySlug] Found ${markdownBlobs.length} markdown blobs to search`)
 
-      // Find the blob whose cleaned slug matches our target slug
       let targetBlob = null
       for (const blob of markdownBlobs) {
         const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
@@ -507,6 +421,10 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 
         const serializedContent = await serialize(content, {
           parseFrontmatter: false,
+          mdxOptions: {
+            remarkPlugins: [],
+            rehypePlugins: [],
+          },
         })
 
         return {
@@ -526,14 +444,15 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       }
     } catch (error) {
       console.error(`[getPostBySlug] Error searching blob storage for ${slug}:`, error)
+      console.log(`[getPostBySlug] ❌ Blob processing failed for ${slug}, returning null (no fallback to sample)`)
+      return null
     }
   }
 
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
   if (samplePost) {
-    console.log(`[getPostBySlug] Using sample content as fallback for slug: ${slug}`)
+    console.log(`[getPostBySlug] Using sample content for hardcoded post: ${slug}`)
 
-    // Use sample content if available, otherwise generate basic content
     const sampleContent =
       SAMPLE_BLOG_CONTENT[slug] ||
       `
@@ -555,6 +474,10 @@ This is a sample blog post. The full content would be available in a production 
     try {
       const serializedContent = await serialize(sampleContent, {
         parseFrontmatter: false,
+        mdxOptions: {
+          remarkPlugins: [],
+          rehypePlugins: [],
+        },
       })
 
       return {
