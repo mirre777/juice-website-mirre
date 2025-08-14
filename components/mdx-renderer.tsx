@@ -116,9 +116,35 @@ interface MdxRendererProps {
 }
 
 export function MdxRenderer({ source }: MdxRendererProps) {
-  return (
-    <div className="mdx-content">
-      <MDXRemote {...source} components={components} />
-    </div>
-  )
+  if (!source) {
+    return (
+      <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+        <p className="text-gray-600">Content is currently unavailable. Please try refreshing the page.</p>
+      </div>
+    )
+  }
+
+  // Check if source has the expected structure for MDXRemote
+  if (!source.compiledSource && !source.frontmatter && !source.scope) {
+    return (
+      <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+        <p className="text-gray-600">Content format is invalid. Please contact support if this issue persists.</p>
+      </div>
+    )
+  }
+
+  try {
+    return (
+      <div className="mdx-content">
+        <MDXRemote {...source} components={components} />
+      </div>
+    )
+  } catch (error) {
+    console.error("Error rendering MDX content:", error)
+    return (
+      <div className="p-6 bg-red-50 rounded-lg border border-red-200">
+        <p className="text-red-600">There was an error rendering this content. Please try refreshing the page.</p>
+      </div>
+    )
+  }
 }
