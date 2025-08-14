@@ -26,13 +26,73 @@ const BLOG_CONTENT_PATH = "blog/"
 // Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
+    title: "🤖 Are Wearables Accurate Enough to Track Complex Lifting Movements?",
+    date: "2025-01-04",
+    excerpt:
+      "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? That's where things get interesting.",
+    category: "Technology",
+    image: "/wearables-lifting-accuracy-gym.png",
+    slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
+    source: "hardcoded",
+  },
+  {
+    title: "📊 Tracking Biometrics: What Actually Moves the Needle",
+    date: "2025-01-03",
+    excerpt:
+      "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching.",
+    category: "Technology",
+    image: "/tracking-biometrics-what-actually-moves-the-needle.png",
+    slug: "tracking-biometrics-what-actually-moves-the-needle",
+    source: "hardcoded",
+  },
+  {
+    title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
+    date: "2025-02-02",
+    excerpt:
+      "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always the ultimate sidekick, making your coach even more awesome.",
+    category: "Marketing",
+    image: "/google-sheets-for-coaching-trainers-secret-weapon-or-trap.png",
+    slug: "google-sheets-for-coaching-a-trainers-secret-weapon-or-trap",
+    source: "hardcoded",
+  },
+  {
+    title: "📱 How to Get More Clients with a Booking Page",
+    date: "2025-02-01",
+    excerpt:
+      "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
+    category: "Marketing",
+    image: "/how-to-get-more-clients-with-booking-page.png",
+    slug: "how-to-get-more-clients-with-a-booking-page",
+    source: "hardcoded",
+  },
+  {
+    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
+    date: "2025-01-31",
+    excerpt:
+      "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients.",
+    category: "Marketing",
+    image: "/top-5-free-personal-trainer-website-builders-2025.png",
+    slug: "top-5-free-personal-trainer-website-builders-2025",
+    source: "hardcoded",
+  },
+  {
+    title: "🔍 SEO Tips for Fitness Coaches in Europe",
+    date: "2025-01-15",
+    excerpt:
+      "Let's get something straight: SEO isn't for nerds in glasses, it's for smart coaches who want to get found online and stop chasing leads like they're training for a marathon.",
+    category: "Visibility",
+    image: "/seo-tips-fitness-coaches-europe.png",
+    slug: "seo-tips-for-fitness-coaches-in-europe",
+    source: "hardcoded",
+  },
+  {
     title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
     date: "2025-01-05",
     excerpt:
       "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
     category: "Nutrition",
     image: "/nutrition-coaching-trends-berlin-woman-phone.png",
-    slug: "nutrition-coaching-trends-berlin-2025-sample", // Added -sample suffix to avoid conflicts
+    slug: "nutrition-coaching-trends-berlin-2025",
     source: "hardcoded",
   },
   {
@@ -41,7 +101,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
     category: "Fitness",
-    slug: "strength-training-revolution-berlin-gyms-sample", // Added -sample suffix to avoid conflicts
+    slug: "strength-training-revolution-berlin-gyms",
     source: "hardcoded",
   },
   {
@@ -50,13 +110,13 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
     category: "Coaching",
-    slug: "psychology-of-fitness-mental-coaching-techniques-sample", // Added -sample suffix to avoid conflicts
+    slug: "psychology-of-fitness-mental-coaching-techniques",
     source: "hardcoded",
   },
 ]
 
 const SAMPLE_BLOG_CONTENT: Record<string, string> = {
-  "are-wearables-accurate-enough-to-track-complex-lifting-movements-sample": `
+  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `
 # Are Wearables Accurate Enough to Track Complex Lifting Movements?
 
 Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? That's where things get interesting. Let's break down what they can and cannot track effectively.
@@ -81,7 +141,7 @@ For strength training tracking, focus on:
 
 Use wearables as one data point, not the complete picture. Your training log and progressive overload matter more than any device metric.
 `,
-  "tracking-biometrics-what-actually-moves-the-needle-sample": `
+  "tracking-biometrics-what-actually-moves-the-needle": `
 # Tracking Biometrics: What Actually Moves the Needle
 
 Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
@@ -113,7 +173,7 @@ Data without action is just noise. Use biometrics to:
 
 Remember: The best biometric system is the one your clients actually use consistently.
 `,
-  "google-sheets-for-coaching-a-trainers-secret-weapon-sample": `
+  "google-sheets-for-coaching-a-trainers-secret-weapon-or-trap": `
 # Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
 
 Tables. Are they coaching gold or just spreadsheet hell? But when trainers can use them wisely, track everything, and get organized, it's a game changer. Customize whatever you want, track everything, and get organized.
@@ -149,6 +209,36 @@ Take your sheets to the next level:
 
 Sheets work great until they don't. Know when to graduate to dedicated coaching software for better client experience and your sanity.
 `,
+}
+
+function enhanceMarkdownContent(content: string, title: string): string {
+  // Apply consistent formatting enhancements to make all blob articles look polished
+  let enhanced = content
+
+  // Ensure title has emoji if it doesn't already
+  if (!enhanced.includes("🤖") && !enhanced.includes("🏋️") && !enhanced.includes("💪") && !enhanced.includes("📊")) {
+    enhanced = `🏋️ ${title}\n\n${enhanced}`
+  }
+
+  // Add TL;DR section if not present
+  if (!enhanced.includes("TL;DR")) {
+    const firstParagraph = enhanced.split("\n\n")[1] || enhanced.split("\n")[1] || ""
+    if (firstParagraph) {
+      enhanced = enhanced.replace(firstParagraph, `TL;DR: ${firstParagraph.substring(0, 150)}...\n\n${firstParagraph}`)
+    }
+  }
+
+  // Enhance section headers with emojis if they don't have them
+  enhanced = enhanced.replace(/^## ([^🎯🔥💡⚡🎪🚀📈💪🏆🎯])/gmu, "## 💡 $1")
+  enhanced = enhanced.replace(/^### ([^🎯🔥💡⚡🎪🚀📈💪🏆🎯])/gmu, "### ⚡ $1")
+
+  // Add emphasis to key points
+  enhanced = enhanced.replace(/^- \*\*([^*]+)\*\*:/gm, "- 🎯 **$1**:")
+
+  // Enhance conclusion sections
+  enhanced = enhanced.replace(/## (The Bottom Line|Conclusion|Final Thoughts)/gi, "## 🏆 The Bottom Line")
+
+  return enhanced
 }
 
 function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
@@ -418,7 +508,10 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         const title = data.title || extracted.title || `Blog Post: ${slug.replace(/-/g, " ")}`
         const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
 
-        const serializedContent = await serialize(content, {
+        const enhancedContent = enhanceMarkdownContent(content, title)
+        console.log(`[getPostBySlug] Applied enhanced formatting to content`)
+
+        const serializedContent = await serialize(enhancedContent, {
           parseFrontmatter: false,
           mdxOptions: {
             remarkPlugins: [],
@@ -437,14 +530,12 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             source: "blob",
           },
           serializedContent,
-          content,
+          content: enhancedContent,
           slug,
         }
       }
     } catch (error) {
       console.error(`[getPostBySlug] Error searching blob storage for ${slug}:`, error)
-      console.log(`[getPostBySlug] ❌ Blob processing failed for ${slug}, returning null (no fallback to sample)`)
-      return null
     }
   }
 
