@@ -32,7 +32,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
     category: "Nutrition",
     image: "/nutrition-coaching-trends-berlin-woman-phone.png",
-    slug: "nutrition-coaching-trends-berlin-2025",
+    slug: "nutrition-coaching-trends-berlin-2025-sample", // Added -sample suffix to avoid conflicts
     source: "hardcoded",
   },
   {
@@ -41,7 +41,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
     category: "Fitness",
-    slug: "strength-training-revolution-berlin-gyms",
+    slug: "strength-training-revolution-berlin-gyms-sample", // Added -sample suffix to avoid conflicts
     source: "hardcoded",
   },
   {
@@ -50,13 +50,13 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
     category: "Coaching",
-    slug: "psychology-of-fitness-mental-coaching-techniques",
+    slug: "psychology-of-fitness-mental-coaching-techniques-sample", // Added -sample suffix to avoid conflicts
     source: "hardcoded",
   },
 ]
 
 const SAMPLE_BLOG_CONTENT: Record<string, string> = {
-  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `
+  "are-wearables-accurate-enough-to-track-complex-lifting-movements-sample": `
 # Are Wearables Accurate Enough to Track Complex Lifting Movements?
 
 Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? That's where things get interesting. Let's break down what they can and cannot track effectively.
@@ -81,7 +81,7 @@ For strength training tracking, focus on:
 
 Use wearables as one data point, not the complete picture. Your training log and progressive overload matter more than any device metric.
 `,
-  "tracking-biometrics-what-actually-moves-the-needle": `
+  "tracking-biometrics-what-actually-moves-the-needle-sample": `
 # Tracking Biometrics: What Actually Moves the Needle
 
 Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
@@ -113,7 +113,7 @@ Data without action is just noise. Use biometrics to:
 
 Remember: The best biometric system is the one your clients actually use consistently.
 `,
-  "google-sheets-for-coaching-a-trainers-secret-weapon": `
+  "google-sheets-for-coaching-a-trainers-secret-weapon-sample": `
 # Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
 
 Tables. Are they coaching gold or just spreadsheet hell? But when trainers can use them wisely, track everything, and get organized, it's a game changer. Customize whatever you want, track everything, and get organized.
@@ -149,7 +149,6 @@ Take your sheets to the next level:
 
 Sheets work great until they don't. Know when to graduate to dedicated coaching software for better client experience and your sanity.
 `,
-  // Add more sample content for other posts...
 }
 
 function extractTitleAndExcerpt(content: string): { title: string | null; excerpt: string | null } {
