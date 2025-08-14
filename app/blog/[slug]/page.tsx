@@ -256,7 +256,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </span>
               </div>
 
-              <ReadingTime content={post.content || ""} />
+              <ReadingTime content={post.rawContent || ""} />
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{post.title}</h1>

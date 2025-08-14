@@ -12,6 +12,7 @@ export interface BlogPostFrontmatter {
 
 export interface BlogPost extends BlogPostFrontmatter {
   content: any
+  rawContent: string
 }
 
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
@@ -587,6 +588,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             image: frontmatter.image,
             slug: cleanSlug,
             content: mdxSource,
+            rawContent: enhancedContent,
           }
         }
       }
@@ -604,6 +606,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       return {
         ...samplePost,
         content: mdxSource,
+        rawContent: content,
       }
     } else {
       // Return sample post with generic content
@@ -625,6 +628,7 @@ This is a sample blog post. The full content would be available in a production 
       return {
         ...samplePost,
         content: mdxSource,
+        rawContent: genericContent,
       }
     }
   }
