@@ -391,14 +391,14 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
       const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
       console.log(`[getAllPosts] 📝 Filtered to ${markdownBlobs.length} markdown files`)
 
-      if (markdownBlobs.length > 0) {
-        const firstBlob = markdownBlobs[0]
-        console.log(`[getAllPosts] 🎯 TESTING FIRST BLOB ONLY: ${firstBlob.pathname}`)
+      for (let i = 0; i < markdownBlobs.length; i++) {
+        const blob = markdownBlobs[i]
+        console.log(`[getAllPosts] 🔄 Processing blob ${i + 1}/${markdownBlobs.length}: ${blob.pathname}`)
 
         try {
-          console.log(`[getAllPosts] 🔄 Using downloadUrl directly: ${firstBlob.downloadUrl}`)
+          console.log(`[getAllPosts] Using downloadUrl: ${blob.downloadUrl}`)
 
-          const response = await fetch(firstBlob.downloadUrl)
+          const response = await fetch(blob.downloadUrl)
           console.log(`[getAllPosts] Response status: ${response.status} ${response.statusText}`)
 
           if (!response.ok) {
@@ -407,9 +407,8 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 
           const fileContents = await response.text()
           console.log(`[getAllPosts] ✅ Got content! Length: ${fileContents.length}`)
-          console.log(`[getAllPosts] Content preview: ${fileContents.substring(0, 200)}...`)
 
-          const rawSlug = firstBlob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+          const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           const cleanSlug = cleanSlugFromFilename(rawSlug)
           console.log(`[getAllPosts] Slug: "${rawSlug}" -> "${cleanSlug}"`)
 
@@ -429,11 +428,13 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 
             allPosts.push(blobPost)
             console.log(`[getAllPosts] 🎉 SUCCESS! Added blob post: "${blobPost.title}"`)
+          } else {
+            console.log(`[getAllPosts] ⚠️ Skipped blob with empty slug: ${blob.pathname}`)
           }
         } catch (blobError) {
-          console.error(`[getAllPosts] ❌ FIRST BLOB FAILED:`, {
-            pathname: firstBlob.pathname,
-            downloadUrl: firstBlob.downloadUrl,
+          console.error(`[getAllPosts] ❌ Failed to process blob ${blob.pathname}:`, {
+            pathname: blob.pathname,
+            downloadUrl: blob.downloadUrl,
             error: blobError instanceof Error ? blobError.message : String(blobError),
           })
         }
