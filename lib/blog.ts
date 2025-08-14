@@ -462,9 +462,76 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
 
+  if (BLOB_TOKEN) {
+    try {
+      console.log(`[getPostBySlug] Searching blob storage for slug: ${slug}`)
+
+      // List all markdown blobs to find the one that matches our cleaned slug
+      const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
+      const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
+
+      console.log(`[getPostBySlug] Found ${markdownBlobs.length} markdown blobs to search`)
+
+      // Find the blob whose cleaned slug matches our target slug
+      let targetBlob = null
+      for (const blob of markdownBlobs) {
+        const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+        const cleanSlug = cleanSlugFromFilename(rawSlug)
+
+        console.log(`[getPostBySlug] Checking blob: ${blob.pathname} -> slug: ${cleanSlug}`)
+
+        if (cleanSlug === slug) {
+          targetBlob = blob
+          console.log(`[getPostBySlug] ✅ Found matching blob: ${blob.pathname}`)
+          break
+        }
+      }
+
+      if (targetBlob) {
+        console.log(`[getPostBySlug] Fetching content from: ${targetBlob.downloadUrl}`)
+
+        const response = await fetch(targetBlob.downloadUrl)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const fileContents = await response.text()
+        console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
+
+        const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
+        console.log(`[getPostBySlug] Frontmatter:`, data)
+
+        const extracted = extractTitleAndExcerpt(content)
+        const title = data.title || extracted.title || `Blog Post: ${slug.replace(/-/g, " ")}`
+        const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
+
+        const serializedContent = await serialize(content, {
+          parseFrontmatter: false,
+        })
+
+        return {
+          frontmatter: {
+            title: title,
+            date: data.date || new Date().toISOString().split("T")[0],
+            category: data.category || "Technology",
+            excerpt: excerpt,
+            image: data.image || undefined,
+            slug: slug,
+            source: "blob",
+          },
+          serializedContent,
+          content,
+          slug,
+        }
+      }
+    } catch (error) {
+      console.error(`[getPostBySlug] Error searching blob storage for ${slug}:`, error)
+    }
+  }
+
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
   if (samplePost) {
-    console.log(`[getPostBySlug] Found sample post for slug: ${slug}`)
+    console.log(`[getPostBySlug] Using sample content as fallback for slug: ${slug}`)
 
     // Use sample content if available, otherwise generate basic content
     const sampleContent =
@@ -502,77 +569,6 @@ This is a sample blog post. The full content would be available in a production 
     }
   }
 
-  if (!BLOB_TOKEN) {
-    console.error("[getPostBySlug] BLOB_READ_WRITE_TOKEN is not set and no sample content found")
-    return null
-  }
-
-  try {
-    console.log(`[getPostBySlug] Searching blob storage for slug: ${slug}`)
-
-    // List all markdown blobs to find the one that matches our cleaned slug
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
-    const markdownBlobs = blobs.filter((blob) => blob.pathname.endsWith(".md"))
-
-    console.log(`[getPostBySlug] Found ${markdownBlobs.length} markdown blobs to search`)
-
-    // Find the blob whose cleaned slug matches our target slug
-    let targetBlob = null
-    for (const blob of markdownBlobs) {
-      const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-      const cleanSlug = cleanSlugFromFilename(rawSlug)
-
-      console.log(`[getPostBySlug] Checking blob: ${blob.pathname} -> slug: ${cleanSlug}`)
-
-      if (cleanSlug === slug) {
-        targetBlob = blob
-        console.log(`[getPostBySlug] ✅ Found matching blob: ${blob.pathname}`)
-        break
-      }
-    }
-
-    if (!targetBlob) {
-      console.log(`[getPostBySlug] ❌ No blob found with matching slug: ${slug}`)
-      return null
-    }
-
-    console.log(`[getPostBySlug] Fetching content from: ${targetBlob.downloadUrl}`)
-
-    const response = await fetch(targetBlob.downloadUrl)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const fileContents = await response.text()
-    console.log(`[getPostBySlug] Fetched file contents length: ${fileContents.length} chars`)
-
-    const { data, content, excerpt: matterExcerpt } = matter(fileContents, { excerpt: true })
-    console.log(`[getPostBySlug] Frontmatter:`, data)
-
-    const extracted = extractTitleAndExcerpt(content)
-    const title = data.title || extracted.title || `Blog Post: ${slug.replace(/-/g, " ")}`
-    const excerpt = data.excerpt || matterExcerpt || extracted.excerpt || "No excerpt available."
-
-    const serializedContent = await serialize(content, {
-      parseFrontmatter: false,
-    })
-
-    return {
-      frontmatter: {
-        title: title,
-        date: data.date || new Date().toISOString().split("T")[0],
-        category: data.category || "Technology",
-        excerpt: excerpt,
-        image: data.image || undefined,
-        slug: slug,
-        source: "blob",
-      },
-      serializedContent,
-      content,
-      slug,
-    }
-  } catch (error) {
-    console.error(`[getPostBySlug] Error fetching or processing post ${slug}:`, error)
-    return null
-  }
+  console.log(`[getPostBySlug] ❌ No content found for slug: ${slug}`)
+  return null
 }
