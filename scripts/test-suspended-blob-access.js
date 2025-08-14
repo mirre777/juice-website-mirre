@@ -1,5 +1,5 @@
 // Test script to check if suspended blob storage allows read access
-import { list, get } from "@vercel/blob"
+import { list, head } from "@vercel/blob"
 
 async function testSuspendedBlobAccess() {
   console.log("=== Testing Suspended Blob Storage Access ===\n")
@@ -29,21 +29,21 @@ async function testSuspendedBlobAccess() {
     }
     console.log("")
 
-    // Test 2: Try to read content from first file
+    // Test 2: Try to get metadata from first file
     if (blobs.length > 0) {
       const firstBlob = blobs[0]
-      console.log("3. Testing get() operation:")
-      console.log(`   Attempting to read: ${firstBlob.pathname}`)
+      console.log("3. Testing head() operation:")
+      console.log(`   Attempting to get metadata: ${firstBlob.pathname}`)
 
       try {
-        const blobData = await get(firstBlob.url, { token })
-        console.log(`   ✅ Get successful: Retrieved blob object`)
+        const blobData = await head(firstBlob.url, { token })
+        console.log(`   ✅ Head successful: Retrieved blob metadata`)
         console.log(`   Blob URL: ${blobData.url}`)
         console.log(`   Download URL: ${blobData.downloadUrl}`)
 
         // Test 3: Try to fetch actual content
         console.log("\n4. Testing content download:")
-        const response = await fetch(blobData.downloadUrl)
+        const response = await fetch(firstBlob.downloadUrl || blobData.downloadUrl)
 
         if (response.ok) {
           const content = await response.text()
@@ -53,8 +53,23 @@ async function testSuspendedBlobAccess() {
         } else {
           console.log(`   ❌ Content download failed: ${response.status} ${response.statusText}`)
         }
-      } catch (getError) {
-        console.log(`   ❌ Get operation failed: ${getError.message}`)
+      } catch (headError) {
+        console.log(`   ❌ Head operation failed: ${headError.message}`)
+
+        console.log("   Trying direct download fallback...")
+        try {
+          const response = await fetch(firstBlob.downloadUrl)
+          if (response.ok) {
+            const content = await response.text()
+            console.log(`   ✅ Direct download successful`)
+            console.log(`   Content length: ${content.length} characters`)
+            console.log(`   First 100 characters: ${content.substring(0, 100)}...`)
+          } else {
+            console.log(`   ❌ Direct download also failed: ${response.status} ${response.statusText}`)
+          }
+        } catch (downloadError) {
+          console.log(`   ❌ Direct download error: ${downloadError.message}`)
+        }
       }
     }
   } catch (listError) {
