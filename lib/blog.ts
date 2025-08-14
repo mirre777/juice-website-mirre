@@ -1,4 +1,4 @@
-import { list, get } from "@vercel/blob"
+import { list } from "@vercel/blob"
 import matter from "gray-matter"
 import { serialize } from "next-mdx-remote/serialize"
 
@@ -23,8 +23,17 @@ export interface BlogPost {
 
 const BLOG_CONTENT_PATH = "blog/"
 
-// Sample blog posts for when blob storage is not available (like in v0)
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
+  {
+    title: "🤖 AI and Personal Training: BFFs or Frenemies? 🏋️‍♀️",
+    date: "2025-01-06",
+    excerpt:
+      "AI isn't stealing your personal trainer's job. It's more like giving them superpowers. Think of it as the ultimate sidekick, making your coach even more awesome.",
+    category: "Technology",
+    image: "/ai-personal-training-technology.png",
+    slug: "ai-and-personal-training-bffs-or-frenemies-sample",
+    source: "hardcoded",
+  },
   {
     title: "🤖 Are Wearables Accurate Enough to Track Complex Lifting Movements?",
     date: "2025-01-04",
@@ -73,6 +82,26 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     category: "Marketing",
     image: "/top-5-free-personal-trainer-website-builders-2025.png",
     slug: "top-5-free-personal-trainer-website-builders-2025",
+    source: "hardcoded",
+  },
+  {
+    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
+    date: "2025-01-20",
+    excerpt:
+      "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
+    category: "Technology",
+    image: "/best-tools-personal-trainers-berlin-2025.png",
+    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-sample",
+    source: "hardcoded",
+  },
+  {
+    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
+    date: "2025-01-18",
+    excerpt:
+      "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
+    category: "Technology",
+    image: "/top-fitness-software-berlin-2025.png",
+    slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year-sample",
     source: "hardcoded",
   },
   {
@@ -212,7 +241,6 @@ Sheets work great until they don't. Know when to graduate to dedicated coaching 
 }
 
 function enhanceMarkdownContent(content: string, title: string): string {
-  // Apply consistent formatting enhancements to make all blob articles look polished
   let enhanced = content
 
   // Ensure title has emoji if it doesn't already
@@ -254,90 +282,6 @@ function extractTitleAndExcerpt(content: string): { title: string | null; excerp
   return {
     title: titleMatch ? titleMatch[1].trim() : null,
     excerpt: excerptMatch ? excerptMatch[1].trim() : paragraphMatch ? paragraphMatch[1].trim() : null,
-  }
-}
-
-// Helper function to fetch blob content with proper authentication
-async function fetchBlobContent(blobPathname: string): Promise<string> {
-  console.log(`[fetchBlobContent] Starting fetch for: ${blobPathname}`)
-
-  if (!BLOB_TOKEN) {
-    throw new Error("BLOB_READ_WRITE_TOKEN not available")
-  }
-
-  try {
-    console.log(`[fetchBlobContent] Step 1: Getting blob object using SDK...`)
-    const blob = await get(blobPathname, { token: BLOB_TOKEN })
-    console.log(`[fetchBlobContent] Step 1 result:`, {
-      exists: !!blob,
-      url: blob?.url,
-      size: blob?.size,
-      contentType: blob?.contentType,
-    })
-
-    if (!blob) {
-      throw new Error(`Blob not found: ${blobPathname}`)
-    }
-
-    console.log(`[fetchBlobContent] Step 2: Attempting to fetch content from URL...`)
-    console.log(`[fetchBlobContent] Step 2: URL being fetched: ${blob.url}`)
-
-    // Try fetching with different approaches
-    let content: string
-
-    try {
-      // Approach 1: Direct fetch from blob URL
-      console.log(`[fetchBlobContent] Step 2a: Direct fetch attempt...`)
-      const response = await fetch(blob.url)
-      console.log(`[fetchBlobContent] Step 2a response:`, {
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      content = await response.text()
-      console.log(`[fetchBlobContent] Step 2a ✅: Got content, length: ${content.length}`)
-    } catch (fetchError) {
-      console.log(`[fetchBlobContent] Step 2a ❌: Direct fetch failed:`, fetchError)
-
-      // Approach 2: Try with authentication headers
-      console.log(`[fetchBlobContent] Step 2b: Fetch with auth headers...`)
-      const authResponse = await fetch(blob.url, {
-        headers: {
-          Authorization: `Bearer ${BLOB_TOKEN}`,
-          "Content-Type": "text/markdown",
-        },
-      })
-
-      console.log(`[fetchBlobContent] Step 2b response:`, {
-        ok: authResponse.ok,
-        status: authResponse.status,
-        statusText: authResponse.statusText,
-      })
-
-      if (!authResponse.ok) {
-        throw new Error(`Auth fetch failed: HTTP ${authResponse.status}: ${authResponse.statusText}`)
-      }
-
-      content = await authResponse.text()
-      console.log(`[fetchBlobContent] Step 2b ✅: Got content with auth, length: ${content.length}`)
-    }
-
-    console.log(`[fetchBlobContent] Step 3: Content preview:`, content.substring(0, 200) + "...")
-    console.log(`[fetchBlobContent] ✅ Success for ${blobPathname}, final content length: ${content.length}`)
-    return content
-  } catch (error) {
-    console.error(`[fetchBlobContent] ❌ Complete failure for ${blobPathname}:`, {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      blobPathname,
-    })
-    throw error
   }
 }
 
@@ -467,6 +411,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   console.log(`[getPostBySlug] Attempting to fetch post with slug: ${slug}`)
 
+  // First check blob storage
   if (BLOB_TOKEN) {
     try {
       console.log(`[getPostBySlug] Searching blob storage for slug: ${slug}`)
@@ -539,6 +484,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     }
   }
 
+  // Fallback to hardcoded sample posts
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
   if (samplePost) {
     console.log(`[getPostBySlug] Using sample content for hardcoded post: ${slug}`)
