@@ -247,7 +247,7 @@ export default async function BlogPage() {
                     <div className="flex items-center justify-between">
                       <Button
                         variant="ghost"
-                        className="group/btn p-0 h-auto font-semibold text-juice hover:text-juice/80 hover:bg-transparent"
+                        className="group/btn p-0 h-auto font-semibold text-black hover:text-juice hover:bg-transparent"
                       >
                         Read More
                         <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />

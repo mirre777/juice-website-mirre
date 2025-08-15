@@ -116,6 +116,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
     category: "Coaching",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runI9EYUY5MdxQ_show_me_lifting_pl_e3d031ab-6312-4f86-a9ff-3c62d20af746_0-OShS9P2385kOQCCJxI5zHLmYXUPwHr.png",
     slug: "psychology-of-fitness-mental-coaching-techniques",
   },
 ]
@@ -582,7 +584,7 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
     titleLower.includes("myths busted") ||
     titleLower.includes("myths")
   ) {
-    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runuYrsMWWsn10_put_a_piece_of_grill_c00ac71c-6ec0-406d-a8e4-163f78770b2e.png-6D1BzuCHEwkBGMH4OgDLEotab58zIb.jpeg"
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_72f6cc4d-9694-43ad-919b-7b562d884b0a_0-eLUqJaxSwe1bNeVFJhR1VDW10n32n0.png"
   }
 
   if (
