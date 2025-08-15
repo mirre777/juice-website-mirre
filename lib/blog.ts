@@ -80,7 +80,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
     category: "Technology",
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_create_an_image_in_the_same_style_but_of_th_98e1d4ff-82a7-493b-a3f9-22a19db57360_3-FVKJchznq06iVdSRF8YA2bz8Xj51DW.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%2015%2C%202025%2C%2002_26_22%20PM-04Fmc86J6RU32SEukCBMpJXIQngz0D.png",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
   },
   {
