@@ -84,32 +84,6 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025",
   },
   {
-    title: "Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
-    date: "2025-01-10",
-    excerpt:
-      "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
-    category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/boxer_gym-6wlg1r57kNLLkVRoWE8X6aD02l6k6y.png",
-    slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
-  },
-  {
-    title: "Nutrition Coaching Trends Taking Over Berlin in 2025",
-    date: "2025-01-05",
-    excerpt:
-      "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
-    category: "Nutrition",
-    image: "/nutrition-coaching-trends-berlin-woman-phone.png",
-    slug: "nutrition-coaching-trends-berlin-2025",
-  },
-  {
-    title: "Strength Training Revolution: What's New in Berlin Gyms",
-    date: "2024-12-28",
-    excerpt:
-      "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
-    category: "Fitness",
-    slug: "strength-training-revolution-berlin-gyms",
-  },
-  {
     title: "The Psychology of Fitness: Mental Coaching Techniques",
     date: "2024-12-20",
     excerpt:
@@ -118,6 +92,14 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runI9EYUY5MdxQ_show_me_lifting_pl_e3d031ab-6312-4f86-a9ff-3c62d20af746_0-OShS9P2385kOQCCJxI5zHLmYXUPwHr.png",
     slug: "psychology-of-fitness-mental-coaching-techniques",
+  },
+  {
+    title: "Strength Training Revolution: What's New in Berlin Gyms",
+    date: "2024-12-28",
+    excerpt:
+      "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
+    category: "Fitness",
+    slug: "strength-training-revolution-berlin-gyms",
   },
 ]
 
