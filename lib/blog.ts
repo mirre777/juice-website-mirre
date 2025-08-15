@@ -78,7 +78,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
     category: "Technology",
-    image: "/boxing-portrait-1.png",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_create_an_image_in_the_same_style_but_of_th_98e1d4ff-82a7-493b-a3f9-22a19db57360_3-FVKJchznq06iVdSRF8YA2bz8Xj51DW.png",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
   },
   {
@@ -580,7 +581,7 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
     titleLower.includes("medicine") ||
     titleLower.includes("number 2")
   ) {
-    return "/boxing-portrait-2.png"
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_create_an_image_in_the_same_style_but_of_th_aa77639a-36ef-4fe3-a79e-1d6dd37e1e90_2-petqFiTwRriFbsmO9j4PYsJtF2eXGt.png"
   }
 
   if (titleLower.includes("grannies") || titleLower.includes("pump iron") || titleLower.includes("stop the clock")) {
