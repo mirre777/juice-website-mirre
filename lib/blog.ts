@@ -80,7 +80,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
     category: "Technology",
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%2015%2C%202025%2C%2002_26_22%20PM-04Fmc86J6RU32SEukCBMpJXIQngz0D.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_two_people_having_coffee_both_are_trainers__91ddbd75-b9d8-483d-b6b3-4eba520e800c_0-mO79j6wHYoUZTwDd7RPCRuczIR4FHK.png",
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025",
   },
   {
@@ -303,7 +303,7 @@ function extractTitleFromContent(content: string, filename: string): string {
     .replace(/\.md$/, "")
     .replace(/^-+/, "")
     .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s*/g, "") // Remove parentheses content
+    .replace(/\s*$$[^)]*$$\s*/, "") // Remove parentheses content
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (l) => l.toUpperCase())
     .trim()
