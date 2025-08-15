@@ -525,13 +525,13 @@ function extractTitleFromContent(content: string, filename: string): string {
   // First try to get title from frontmatter
   const { data: frontmatter, content: markdownContent } = matter(content)
   if (frontmatter.title) {
-    return frontmatter.title
+    return cleanTitle(frontmatter.title)
   }
 
   // If no frontmatter title, try to extract from first heading
   const headingMatch = markdownContent.match(/^#\s+(.+)$/m)
   if (headingMatch) {
-    return headingMatch[1].trim()
+    return cleanTitle(headingMatch[1].trim())
   }
 
   // If no heading, try to generate from filename
@@ -539,12 +539,12 @@ function extractTitleFromContent(content: string, filename: string): string {
     .replace(/\.md$/, "")
     .replace(/^-+/, "")
     .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s/g, "") // Remove parentheses content
+    .replace(/\s*$$[^)]*$$\s*/g, "") // Remove parentheses content
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (l) => l.toUpperCase())
     .trim()
 
-  return cleanName || "Untitled"
+  return cleanTitle(cleanName) || "Untitled"
 }
 
 function extractExcerptFromContent(content: string, frontmatter: any): string {
@@ -607,6 +607,20 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
 
   // Default fallback
   return "/fitness-blog-post.png"
+}
+
+function cleanTitle(title: string): string {
+  return (
+    title
+      // Remove "Number X" prefixes
+      .replace(/^Number\s+\d+\s*/i, "")
+      // Remove file extensions and codes
+      .replace(/\s*Effects?\s*Of\d*[a-z]*\s*$/i, "")
+      .replace(/\s*\.(pdf|doc|docx|txt)\s*$/i, "")
+      // Clean up extra whitespace
+      .replace(/\s+/g, " ")
+      .trim()
+  )
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
