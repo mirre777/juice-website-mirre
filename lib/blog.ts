@@ -74,14 +74,14 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "seo-tips-for-fitness-coaches-in-europe",
   },
   {
-    title: "🚀 The Best Tools for Personal Trainers in Berlin 2025 Edition",
+    title: "The Best Tools For Personal Trainers In Berlin 2025",
     date: "2025-01-15",
     excerpt:
       "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
     category: "Technology",
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%2015%2C%202025%2C%2002_26_22%20PM-04Fmc86J6RU32SEukCBMpJXIQngz0D.png",
-    slug: "the-best-tools-for-personal-trainers-in-berlin-2025-edition-rocket",
+    slug: "the-best-tools-for-personal-trainers-in-berlin-2025",
   },
   {
     title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
