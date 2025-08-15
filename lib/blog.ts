@@ -521,22 +521,28 @@ async function fetchBlobContent(url: string): Promise<string> {
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
+  console.log("[v0] getAllPosts: Starting to fetch all posts...")
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
+  console.log(`[v0] getAllPosts: Added ${SAMPLE_POSTS.length} hardcoded sample posts`)
 
   try {
     // Fetch blob storage content
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+    console.log(`[v0] getAllPosts: Found ${blobs.blobs.length} blob files`)
 
     for (const blob of blobs.blobs) {
+      console.log(`[v0] getAllPosts: Processing blob: ${blob.pathname}`)
       try {
         const content = await fetchBlobContent(blob.downloadUrl)
         if (content) {
           const { data: frontmatter } = matter(content)
+          console.log(`[v0] getAllPosts: Parsed frontmatter for ${blob.pathname}:`, frontmatter)
 
           // Generate slug from filename
           const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           const cleanSlug = cleanSlugFromFilename(rawSlug)
+          console.log(`[v0] getAllPosts: Generated slug "${cleanSlug}" from "${rawSlug}"`)
 
           const post: BlogPostFrontmatter = {
             title: frontmatter.title || "Untitled",
@@ -547,40 +553,52 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             slug: cleanSlug,
           }
 
+          console.log(`[v0] getAllPosts: Created post object:`, post)
           posts.push(post)
+        } else {
+          console.log(`[v0] getAllPosts: No content found for blob: ${blob.pathname}`)
         }
       } catch (error) {
-        console.error(`Error processing blob ${blob.pathname}:`, error)
+        console.error(`[v0] getAllPosts: Error processing blob ${blob.pathname}:`, error)
       }
     }
   } catch (error) {
-    console.error("Error fetching from blob storage:", error)
+    console.error("[v0] getAllPosts: Error fetching from blob storage:", error)
   }
 
+  console.log(`[v0] getAllPosts: Total posts before sorting: ${posts.length}`)
   // Sort by date (newest first)
-  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const sortedPosts = posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  console.log(`[v0] getAllPosts: Returning ${sortedPosts.length} sorted posts`)
+  return sortedPosts
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  console.log(`[v0] getPostBySlug: Looking for post with slug: "${slug}"`)
+
   try {
     // First, try to find in blob storage
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+    console.log(`[v0] getPostBySlug: Searching through ${blobs.blobs.length} blob files`)
 
     for (const blob of blobs.blobs) {
       const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
       const cleanSlug = cleanSlugFromFilename(rawSlug)
+      console.log(`[v0] getPostBySlug: Checking blob "${blob.pathname}" with clean slug "${cleanSlug}"`)
 
       if (cleanSlug === slug) {
+        console.log(`[v0] getPostBySlug: Found matching blob for slug "${slug}"`)
         const content = await fetchBlobContent(blob.downloadUrl)
         if (content) {
           const { data: frontmatter, content: markdownContent } = matter(content)
+          console.log(`[v0] getPostBySlug: Parsed blob content, frontmatter:`, frontmatter)
 
           // Enhance the markdown content for consistent formatting
           const enhancedContent = enhanceMarkdownContent(markdownContent)
           const mdxSource = await serialize(enhancedContent)
 
-          return {
+          const post = {
             title: frontmatter.title || "Untitled",
             date: frontmatter.date || new Date().toISOString().split("T")[0],
             excerpt: frontmatter.excerpt || frontmatter.description || "",
@@ -590,25 +608,37 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             content: mdxSource,
             rawContent: enhancedContent,
           }
+          console.log(`[v0] getPostBySlug: Created blob post object:`, {
+            ...post,
+            content: "[MDX_SOURCE]",
+            rawContent: "[RAW_CONTENT]",
+          })
+          return post
         }
       }
     }
   } catch (error) {
-    console.error("Error fetching from blob storage:", error)
+    console.error(`[v0] getPostBySlug: Error fetching from blob storage for slug "${slug}":`, error)
   }
 
   // Fallback to hardcoded sample posts
+  console.log(`[v0] getPostBySlug: Checking hardcoded sample posts for slug "${slug}"`)
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
   if (samplePost) {
+    console.log(`[v0] getPostBySlug: Found hardcoded sample post:`, samplePost)
     const content = SAMPLE_BLOG_CONTENT[slug]
     if (content) {
+      console.log(`[v0] getPostBySlug: Found full content for hardcoded post "${slug}"`)
       const mdxSource = await serialize(content)
-      return {
+      const post = {
         ...samplePost,
         content: mdxSource,
         rawContent: content,
       }
+      console.log(`[v0] getPostBySlug: Created hardcoded post object with full content`)
+      return post
     } else {
+      console.log(`[v0] getPostBySlug: No full content found for hardcoded post "${slug}", using generic content`)
       // Return sample post with generic content
       const genericContent = `# ${samplePost.title}
 
@@ -625,14 +655,17 @@ This is a sample blog post. The full content would be available in a production 
 *This content is part of our sample blog system.*`
 
       const mdxSource = await serialize(genericContent)
-      return {
+      const post = {
         ...samplePost,
         content: mdxSource,
         rawContent: genericContent,
       }
+      console.log(`[v0] getPostBySlug: Created hardcoded post object with generic content`)
+      return post
     }
   }
 
+  console.log(`[v0] getPostBySlug: No post found for slug "${slug}"`)
   return null
 }
 

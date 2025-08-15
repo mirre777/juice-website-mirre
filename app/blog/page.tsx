@@ -98,14 +98,24 @@ const getPlaceholderImage = (category: string) => {
 }
 
 export default async function BlogPage() {
-  console.log("[BlogPage] Rendering blog page...")
+  console.log("[v0] BlogPage: Starting to render blog page...")
 
   let posts
   try {
     posts = await getAllPosts()
-    console.log(`[BlogPage] Fetched ${posts.length} posts`)
+    console.log(`[v0] BlogPage: Fetched ${posts.length} posts`)
+    posts.forEach((post, index) => {
+      console.log(`[v0] BlogPage: Post ${index}:`, {
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        category: post.category,
+        date: post.date,
+        image: post.image,
+      })
+    })
   } catch (error) {
-    console.error("[BlogPage] Error fetching posts:", error)
+    console.error("[v0] BlogPage: Error fetching posts:", error)
     posts = []
   }
 
