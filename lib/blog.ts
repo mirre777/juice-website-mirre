@@ -22,7 +22,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
     category: "Technology",
-    image: "/wearables-strength-training-squat-gym.png",
+    image: "/wearables-tracking-gym.png",
     slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
   },
   {
@@ -31,8 +31,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.",
     category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tracking%20biometrics%20%281%29-HWabjekyZFyyGIXge16oFoyfWB84nS.png",
+    image: "/biometrics-tracking-dashboard.png",
     slug: "tracking-biometrics-what-actually-moves-the-needle",
   },
   {
@@ -41,8 +40,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
     category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/max_LS%20%281%29-xJVZRoneLwWk1GoQiKXIjSrxdTuBWz.png",
+    image: "/google-sheets-coaching.png",
     slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
   },
   {
@@ -51,7 +49,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
     category: "Marketing",
-    image: "/personal-trainer-booking-page-mobile.png",
+    image: "/booking-page-mobile.png",
     slug: "how-to-get-more-clients-with-booking-page",
   },
   {
@@ -60,7 +58,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
     category: "Technology",
-    image: "/personal-trainer-website-builders-laptops.png",
+    image: "/website-builders-laptops.png",
     slug: "top-5-free-personal-trainer-website-builders-2025",
   },
   {
@@ -69,29 +67,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
     category: "Visibility",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_89a563be-ee33-4e4b-9446-d2cc6db82549_1-fl8B6QPcHBkfcmbSfZlo1jklJx4Rfr.png",
+    image: "/seo-fitness-coach-europe.png",
     slug: "seo-tips-for-fitness-coaches-in-europe",
-  },
-  {
-    title: "The Best Tools For Personal Trainers In Berlin 2025",
-    date: "2025-01-15",
-    excerpt:
-      "Discover the cutting-edge tools and apps that are revolutionizing personal training in Berlin. From AI-powered workout planning to client management systems.",
-    category: "Technology",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Aug%2015%2C%202025%2C%2005_12_25%20PM-d2aZJuPKSH8LZL5Dk4WLqU3JpxMFm1.png",
-    slug: "the-best-tools-for-personal-trainers-in-berlin-2025",
-  },
-  {
-    title: "The Psychology of Fitness: Mental Coaching Techniques",
-    date: "2024-12-20",
-    excerpt:
-      "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
-    category: "Coaching",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runI9EYUY5MdxQ_show_me_lifting_pl_e3d031ab-6312-4f86-a9ff-3c62d20af746_0-OShS9P2385kOQCCJxI5zHLmYXUPwHr.png",
-    slug: "psychology-of-fitness-mental-coaching-techniques",
   },
   {
     title: "Strength Training Revolution: What's New in Berlin Gyms",
@@ -99,6 +76,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
     category: "Fitness",
+    image: "/strength-training-berlin-gyms.png",
     slug: "strength-training-revolution-berlin-gyms",
   },
 ]
@@ -219,7 +197,7 @@ For solo or niche athletes, Google Sheets is flexible, free, and powerful. But i
 
   "how-to-get-more-clients-with-booking-page": `# How to Get More Clients with a Booking Page
 
-Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A **booking page** converts scrolls into sessions while you sleep.
+Still relying on DMs and WhatsApp back-and-forth? You're losing clients while checking your phone. A **booking page** converts scrolls into sessions while you sleep.
 
 ## Why Booking Pages Work (Especially for Fitness Coaches)
 
@@ -316,156 +294,87 @@ Use a tool that *books clients*, not just shows your muscles. Juice is made for 
 
 and let your site lift the weight.`,
 
-  "strength-training-revolution-berlin-gyms": `# Strength Training Revolution: What's New in Berlin Gyms
+  "seo-tips-for-fitness-coaches-in-europe": `# SEO Tips for Fitness Coaches in Europe
 
-Berlin's fitness scene is experiencing a transformation. From cutting-edge equipment to revolutionary training methodologies, the city's gyms are leading the charge in strength training innovation.
+Lets get something straight: SEO isnt for nerds in glasses. Its for **smart coaches** who want to get
+found while theyre training.
 
----
-
-## The New Wave of Training Equipment
-
-### Smart Resistance Technology
-Berlin gyms are investing heavily in intelligent resistance systems that adapt to your strength curve in real-time. These machines use electromagnetic resistance and AI algorithms to provide optimal loading throughout each rep.
-
-**Key innovations:**
-- **Adaptive resistance** that matches your strength curve
-- **Real-time form feedback** through integrated sensors  
-- **Personalized progression** based on performance data
-- **Injury prevention** through movement analysis
-
-### Pneumatic Training Systems
-Air-powered resistance is making waves in Berlin's premium facilities. Unlike traditional weights, pneumatic systems provide variable resistance that can be adjusted instantly.
-
-**Benefits:**
-- **Reduced joint stress** through smooth resistance curves
-- **Explosive power development** with accommodating resistance
-- **Rehabilitation applications** for injury recovery
-- **Space efficiency** in crowded urban gyms
+Heres how to rank higher, book more, and dominate your local market.
 
 ---
 
-## Revolutionary Training Methodologies
+## What Is SEO, Really?
 
-### Velocity-Based Training (VBT)
-Berlin trainers are embracing VBT to optimize strength gains. By measuring bar speed, coaches can prescribe exact loads for specific adaptations.
+Search Engine Optimisation = Getting found when someone searches:
 
-**How it works:**
-1. **Measure bar velocity** during each rep
-2. **Adjust load** based on velocity targets
-3. **Track fatigue** through velocity drop-off
-4. **Optimize recovery** between sessions
-
-**Real results:**
-> *"Since implementing VBT at our Kreuzberg location, our powerlifters have seen 15% faster strength gains compared to traditional percentage-based programming."*
-> 
-> **— Marcus Weber, Head Coach at Iron Temple Berlin**
-
-### Cluster Training Protocols
-This advanced method involves short rest periods within sets to maintain power output and training quality.
-
-**Example protocol:**
-- **3 reps** → 15-second rest
-- **3 reps** → 15-second rest  
-- **3 reps** → 3-minute rest
-- Repeat for 4-5 clusters
-
-**Benefits:**
-- **Higher training volumes** at maximal intensities
-- **Improved power output** throughout the session
-- **Enhanced neural adaptations** for strength
-- **Reduced metabolic fatigue** during heavy lifting
+- Personal Trainer Berlin
+- Online Fitness Coach Munich
+- Free website for fitness coach
 
 ---
 
-## Coaching Technique Innovations
+## 1. Nail Your Keywords
 
-### Movement Variability Training
-Berlin coaches are moving away from rigid movement patterns toward controlled variability that builds robust strength.
+Use **1 main keyword** per page/post:
+- personal trainer website builder
+- book personal training sessions online
+- fitness website template
 
-**Key principles:**
-- **Slight stance variations** in squats and deadlifts
-- **Tempo manipulations** to challenge different phases
-- **Unilateral emphasis** for balanced development
-- **Reactive training** using unstable surfaces
+Also sprinkle in:
 
-### Autoregulation Systems
-Smart programming that adjusts based on daily readiness and performance markers.
+- PT Website schnell erstellen
+- Kostenlose Website fr Fitnesstrainer
 
-**Implementation:**
-1. **Daily readiness assessment** through HRV or subjective scales
-2. **Load adjustment** based on bar speed or RPE
-3. **Volume modification** according to recovery status
-4. **Exercise selection** based on movement quality
+Use Google Trends + UberSuggest to verify volume.
 
 ---
 
-## The Science Behind the Revolution
+## 2. Optimise Your Page
 
-### Muscle Fiber Recruitment Optimization
-New research from Berlin's sports science institutes shows how specific loading patterns can target different muscle fiber types more effectively.
-
-**Fast-twitch targeting:**
-- **Explosive concentrics** at 30-50% 1RM
-- **Heavy eccentrics** at 110-120% 1RM
-- **Compensatory acceleration** training
-- **Plyometric integration** within strength sessions
-
-**Slow-twitch development:**
-- **Time under tension** protocols (40-70 seconds)
-- **Occlusion training** at lower intensities
-- **High-frequency training** with moderate loads
-- **Metabolic stress** accumulation methods
-
-### Recovery Technology Integration
-Berlin gyms are pioneering the integration of recovery modalities directly into training sessions.
-
-**Innovative approaches:**
-- **Compression therapy** between heavy sets
-- **Vibration platforms** for activation and recovery
-- **Cold therapy** integration for inflammation control
-- **Light therapy** for circadian rhythm optimization
+- One H1 tag: Create Your Trainer Website in 10 Minutes
+- Meta Title: Personal Trainer Website Builder Juice
+- Meta Description: Launch a high-converting fitness site. Fast, free, SEO-ready.
 
 ---
 
-## What This Means for Your Training
+## 3. Use Local SEO
 
-### For Beginners
-- **Start with movement quality** before adding complexity
-- **Use technology** as feedback, not replacement for coaching
-- **Focus on consistency** over advanced methods
-- **Build a foundation** with proven basics
+Say where you train:
+- Available in Berlin & Online
+- Fitness Coach in Zrich 1:1 and remote
 
-### For Intermediate Lifters
-- **Experiment with VBT** to break through plateaus
-- **Try cluster training** for strength-focused phases
-- **Incorporate autoregulation** to optimize recovery
-- **Add movement variability** to prevent stagnation
-
-### For Advanced Athletes
-- **Implement full periodization** with technology integration
-- **Use multiple training modalities** within the same session
-- **Track detailed metrics** for precise adjustments
-- **Work with qualified coaches** familiar with new methods
+Claim your **Google Business Profile** too.
 
 ---
 
-## The Future of Strength Training in Berlin
+## 4. Link Smarter
 
-The revolution is just beginning. As Berlin continues to attract top sports scientists and innovative coaches, we can expect even more groundbreaking developments in strength training methodology.
-
-**Emerging trends to watch:**
-- **AI-powered coaching** that adapts in real-time
-- **Genetic testing** for personalized programming
-- **Virtual reality** training environments
-- **Biometric integration** for seamless monitoring
-
-The key is balancing innovation with proven fundamentals. Technology should enhance, not replace, good coaching and consistent effort.
-
-Whether you're training in a high-tech facility in Mitte or a traditional gym in Wedding, these principles can elevate your strength training to new levels.
+- Internal: Blog posts your booking page
+- External: Get backlinks from local gyms, fitness blogs, and events
 
 ---
 
-*Ready to experience Berlin's strength training revolution? Visit one of the city's innovative facilities and see how these methods can transform your training.*`,
+## 5. Keep It Fast + Mobile
+
+Use tools like [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) to make it:
+- Mobile-optimised
+- Fast-loading
+- Clean, no fluff
+
+---
+
+## SEO Slow. SEO = Smart.
+
+Most coaches sleep on SEO.
+
+Not you.
+
+You now know how to:
+- Use keywords that matter
+- Build a fast personal trainer site
+- Get clients while you train
+
+Ready to dominate? Time to publish.`,
 }
 
 const BLOG_CONTENT_PATH = "blog/"
