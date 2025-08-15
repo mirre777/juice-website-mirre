@@ -576,22 +576,22 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
     return frontmatter.image
   }
 
+  console.log(`[v0] getImageForBlobPost: Processing title: "${title}"`)
+
   // Assign images based on title content
   const titleLower = title.toLowerCase()
+  console.log(`[v0] getImageForBlobPost: Title lowercase: "${titleLower}"`)
 
   if (
     titleLower.includes("strength training myths") ||
     titleLower.includes("myths busted") ||
     titleLower.includes("myths")
   ) {
+    console.log(`[v0] getImageForBlobPost: Matched myths pattern, using optimusprime image`)
     return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_72f6cc4d-9694-43ad-919b-7b562d884b0a_0-eLUqJaxSwe1bNeVFJhR1VDW10n32n0.png"
   }
 
-  if (
-    titleLower.includes("resistance training") ||
-    titleLower.includes("medicine") ||
-    titleLower.includes("number 2")
-  ) {
+  if (titleLower.includes("strength training") || titleLower.includes("medicine") || titleLower.includes("number 2")) {
     return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_create_an_image_in_the_same_style_but_of_th_aa77639a-36ef-4fe3-a79e-1d6dd37e1e90_2-petqFiTwRriFbsmO9j4PYsJtF2eXGt.png"
   }
 
@@ -782,3 +782,4 @@ export async function getPostSlugs(): Promise<string[]> {
   const posts = await getAllPosts()
   return posts.map((post) => post.slug)
 }
+</merged_code>
