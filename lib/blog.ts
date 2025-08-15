@@ -520,6 +520,53 @@ async function fetchBlobContent(url: string): Promise<string> {
   }
 }
 
+function extractTitleFromContent(content: string, filename: string): string {
+  // First try to get title from frontmatter
+  const { data: frontmatter, content: markdownContent } = matter(content)
+  if (frontmatter.title) {
+    return frontmatter.title
+  }
+
+  // If no frontmatter title, try to extract from first heading
+  const headingMatch = markdownContent.match(/^#\s+(.+)$/m)
+  if (headingMatch) {
+    return headingMatch[1].trim()
+  }
+
+  // If no heading, try to generate from filename
+  const cleanName = filename
+    .replace(/\.md$/, "")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
+    .replace(/\s*$$[^)]*$$\s*/g, "") // Remove parentheses content
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (l) => l.toUpperCase())
+    .trim()
+
+  return cleanName || "Untitled"
+}
+
+function extractExcerptFromContent(content: string, frontmatter: any): string {
+  if (frontmatter.excerpt || frontmatter.description) {
+    return frontmatter.excerpt || frontmatter.description
+  }
+
+  // Extract first paragraph after title
+  const { content: markdownContent } = matter(content)
+  const paragraphs = markdownContent
+    .replace(/^#.+$/gm, "") // Remove headings
+    .split("\n\n")
+    .map((p) => p.trim())
+    .filter((p) => p.length > 50) // Only substantial paragraphs
+
+  if (paragraphs.length > 0) {
+    const excerpt = paragraphs[0].substring(0, 200)
+    return excerpt.length < paragraphs[0].length ? excerpt + "..." : excerpt
+  }
+
+  return "Discover insights from the world of fitness coaching and technology."
+}
+
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log("[v0] getAllPosts: Starting to fetch all posts...")
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
@@ -537,19 +584,24 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
         const content = await fetchBlobContent(blob.downloadUrl)
         if (content) {
           const { data: frontmatter } = matter(content)
-          console.log(`[v0] getAllPosts: Parsed frontmatter for ${blob.pathname}:`, frontmatter)
+          console.log(`[v0] getAllPosts: Raw frontmatter for ${blob.pathname}:`, frontmatter)
 
           // Generate slug from filename
           const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           const cleanSlug = cleanSlugFromFilename(rawSlug)
-          console.log(`[v0] getAllPosts: Generated slug "${cleanSlug}" from "${rawSlug}"`)
+
+          const extractedTitle = extractTitleFromContent(content, rawSlug)
+          const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
+
+          console.log(`[v0] getAllPosts: Extracted title: "${extractedTitle}" from ${blob.pathname}`)
+          console.log(`[v0] getAllPosts: Extracted excerpt: "${extractedExcerpt.substring(0, 100)}..."`)
 
           const post: BlogPostFrontmatter = {
-            title: frontmatter.title || "Untitled",
+            title: extractedTitle,
             date: frontmatter.date || new Date().toISOString().split("T")[0],
-            excerpt: frontmatter.excerpt || frontmatter.description || "",
+            excerpt: extractedExcerpt,
             category: frontmatter.category || "General",
-            image: frontmatter.image,
+            image: frontmatter.image || "/fitness-blog-post.png",
             slug: cleanSlug,
           }
 
@@ -594,25 +646,24 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
           const { data: frontmatter, content: markdownContent } = matter(content)
           console.log(`[v0] getPostBySlug: Parsed blob content, frontmatter:`, frontmatter)
 
+          const extractedTitle = extractTitleFromContent(content, rawSlug)
+          const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
+
           // Enhance the markdown content for consistent formatting
           const enhancedContent = enhanceMarkdownContent(markdownContent)
           const mdxSource = await serialize(enhancedContent)
 
           const post = {
-            title: frontmatter.title || "Untitled",
+            title: extractedTitle,
             date: frontmatter.date || new Date().toISOString().split("T")[0],
-            excerpt: frontmatter.excerpt || frontmatter.description || "",
+            excerpt: extractedExcerpt,
             category: frontmatter.category || "General",
-            image: frontmatter.image,
+            image: frontmatter.image || "/fitness-blog-post.png",
             slug: cleanSlug,
             content: mdxSource,
             rawContent: enhancedContent,
           }
-          console.log(`[v0] getPostBySlug: Created blob post object:`, {
-            ...post,
-            content: "[MDX_SOURCE]",
-            rawContent: "[RAW_CONTENT]",
-          })
+          console.log(`[v0] getPostBySlug: Created blob post object with title: "${extractedTitle}"`)
           return post
         }
       }
