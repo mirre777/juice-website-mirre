@@ -229,7 +229,15 @@ export default async function BlogPage() {
                     </div>
 
                     <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
-                      {post.title}
+                      {(() => {
+                        console.log(`[v0] BlogPage: Rendering title for post ${post.slug}:`, {
+                          title: post.title,
+                          titleType: typeof post.title,
+                          titleLength: post.title?.length,
+                          rawTitle: JSON.stringify(post.title),
+                        })
+                        return post.title || `[DEBUG] No title for ${post.slug}`
+                      })()}
                     </CardTitle>
                   </CardHeader>
 
