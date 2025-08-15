@@ -17,7 +17,7 @@ export interface BlogPost extends BlogPostFrontmatter {
 
 const SAMPLE_POSTS: BlogPostFrontmatter[] = [
   {
-    title: "⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?",
+    title: "Are Wearables Accurate Enough to Track Complex Lifting Movements?",
     date: "2025-02-04",
     excerpt:
       "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
@@ -26,7 +26,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
   },
   {
-    title: "📊 Tracking Biometrics: What Actually Moves the Needle",
+    title: "Tracking Biometrics: What Actually Moves the Needle",
     date: "2025-02-03",
     excerpt:
       "Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.",
@@ -36,7 +36,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "tracking-biometrics-what-actually-moves-the-needle",
   },
   {
-    title: "📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
+    title: "Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
     date: "2025-02-02",
     excerpt:
       "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
@@ -46,7 +46,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
   },
   {
-    title: "📱 How to Get More Clients with a Booking Page",
+    title: "How to Get More Clients with a Booking Page",
     date: "2025-02-01",
     excerpt:
       "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
@@ -55,7 +55,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "how-to-get-more-clients-with-booking-page",
   },
   {
-    title: "🏆 Top 5 Free Personal Trainer Website Builders (2025)",
+    title: "Top 5 Free Personal Trainer Website Builders (2025)",
     date: "2025-01-31",
     excerpt:
       "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
@@ -64,7 +64,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "top-5-free-personal-trainer-website-builders-2025",
   },
   {
-    title: "🔍 SEO Tips for Fitness Coaches in Europe",
+    title: "SEO Tips for Fitness Coaches in Europe",
     date: "2025-01-30",
     excerpt:
       "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
@@ -84,7 +84,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "the-best-tools-for-personal-trainers-in-berlin-2025",
   },
   {
-    title: "💻 Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
+    title: "Top Fitness Software in Berlin 2025 (Because Spreadsheets Are So Last Year)",
     date: "2025-01-10",
     excerpt:
       "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
@@ -94,7 +94,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
   },
   {
-    title: "🥗 Nutrition Coaching Trends Taking Over Berlin in 2025",
+    title: "Nutrition Coaching Trends Taking Over Berlin in 2025",
     date: "2025-01-05",
     excerpt:
       "From personalized meal planning to AI-driven nutrition advice, discover the trends shaping how Berlin's fitness professionals approach nutrition coaching.",
@@ -103,7 +103,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "nutrition-coaching-trends-berlin-2025",
   },
   {
-    title: "🏋️ Strength Training Revolution: What's New in Berlin Gyms",
+    title: "Strength Training Revolution: What's New in Berlin Gyms",
     date: "2024-12-28",
     excerpt:
       "Berlin's gym scene is evolving with new training methodologies, equipment innovations, and coaching techniques that are changing how we build strength.",
@@ -111,7 +111,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     slug: "strength-training-revolution-berlin-gyms",
   },
   {
-    title: "🧠 The Psychology of Fitness: Mental Coaching Techniques",
+    title: "The Psychology of Fitness: Mental Coaching Techniques",
     date: "2024-12-20",
     excerpt:
       "Explore the mental side of fitness coaching and learn techniques that help clients overcome psychological barriers to achieve their goals.",
@@ -123,7 +123,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
 ]
 
 const SAMPLE_BLOG_CONTENT: Record<string, string> = {
-  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `# ⌚ Are Wearables Accurate Enough to Track Complex Lifting Movements?
+  "are-wearables-accurate-enough-to-track-complex-lifting-movements": `# Are Wearables Accurate Enough to Track Complex Lifting Movements?
 
 **TL;DR:** Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.
 
@@ -247,216 +247,6 @@ The future will bring better integration and accuracy, but for now, the most imp
 - [Reddit: Weightlifting on Garmin is by Far its Weakest Feature](https://www.reddit.com/r/Garmin/comments/1cqa26x/weightlifting_on_garmin_is_by_far_its_weakest_and/)
 - [Self Magazine: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
 - [arXiv: Wearable Technology in Sports](https://arxiv.org/abs/2203.16442)`,
-
-  "tracking-biometrics-what-actually-moves-the-needle": `# 📊 Tracking Biometrics: What Actually Moves the Needle
-
-**TL;DR:** Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
-
----
-
-## Key Metrics to Track
-
-### Resting Heart Rate (RHR) & Heart Rate Variability (HRV)
-Your body's honest report card for training readiness. RHR and HRV give you real-time feedback on recovery status and whether your client is ready for intense training or needs a lighter day.
-
-### Sleep Quality & Duration
-The recovery window that makes or breaks progress. Sleep is when the magic happens—muscle repair, hormone regulation, and mental recovery all depend on quality rest.
-
-### Body Metrics
-- **Weight tracking**: Weekly averages, not daily fluctuations
-- **Circumference measurements**: Waist, hips, arms, thighs
-- **Performance markers**: Vertical jump, push-ups, plank hold times
-
-### Perceived Effort & Soreness
-Daily subjective feedback that complements objective data. How clients feel often tells you more than any device can measure.
-
----
-
-## How to Implement with Sheets or Apps
-
-### The Daily Check-In System
-Create a simple daily check-in tab where clients enter:
-- Sleep hours and quality rating
-- Morning energy/mood levels
-- Readiness to train (1-10 scale)
-
-### Technology Integration
-- **Oura Ring or wellness apps**: Sync sleep and HRV data into Sheets via CSV export
-- **Weight charts**: Use autorange formatting so both coach and client can see progress trends
-- **Automated data flows**: Connect apps to spreadsheets for seamless tracking
-
-### Visualization That Works
-Make data meaningful with:
-- Sparkline charts for quick trend visualization
-- Progress bars for goal tracking
-- Color-coded cells for at-a-glance status updates
-
----
-
-## Real-World Trainer & Client Use Cases
-
-### Baseline Tracking for Fatigue Prevention
-Collect baseline RHR and track weekly changes to anticipate fatigue before it becomes overtraining. A 5+ bpm increase in resting heart rate often signals the need for a recovery day.
-
-### Post-Session Feedback Loop
-After sessions, clients log perceived exertion (1-10 scale) to help program future training cycles. This subjective data helps coaches understand individual response patterns.
-
-### Performance Database Management
-One gym's spreadsheet includes jump test outputs in a filterable database, allowing coaches to track power development across multiple clients and identify trends.
-
----
-
-## Best Practices for Implementation
-
-### Keep It Simple
-- **Limit daily entries to under 3 inputs**—overwhelm kills compliance
-- Focus on metrics that actually influence your programming decisions
-- Make data entry as quick and painless as possible
-
-### Visual Feedback Systems
-- Use sparkline charts for trend visualization
-- Create progress bars for motivation
-- Implement color coding for quick status assessment
-
-### Smart Alert Systems
-Set up threshold alerts for concerning patterns:
-- Incomplete sleep three days in a row = automatic coach check-in
-- RHR elevated 10+ bpm = recovery day recommendation
-- Consistently low readiness scores = program adjustment needed
-
----
-
-## Turning Data Into Decisions
-
-The goal isn't to collect data—it's to make better coaching decisions. Use biometric trends to:
-
-- **Adjust training intensity** based on recovery markers
-- **Time deload weeks** when multiple metrics show fatigue
-- **Personalize programs** based on individual response patterns
-- **Prevent overtraining** by catching early warning signs
-
----
-
-## Conclusion
-
-Biometrics track more than calories—they track human performance. Use Sheets or apps smartly and turn data into decisions, not just data dumps.
-
-The most successful coaches aren't drowning in data; they're using the right metrics to make their clients' training more effective and sustainable.
-
----
-
-## Sources and Further Reading
-
-- [Reddit: Apple Watch Active Calories Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
-- [Self.com: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
-- [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
-- [Reddit: Google Sheets vs Apps for Personal Training](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)`,
-
-  "google-sheets-for-coaching-trainers-secret-weapon-or-trap": `# 📊 Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
-
-**TL;DR:** Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.
-
----
-
-## Why Google Sheets Can Work for Coaches
-
-### Zero Software Cost
-As one Reddit trainer put it:
-> *"The price you can spend upwards of $800 every year on a coaching app, whereas Sheets is absolutely free."*
-
-For solo trainers or those just starting out, that's significant money that can go toward certifications, equipment, or marketing instead of monthly software subscriptions.
-
-### Custom Workflows That Match Your Style
-You control everything:
-- **Custom formulas** for 1RM calculations, volume tracking, RPE progression
-- **Your own tracking systems** that match your exact programming methodology
-- **Progression templates** that evolve with your coaching experience
-- **Complete data ownership** - no vendor lock-in or subscription cancellations
-
-### Templates That Evolve Over Time
-Like this trainer shared:
-> *"A functional fitness exercise database in Microsoft Excel and Google Sheets updated each month—filter by body region, push/pull, etc."*
-
-Your spreadsheets grow with your expertise. Add new exercises, refine formulas, build better tracking systems as you learn what works.
-
----
-
-## Client UX: Where It Breaks Down
-
-### Mobile Experience is Brutal
-The harsh reality from trainers:
-> *"A spreadsheet is a great way to enter info but a terrible way to navigate it on a tiny screen."*
-
-**The problems:**
-- Clients click cell-by-cell, scroll endlessly
-- Tiny text, accidental edits, formula breaks
-- Experience feels amateur compared to polished apps
-
-### Professional Perception Issues
-Reddit trainers were blunt:
-> *"App is significantly more professional. Unless you've got incredibly well designed sheets, you'll come off like some dollar store trainer."*
-
-**Client expectations in 2025:**
-- Sleek interfaces with progress photos
-- Push notifications for workouts
-- Social features and community aspects
-- Video exercise demonstrations built-in
-
----
-
-## Pro Tips If You Stick with Sheets
-
-### Optimize for Mobile Experience
-**Design for thumbs, not mice:**
-- **Large buttons/cells**: Minimum 44px touch targets
-- **Clear visual hierarchy**: Bold headers, color coding
-- **Separate sheets by week**: Reduce scrolling
-- **Dropdown menus**: For exercise selection, RPE ratings
-
-### Build Rich Exercise Databases
-**Make it interactive:**
-- **Exercise video links**: YouTube embeds or links to form demos
-- **Coaching cues**: Text boxes with technique reminders
-- **Progress photos**: Google Drive integration for visual tracking
-- **Filterable databases**: By body region, equipment, difficulty level
-
-### Create Professional Templates
-**Workout templates with:**
-- Embedded coaching cues and video links
-- Clear progression tracking
-- Visual progress indicators
-- Professional formatting and branding
-
-### Hybrid Approach Strategy
-**Use Sheets for what it does best:**
-- Personal training plans and detailed programming
-- Complex data analysis and trend tracking
-- Custom formulas and calculations
-
-**Switch to apps for:**
-- Client-facing interfaces
-- Group coaching and community features
-- Mobile-first experiences
-- Professional presentation
-
----
-
-## Conclusion
-
-For solo or niche athletes, Google Sheets is flexible, free, and powerful. But if you're scaling or want polish, pair it with an app—or hand your spreadsheet workflow off to someone who can style it like a pro.
-
-The best system is the one you'll actually use consistently. Whether that's Sheets, apps, or a combination depends on your skills, client base, and business goals.
-
----
-
-## Sources and Further Reading
-
-- [Reddit: Google Sheets vs Coaching Apps for Online Coaching](https://www.reddit.com/r/personaltraining/comments/1bjgeys/google_sheets_vs_coaching_apps_for_online_coaching/)
-- [Reddit: Functional Fitness Exercise Database in Excel/Sheets](https://www.reddit.com/r/personaltraining/comments/1cjxitz/functional_fitness_exercise_database_in_microsoft/)
-- [Reddit: Google Sheets vs App Discussion](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)
-- [Reddit: Why Personal Trainers Still Use Outdated Methods](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)
-- [Reddit: Apple Watch Calorie Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
-- [Reddit: Online Coaching with Just Google Sheets](https://www.reddit.com/r/personaltraining/comments/13c9cga/has_anyone_done_online_coaching_with_just_google/)`,
 }
 
 const BLOG_CONTENT_PATH = "blog/"
@@ -474,34 +264,6 @@ function cleanSlugFromFilename(filename: string): string {
 
 // Function to enhance markdown content for consistent formatting
 function enhanceMarkdownContent(content: string): string {
-  // Add emojis to headers if they don't already have them
-  content = content.replace(/^(#{1,6})\s*([^#\n]*?)$/gm, (match, hashes, title) => {
-    if (title.trim() && !title.match(/^[🎯📊💡⚡🔥💪🏆🚀📈✨🎪]/u)) {
-      const emojiMap: { [key: string]: string } = {
-        introduction: "🎯",
-        overview: "📊",
-        key: "💡",
-        important: "⚡",
-        benefits: "🔥",
-        results: "💪",
-        success: "🏆",
-        future: "🚀",
-        trends: "📈",
-        conclusion: "✨",
-        tips: "🎪",
-      }
-
-      const titleLower = title.toLowerCase()
-      for (const [keyword, emoji] of Object.entries(emojiMap)) {
-        if (titleLower.includes(keyword)) {
-          return `${hashes} ${emoji} ${title.trim()}`
-        }
-      }
-      return `${hashes} 💡 ${title.trim()}`
-    }
-    return match
-  })
-
   // Enhance key points and lists
   content = content.replace(/^- \*\*(.*?)\*\*/gm, "• **$1**")
   content = content.replace(/^(\d+)\. \*\*(.*?)\*\*/gm, "$1. 🎯 **$2**")
@@ -591,20 +353,24 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
     return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_72f6cc4d-9694-43ad-919b-7b562d884b0a_0-eLUqJaxSwe1bNeVFJhR1VDW10n32n0.png"
   }
 
-  if (titleLower.includes("strength training") || titleLower.includes("medicine") || titleLower.includes("number 2")) {
+  if (
+    titleLower.includes("resistance training") ||
+    titleLower.includes("medicine") ||
+    titleLower.includes("number 2")
+  ) {
     return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_create_an_image_in_the_same_style_but_of_th_aa77639a-36ef-4fe3-a79e-1d6dd37e1e90_2-petqFiTwRriFbsmO9j4PYsJtF2eXGt.png"
   }
 
   if (titleLower.includes("grannies") || titleLower.includes("pump iron") || titleLower.includes("stop the clock")) {
-    return "/asian-woman-gym.png"
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/asian%20woman%20gym-yjGZ80lQKAuFqFbDgrG7xqwwx6XNpI.png"
   }
 
   if (titleLower.includes("ai") && titleLower.includes("personal training")) {
-    return "/gym-woman.png"
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gym_woman-WTRGVNMDnOgXsKU3vNuaL1mAUze1Zr.png"
   }
 
   if (titleLower.includes("berlin") && (titleLower.includes("software") || titleLower.includes("tools"))) {
-    return "/boxer-gym.png"
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/boxer_gym-6wlg1r57kNLLkVRoWE8X6aD02l6k6y.png"
   }
 
   // Default fallback
@@ -614,6 +380,10 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
 function cleanTitle(title: string): string {
   return (
     title
+      .replace(
+        /^[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]\s*/gu,
+        "",
+      )
       // Remove "Number X" prefixes
       .replace(/^Number\s+\d+\s*/i, "")
       // Remove file extensions and codes
@@ -782,4 +552,3 @@ export async function getPostSlugs(): Promise<string[]> {
   const posts = await getAllPosts()
   return posts.map((post) => post.slug)
 }
-</merged_code>
