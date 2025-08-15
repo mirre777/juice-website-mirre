@@ -251,27 +251,22 @@ The future will bring better integration and accuracy, but for now, the most imp
 
 const BLOG_CONTENT_PATH = "blog/"
 
-// Function to clean slug from filename
 function cleanSlugFromFilename(filename: string): string {
   return filename
-    .replace(/^-+/, "") // Remove leading dashes
-    .replace(/-+$/, "") // Remove trailing dashes
-    .replace(/\s*$$[^)]*$$\s*/g, "") // Remove content in parentheses
-    .replace(/[^a-z0-9-]/gi, "-") // Replace non-alphanumeric with dashes
-    .replace(/-+/g, "-") // Replace multiple dashes with single dash
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
+    .replace(/\s*$$[^)]*$$\s*/g, "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .replace(/-+/g, "-")
     .toLowerCase()
 }
 
-// Function to enhance markdown content for consistent formatting
 function enhanceMarkdownContent(content: string): string {
-  // Enhance key points and lists
   content = content.replace(/^- \*\*(.*?)\*\*/gm, "• **$1**")
   content = content.replace(/^(\d+)\. \*\*(.*?)\*\*/gm, "$1. 🎯 **$2**")
-
   return content
 }
 
-// Function to fetch blob content
 async function fetchBlobContent(url: string): Promise<string> {
   try {
     const response = await fetch(url)
@@ -286,24 +281,21 @@ async function fetchBlobContent(url: string): Promise<string> {
 }
 
 function extractTitleFromContent(content: string, filename: string): string {
-  // First try to get title from frontmatter
   const { data: frontmatter, content: markdownContent } = matter(content)
   if (frontmatter.title) {
     return cleanTitle(frontmatter.title)
   }
 
-  // If no frontmatter title, try to extract from first heading
   const headingMatch = markdownContent.match(/^#\s+(.+)$/m)
   if (headingMatch) {
     return cleanTitle(headingMatch[1].trim())
   }
 
-  // If no heading, try to generate from filename
   const cleanName = filename
     .replace(/\.md$/, "")
     .replace(/^-+/, "")
     .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s*/, "") // Remove parentheses content
+    .replace(/\s*$$[^)]*$$\s*/, "")
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (l) => l.toUpperCase())
     .trim()
@@ -316,13 +308,12 @@ function extractExcerptFromContent(content: string, frontmatter: any): string {
     return frontmatter.excerpt || frontmatter.description
   }
 
-  // Extract first paragraph after title
   const { content: markdownContent } = matter(content)
   const paragraphs = markdownContent
-    .replace(/^#.+$/gm, "") // Remove headings
+    .replace(/^#.+$/gm, "")
     .split("\n\n")
     .map((p) => p.trim())
-    .filter((p) => p.length > 50) // Only substantial paragraphs
+    .filter((p) => p.length > 50)
 
   if (paragraphs.length > 0) {
     const excerpt = paragraphs[0].substring(0, 200)
@@ -333,23 +324,17 @@ function extractExcerptFromContent(content: string, frontmatter: any): string {
 }
 
 function getImageForBlobPost(title: string, frontmatter: any): string {
-  // If frontmatter has an image, use it
   if (frontmatter.image) {
     return frontmatter.image
   }
 
-  console.log(`[v0] getImageForBlobPost: Processing title: "${title}"`)
-
-  // Assign images based on title content
   const titleLower = title.toLowerCase()
-  console.log(`[v0] getImageForBlobPost: Title lowercase: "${titleLower}"`)
 
   if (
     titleLower.includes("strength training myths") ||
     titleLower.includes("myths busted") ||
     titleLower.includes("myths")
   ) {
-    console.log(`[v0] getImageForBlobPost: Matched myths pattern, using optimusprime image`)
     return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_72f6cc4d-9694-43ad-919b-7b562d884b0a_0-eLUqJaxSwe1bNeVFJhR1VDW10n32n0.png"
   }
 
@@ -373,56 +358,40 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
     return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/boxer_gym-6wlg1r57kNLLkVRoWE8X6aD02l6k6y.png"
   }
 
-  // Default fallback
   return "/fitness-blog-post.png"
 }
 
 function cleanTitle(title: string): string {
-  return (
-    title
-      .replace(
-        /^[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]\s*/gu,
-        "",
-      )
-      // Remove "Number X" prefixes
-      .replace(/^Number\s+\d+\s*/i, "")
-      // Remove file extensions and codes
-      .replace(/\s*Effects?\s*Of\d*[a-z]*\s*$/i, "")
-      .replace(/\s*\.(pdf|doc|docx|txt)\s*$/i, "")
-      // Clean up extra whitespace
-      .replace(/\s+/g, " ")
-      .trim()
-  )
+  return title
+    .replace(
+      /^[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]\s*/gu,
+      "",
+    )
+    .replace(/^Number\s+\d+\s*/i, "")
+    .replace(/\s*Effects?\s*Of\d*[a-z]*\s*$/i, "")
+    .replace(/\s*\.(pdf|doc|docx|txt)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\bai\b/gi, "AI")
+    .replace(/\bbffs?\b/gi, (match) => (match.toLowerCase() === "bff" ? "BFF" : "BFFs"))
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
-  console.log("[v0] getAllPosts: Starting to fetch all posts...")
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
-  console.log(`[v0] getAllPosts: Added ${SAMPLE_POSTS.length} hardcoded sample posts`)
 
   try {
-    // Fetch blob storage content
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
-    console.log(`[v0] getAllPosts: Found ${blobs.blobs.length} blob files`)
 
     for (const blob of blobs.blobs) {
-      console.log(`[v0] getAllPosts: Processing blob: ${blob.pathname}`)
       try {
         const content = await fetchBlobContent(blob.downloadUrl)
         if (content) {
           const { data: frontmatter } = matter(content)
-          console.log(`[v0] getAllPosts: Raw frontmatter for ${blob.pathname}:`, frontmatter)
-
-          // Generate slug from filename
           const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
           const cleanSlug = cleanSlugFromFilename(rawSlug)
-
           const extractedTitle = extractTitleFromContent(content, rawSlug)
           const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
-
-          console.log(`[v0] getAllPosts: Extracted title: "${extractedTitle}" from ${blob.pathname}`)
-          console.log(`[v0] getAllPosts: Extracted excerpt: "${extractedExcerpt.substring(0, 100)}..."`)
 
           const post: BlogPostFrontmatter = {
             title: extractedTitle,
@@ -433,55 +402,38 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             slug: cleanSlug,
           }
 
-          console.log(`[v0] getAllPosts: Created post object:`, post)
           posts.push(post)
-        } else {
-          console.log(`[v0] getAllPosts: No content found for blob: ${blob.pathname}`)
         }
       } catch (error) {
-        console.error(`[v0] getAllPosts: Error processing blob ${blob.pathname}:`, error)
+        console.error(`Error processing blob ${blob.pathname}:`, error)
       }
     }
   } catch (error) {
-    console.error("[v0] getAllPosts: Error fetching from blob storage:", error)
+    console.error("Error fetching from blob storage:", error)
   }
 
-  console.log(`[v0] getAllPosts: Total posts before sorting: ${posts.length}`)
-  // Sort by date (newest first)
-  const sortedPosts = posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  console.log(`[v0] getAllPosts: Returning ${sortedPosts.length} sorted posts`)
-  return sortedPosts
+  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log(`[v0] getPostBySlug: Looking for post with slug: "${slug}"`)
-
   try {
-    // First, try to find in blob storage
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
-    console.log(`[v0] getPostBySlug: Searching through ${blobs.blobs.length} blob files`)
 
     for (const blob of blobs.blobs) {
       const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
       const cleanSlug = cleanSlugFromFilename(rawSlug)
-      console.log(`[v0] getPostBySlug: Checking blob "${blob.pathname}" with clean slug "${cleanSlug}"`)
 
       if (cleanSlug === slug) {
-        console.log(`[v0] getPostBySlug: Found matching blob for slug "${slug}"`)
         const content = await fetchBlobContent(blob.downloadUrl)
         if (content) {
           const { data: frontmatter, content: markdownContent } = matter(content)
-          console.log(`[v0] getPostBySlug: Parsed blob content, frontmatter:`, frontmatter)
-
           const extractedTitle = extractTitleFromContent(content, rawSlug)
           const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
-
-          // Enhance the markdown content for consistent formatting
           const enhancedContent = enhanceMarkdownContent(markdownContent)
           const mdxSource = await serialize(enhancedContent)
 
-          const post = {
+          return {
             title: extractedTitle,
             date: frontmatter.date || new Date().toISOString().split("T")[0],
             excerpt: extractedExcerpt,
@@ -491,34 +443,24 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             content: mdxSource,
             rawContent: enhancedContent,
           }
-          console.log(`[v0] getPostBySlug: Created blob post object with title: "${extractedTitle}"`)
-          return post
         }
       }
     }
   } catch (error) {
-    console.error(`[v0] getPostBySlug: Error fetching from blob storage for slug "${slug}":`, error)
+    console.error(`Error fetching from blob storage for slug "${slug}":`, error)
   }
 
-  // Fallback to hardcoded sample posts
-  console.log(`[v0] getPostBySlug: Checking hardcoded sample posts for slug "${slug}"`)
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
   if (samplePost) {
-    console.log(`[v0] getPostBySlug: Found hardcoded sample post:`, samplePost)
     const content = SAMPLE_BLOG_CONTENT[slug]
     if (content) {
-      console.log(`[v0] getPostBySlug: Found full content for hardcoded post "${slug}"`)
       const mdxSource = await serialize(content)
-      const post = {
+      return {
         ...samplePost,
         content: mdxSource,
         rawContent: content,
       }
-      console.log(`[v0] getPostBySlug: Created hardcoded post object with full content`)
-      return post
     } else {
-      console.log(`[v0] getPostBySlug: No full content found for hardcoded post "${slug}", using generic content`)
-      // Return sample post with generic content
       const genericContent = `# ${samplePost.title}
 
 ${samplePost.excerpt}
@@ -534,17 +476,14 @@ This is a sample blog post. The full content would be available in a production 
 *This content is part of our sample blog system.*`
 
       const mdxSource = await serialize(genericContent)
-      const post = {
+      return {
         ...samplePost,
         content: mdxSource,
         rawContent: genericContent,
       }
-      console.log(`[v0] getPostBySlug: Created hardcoded post object with generic content`)
-      return post
     }
   }
 
-  console.log(`[v0] getPostBySlug: No post found for slug "${slug}"`)
   return null
 }
 
