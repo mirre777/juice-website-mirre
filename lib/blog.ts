@@ -578,6 +578,14 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
   const titleLower = title.toLowerCase()
 
   if (
+    titleLower.includes("strength training myths") ||
+    titleLower.includes("myths busted") ||
+    (titleLower.includes("myths") && titleLower.includes("strength"))
+  ) {
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runuYrsMWWsn10_put_a_piece_of_grill_c00ac71c-6ec0-406d-a8e4-163f78770b2e.png-6D1BzuCHEwkBGMH4OgDLEotab58zIb.jpeg"
+  }
+
+  if (
     titleLower.includes("resistance training") ||
     titleLower.includes("medicine") ||
     titleLower.includes("number 2")
