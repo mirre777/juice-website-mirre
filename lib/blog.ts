@@ -69,7 +69,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
     category: "Visibility",
-    image: "/seo-tips-fitness-coaches-europe.png",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_89a563be-ee33-4e4b-9446-d2cc6db82549_1-fl8B6QPcHBkfcmbSfZlo1jklJx4Rfr.png",
     slug: "seo-tips-for-fitness-coaches-in-europe",
   },
   {
@@ -538,7 +539,7 @@ function extractTitleFromContent(content: string, filename: string): string {
     .replace(/\.md$/, "")
     .replace(/^-+/, "")
     .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s*/g, "") // Remove parentheses content
+    .replace(/\s*$$[^)]*$$\s/g, "") // Remove parentheses content
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (l) => l.toUpperCase())
     .trim()
