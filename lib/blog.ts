@@ -23,7 +23,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.",
     category: "Technology",
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_72f6cc4d-9694-43ad-919b-7b562d884b0a_0-eLUqJaxSwe1bNeVFJhR1VDW10n32n0.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wearables2%20%282%29-cgDTKvKmUaUHv7q9F9kXm4nWJOJz65.png",
     slug: "are-wearables-accurate-enough-to-track-complex-lifting-movements",
   },
   {
