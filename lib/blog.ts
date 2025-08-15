@@ -88,7 +88,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Say goodbye to Excel hell! Discover the modern software solutions that Berlin's top fitness professionals are using to streamline their businesses and wow their clients.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/boxer_gym-6wlg1r57kNLLkVRoWE8X6aD02l6k6y.png",
+    image: "/boxer-gym.png",
     slug: "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year",
   },
   {
@@ -566,6 +566,31 @@ function extractExcerptFromContent(content: string, frontmatter: any): string {
   return "Discover insights from the world of fitness coaching and technology."
 }
 
+function getImageForBlobPost(title: string, frontmatter: any): string {
+  // If frontmatter has an image, use it
+  if (frontmatter.image) {
+    return frontmatter.image
+  }
+
+  // Assign images based on title content
+  const titleLower = title.toLowerCase()
+
+  if (titleLower.includes("grannies") || titleLower.includes("pump iron") || titleLower.includes("stop the clock")) {
+    return "/asian-woman-gym.png"
+  }
+
+  if (titleLower.includes("ai") && titleLower.includes("personal training")) {
+    return "/gym-woman.png"
+  }
+
+  if (titleLower.includes("berlin") && (titleLower.includes("software") || titleLower.includes("tools"))) {
+    return "/boxer-gym.png"
+  }
+
+  // Default fallback
+  return "/fitness-blog-post.png"
+}
+
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   console.log("[v0] getAllPosts: Starting to fetch all posts...")
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
@@ -600,7 +625,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             date: frontmatter.date || new Date().toISOString().split("T")[0],
             excerpt: extractedExcerpt,
             category: frontmatter.category || "General",
-            image: frontmatter.image || "/fitness-blog-post.png",
+            image: getImageForBlobPost(extractedTitle, frontmatter),
             slug: cleanSlug,
           }
 
@@ -657,7 +682,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             date: frontmatter.date || new Date().toISOString().split("T")[0],
             excerpt: extractedExcerpt,
             category: frontmatter.category || "General",
-            image: frontmatter.image || "/fitness-blog-post.png",
+            image: getImageForBlobPost(extractedTitle, frontmatter),
             slug: cleanSlug,
             content: mdxSource,
             rawContent: enhancedContent,
