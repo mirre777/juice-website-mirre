@@ -106,128 +106,215 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
 const SAMPLE_BLOG_CONTENT: Record<string, string> = {
   "are-wearables-accurate-enough-to-track-complex-lifting-movements": `# Are Wearables Accurate Enough to Track Complex Lifting Movements?
 
-**TL;DR:** Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well and where they fail.
+Wearables are everywhere. But when it comes to heavy squats, Olympic lifts, or deadlifts? Are they legit? Let's break down what they do well—and where they fail.
 
----
-
-## The Wearable Revolution in Strength Training
-
-Walk into any gym today and you'll see them: Apple Watches tracking workouts, Garmin devices monitoring heart rates, WHOOP bands measuring strain. The fitness wearable market is booming, with devices promising to track everything from your morning run to your evening deadlift session.
-
-But here's the million-dollar question: **Are these devices actually accurate enough to track complex lifting movements?**
-
-The short answer? It's complicated.
-
----
-
-## What Wearables Actually Track Well
-
-### ✅ Cardiovascular Metrics
-Wearables excel at monitoring:
+## What Wearables Typically Track Well
 
 - **Heart rate zones** during cardio or metabolic circuits
-- **Heart rate variability** for recovery assessment
-- **Workout duration** and basic timing
-- **Calorie burn estimates** for steady-state cardio
+- **Step counts, distance, stationary exercise metrics**
+- **Some devices auto-detect workouts** 10+ mins
 
-### ✅ Basic Movement Patterns
-Most devices can reliably detect:
+## Where They Struggle with Strength Workouts
 
-- **Step counts** and distance for walking/running
-- **Stationary exercise metrics** like cycling
-- **Workout start/stop** with auto-detection (usually after 10+ minutes)
-- **Sleep patterns** and recovery metrics
+- **Calorie burn estimates during lifting are often inaccurate:**
+  > "Your Garmin cannot accurately determine how many calories a set of 12 bicep curls burned."
+- **Logging movements is tedious**; often best to auto-track and log manually.
 
-### ✅ General Activity Levels
-They're solid for:
+## What the Research Says
 
-- **Daily activity tracking** and movement goals
-- **Sedentary time** monitoring
-- **Overall energy expenditure** trends
-- **Long-term activity patterns**
+- The Polar V800 has high validity for vertical jump height versus force platforms (ICC ~0.95), but strength lift metrics are outside scope.
 
----
+## Tips for Trainers Using Wearables
 
-## Where They Struggle with Strength Training
+- **Use them for correlative data**—trend heart rate, sleep, readiness—not accurate per-exercise burn.
+- **Combine wearable with manual logging**: ask clients to record weights, sets, reps in Sheets or app.
+- **Educate clients**: wearables are best for general wellness tracking—not perfect for muscle-building precision.
 
-### ❌ Calorie Burn Accuracy
+## Conclusion
 
-**The Reality Check:**
-Your Garmin cannot accurately determine how many calories a set of 12 bicep curls burned.
+Wearables are powerful tools—but they're not your muscle's measure. Use them to support your coaching, not replace your coaching. For now, the best tracker is still a notebook, a Sheet, and an eye for detail.
 
-**Why it fails:**
-- **Complex energy systems**: Strength training uses different metabolic pathways than cardio
-- **Individual variation**: Muscle mass, efficiency, and technique affect calorie burn
-- **Recovery periods**: Rest between sets creates irregular energy expenditure patterns
-- **Load variations**: 5 reps at 85% 1RM burns differently than 15 reps at 60% 1RM
-
-**Real user experience:**
-> *"My Apple Watch says I burned 400 calories during my powerlifting session. I did 5 sets of squats, 5 sets of bench, and 3 sets of deadlifts in 90 minutes. There's no way that's accurate."*
-> 
-> **— Reddit user on r/Garmin**
-
-### ❌ Movement Quality Assessment
-
-**What's missing:**
-- **Range of motion** tracking
-- **Movement velocity** during lifts
-- **Form breakdown** detection
-- **Eccentric vs. concentric** phase differentiation
-
-**The problem:**
-A wearable can't tell the difference between a perfect squat and a quarter-rep. It can't detect if you're compensating with your back during a deadlift or if your bench press bar path is optimal.
-
-### ❌ Load and Intensity Tracking
-
-**Manual input required:**
-- **Weight lifted** must be logged separately
-- **Sets and reps** need manual entry
-- **RPE (Rate of Perceived Exertion)** requires subjective input
-- **Rest periods** between sets aren't automatically tracked
-
-**The tedious reality:**
-Logging movements is tedious; often best to auto-track basic metrics and log the important stuff manually.
-
----
-
-## The Bottom Line
-
-**Wearables are powerful tools—but they're not your muscle's measure.**
-
-**What they do well:**
-- ✅ General activity and health monitoring
-- ✅ Heart rate and basic cardiovascular metrics
-- ✅ Sleep and recovery tracking
-- ✅ Motivation and consistency support
-
-**What they don't do well:**
-- ❌ Accurate calorie burn for strength training
-- ❌ Movement quality assessment
-- ❌ Load and intensity tracking
-- ❌ Complex exercise recognition
-
-**The smart approach:**
-Use wearables to support your coaching and training, not replace good fundamentals. The best tracker for strength training is still a combination of:
-
-1. **A notebook or app** for weights, sets, and reps
-2. **A spreadsheet** for trend analysis
-3. **An experienced eye** for form and technique assessment
-4. **Wearable data** for recovery and general health metrics
-
-**For trainers:** Educate your clients about what the data means and doesn't mean. Use wearables as engagement tools and trend indicators, not precision instruments.
-
-**For athletes:** Focus on performance metrics that matter—progressive overload, form quality, and how you feel. Let the wearable handle the background health monitoring.
-
-The future will bring better integration and accuracy, but for now, the most important sensor is still the one between your ears.
-
----
-
-## Sources and Further Reading
+## Links & Sources
 
 - [Reddit: Be Wary of Calorie Counts for Weightlifting](https://www.reddit.com/r/Garmin/comments/17c9lu8/be_weary_of_calorie_counts_for_weightlifting/)
 - [Reddit: Weightlifting on Garmin is by Far its Weakest Feature](https://www.reddit.com/r/Garmin/comments/1cqa26x/weightlifting_on_garmin_is_by_far_its_weakest_and/)
 - [Self Magazine: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
 - [arXiv: Wearable Technology in Sports](https://arxiv.org/abs/2203.16442)`,
+
+  "tracking-biometrics-what-actually-moves-the-needle": `# Tracking Biometrics: What Actually Moves the Needle
+
+Biometrics aren't just numbers—they're accountability. Knowing how often clients sleep, rest, recover, and move can elevate your coaching. Here's how to implement it smartly.
+
+## Key Metrics to Track
+
+- **Resting heart rate (RHR), HR variability (HRV)** = readiness for training
+- **Sleep quality & duration** = recovery window
+- **Body metrics** = weight, circumference, performance markers (e.g. vertical jump)
+- **Perceived effort / soreness** logged daily
+
+## How to Implement with Sheets or Apps
+
+- **Create a daily check-in tab**: client enters sleep hours, mood, readiness.
+- **Use tools like Oura Ring** or wellness apps to sync sleep or HRV data into Sheets via CSV.
+- **Weight charts with autorange formatting** help both coach and client see progress.
+
+## Real-World Trainer & Client Use Cases
+
+- **Collect baseline RHR** and track weekly changes to anticipate fatigue.
+- **After sessions, clients log perceived exertion** (1-10 scale) to help program cycles.
+- **One gym's spreadsheet includes jump test outputs** in a filterable database.
+
+## Best Practices
+
+- **Keep daily entries under 3 inputs**—overwhelm kills compliance.
+- **Visualize with sparkline charts** or progress bars.
+- **Use threshold alerts** (e.g. incomplete sleep three days in a row = coach check-in).
+
+## Conclusion
+
+Biometrics track more than calories—they track human performance. Use Sheets or apps smartly and turn data into decisions, not just data dumps.
+
+## Links & Sources
+
+- [Reddit: Apple Watch Calorie Accuracy](https://www.reddit.com/r/AppleWatch/comments/lql6e6/how_accurate_is_the_active_calories_under/)
+- [Self Magazine: Oura Ring 4 Review](https://www.self.com/review/oura-ring-4)
+- [Reddit: Why Personal Trainers Still Use Spreadsheets](https://www.reddit.com/r/personaltraining/comments/1m0b65g/why_are_personal_trainers_still_stuck_using/)`,
+
+  "google-sheets-for-coaching-trainers-secret-weapon-or-trap": `# Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)
+
+Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.
+
+## Why Google Sheets Can Work for Coaches
+
+- **Zero software cost.** As one Redditor put it:
+  > "The price you can spend upwards of $800 every year on a coaching app, whereas Sheets is absolutely free."
+- **Custom workflows** to match your programming style. You control formulas, tracking, progression templates, everything.
+- **Templates evolve over time.** Like this:
+  > "A functional fitness exercise database in Microsoft Excel and Google Sheets updated each month—filter by body region, push/pull, etc."
+
+## Client UX: Where It Breaks Down
+
+- **Sheets on a phone is brutal.** Comment:
+  > "A spreadsheet is a great way to enter info but a terrible way to navigate it on a tiny screen."
+- **Clients click cell-by-cell, scroll endlessly**—experience feels amateur.
+- **Trainers on Reddit said:**
+  > "App is significantly more professional. Unless you've got incredibly well designed sheets, you'll come off like some dollar store trainer."
+
+## Pro Tips If You Use Sheets
+
+- **Use workout templates** with embedded coaching cues/videos.
+- **Build exercise databases** that link to video demos and filters.
+- **Optimize mobile layout**: large buttons/cells, progress trackers, clearly separated weeks.
+- **Offer alongside an app** for client-heavy workflows: e.g., use Sheets for personal plans and switch to apps for larger groups.
+
+## Conclusion
+
+For solo or niche athletes, Google Sheets is flexible, free, and powerful. But if you're scaling or want polish, pair it with an app—or hand your spreadsheet workflow off to someone who can style it like a pro.
+
+## Links & Sources
+
+- [Reddit: Google Sheets vs Coaching Apps](https://www.reddit.com/r/personaltraining/comments/1bjgeys/google_sheets_vs_coaching_apps_for_online_coaching/)
+- [Reddit: Functional Fitness Exercise Database](https://www.reddit.com/r/personaltraining/comments/1cjxitz/functional_fitness_exercise_database_in_microsoft/)
+- [Reddit: Google Sheets vs App](https://www.reddit.com/r/personaltraining/comments/10j13gy/google_sheets_vs_app/)`,
+
+  "how-to-get-more-clients-with-booking-page": `# How to Get More Clients with a Booking Page
+
+Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A **booking page** converts scrolls into sessions while you sleep.
+
+## Why Booking Pages Work (Especially for Fitness Coaches)
+
+- **Removes friction**: no back-and-forth
+- **Looks pro**: shows you're serious
+- **SEO-friendly**: rank for "book personal training sessions online"
+
+## Step-by-Step: Build a High-Converting Booking Page
+
+### 1. Use a Tool Made for Trainers
+Try [juice.fitness](https://juice.fitness/marketplace/personal-trainer-website) built for trainers. SEO-ready. Mobile-friendly. WhatsApp-integrated.
+
+### 2. Show Your Services Clearly
+- **Personal Training (1-on-1)**
+- **Small Group Training**
+- **Online Coaching**
+
+Use phrases like:
+- "Train with me in Berlin or online"
+- "Flexible session times—book instantly"
+
+### 3. Integrate Payments (or At Least Confirmations)
+- **Stripe or PayPal** optional
+- **Send confirmations** via WhatsApp or email
+
+## Copywriting that Converts
+
+**Don't say:** "Contact me to train"
+**Say:** "Book your free intro session now—no commitment"
+
+Use keywords like:
+- fitness coach booking page
+- PT website fast
+- book fitness session online
+
+## Add Social Proof
+
+- **Client testimonials** with headshots
+- **Transformation pics** (with consent)
+- **"Trusted by 500+ trainers"** badge (if using Juice)
+
+## Final Rep
+
+You don't need a whole website. You need a **booking machine**.
+
+Get your **fitness coach booking page** live in 10 mins. SEO it. Link it. Let it work while you train.`,
+
+  "top-5-free-personal-trainer-website-builders-2025": `# Top 5 Free Personal Trainer Website Builders (2025)
+
+Let's cut the fluff. You're a personal trainer not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. So here are the 5 best free website builders made *for trainers* in 2025.
+
+## 1. Juice (Best for Booking + Branding)
+
+**Website:** [juice.fitness/marketplace/personal-trainer-website](https://juice.fitness/marketplace/personal-trainer-website)
+
+- Create your Personal Trainer Website in 10 minutes
+- Includes WhatsApp, mobile bookings, and trainer branding
+- SEO-optimised for "personal trainer website builder" and "fitness coach online booking"
+- No coding. Just fill the form and boom—you're live.
+
+> *"I had a website in 3 minutes. Clients book while I'm coaching." —Laner*
+
+## 2. Wix
+
+- Good for visual design and fitness templates
+- Slower load times, weaker on SEO
+- Need to manually set up forms + payments
+
+## 3. Carrd
+
+- Simple landing page builder
+- No fitness-specific templates
+- Great if you just want a link-in-bio with your offer
+
+## 4. Squarespace
+
+- Beautiful templates
+- Better for studios than solo trainers
+- No WhatsApp or custom automations
+
+## 5. Systeme.io
+
+- Free funnels and lead magnets
+- Clunky design for fitness sites
+- Solid for email + ebook offers
+
+## Final Rep
+
+Use a tool that *books clients*, not just shows your muscles. Juice is made for trainers in Europe, with SEO baked in. Use keywords like:
+
+- free website for fitness coach
+- personal trainer landing page
+- book personal training sessions online
+
+and let your site lift the weight.`,
 
   "strength-training-revolution-berlin-gyms": `# Strength Training Revolution: What's New in Berlin Gyms
 
