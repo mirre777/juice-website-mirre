@@ -34,6 +34,7 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [allCategories, setAllCategories] = useState<string[]>([])
+  const [showAllPosts, setShowAllPosts] = useState(true) // New state to track "All Posts" selection
 
   useEffect(() => {
     async function fetchPosts() {
@@ -46,7 +47,8 @@ export default function BlogPage() {
 
         const categories = [...new Set(fetchedPosts.map((post) => post.category))].sort()
         setAllCategories(categories)
-        setSelectedCategories(categories) // All selected by default
+        setSelectedCategories([])
+        setShowAllPosts(true)
 
         setLoading(false)
       } catch (error) {
@@ -59,22 +61,23 @@ export default function BlogPage() {
     fetchPosts()
   }, [])
 
-  const filteredPosts = posts.filter(
-    (post) => selectedCategories.length === 0 || selectedCategories.includes(post.category),
-  )
+  const filteredPosts = showAllPosts ? posts : posts.filter((post) => selectedCategories.includes(post.category))
 
   const toggleCategory = (category: string) => {
+    setShowAllPosts(false)
     setSelectedCategories((prev) =>
       prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     )
   }
 
   const selectAllCategories = () => {
-    setSelectedCategories(allCategories)
+    setShowAllPosts(true)
+    setSelectedCategories([])
   }
 
   const clearAllCategories = () => {
     setSelectedCategories([])
+    setShowAllPosts(true)
   }
 
   if (loading) {
@@ -107,11 +110,11 @@ export default function BlogPage() {
 
         <div className="mb-12">
           <div className="flex flex-wrap justify-center gap-4 mb-4">
-            {/* All Posts / Clear All button */}
+            {/* All Posts button */}
             <Button
-              variant={selectedCategories.length === allCategories.length ? "default" : "outline"}
+              variant={showAllPosts ? "default" : "outline"}
               className={
-                selectedCategories.length === allCategories.length
+                showAllPosts
                   ? "bg-juice text-juice-foreground hover:bg-juice/90"
                   : "border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
               }
@@ -124,9 +127,9 @@ export default function BlogPage() {
             {allCategories.map((category) => (
               <Button
                 key={category}
-                variant={selectedCategories.includes(category) ? "default" : "outline"}
+                variant={!showAllPosts && selectedCategories.includes(category) ? "default" : "outline"}
                 className={
-                  selectedCategories.includes(category)
+                  !showAllPosts && selectedCategories.includes(category)
                     ? "bg-juice text-juice-foreground hover:bg-juice/90"
                     : "border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
                 }
@@ -138,7 +141,7 @@ export default function BlogPage() {
           </div>
 
           {/* Clear all filters button */}
-          {selectedCategories.length > 0 && selectedCategories.length < allCategories.length && (
+          {!showAllPosts && selectedCategories.length > 0 && (
             <div className="flex justify-center">
               <Button
                 variant="ghost"
@@ -214,7 +217,7 @@ export default function BlogPage() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">No posts found</h3>
               <p className="text-gray-600 mb-8">
-                {selectedCategories.length === 0
+                {!showAllPosts && selectedCategories.length === 0
                   ? "Select some categories to see posts."
                   : "No posts match the selected categories. Try selecting different categories."}
               </p>
