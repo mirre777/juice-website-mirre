@@ -209,7 +209,7 @@ export default async function BlogPage() {
                       alt={post.title}
                       width={400}
                       height={240}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-48 object-cover object-[center_30%] group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>
