@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 import matter from "gray-matter"
 import { revalidatePath } from "next/cache"
+import { generateText } from "ai"
+import { openai } from "@ai-sdk/openai"
 
 // Function to slugify a string
 function slugify(text: string) {
@@ -24,6 +26,21 @@ function getFileExtension(contentType: string): string {
     "image/svg+xml": "svg",
   }
   return mimeToExt[contentType] || "jpg"
+}
+
+async function generateTitleFromContent(content: string): Promise<string | null> {
+  try {
+    const { text } = await generateText({
+      model: openai("gpt-4o-mini"),
+      prompt: `Generate a concise, SEO-friendly blog post title (max 60 characters) from this content. Return only the title, no quotes or extra text:\n\n${content.substring(0, 500)}`,
+      maxTokens: 20,
+    })
+
+    return text.trim().replace(/['"]/g, "") // Remove quotes if present
+  } catch (error) {
+    console.error("[API] Error generating AI title:", error)
+    return null
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -116,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     let fileName = providedSlug
 
-    // Prioritize: explicit slug > frontmatter title > article name > subject value > content excerpt + timestamp
+    // Prioritize: explicit slug > frontmatter title > article name > subject value > AI-generated title > content excerpt + timestamp
     if (!fileName) {
       if (frontmatterTitle) {
         fileName = slugify(frontmatterTitle)
@@ -128,10 +145,18 @@ export async function POST(req: NextRequest) {
         fileName = slugify(subjectValueTitle)
         console.log("[API] Slug derived from subject value:", fileName)
       } else {
-        // Fallback: generate slug from first 50 chars of markdown content + timestamp
-        const contentExcerpt = markdownContent.substring(0, 50).replace(/\n/g, " ") // Take first 50 chars, remove newlines
-        fileName = slugify(`${contentExcerpt}-${Date.now()}`)
-        console.log("[API] Slug derived from content excerpt + timestamp (fallback):", fileName)
+        console.log("[API] Attempting AI title generation...")
+        const aiTitle = await generateTitleFromContent(markdownContent)
+
+        if (aiTitle) {
+          fileName = slugify(aiTitle)
+          console.log("[API] Slug derived from AI-generated title:", fileName)
+        } else {
+          // Final fallback: generate slug from first 50 chars of markdown content + timestamp
+          const contentExcerpt = markdownContent.substring(0, 50).replace(/\n/g, " ")
+          fileName = slugify(`${contentExcerpt}-${Date.now()}`)
+          console.log("[API] Slug derived from content excerpt + timestamp (fallback):", fileName)
+        }
       }
     } else {
       console.log("[API] Slug explicitly provided:", fileName)
