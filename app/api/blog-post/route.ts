@@ -14,6 +14,18 @@ function slugify(text: string) {
     .replace(/--+/g, "-") // Replace multiple - with single -
 }
 
+function getFileExtension(contentType: string): string {
+  const mimeToExt: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+    "image/svg+xml": "svg",
+  }
+  return mimeToExt[contentType] || "jpg"
+}
+
 export async function POST(req: NextRequest) {
   // Basic authentication: Check for a debug token
   const debugToken = req.headers.get("X-Debug-Token") || req.nextUrl.searchParams.get("debug_token")
@@ -22,10 +34,29 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const payload = await req.json()
-    console.log("[API] Received payload:", JSON.stringify(payload, null, 2)) // Log the full payload
+    const contentType = req.headers.get("content-type") || ""
+    let payload: any
+    let imageFile: File | null = null
 
-    // --- MODIFICATION START ---
+    if (contentType.includes("multipart/form-data")) {
+      // Handle form data with potential image upload
+      const formData = await req.formData()
+
+      // Extract JSON payload from form data
+      const payloadString = formData.get("payload") as string
+      payload = payloadString ? JSON.parse(payloadString) : {}
+
+      // Extract image file if present
+      imageFile = formData.get("image") as File | null
+
+      console.log("[API] Received multipart request with image:", !!imageFile)
+    } else {
+      // Handle regular JSON payload
+      payload = await req.json()
+    }
+
+    console.log("[API] Received payload:", JSON.stringify(payload, null, 2))
+
     let markdownContent: string | undefined
 
     // Prioritize content from operations[0].result.markdownValue
@@ -51,7 +82,6 @@ export async function POST(req: NextRequest) {
       markdownContent = payload.markdownContent
       console.log("[API] Extracted markdownContent from top-level markdownContent.")
     }
-    // --- MODIFICATION END ---
 
     console.log(
       "[API] Final extracted markdownContent (first 100 chars):",
@@ -119,6 +149,25 @@ export async function POST(req: NextRequest) {
       allowOverwrite: true, // Allow overwriting existing blobs with the same name
     })
 
+    let imageUrl: string | null = null
+    if (imageFile && imageFile.size > 0) {
+      const fileExtension = getFileExtension(imageFile.type)
+      const imageBlobPath = `blog/${fileName}.${fileExtension}`
+
+      console.log("[API] Uploading image to:", imageBlobPath)
+
+      const imageBuffer = await imageFile.arrayBuffer()
+      const { url: uploadedImageUrl } = await put(imageBlobPath, imageBuffer, {
+        access: "public",
+        contentType: imageFile.type,
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      })
+
+      imageUrl = uploadedImageUrl
+      console.log("[API] Image uploaded successfully:", imageUrl)
+    }
+
     // Construct the full URL for the blog post page
     // Use NEXT_PUBLIC_APP_URL if available, otherwise default to a placeholder
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://your-domain.com"
@@ -132,8 +181,10 @@ export async function POST(req: NextRequest) {
       {
         message: "Blog post created successfully",
         slug: fileName,
-        blobUrl: url, // URL of the stored blob
+        blobUrl: url, // URL of the stored markdown blob
+        imageUrl: imageUrl, // URL of the stored image blob (if uploaded)
         postUrl: postUrl, // Full URL to the blog post page
+        hasImage: !!imageUrl, // Boolean indicating if an image was uploaded
       },
       { status: 201 },
     )
