@@ -79,10 +79,32 @@ export async function POST(req: NextRequest) {
 
       imageUrl = formData.get("imageUrl") as string | null
 
+      const embeddedAttachments = formData.get("embeddedAttachments") as string | null
+      if (embeddedAttachments && !imageUrl && !imageFile) {
+        try {
+          console.log("[API] Raw embedded attachments:", embeddedAttachments)
+          const attachments = JSON.parse(embeddedAttachments)
+
+          if (Array.isArray(attachments) && attachments.length > 0) {
+            // Look for the first image attachment
+            const imageAttachment = attachments.find((att) => att.mimetype && att.mimetype.startsWith("image/"))
+
+            if (imageAttachment && imageAttachment.url_private) {
+              imageUrl = imageAttachment.url_private
+              console.log("[API] Extracted image URL from embedded attachments:", imageUrl)
+            }
+          }
+        } catch (error) {
+          console.error("[API] Failed to parse embedded attachments:", error)
+        }
+      }
+
       console.log("[API] Form data keys:", Array.from(formData.keys()))
       console.log("[API] Image parameter type:", typeof formData.get("image"))
       console.log("[API] Image parameter value:", formData.get("image"))
       console.log("[API] Image URL parameter:", imageUrl) // Log imageUrl parameter
+      console.log("[API] Embedded attachments parameter:", !!embeddedAttachments)
+
       if (imageFile) {
         console.log("[API] Image file details:", {
           name: imageFile.name,
