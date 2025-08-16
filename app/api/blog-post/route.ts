@@ -66,21 +66,57 @@ export async function POST(req: NextRequest) {
       if (!imageUrl && payload.image) {
         try {
           console.log("[API] Raw image field from JSON:", payload.image)
+          console.log("[API] Image field type:", typeof payload.image)
+          console.log("[API] Image field length:", Array.isArray(payload.image) ? payload.image.length : "N/A")
 
-          // Handle if image field contains embedded attachments
-          const attachments = Array.isArray(payload.image)
-            ? payload.image
-            : typeof payload.image === "string"
-              ? JSON.parse(payload.image)
-              : [payload.image]
+          // Handle different possible formats of the image field
+          let attachments = null
 
-          const imageAttachment = attachments.find(
-            (att: any) => att && att.mimetype && att.mimetype.startsWith("image/"),
-          )
+          if (Array.isArray(payload.image)) {
+            attachments = payload.image
+            console.log("[API] Image field is already an array")
+          } else if (typeof payload.image === "string") {
+            if (payload.image.trim() === "" || payload.image === "[]") {
+              console.log("[API] Image field is empty string or empty array")
+              attachments = []
+            } else {
+              try {
+                attachments = JSON.parse(payload.image)
+                console.log("[API] Successfully parsed image field as JSON")
+              } catch (parseError) {
+                console.log("[API] Failed to parse image field as JSON, treating as URL:", parseError)
+                // Maybe it's a direct URL
+                if (payload.image.startsWith("http")) {
+                  imageUrl = payload.image
+                }
+              }
+            }
+          } else if (typeof payload.image === "object" && payload.image !== null) {
+            attachments = [payload.image]
+            console.log("[API] Image field is a single object")
+          }
 
-          if (imageAttachment && imageAttachment.url_private) {
-            imageUrl = imageAttachment.url_private
-            console.log("[API] Extracted image URL from JSON image field:", imageUrl)
+          if (attachments && Array.isArray(attachments)) {
+            console.log("[API] Processing attachments array with length:", attachments.length)
+
+            const imageAttachment = attachments.find(
+              (att: any) => att && att.mimetype && att.mimetype.startsWith("image/"),
+            )
+
+            if (imageAttachment) {
+              console.log("[API] Found image attachment:", {
+                mimetype: imageAttachment.mimetype,
+                hasUrlPrivate: !!imageAttachment.url_private,
+                hasUrl: !!imageAttachment.url,
+              })
+
+              imageUrl = imageAttachment.url_private || imageAttachment.url
+              if (imageUrl) {
+                console.log("[API] Extracted image URL from JSON image field:", imageUrl)
+              }
+            } else {
+              console.log("[API] No image attachments found in array")
+            }
           }
         } catch (error) {
           console.error("[API] Failed to parse image field from JSON:", error)
