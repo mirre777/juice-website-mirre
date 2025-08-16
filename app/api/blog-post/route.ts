@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
     const contentType = req.headers.get("content-type") || ""
     let payload: any
     let imageFile: File | null = null
+    let markdownContent: string | undefined
 
     if (contentType.includes("multipart/form-data")) {
       // Handle form data with potential image upload
@@ -66,6 +67,24 @@ export async function POST(req: NextRequest) {
       imageFile = formData.get("image") as File | null
 
       console.log("[API] Received multipart request with image:", !!imageFile)
+    } else if (contentType.includes("application/x-www-form-urlencoded")) {
+      const formData = await req.formData()
+
+      // Extract content from "body" parameter (Relay sends processed markdown here)
+      markdownContent = formData.get("body") as string
+
+      // Extract image file if present
+      imageFile = formData.get("image") as File | null
+
+      // Create a simple payload structure for compatibility
+      payload = {
+        result: {
+          markdownValue: markdownContent,
+        },
+      }
+
+      console.log("[API] Received form-encoded request with image:", !!imageFile)
+      console.log("[API] Form-encoded content length:", markdownContent?.length || 0)
     } else {
       // Handle regular JSON payload
       payload = await req.json()
@@ -73,30 +92,31 @@ export async function POST(req: NextRequest) {
 
     console.log("[API] Received payload:", JSON.stringify(payload, null, 2))
 
-    let markdownContent: string | undefined
-
-    // Prioritize content from operations[0].result.markdownValue
-    if (
-      payload.operations &&
-      Array.isArray(payload.operations) &&
-      payload.operations.length > 0 &&
-      payload.operations[0].result &&
-      typeof payload.operations[0].result.markdownValue === "string"
-    ) {
-      markdownContent = payload.operations[0].result.markdownValue
-      console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
-    } else if (typeof payload.result?.markdownValue === "string") {
-      // Fallback to result.markdownValue
-      markdownContent = payload.result.markdownValue
-      console.log("[API] Extracted markdownContent from result.markdownValue.")
-    } else if (typeof payload.result?.textView === "string") {
-      // Fallback to result.textView
-      markdownContent = payload.result.textView
-      console.log("[API] Extracted markdownContent from result.textView.")
-    } else if (typeof payload.markdownContent === "string") {
-      // Fallback to top-level markdownContent
-      markdownContent = payload.markdownContent
-      console.log("[API] Extracted markdownContent from top-level markdownContent.")
+    // Only extract markdownContent if not already set (for form-encoded requests)
+    if (!markdownContent) {
+      // Prioritize content from operations[0].result.markdownValue
+      if (
+        payload.operations &&
+        Array.isArray(payload.operations) &&
+        payload.operations.length > 0 &&
+        payload.operations[0].result &&
+        typeof payload.operations[0].result.markdownValue === "string"
+      ) {
+        markdownContent = payload.operations[0].result.markdownValue
+        console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
+      } else if (typeof payload.result?.markdownValue === "string") {
+        // Fallback to result.markdownValue
+        markdownContent = payload.result.markdownValue
+        console.log("[API] Extracted markdownContent from result.markdownValue.")
+      } else if (typeof payload.result?.textView === "string") {
+        // Fallback to result.textView
+        markdownContent = payload.result.textView
+        console.log("[API] Extracted markdownContent from result.textView.")
+      } else if (typeof payload.markdownContent === "string") {
+        // Fallback to top-level markdownContent
+        markdownContent = payload.markdownContent
+        console.log("[API] Extracted markdownContent from top-level markdownContent.")
+      }
     }
 
     console.log(
