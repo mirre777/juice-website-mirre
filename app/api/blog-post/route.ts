@@ -76,6 +76,17 @@ export async function POST(req: NextRequest) {
       // Extract image file if present
       imageFile = formData.get("image") as File | null
 
+      console.log("[API] Form data keys:", Array.from(formData.keys()))
+      console.log("[API] Image parameter type:", typeof formData.get("image"))
+      console.log("[API] Image parameter value:", formData.get("image"))
+      if (imageFile) {
+        console.log("[API] Image file details:", {
+          name: imageFile.name,
+          size: imageFile.size,
+          type: imageFile.type,
+        })
+      }
+
       // Create a simple payload structure for compatibility
       payload = {
         result: {
