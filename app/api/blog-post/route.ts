@@ -56,7 +56,33 @@ export async function POST(req: NextRequest) {
     let imageUrl: string | null = null // Added imageUrl parameter support
     let markdownContent: string | undefined
 
-    if (contentType.includes("multipart/form-data")) {
+    if (contentType.includes("application/json")) {
+      // Handle JSON payload (primary method)
+      payload = await req.json()
+
+      // Extract image URL or embedded attachments from JSON
+      imageUrl = payload.imageUrl || payload.result?.imageUrl
+
+      // Handle embedded attachments in JSON
+      if (!imageUrl && payload.embeddedAttachments) {
+        try {
+          const attachments = Array.isArray(payload.embeddedAttachments)
+            ? payload.embeddedAttachments
+            : JSON.parse(payload.embeddedAttachments)
+
+          const imageAttachment = attachments.find((att: any) => att.mimetype && att.mimetype.startsWith("image/"))
+
+          if (imageAttachment && imageAttachment.url_private) {
+            imageUrl = imageAttachment.url_private
+            console.log("[API] Extracted image URL from JSON embedded attachments:", imageUrl)
+          }
+        } catch (error) {
+          console.error("[API] Failed to parse embedded attachments from JSON:", error)
+        }
+      }
+
+      console.log("[API] Received JSON request with imageUrl:", !!imageUrl)
+    } else if (contentType.includes("multipart/form-data")) {
       // Handle form data with potential image upload
       const formData = await req.formData()
 
@@ -102,7 +128,7 @@ export async function POST(req: NextRequest) {
       console.log("[API] Form data keys:", Array.from(formData.keys()))
       console.log("[API] Image parameter type:", typeof formData.get("image"))
       console.log("[API] Image parameter value:", formData.get("image"))
-      console.log("[API] Image URL parameter:", imageUrl) // Log imageUrl parameter
+      console.log("[API] Image URL parameter:", imageUrl)
       console.log("[API] Embedded attachments parameter:", !!embeddedAttachments)
 
       if (imageFile) {
@@ -121,7 +147,7 @@ export async function POST(req: NextRequest) {
       }
 
       console.log("[API] Received form-encoded request with image:", !!imageFile)
-      console.log("[API] Received form-encoded request with imageUrl:", !!imageUrl) // Log imageUrl presence
+      console.log("[API] Received form-encoded request with imageUrl:", !!imageUrl) // Log imageUrl parameter
       console.log("[API] Form-encoded content length:", markdownContent?.length || 0)
     } else {
       // Handle regular JSON payload
