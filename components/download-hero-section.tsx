@@ -37,29 +37,19 @@ export function DownloadHeroSection() {
 
         {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <a
-            href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
-          >
+          <button className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 18l7-7h-4V5H7v6H3l7 7z" />
+              <path d="M10 2L3 9h4v6h6V9h4l-7-7z" />
             </svg>
             Download for iOS
-          </a>
+          </button>
 
-          <a
-            href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
-          >
+          <button className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 18l7-7h-4V5H7v6H3l7 7z" />
+              <path d="M10 2L3 9h4v6h6V9h4l-7-7z" />
             </svg>
             Download for Android
-          </a>
+          </button>
         </div>
       </div>
 
