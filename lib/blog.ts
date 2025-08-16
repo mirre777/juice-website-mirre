@@ -588,11 +588,43 @@ function extractExcerptFromContent(content: string, frontmatter: any): string {
   return "Discover insights from the world of fitness coaching and technology."
 }
 
-function getImageForBlobPost(title: string, frontmatter: any): string {
+async function findMatchingImageForPost(slug: string): Promise<string | null> {
+  try {
+    const { list } = await import("@vercel/blob")
+    const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+
+    for (const blob of blobs.blobs) {
+      const filename = blob.pathname.replace(BLOG_CONTENT_PATH, "")
+      const nameWithoutExt = filename.replace(/\.[^.]+$/, "")
+      const cleanName = cleanSlugFromFilename(nameWithoutExt)
+
+      // Check if this is an image file that matches our post slug
+      if (cleanName === slug && imageExtensions.some((ext) => filename.toLowerCase().endsWith(ext))) {
+        return blob.downloadUrl
+      }
+    }
+  } catch (error) {
+    console.error("Error finding matching image:", error)
+  }
+
+  return null
+}
+
+function getImageForBlobPost(title: string, frontmatter: any, slug?: string): string {
   if (frontmatter.image) {
     return frontmatter.image
   }
 
+  if (slug) {
+    const matchingImage = findMatchingImageForPost(slug)
+    if (matchingImage) {
+      return matchingImage
+    }
+  }
+
+  // ... existing code for title-based matching ...
   const titleLower = title.toLowerCase()
 
   if (
@@ -626,21 +658,6 @@ function getImageForBlobPost(title: string, frontmatter: any): string {
   return "/fitness-blog-post.png"
 }
 
-function cleanTitle(title: string): string {
-  return title
-    .replace(
-      /^[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]\s*/gu,
-      "",
-    )
-    .replace(/^Number\s+\d+\s*/i, "")
-    .replace(/\s*Effects?\s*Of\d*[a-z]*\s*$/i, "")
-    .replace(/\s*\.(pdf|doc|docx|txt)\s*$/i, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\bai\b/gi, "AI")
-    .replace(/\bbffs?\b/gi, (match) => (match.toLowerCase() === "bff" ? "BFF" : "BFFs"))
-}
-
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
 
@@ -663,7 +680,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
             date: frontmatter.date || new Date().toISOString().split("T")[0],
             excerpt: extractedExcerpt,
             category: frontmatter.category || "General",
-            image: getImageForBlobPost(extractedTitle, frontmatter),
+            image: getImageForBlobPost(extractedTitle, frontmatter, cleanSlug),
             slug: cleanSlug,
           }
 
@@ -706,7 +723,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             date: frontmatter.date || new Date().toISOString().split("T")[0],
             excerpt: extractedExcerpt,
             category: frontmatter.category || "General",
-            image: getImageForBlobPost(extractedTitle, frontmatter),
+            image: getImageForBlobPost(extractedTitle, frontmatter, slug),
             slug: cleanSlug,
             content: mdxSource,
             rawContent: enhancedContent,
@@ -758,4 +775,19 @@ This is a sample blog post. The full content would be available in a production 
 export async function getPostSlugs(): Promise<string[]> {
   const posts = await getAllPosts()
   return posts.map((post) => post.slug)
+}
+
+function cleanTitle(title: string): string {
+  return title
+    .replace(
+      /^[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]\s*/gu,
+      "",
+    )
+    .replace(/^Number\s+\d+\s*/i, "")
+    .replace(/\s*Effects?\s*Of\d*[a-z]*\s*$/i, "")
+    .replace(/\s*\.(pdf|doc|docx|txt)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\bai\b/gi, "AI")
+    .replace(/\bbffs?\b/gi, (match) => (match.toLowerCase() === "bff" ? "BFF" : "BFFs"))
 }
