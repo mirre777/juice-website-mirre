@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
     const contentType = req.headers.get("content-type") || ""
     let payload: any
     let imageFile: File | null = null
+    let imageUrl: string | null = null // Added imageUrl parameter support
     let markdownContent: string | undefined
 
     if (contentType.includes("multipart/form-data")) {
@@ -76,9 +77,12 @@ export async function POST(req: NextRequest) {
       // Extract image file if present
       imageFile = formData.get("image") as File | null
 
+      imageUrl = formData.get("imageUrl") as string | null
+
       console.log("[API] Form data keys:", Array.from(formData.keys()))
       console.log("[API] Image parameter type:", typeof formData.get("image"))
       console.log("[API] Image parameter value:", formData.get("image"))
+      console.log("[API] Image URL parameter:", imageUrl) // Log imageUrl parameter
       if (imageFile) {
         console.log("[API] Image file details:", {
           name: imageFile.name,
@@ -95,6 +99,7 @@ export async function POST(req: NextRequest) {
       }
 
       console.log("[API] Received form-encoded request with image:", !!imageFile)
+      console.log("[API] Received form-encoded request with imageUrl:", !!imageUrl) // Log imageUrl presence
       console.log("[API] Form-encoded content length:", markdownContent?.length || 0)
     } else {
       // Handle regular JSON payload
@@ -202,12 +207,14 @@ export async function POST(req: NextRequest) {
       allowOverwrite: true, // Allow overwriting existing blobs with the same name
     })
 
-    let imageUrl: string | null = null
+    let finalImageUrl: string | null = null
+
     if (imageFile && imageFile.size > 0) {
+      // Direct file upload (existing logic)
       const fileExtension = getFileExtension(imageFile.type)
       const imageBlobPath = `blog/${fileName}.${fileExtension}`
 
-      console.log("[API] Uploading image to:", imageBlobPath)
+      console.log("[API] Uploading image file to:", imageBlobPath)
 
       const imageBuffer = await imageFile.arrayBuffer()
       const { url: uploadedImageUrl } = await put(imageBlobPath, imageBuffer, {
@@ -217,8 +224,37 @@ export async function POST(req: NextRequest) {
         allowOverwrite: true,
       })
 
-      imageUrl = uploadedImageUrl
-      console.log("[API] Image uploaded successfully:", imageUrl)
+      finalImageUrl = uploadedImageUrl
+      console.log("[API] Image file uploaded successfully:", finalImageUrl)
+    } else if (imageUrl && imageUrl.trim()) {
+      try {
+        console.log("[API] Downloading image from URL:", imageUrl)
+
+        const imageResponse = await fetch(imageUrl)
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`)
+        }
+
+        const imageBuffer = await imageResponse.arrayBuffer()
+        const contentType = imageResponse.headers.get("content-type") || "image/jpeg"
+        const fileExtension = getFileExtension(contentType)
+        const imageBlobPath = `blog/${fileName}.${fileExtension}`
+
+        console.log("[API] Uploading downloaded image to:", imageBlobPath)
+
+        const { url: uploadedImageUrl } = await put(imageBlobPath, imageBuffer, {
+          access: "public",
+          contentType: contentType,
+          addRandomSuffix: false,
+          allowOverwrite: true,
+        })
+
+        finalImageUrl = uploadedImageUrl
+        console.log("[API] Downloaded image uploaded successfully:", finalImageUrl)
+      } catch (error) {
+        console.error("[API] Failed to download image from URL:", error)
+        // Continue without image rather than failing the entire request
+      }
     }
 
     // Construct the full URL for the blog post page
@@ -235,9 +271,9 @@ export async function POST(req: NextRequest) {
         message: "Blog post created successfully",
         slug: fileName,
         blobUrl: url, // URL of the stored markdown blob
-        imageUrl: imageUrl, // URL of the stored image blob (if uploaded)
+        imageUrl: finalImageUrl, // Use finalImageUrl instead of imageUrl
         postUrl: postUrl, // Full URL to the blog post page
-        hasImage: !!imageUrl, // Boolean indicating if an image was uploaded
+        hasImage: !!finalImageUrl, // Use finalImageUrl for boolean check
       },
       { status: 201 },
     )
