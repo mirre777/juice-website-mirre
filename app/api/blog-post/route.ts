@@ -63,6 +63,30 @@ export async function POST(req: NextRequest) {
       // Extract image URL or embedded attachments from JSON
       imageUrl = payload.imageUrl || payload.result?.imageUrl
 
+      if (!imageUrl && payload.image) {
+        try {
+          console.log("[API] Raw image field from JSON:", payload.image)
+
+          // Handle if image field contains embedded attachments
+          const attachments = Array.isArray(payload.image)
+            ? payload.image
+            : typeof payload.image === "string"
+              ? JSON.parse(payload.image)
+              : [payload.image]
+
+          const imageAttachment = attachments.find(
+            (att: any) => att && att.mimetype && att.mimetype.startsWith("image/"),
+          )
+
+          if (imageAttachment && imageAttachment.url_private) {
+            imageUrl = imageAttachment.url_private
+            console.log("[API] Extracted image URL from JSON image field:", imageUrl)
+          }
+        } catch (error) {
+          console.error("[API] Failed to parse image field from JSON:", error)
+        }
+      }
+
       // Handle embedded attachments in JSON
       if (!imageUrl && payload.embeddedAttachments) {
         try {
