@@ -1,4 +1,4 @@
-import { getPostBySlug, getPostSlugs } from "@/lib/blog"
+import { getPostBySlug, getPostSlugs, getAllPosts } from "@/lib/blog"
 import { notFound } from "next/navigation"
 import { MdxRenderer } from "@/components/mdx-renderer"
 import { Navbar } from "@/components/navbar"
@@ -30,7 +30,6 @@ export async function generateStaticParams() {
 
 // Helper function to get related articles (excluding current post)
 async function getRelatedArticles(currentSlug: string, limit = 2): Promise<BlogPostFrontmatter[]> {
-  const { getAllPosts } = await import("@/lib/blog")
   const allPosts = await getAllPosts()
 
   // Filter out current post and get random selection
@@ -71,9 +70,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
-  const imageUrl = post.frontmatter.image
-    ? `${baseUrl}${post.frontmatter.image}`
-    : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`
+  const imageUrl = post.image ? `${baseUrl}${post.image}` : `${baseUrl}${getPlaceholderImage(post.category)}`
 
   // Generate SEO-optimized keywords based on post content and category
   const generateKeywords = (title: string, category: string, excerpt: string) => {
@@ -107,9 +104,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 
   return {
-    title: `${post.frontmatter.title} | Juice Fitness Blog`,
-    description: post.frontmatter.excerpt,
-    keywords: generateKeywords(post.frontmatter.title, post.frontmatter.category, post.frontmatter.excerpt),
+    title: `${post.title} | Juice Fitness Blog`,
+    description: post.excerpt,
+    keywords: generateKeywords(post.title, post.category, post.excerpt),
     authors: [{ name: "Juice Team" }],
     creator: "Juice Fitness",
     publisher: "Juice Fitness",
@@ -123,8 +120,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       canonical: fullUrl,
     },
     openGraph: {
-      title: post.frontmatter.title,
-      description: post.frontmatter.excerpt,
+      title: post.title,
+      description: post.excerpt,
       url: fullUrl,
       siteName: "Juice Fitness",
       images: [
@@ -132,28 +129,21 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: post.frontmatter.title,
+          alt: post.title,
         },
       ],
       locale: "en_US",
       type: "article",
-      publishedTime: post.frontmatter.date,
-      modifiedTime: post.frontmatter.date,
+      publishedTime: post.date,
+      modifiedTime: post.date,
       authors: ["Juice Team"],
-      section: post.frontmatter.category,
-      tags: [
-        "fitness",
-        "coaching",
-        "personal trainer",
-        post.frontmatter.category.toLowerCase(),
-        "business growth",
-        "marketing",
-      ],
+      section: post.category,
+      tags: ["fitness", "coaching", "personal trainer", post.category.toLowerCase(), "business growth", "marketing"],
     },
     twitter: {
       card: "summary_large_image",
-      title: post.frontmatter.title,
-      description: post.frontmatter.excerpt,
+      title: post.title,
+      description: post.excerpt,
       images: [imageUrl],
       creator: "@JuiceFitness",
       site: "@JuiceFitness",
@@ -172,28 +162,41 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     other: {
       "article:author": "Juice Team",
       "article:publisher": "Juice Fitness",
-      "article:section": post.frontmatter.category,
-      "article:tag": post.frontmatter.category.toLowerCase(),
+      "article:section": post.category,
+      "article:tag": post.category.toLowerCase(),
     },
   }
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  console.log(`[BlogPostPage] Rendering page for slug: ${params.slug}`)
+  console.log(`[v0] BlogPostPage: Starting to render page for slug: "${params.slug}"`)
   let post
 
   try {
     post = await getPostBySlug(params.slug)
-    console.log(`[BlogPostPage] Post fetched:`, post ? "SUCCESS" : "NOT FOUND")
+    console.log(`[v0] BlogPostPage: Post fetch result:`, post ? "SUCCESS" : "NOT FOUND")
+    if (post) {
+      console.log(`[v0] BlogPostPage: Post details:`, {
+        title: post.title,
+        slug: post.slug,
+        category: post.category,
+        date: post.date,
+        hasContent: !!post.content,
+        hasRawContent: !!post.rawContent,
+        excerpt: post.excerpt?.substring(0, 100) + "...",
+      })
+    }
   } catch (error) {
-    console.error(`[BlogPostPage] Error fetching post for slug ${params.slug}:`, error)
+    console.error(`[v0] BlogPostPage: Error fetching post for slug "${params.slug}":`, error)
     notFound()
   }
 
   if (!post) {
-    console.log(`[BlogPostPage] Post not found for slug: ${params.slug}`)
+    console.log(`[v0] BlogPostPage: Post not found for slug: "${params.slug}", calling notFound()`)
     notFound()
   }
+
+  console.log(`[v0] BlogPostPage: Successfully loaded post "${post.title}", proceeding with render`)
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
@@ -205,21 +208,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: post.frontmatter.title,
-    description: post.frontmatter.excerpt,
+    headline: post.title,
+    description: post.excerpt,
     image: {
       "@type": "ImageObject",
-      url: post.frontmatter.image
-        ? `${baseUrl}${post.frontmatter.image}`
-        : `${baseUrl}${getPlaceholderImage(post.frontmatter.category)}`,
+      url: post.image ? `${baseUrl}${post.image}` : `${baseUrl}${getPlaceholderImage(post.category)}`,
       width: 1200,
       height: 630,
     },
-    datePublished: post.frontmatter.date,
-    dateModified: post.frontmatter.date,
+    datePublished: post.date,
+    dateModified: post.date,
     author: {
       "@type": "Person",
-      name: post.frontmatter.author || "Juice Team",
+      name: "Juice Team",
     },
     publisher: {
       "@type": "Organization",
@@ -229,7 +230,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         url: `${baseUrl}/images/juiceNewLogoPrime.png`,
       },
     },
-    description: post.frontmatter.excerpt,
+    description: post.excerpt,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": fullUrl,
@@ -258,36 +259,32 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Calendar className="w-4 h-4" />
-                <span>{post.frontmatter.date}</span>
+                <span>{post.date}</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <Tag className="w-4 h-4 text-gray-500" />
                 <span className="px-3 py-1 bg-juice text-black text-sm font-semibold rounded-full">
-                  {post.frontmatter.category}
+                  {post.category}
                 </span>
               </div>
 
-              <ReadingTime content={post.content || ""} />
+              <ReadingTime content={post.rawContent || ""} />
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
-              {post.frontmatter.title}
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{post.title}</h1>
 
-            {post.frontmatter.excerpt && (
-              <p className="text-xl text-gray-600 leading-relaxed mb-6">{post.frontmatter.excerpt}</p>
-            )}
+            {post.excerpt && <p className="text-xl text-gray-600 leading-relaxed mb-6">{post.excerpt}</p>}
 
-            <SocialShare title={post.frontmatter.title} url={fullUrl} excerpt={post.frontmatter.excerpt} />
+            <SocialShare title={post.title} url={fullUrl} excerpt={post.excerpt} />
           </header>
 
           {/* Hero Image */}
-          {(post.frontmatter.image || post.frontmatter.category) && (
+          {(post.image || post.category) && (
             <div className="relative w-full h-96 mb-12 rounded-xl overflow-hidden shadow-lg">
               <Image
-                src={post.frontmatter.image || getPlaceholderImage(post.frontmatter.category)}
-                alt={post.frontmatter.title}
+                src={post.image || getPlaceholderImage(post.category)}
+                alt={post.title}
                 fill
                 className="object-cover"
                 priority
@@ -299,14 +296,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {/* Article Content */}
           <div className="relative">
             <div className="prose prose-lg max-w-none">
-              <MdxRenderer source={post.serializedContent} />
+              <MdxRenderer source={post.content} />
             </div>
           </div>
 
           {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t border-gray-200">
             <div className="mb-8">
-              <SocialShare title={post.frontmatter.title} url={fullUrl} excerpt={post.frontmatter.excerpt} />
+              <SocialShare title={post.title} url={fullUrl} excerpt={post.excerpt} />
             </div>
 
             {/* Related Articles */}
