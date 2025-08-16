@@ -549,6 +549,8 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  console.log("[v0] getPostBySlug called with slug:", slug)
+
   try {
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
@@ -558,6 +560,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       const cleanSlug = cleanSlugFromFilename(rawSlug)
 
       if (cleanSlug === slug) {
+        console.log("[v0] Found blob post for slug:", slug)
         const content = await fetchBlobContent(blob.downloadUrl)
         if (content) {
           const { data: frontmatter, content: markdownContent } = matter(content)
@@ -583,9 +586,14 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     console.error(`Error fetching from blob storage for slug "${slug}":`, error)
   }
 
+  console.log("[v0] Looking for hardcoded post with slug:", slug)
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
   if (samplePost) {
+    console.log("[v0] Found hardcoded post:", samplePost.title)
     const content = SAMPLE_BLOG_CONTENT[slug]
+    console.log("[v0] Content exists in SAMPLE_BLOG_CONTENT:", !!content)
+    console.log("[v0] Content length:", content?.length || 0)
+
     if (content) {
       const mdxSource = await serialize(content)
       return {
@@ -594,6 +602,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         rawContent: content,
       }
     } else {
+      console.log("[v0] No content found, using generic placeholder")
       const genericContent = `# ${samplePost.title}
 
 ${samplePost.excerpt}
@@ -617,6 +626,7 @@ This is a sample blog post. The full content would be available in a production 
     }
   }
 
+  console.log("[v0] No post found for slug:", slug)
   return null
 }
 
