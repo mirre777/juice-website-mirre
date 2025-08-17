@@ -159,7 +159,9 @@ export async function POST(req: NextRequest) {
     const imageUrl = payload.imageUrl // Assuming imageUrl is part of the payload
 
     if (imageFile && imageFile.size > 0) {
+      // Handle image file upload
     } else if (imageUrl && imageUrl.trim()) {
+      // Handle image URL
     } else {
       try {
         console.log("[API] No image provided, using placeholder image")
