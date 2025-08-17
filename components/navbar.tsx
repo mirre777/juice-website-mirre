@@ -13,7 +13,11 @@ export function Navbar() {
   const { isCoach, setIsCoach } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const isNavbarDark = pathname === "/marketplace" || pathname === "/100trainers" || pathname === "/findatrainer"
+  const isNavbarDark =
+    (!isCoach && pathname !== "/download-juice-app") ||
+    pathname === "/marketplace" ||
+    pathname === "/100trainers" ||
+    pathname === "/findatrainer"
   const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
@@ -43,14 +47,12 @@ export function Navbar() {
               >
                 Pricing
               </Link>
-              {!isCoach && (
-                <Link
-                  href="/download-juice-app"
-                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-                >
-                  Download
-                </Link>
-              )}
+              <Link
+                href="/download-juice-app"
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+              >
+                Download
+              </Link>
               {isCoach && (
                 <Link
                   href="/workout-planner"
@@ -86,7 +88,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/download-juice-app"
-                  className="client-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  className="trainer-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
                 >
                   Download App
                 </Link>
@@ -126,15 +128,13 @@ export function Navbar() {
             >
               Pricing
             </Link>
-            {!isCoach && (
-              <Link
-                href="/download-juice-app"
-                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Download
-              </Link>
-            )}
+            <Link
+              href="/download-juice-app"
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Download
+            </Link>
             {isCoach && (
               <Link
                 href="/workout-planner"

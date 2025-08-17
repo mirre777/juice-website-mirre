@@ -134,22 +134,64 @@ export default function HomePage() {
               <>Super simple workout logging. Get insights into your training. Share your workouts.</>
             )}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-            <button
-              onClick={() => (window.location.href = "https://app.juice.fitness/")}
-              className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
-              id={isCoach ? "early_access_trainer_hero" : "early_access_client_hero"}
-            >
-              Start now
-            </button>
-            <button
-              onClick={handleWaitlistClick} // Changed to show waitlist
-              className={`rounded-full px-6 py-3 ${isCoach ? "border border-gray-200 hover:bg-gray-50" : "border border-zinc-800 hover:bg-zinc-800"} transition-colors flex items-center justify-center gap-2`}
-              id={isCoach ? "get_updates_trainer" : "get_updates_client"} // Updated ID
-            >
-              Get updates
-            </button>
-          </div>
+          {isCoach ? (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+              <button
+                onClick={() => (window.location.href = "https://app.juice.fitness/")}
+                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                id="early_access_trainer_hero"
+              >
+                Start now
+              </button>
+              <button
+                onClick={handleWaitlistClick}
+                className="rounded-full px-6 py-3 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                id="get_updates_trainer"
+              >
+                Get updates
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-6 mb-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a
+                  href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105"
+                >
+                  <Image
+                    src="https://upload.wikimedia.org/wikipedia/commons/5/51/Download_on_the_App_Store_Badge_US-UK_RGB_blk.svg"
+                    alt="Download on the App Store"
+                    width={200}
+                    height={60}
+                    className="h-14 w-auto"
+                  />
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105"
+                >
+                  <Image
+                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                    alt="Get it on Google Play"
+                    width={200}
+                    height={60}
+                    className="h-14 w-auto"
+                  />
+                </a>
+              </div>
+              <button
+                onClick={handleWaitlistClick}
+                className="rounded-full px-6 py-3 border border-zinc-800 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+                id="get_updates_client"
+              >
+                Get updates
+              </button>
+            </div>
+          )}
           {/* Only show this line for trainer view */}
           {isCoach && (
             <p className="text-sm text-gray-500 mt-2 mb-16">
