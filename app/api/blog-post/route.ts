@@ -28,13 +28,42 @@ export async function POST(req: NextRequest) {
 
     let markdownContent: string | undefined
 
-    // Check if this is a raw Slack API response
+    // Check if this is a raw Slack API response (direct or from Transform step)
     if (payload.messages && Array.isArray(payload.messages) && payload.messages.length > 0) {
-      // Extract message text from Slack API response
+      // Direct Slack API response
       const messageText = payload.messages[0].text
       if (typeof messageText === "string") {
         markdownContent = messageText
-        console.log("[API] Extracted message text from raw Slack API response.")
+        console.log("[API] Extracted message text from direct Slack API response.")
+      }
+    } else if (payload.result && typeof payload.result === "object") {
+      // Check if Transform step wrapped Slack data in result object
+      if (payload.result.messages && Array.isArray(payload.result.messages) && payload.result.messages.length > 0) {
+        const messageText = payload.result.messages[0].text
+        if (typeof messageText === "string") {
+          markdownContent = messageText
+          console.log("[API] Extracted message text from Transform step result.messages.")
+        }
+      } else if (typeof payload.result.value === "string" && payload.result.value !== "undefined") {
+        // Transform step might have the text in result.value
+        markdownContent = payload.result.value
+        console.log("[API] Extracted message text from Transform step result.value.")
+      }
+    } else if (payload.subject && typeof payload.subject.value === "string" && payload.subject.value !== "undefined") {
+      try {
+        // Try to parse subject.value as JSON (might contain Slack API response)
+        const parsedSubject = JSON.parse(payload.subject.value)
+        if (parsedSubject.messages && Array.isArray(parsedSubject.messages) && parsedSubject.messages.length > 0) {
+          const messageText = parsedSubject.messages[0].text
+          if (typeof messageText === "string") {
+            markdownContent = messageText
+            console.log("[API] Extracted message text from parsed subject.value.messages.")
+          }
+        }
+      } catch (e) {
+        // If parsing fails, use subject.value as plain text
+        markdownContent = payload.subject.value
+        console.log("[API] Using subject.value as plain text.")
       }
     }
     // If not raw Slack format, use existing logic
