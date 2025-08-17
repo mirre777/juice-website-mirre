@@ -85,7 +85,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/download-juice-app"
-                  className="client-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  className="trainer-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
                 >
                   Download App
                 </Link>
