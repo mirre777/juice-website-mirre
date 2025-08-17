@@ -27,6 +27,12 @@ const SLUGS_TO_DELETE = [
 ]
 
 const BLOG_CONTENT_PATH = "blog/"
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
+
+if (!BLOB_TOKEN) {
+  console.error("❌ BLOB_READ_WRITE_TOKEN environment variable is required")
+  process.exit(1)
+}
 
 async function deleteSpecificBlogPosts() {
   console.log("🔍 Starting blog post cleanup...")
@@ -34,7 +40,7 @@ async function deleteSpecificBlogPosts() {
 
   try {
     // Get all blobs in the blog directory
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH })
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
     console.log(`📁 Found ${blobs.length} total files in blog directory`)
 
     let deletedCount = 0
@@ -50,7 +56,7 @@ async function deleteSpecificBlogPosts() {
         console.log(`🗑️  Deleting: ${blob.pathname}`)
 
         try {
-          await del(blob.url)
+          await del(blob.url, { token: BLOB_TOKEN })
           deletedCount++
 
           // Track unique post slugs (not individual files)
@@ -83,7 +89,7 @@ async function deleteSpecificBlogPosts() {
 
 async function listRemainingPosts() {
   try {
-    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH })
+    const { blobs } = await list({ prefix: BLOG_CONTENT_PATH, token: BLOB_TOKEN })
 
     // Filter to only .md files (actual blog posts)
     const markdownFiles = blobs.filter((blob) => blob.pathname.endsWith(".md"))
@@ -103,6 +109,29 @@ async function listRemainingPosts() {
   } catch (error) {
     console.error("❌ Error listing remaining posts:", error)
     return 0
+  }
+}
+
+async function deletePost(slug) {
+  try {
+    console.log(`🗑️  Deleting post: ${slug}`)
+
+    await del(
+      [
+        `blog-posts/${slug}.md`,
+        `blog-posts/${slug}.jpg`,
+        `blog-posts/${slug}.png`,
+        `blog-posts/${slug}.jpeg`,
+        `blog-posts/${slug}.webp`,
+      ],
+      { token: BLOB_TOKEN },
+    )
+
+    console.log(`✅ Deleted: ${slug}`)
+    return true
+  } catch (error) {
+    console.log(`⚠️  Could not delete ${slug}:`, error.message)
+    return false
   }
 }
 
