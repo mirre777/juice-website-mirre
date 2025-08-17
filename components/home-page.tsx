@@ -161,7 +161,7 @@ export default function HomePage() {
                   className="transition-transform hover:scale-105"
                 >
                   <Image
-                    src="/app-store-badge-official.png"
+                    src="/app-store-badge.png"
                     alt="Download on the App Store"
                     width={200}
                     height={60}
