@@ -527,22 +527,88 @@ function cleanSlugFromFilename(filename: string): string {
 }
 
 function enhanceMarkdownContent(content: string): string {
+  // Step 1: Clean up the content
+  content = content.trim()
+
+  // Step 2: Auto-detect and create section headings from sentences that look like titles
+  content = content.replace(/^([A-Z][^.!?]*[a-z][^.!?]*):?\s*$/gm, (match, title) => {
+    // Don't convert if it's already a heading or starts with a number
+    if (title.match(/^#+\s/) || title.match(/^\d+\./)) return match
+    return `## ${title.replace(/:$/, "")}`
+  })
+
+  // Step 3: Convert sentences that end with colons into subheadings
+  content = content.replace(/^([^#\n]*[a-zA-Z][^.!?]*):$/gm, "### $1")
+
+  // Step 4: Enhanced bullet point formatting
   content = content.replace(/^- \*\*(.*?)\*\*/gm, "• **$1**")
   content = content.replace(/^(\d+)\. \*\*(.*?)\*\*/gm, "$1. 🎯 **$2**")
-  return content
-}
 
-async function fetchBlobContent(url: string): Promise<string> {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.status}`)
+  // Step 5: Convert plain lists that start with dashes or numbers
+  content = content.replace(/^- ([^*].*?)$/gm, "• $1")
+  content = content.replace(/^(\d+)\. ([^*🎯].*?)$/gmu, "$1. 🎯 $2")
+
+  // Step 6: Create quote boxes for important statements (sentences in quotes or that sound important)
+  content = content.replace(/^"([^"]+)"$/gm, '> "$1"')
+  content = content.replace(/^(.*(?:important|key|remember|note|tip).*):?\s*$/gim, "> **$1**")
+
+  // Step 7: Add proper spacing around sections
+  content = content.replace(/^(##[^#].*?)$/gm, "\n$1\n")
+  content = content.replace(/^(###[^#].*?)$/gm, "\n$1\n")
+
+  // Step 8: Create "Key Points" or "Tips" sections from lists
+  const lines = content.split("\n")
+  const enhancedLines: string[] = []
+  let inList = false
+  let listItems: string[] = []
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    // Detect list items
+    if (line.match(/^[•\-*]\s/) || line.match(/^\d+\.\s/)) {
+      if (!inList) {
+        inList = true
+        listItems = []
+        // Add a heading before the list if the previous line doesn't have one
+        const prevLine = enhancedLines[enhancedLines.length - 1]
+        if (prevLine && !prevLine.match(/^#+\s/) && !prevLine.trim().endsWith(":")) {
+          enhancedLines.push("\n## Key Points\n")
+        }
+      }
+      listItems.push(line)
+    } else {
+      if (inList) {
+        enhancedLines.push(...listItems)
+        inList = false
+        listItems = []
+      }
+      enhancedLines.push(line)
     }
-    return await response.text()
-  } catch (error) {
-    console.error("Error fetching blob content:", error)
-    return ""
   }
+
+  // Add remaining list items
+  if (listItems.length > 0) {
+    enhancedLines.push(...listItems)
+  }
+
+  content = enhancedLines.join("\n")
+
+  // Step 9: Clean up excessive whitespace
+  content = content.replace(/\n{3,}/g, "\n\n")
+  content = content.replace(/^\n+/, "")
+  content = content.replace(/\n+$/, "")
+
+  // Step 10: Add conclusion section if content is long enough and doesn't have one
+  if (content.length > 500 && !content.toLowerCase().includes("conclusion")) {
+    const paragraphs = content.split("\n\n").filter((p) => p.trim())
+    if (paragraphs.length > 3) {
+      content +=
+        "\n\n## Conclusion\n\nThis approach provides a solid foundation for achieving your fitness goals through evidence-based training and consistent application of proven principles."
+    }
+  }
+
+  return content
 }
 
 function extractTitleFromContent(content: string, filename: string): string {
@@ -643,6 +709,7 @@ function cleanTitle(title: string): string {
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
+  const errors: string[] = []
 
   try {
     const { list } = await import("@vercel/blob")
@@ -670,12 +737,17 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           posts.push(post)
         }
       } catch (error) {
-        console.error(`Error processing blob ${blob.pathname}:`, error)
+        const errorMessage = `Error processing blob ${blob.pathname}: ${error instanceof Error ? error.message : "Unknown error"}`
+        console.error(errorMessage)
+        errors.push(errorMessage)
       }
     }
   } catch (error) {
-    console.error("Error fetching from blob storage:", error)
+    const errorMessage = `Error fetching from blob storage: ${error instanceof Error ? error.message : "Unknown error"}`
+    console.error(errorMessage)
+    errors.push(errorMessage)
   }
+  ;(getAllPosts as any).lastErrors = errors
 
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
@@ -758,4 +830,17 @@ This is a sample blog post. The full content would be available in a production 
 export async function getPostSlugs(): Promise<string[]> {
   const posts = await getAllPosts()
   return posts.map((post) => post.slug)
+}
+
+async function fetchBlobContent(url: string): Promise<string> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status}`)
+    }
+    return await response.text()
+  } catch (error) {
+    console.error("Error fetching blob content:", error)
+    return ""
+  }
 }

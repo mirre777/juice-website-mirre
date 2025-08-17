@@ -10,6 +10,8 @@ export function TableOfContents() {
 
   // Extract headings from the document
   useEffect(() => {
+    if (typeof document === "undefined") return
+
     const extractHeadings = () => {
       const elements = Array.from(document.querySelectorAll("h2, h3, h4"))
         .filter((element) => element.id) // Only get elements with IDs
@@ -28,7 +30,7 @@ export function TableOfContents() {
 
   // Track scroll position to highlight active heading
   useEffect(() => {
-    if (headings.length === 0) return
+    if (headings.length === 0 || typeof window === "undefined" || typeof document === "undefined") return
 
     const handleScroll = () => {
       // Show TOC after scrolling down a bit
@@ -56,7 +58,9 @@ export function TableOfContents() {
 
   // Scroll to top function
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
   }
 
   if (headings.length === 0 || !isVisible) {

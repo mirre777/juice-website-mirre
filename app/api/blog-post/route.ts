@@ -29,8 +29,32 @@ export async function POST(req: NextRequest) {
     // --- MODIFICATION START ---
     let markdownContent: string | undefined
 
+    if (payload.ok && payload.messages && Array.isArray(payload.messages) && payload.messages.length > 0) {
+      const messageText = payload.messages[0].text
+      if (typeof messageText === "string" && messageText.trim()) {
+        markdownContent = messageText.trim()
+        console.log("[API] Extracted markdownContent from raw Slack JSON payload.")
+      }
+    }
+
+    if (!markdownContent && payload.subject?.json && typeof payload.subject.json === "string") {
+      try {
+        const slackData = JSON.parse(payload.subject.json)
+        if (slackData.messages && Array.isArray(slackData.messages) && slackData.messages.length > 0) {
+          const messageText = slackData.messages[0].text
+          if (typeof messageText === "string" && messageText.trim()) {
+            markdownContent = messageText.trim()
+            console.log("[API] Extracted markdownContent from Slack data in subject.json.")
+          }
+        }
+      } catch (parseError) {
+        console.log("[API] Failed to parse subject.json as Slack data:", parseError)
+      }
+    }
+
     // Prioritize content from operations[0].result.markdownValue
     if (
+      !markdownContent &&
       payload.operations &&
       Array.isArray(payload.operations) &&
       payload.operations.length > 0 &&
@@ -39,15 +63,15 @@ export async function POST(req: NextRequest) {
     ) {
       markdownContent = payload.operations[0].result.markdownValue
       console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
-    } else if (typeof payload.result?.markdownValue === "string") {
+    } else if (!markdownContent && typeof payload.result?.markdownValue === "string") {
       // Fallback to result.markdownValue
       markdownContent = payload.result.markdownValue
       console.log("[API] Extracted markdownContent from result.markdownValue.")
-    } else if (typeof payload.result?.textView === "string") {
+    } else if (!markdownContent && typeof payload.result?.textView === "string") {
       // Fallback to result.textView
       markdownContent = payload.result.textView
       console.log("[API] Extracted markdownContent from result.textView.")
-    } else if (typeof payload.markdownContent === "string") {
+    } else if (!markdownContent && typeof payload.markdownContent === "string") {
       // Fallback to top-level markdownContent
       markdownContent = payload.markdownContent
       console.log("[API] Extracted markdownContent from top-level markdownContent.")
@@ -86,6 +110,8 @@ export async function POST(req: NextRequest) {
     console.log("[API] Subject value title:", subjectValueTitle)
 
     let fileName = providedSlug
+    console.log("[API] Starting slug generation process...")
+    console.log("[API] Initial fileName (providedSlug):", fileName)
 
     // Prioritize: explicit slug > frontmatter title > article name > subject value > content excerpt + timestamp
     if (!fileName) {
@@ -101,11 +127,18 @@ export async function POST(req: NextRequest) {
       } else {
         // Fallback: generate slug from first 50 chars of markdown content + timestamp
         const contentExcerpt = markdownContent.substring(0, 50).replace(/\n/g, " ") // Take first 50 chars, remove newlines
+        console.log("[API] Content excerpt for slug:", contentExcerpt)
         fileName = slugify(`${contentExcerpt}-${Date.now()}`)
         console.log("[API] Slug derived from content excerpt + timestamp (fallback):", fileName)
       }
     } else {
       console.log("[API] Slug explicitly provided:", fileName)
+    }
+
+    console.log("[API] Final fileName before blob storage:", fileName)
+    if (!fileName || fileName.trim() === "") {
+      console.log("[API] ERROR: fileName is empty, using emergency fallback")
+      fileName = `blog-post-${Date.now()}`
     }
 
     // Define the path in Blob storage (e.g., "blog/my-post.md")
@@ -126,38 +159,38 @@ export async function POST(req: NextRequest) {
     const imageUrl = payload.imageUrl // Assuming imageUrl is part of the payload
 
     if (imageFile && imageFile.size > 0) {
+      // Handle image file upload
     } else if (imageUrl && imageUrl.trim()) {
+      // Handle image URL
     } else {
       try {
         console.log("[API] No image provided, using placeholder image")
 
-        // Read the placeholder image from the public folder
-        const placeholderPath = new URL(
+        const placeholderImagePath = new URL(
           "/images/blog-placeholder-dumbbells.png",
           process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
         )
-        const placeholderResponse = await fetch(placeholderPath.toString())
 
-        if (placeholderResponse.ok) {
-          const placeholderBuffer = await placeholderResponse.arrayBuffer()
-          const imageBlobPath = `blog/${fileName}.png`
-
-          console.log("[API] Uploading placeholder image to:", imageBlobPath)
-
-          const { url: uploadedImageUrl } = await put(imageBlobPath, placeholderBuffer, {
-            access: "public",
-            contentType: "image/png",
-            addRandomSuffix: false,
-            allowOverwrite: true,
-          })
-
-          finalImageUrl = uploadedImageUrl
-          console.log("[API] Placeholder image uploaded successfully:", finalImageUrl)
-        } else {
-          console.log("[API] Could not fetch placeholder image, continuing without image")
+        try {
+          const imageResponse = await fetch(placeholderImagePath.toString())
+          if (imageResponse.ok) {
+            const imageBuffer = await imageResponse.arrayBuffer()
+            const placeholderBlob = await put(`blog-images/placeholder-dumbbells-${Date.now()}.png`, imageBuffer, {
+              access: "public",
+              contentType: "image/png",
+            })
+            finalImageUrl = placeholderBlob.url
+            console.log("[API] Uploaded placeholder image to Blob storage:", finalImageUrl)
+          } else {
+            console.log("[API] Failed to fetch placeholder image, using direct URL")
+            finalImageUrl = placeholderImagePath.toString()
+          }
+        } catch (fetchError) {
+          console.log("[API] Error fetching placeholder image:", fetchError)
+          finalImageUrl = placeholderImagePath.toString()
         }
       } catch (error) {
-        console.error("[API] Failed to upload placeholder image:", error)
+        console.error("[API] Failed to set placeholder image:", error)
         // Continue without image rather than failing the entire request
       }
     }
