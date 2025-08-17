@@ -709,6 +709,7 @@ function cleanTitle(title: string): string {
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
+  const errors: string[] = []
 
   try {
     const { list } = await import("@vercel/blob")
@@ -736,12 +737,17 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           posts.push(post)
         }
       } catch (error) {
-        console.error(`Error processing blob ${blob.pathname}:`, error)
+        const errorMessage = `Error processing blob ${blob.pathname}: ${error instanceof Error ? error.message : "Unknown error"}`
+        console.error(errorMessage)
+        errors.push(errorMessage)
       }
     }
   } catch (error) {
-    console.error("Error fetching from blob storage:", error)
+    const errorMessage = `Error fetching from blob storage: ${error instanceof Error ? error.message : "Unknown error"}`
+    console.error(errorMessage)
+    errors.push(errorMessage)
   }
+  ;(getAllPosts as any).lastErrors = errors
 
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }

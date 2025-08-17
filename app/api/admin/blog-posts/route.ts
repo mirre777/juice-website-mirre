@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     const allPosts = await getAllPosts()
     console.log(`[v0] Blog admin API: Retrieved ${allPosts.length} total posts`)
 
+    const errors = (getAllPosts as any).lastErrors || []
+
     const postsWithSource = allPosts.map((post) => ({
       ...post,
       source: isHardcodedPost(post.slug) ? "hardcoded" : "blob",
@@ -25,7 +27,8 @@ export async function GET(request: NextRequest) {
       hardcodedPosts: hardcodedPosts.length,
       blobPosts: blobPosts.length,
       posts: postsWithSource,
-      isWorkingCorrectly: allPosts.length > 0,
+      errors: errors,
+      isWorkingCorrectly: allPosts.length > 0 && errors.length === 0,
       timestamp: new Date().toISOString(),
     }
 

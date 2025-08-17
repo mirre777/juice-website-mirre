@@ -26,6 +26,7 @@ interface BlogDebugData {
   hardcodedPosts: number
   blobPosts: number
   posts: BlogPost[]
+  errors: string[] // Added errors array to interface
   isWorkingCorrectly: boolean
 }
 
@@ -214,6 +215,24 @@ export default function BlogAdminPage() {
               </CardContent>
             </Card>
           </div>
+
+          {blogData.errors && blogData.errors.length > 0 && (
+            <Card className="border-destructive">
+              <CardHeader>
+                <CardTitle className="text-destructive">Processing Errors ({blogData.errors.length})</CardTitle>
+                <CardDescription>Errors encountered while processing blog posts from Blob storage</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {blogData.errors.map((error, index) => (
+                    <div key={index} className="p-3 bg-red-50 border border-red-200 rounded text-sm">
+                      <code className="text-red-800">{error}</code>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Blog Posts List */}
           <Card>
