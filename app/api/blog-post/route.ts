@@ -48,6 +48,23 @@ export async function POST(req: NextRequest) {
         // Transform step might have the text in result.value
         markdownContent = payload.result.value
         console.log("[API] Extracted message text from Transform step result.value.")
+      } else if (typeof payload.result.image === "string") {
+        try {
+          const parsedSlackData = JSON.parse(payload.result.image)
+          if (
+            parsedSlackData.messages &&
+            Array.isArray(parsedSlackData.messages) &&
+            parsedSlackData.messages.length > 0
+          ) {
+            const messageText = parsedSlackData.messages[0].text
+            if (typeof messageText === "string") {
+              markdownContent = messageText
+              console.log("[API] Extracted message text from parsed result.image.")
+            }
+          }
+        } catch (e) {
+          console.log("[API] Failed to parse result.image as JSON:", e.message)
+        }
       }
     } else if (payload.subject && typeof payload.subject.value === "string" && payload.subject.value !== "undefined") {
       try {
