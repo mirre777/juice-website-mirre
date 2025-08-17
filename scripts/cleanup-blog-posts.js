@@ -1,9 +1,7 @@
 import { list, del } from "@vercel/blob"
 
-const BLOG_CONTENT_PATH = "blog/"
-
-// URLs to remove (extracted from the text attachment)
-const URLS_TO_REMOVE = [
+// List of slugs to remove (extracted from the Slack messages)
+const SLUGS_TO_REMOVE = [
   "test-post-or-my-brain-on-auto-pilot",
   "lift-weights-look-great-feel-amazing-no-really",
   "weightlifting-also-known-as-strength-or",
@@ -12,20 +10,21 @@ const URLS_TO_REMOVE = [
   "weightlifting-not-just-for-meatheads-anymore-or-is-it",
   "sleep-tracking-helpful-snooze-or-data-doze", // without leading dash
   "-sleep-tracking-helpful-snooze-or-data-doze", // with leading dash
-  "gym-bro-science-fact-fiction-or-just-really-good-marketing",
-  "-gym-bro-science-fact-fiction-or-just-really-good-marketing",
-  "goodbye-spreadsheets-hello-ai-sidekick",
-  "-goodbye-spreadsheets-hello-ai-sidekick",
-  "the-rise-of-the-machines-in-coaching-spoiler-not-quite",
-  "-the-rise-of-the-machines-in-coaching-spoiler-not-quite-",
-  "is-your-toaster-plotting-to-take-your-job-ai-in-the-workplace",
-  "-is-your-toaster-plotting-to-take-your-job-ai-in-the-workplace",
-  "is-your-toaster-plotting-to-steal-your-job-aka-ai-in-the-fitness-world",
-  "-is-your-toaster-plotting-to-steal-your-job-aka-ai-in-the-fitness-world-",
-  "ai-the-fitness-worlds-newest-shiny-toy-or-your-coachs-new-sidekick",
-  "-ai-the-fitness-worlds-newest-shiny-toy-or-your-coachs-new-sidekick",
+  "gym-bro-science-fact-fiction-or-just-really-good-marketing", // without leading dash
+  "-gym-bro-science-fact-fiction-or-just-really-good-marketing", // with leading dash
+  "goodbye-spreadsheets-hello-ai-sidekick", // without leading dash
+  "-goodbye-spreadsheets-hello-ai-sidekick", // with leading dash
+  "the-rise-of-the-machines-in-coaching-spoiler-not-quite", // without dashes
+  "-the-rise-of-the-machines-in-coaching-spoiler-not-quite-", // with dashes
+  "is-your-toaster-plotting-to-take-your-job-ai-in-the-workplace", // without leading dash
+  "-is-your-toaster-plotting-to-take-your-job-ai-in-the-workplace", // with leading dash
+  "is-your-toaster-plotting-to-steal-your-job-aka-ai-in-the-fitness-world", // without dashes
+  "-is-your-toaster-plotting-to-steal-your-job-aka-ai-in-the-fitness-world-", // with dashes
+  "ai-the-fitness-worlds-newest-shiny-toy-or-your-coachs-new-sidekick", // without leading dash
+  "-ai-the-fitness-worlds-newest-shiny-toy-or-your-coachs-new-sidekick", // with leading dash
 ]
 
+// Function to clean slug from filename (same as in lib/blog.ts)
 function cleanSlugFromFilename(filename) {
   return filename
     .replace(/^-+/, "")
@@ -36,121 +35,161 @@ function cleanSlugFromFilename(filename) {
     .toLowerCase()
 }
 
-// Function to check if two strings are similar (1-2 character differences)
-function isSimilar(str1, str2, maxDifferences = 2) {
-  if (Math.abs(str1.length - str2.length) > maxDifferences) {
-    return false
+// Function to check if two slugs are similar (allowing for 1-2 character differences)
+function isSimilarSlug(slug1, slug2, maxDifference = 2) {
+  if (slug1 === slug2) return true
+
+  // Simple Levenshtein distance calculation
+  const matrix = []
+  const len1 = slug1.length
+  const len2 = slug2.length
+
+  for (let i = 0; i <= len2; i++) {
+    matrix[i] = [i]
   }
 
-  let differences = 0
-  const minLength = Math.min(str1.length, str2.length)
-  const maxLength = Math.max(str1.length, str2.length)
+  for (let j = 0; j <= len1; j++) {
+    matrix[0][j] = j
+  }
 
-  for (let i = 0; i < minLength; i++) {
-    if (str1[i] !== str2[i]) {
-      differences++
-      if (differences > maxDifferences) {
-        return false
+  for (let i = 1; i <= len2; i++) {
+    for (let j = 1; j <= len1; j++) {
+      if (slug2.charAt(i - 1) === slug1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1, // deletion
+        )
       }
     }
   }
 
-  // Add length difference to differences count
-  differences += maxLength - minLength
-
-  return differences <= maxDifferences
+  return matrix[len2][len1] <= maxDifference
 }
 
 async function cleanupBlogPosts() {
-  console.log("[v0] Starting blog post cleanup...")
+  console.log("🧹 Starting blog post cleanup...")
 
   try {
-    // Get all blobs in the blog directory
-    const blobs = await list({ prefix: BLOG_CONTENT_PATH })
-    console.log(`[v0] Found ${blobs.blobs.length} total blobs in blog directory`)
+    // List all blobs with blog prefix
+    const { blobs } = await list({ prefix: "blog/" })
 
-    const deletedPosts = []
-    const remainingPosts = []
+    console.log(`📄 Found ${blobs.length} total files in blog storage`)
 
-    for (const blob of blobs.blobs) {
-      const filename = blob.pathname.replace(BLOG_CONTENT_PATH, "")
-      const rawSlug = filename.replace(/\.(md|jpg|jpeg|png|webp|gif)$/, "")
-      const cleanSlug = cleanSlugFromFilename(rawSlug)
-
-      // Check if this slug should be removed (exact match or similar)
-      let shouldDelete = false
-      let matchedUrl = ""
-
-      for (const urlToRemove of URLS_TO_REMOVE) {
-        if (cleanSlug === urlToRemove || rawSlug === urlToRemove) {
-          shouldDelete = true
-          matchedUrl = urlToRemove
-          break
+    // Filter for markdown files and extract slugs
+    const blogPosts = blobs
+      .filter((blob) => blob.pathname.endsWith(".md"))
+      .map((blob) => {
+        const filename = blob.pathname.replace("blog/", "").replace(".md", "")
+        const cleanSlug = cleanSlugFromFilename(filename)
+        return {
+          blob,
+          filename,
+          cleanSlug,
+          url: blob.url,
         }
+      })
 
-        // Check for similar URLs (1-2 character differences)
-        if (isSimilar(cleanSlug, urlToRemove) || isSimilar(rawSlug, urlToRemove)) {
+    console.log(`📝 Found ${blogPosts.length} blog post markdown files`)
+
+    // Find posts to delete
+    const postsToDelete = []
+    const postsToKeep = []
+
+    for (const post of blogPosts) {
+      let shouldDelete = false
+
+      // Check if this post matches any slug to remove
+      for (const slugToRemove of SLUGS_TO_REMOVE) {
+        if (isSimilarSlug(post.cleanSlug, slugToRemove) || isSimilarSlug(post.filename, slugToRemove)) {
           shouldDelete = true
-          matchedUrl = `${urlToRemove} (similar to ${cleanSlug})`
+          console.log(`🎯 MATCH: "${post.filename}" matches "${slugToRemove}"`)
           break
         }
       }
 
       if (shouldDelete) {
-        try {
-          await del(blob.url)
-          deletedPosts.push({
-            filename,
-            slug: cleanSlug,
-            matchedUrl,
-            url: blob.url,
-          })
-          console.log(`[v0] Deleted: ${filename} (matched: ${matchedUrl})`)
-        } catch (error) {
-          console.error(`[v0] Failed to delete ${filename}:`, error)
-        }
+        postsToDelete.push(post)
       } else {
-        // Only count markdown files as blog posts for the final count
-        if (filename.endsWith(".md")) {
-          remainingPosts.push({
-            filename,
-            slug: cleanSlug,
-            url: `https://www.juice.fitness/blog/${cleanSlug}`,
-          })
+        postsToKeep.push(post)
+      }
+    }
+
+    console.log(`\n🗑️  Posts to DELETE: ${postsToDelete.length}`)
+    postsToDelete.forEach((post) => {
+      console.log(`   - ${post.filename} (${post.cleanSlug})`)
+    })
+
+    console.log(`\n✅ Posts to KEEP: ${postsToKeep.length}`)
+    postsToKeep.forEach((post) => {
+      console.log(`   - ${post.filename} (${post.cleanSlug})`)
+    })
+
+    // Delete the posts
+    if (postsToDelete.length > 0) {
+      console.log(`\n🔥 Deleting ${postsToDelete.length} blog posts...`)
+
+      for (const post of postsToDelete) {
+        try {
+          await del(post.blob.url)
+          console.log(`   ✅ Deleted: ${post.filename}`)
+
+          // Also try to delete associated image files
+          const imageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+          for (const ext of imageExtensions) {
+            const imagePath = `blog/${post.filename}${ext}`
+            try {
+              const imageBlobs = await list({ prefix: imagePath })
+              if (imageBlobs.blobs.length > 0) {
+                await del(imageBlobs.blobs[0].url)
+                console.log(`   🖼️  Deleted associated image: ${post.filename}${ext}`)
+              }
+            } catch (imageError) {
+              // Image doesn't exist, that's fine
+            }
+          }
+        } catch (error) {
+          console.error(`   ❌ Failed to delete ${post.filename}:`, error.message)
         }
       }
     }
 
-    console.log(`\n[v0] Cleanup Summary:`)
-    console.log(`[v0] Deleted ${deletedPosts.length} files`)
-    console.log(`[v0] Remaining blog posts: ${remainingPosts.length}`)
+    // Generate final report
+    console.log(`\n📊 FINAL REPORT:`)
+    console.log(`   Total files processed: ${blogPosts.length}`)
+    console.log(`   Posts deleted: ${postsToDelete.length}`)
+    console.log(`   Posts remaining: ${postsToKeep.length}`)
 
-    console.log(`\n[v0] Deleted files:`)
-    deletedPosts.forEach((post) => {
-      console.log(`[v0] - ${post.filename} (${post.matchedUrl})`)
-    })
+    if (postsToKeep.length > 0) {
+      console.log(`\n🌐 LIVE BLOG POSTS WITH COMPLETE URLs:`)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.juice.fitness"
 
-    console.log(`\n[v0] Remaining blog posts with URLs:`)
-    remainingPosts.forEach((post) => {
-      console.log(`[v0] - ${post.url}`)
-    })
+      postsToKeep.forEach((post, index) => {
+        const fullUrl = `${baseUrl}/blog/${post.cleanSlug}`
+        console.log(`   ${index + 1}. ${post.filename}`)
+        console.log(`      URL: ${fullUrl}`)
+        console.log(`      Slug: ${post.cleanSlug}`)
+        console.log("")
+      })
 
-    return {
-      deleted: deletedPosts.length,
-      remaining: remainingPosts.length,
-      remainingPosts: remainingPosts,
+      console.log(`✨ ${postsToKeep.length} blog posts are now live!`)
+    } else {
+      console.log(`\n🏜️  No blog posts remaining after cleanup.`)
     }
   } catch (error) {
-    console.error("[v0] Error during cleanup:", error)
+    console.error("❌ Error during cleanup:", error)
     throw error
   }
 }
 
 // Run the cleanup
 cleanupBlogPosts()
-  .then((result) => {
-    console.log(`\n[v0] Final Result: ${result.remaining} blog posts remaining after deleting ${result.deleted} files`)
+  .then(() => {
+    console.log("🎉 Blog cleanup completed successfully!")
   })
   .catch((error) => {
-    console.error("[v0] Cleanup failed:", error)
+    console.error("💥 Blog cleanup failed:", error)
+    process.exit(1)
   })
