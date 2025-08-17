@@ -9,3 +9,5 @@ function slugify(text: string) {
     .replace(/--+/g, "-") // Replace multiple - with single -
     .replace(/^-+|-+$/g, "") // Remove leading and trailing dashes
 }
+
+// Additional code can be added here if necessary
