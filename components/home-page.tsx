@@ -155,7 +155,7 @@ export default function HomePage() {
             <div className="flex flex-col items-center gap-6 mb-4">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="https://apps.apple.com/app/juice-fitness/id6736842671"
+                  href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-transform hover:scale-105"
@@ -169,7 +169,7 @@ export default function HomePage() {
                   />
                 </a>
                 <a
-                  href="https://play.google.com/store/apps/details?id=com.juicefitness.app"
+                  href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-transform hover:scale-105"
