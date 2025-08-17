@@ -14,7 +14,10 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const isNavbarDark =
-    !isCoach || pathname === "/marketplace" || pathname === "/100trainers" || pathname === "/findatrainer"
+    (!isCoach && pathname !== "/download-juice-app") ||
+    pathname === "/marketplace" ||
+    pathname === "/100trainers" ||
+    pathname === "/findatrainer"
   const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
