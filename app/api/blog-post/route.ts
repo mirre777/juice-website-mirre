@@ -26,89 +26,49 @@ export async function POST(req: NextRequest) {
     const payload = await req.json()
     console.log("[API] Received payload:", JSON.stringify(payload, null, 2)) // Log the full payload
 
+    // --- MODIFICATION START ---
     let markdownContent: string | undefined
 
-    // Check if this is a raw Slack API response (direct or from Transform step)
-    if (payload.messages && Array.isArray(payload.messages) && payload.messages.length > 0) {
-      // Direct Slack API response
-      const messageText = payload.messages[0].text
-      if (typeof messageText === "string") {
-        markdownContent = messageText
-        console.log("[API] Extracted message text from direct Slack API response.")
-      }
-    } else if (payload.result && typeof payload.result === "object") {
-      // Check if Transform step wrapped Slack data in result object
-      if (payload.result.messages && Array.isArray(payload.result.messages) && payload.result.messages.length > 0) {
-        const messageText = payload.result.messages[0].text
-        if (typeof messageText === "string") {
-          markdownContent = messageText
-          console.log("[API] Extracted message text from Transform step result.messages.")
-        }
-      } else if (typeof payload.result.value === "string" && payload.result.value !== "undefined") {
-        // Transform step might have the text in result.value
-        markdownContent = payload.result.value
-        console.log("[API] Extracted message text from Transform step result.value.")
-      } else if (typeof payload.result.image === "string") {
-        try {
-          const parsedSlackData = JSON.parse(payload.result.image)
-          if (
-            parsedSlackData.messages &&
-            Array.isArray(parsedSlackData.messages) &&
-            parsedSlackData.messages.length > 0
-          ) {
-            const messageText = parsedSlackData.messages[0].text
-            if (typeof messageText === "string") {
-              markdownContent = messageText
-              console.log("[API] Extracted message text from parsed result.image.")
-            }
-          }
-        } catch (e) {
-          console.log("[API] Failed to parse result.image as JSON:", e.message)
-        }
-      }
-    } else if (payload.subject && typeof payload.subject.value === "string" && payload.subject.value !== "undefined") {
+    if (payload.subject?.json && typeof payload.subject.json === "string") {
       try {
-        // Try to parse subject.value as JSON (might contain Slack API response)
-        const parsedSubject = JSON.parse(payload.subject.value)
-        if (parsedSubject.messages && Array.isArray(parsedSubject.messages) && parsedSubject.messages.length > 0) {
-          const messageText = parsedSubject.messages[0].text
-          if (typeof messageText === "string") {
-            markdownContent = messageText
-            console.log("[API] Extracted message text from parsed subject.value.messages.")
+        const slackData = JSON.parse(payload.subject.json)
+        if (slackData.messages && Array.isArray(slackData.messages) && slackData.messages.length > 0) {
+          const messageText = slackData.messages[0].text
+          if (typeof messageText === "string" && messageText.trim()) {
+            markdownContent = messageText.trim()
+            console.log("[API] Extracted markdownContent from Slack data in subject.json.")
           }
         }
-      } catch (e) {
-        // If parsing fails, use subject.value as plain text
-        markdownContent = payload.subject.value
-        console.log("[API] Using subject.value as plain text.")
+      } catch (parseError) {
+        console.log("[API] Failed to parse subject.json as Slack data:", parseError)
       }
     }
-    // If not raw Slack format, use existing logic
-    else {
-      // Prioritize content from operations[0].result.markdownValue
-      if (
-        payload.operations &&
-        Array.isArray(payload.operations) &&
-        payload.operations.length > 0 &&
-        payload.operations[0].result &&
-        typeof payload.operations[0].result.markdownValue === "string"
-      ) {
-        markdownContent = payload.operations[0].result.markdownValue
-        console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
-      } else if (typeof payload.result?.markdownValue === "string") {
-        // Fallback to result.markdownValue
-        markdownContent = payload.result.markdownValue
-        console.log("[API] Extracted markdownContent from result.markdownValue.")
-      } else if (typeof payload.result?.textView === "string") {
-        // Fallback to result.textView
-        markdownContent = payload.result.textView
-        console.log("[API] Extracted markdownContent from result.textView.")
-      } else if (typeof payload.markdownContent === "string") {
-        // Fallback to top-level markdownContent
-        markdownContent = payload.markdownContent
-        console.log("[API] Extracted markdownContent from top-level markdownContent.")
-      }
+
+    // Prioritize content from operations[0].result.markdownValue
+    if (
+      !markdownContent &&
+      payload.operations &&
+      Array.isArray(payload.operations) &&
+      payload.operations.length > 0 &&
+      payload.operations[0].result &&
+      typeof payload.operations[0].result.markdownValue === "string"
+    ) {
+      markdownContent = payload.operations[0].result.markdownValue
+      console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
+    } else if (!markdownContent && typeof payload.result?.markdownValue === "string") {
+      // Fallback to result.markdownValue
+      markdownContent = payload.result.markdownValue
+      console.log("[API] Extracted markdownContent from result.markdownValue.")
+    } else if (!markdownContent && typeof payload.result?.textView === "string") {
+      // Fallback to result.textView
+      markdownContent = payload.result.textView
+      console.log("[API] Extracted markdownContent from result.textView.")
+    } else if (!markdownContent && typeof payload.markdownContent === "string") {
+      // Fallback to top-level markdownContent
+      markdownContent = payload.markdownContent
+      console.log("[API] Extracted markdownContent from top-level markdownContent.")
     }
+    // --- MODIFICATION END ---
 
     console.log(
       "[API] Final extracted markdownContent (first 100 chars):",
