@@ -26,33 +26,43 @@ export async function POST(req: NextRequest) {
     const payload = await req.json()
     console.log("[API] Received payload:", JSON.stringify(payload, null, 2)) // Log the full payload
 
-    // --- MODIFICATION START ---
     let markdownContent: string | undefined
 
-    // Prioritize content from operations[0].result.markdownValue
-    if (
-      payload.operations &&
-      Array.isArray(payload.operations) &&
-      payload.operations.length > 0 &&
-      payload.operations[0].result &&
-      typeof payload.operations[0].result.markdownValue === "string"
-    ) {
-      markdownContent = payload.operations[0].result.markdownValue
-      console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
-    } else if (typeof payload.result?.markdownValue === "string") {
-      // Fallback to result.markdownValue
-      markdownContent = payload.result.markdownValue
-      console.log("[API] Extracted markdownContent from result.markdownValue.")
-    } else if (typeof payload.result?.textView === "string") {
-      // Fallback to result.textView
-      markdownContent = payload.result.textView
-      console.log("[API] Extracted markdownContent from result.textView.")
-    } else if (typeof payload.markdownContent === "string") {
-      // Fallback to top-level markdownContent
-      markdownContent = payload.markdownContent
-      console.log("[API] Extracted markdownContent from top-level markdownContent.")
+    // Check if this is a raw Slack API response
+    if (payload.messages && Array.isArray(payload.messages) && payload.messages.length > 0) {
+      // Extract message text from Slack API response
+      const messageText = payload.messages[0].text
+      if (typeof messageText === "string") {
+        markdownContent = messageText
+        console.log("[API] Extracted message text from raw Slack API response.")
+      }
     }
-    // --- MODIFICATION END ---
+    // If not raw Slack format, use existing logic
+    else {
+      // Prioritize content from operations[0].result.markdownValue
+      if (
+        payload.operations &&
+        Array.isArray(payload.operations) &&
+        payload.operations.length > 0 &&
+        payload.operations[0].result &&
+        typeof payload.operations[0].result.markdownValue === "string"
+      ) {
+        markdownContent = payload.operations[0].result.markdownValue
+        console.log("[API] Extracted markdownContent from operations[0].result.markdownValue.")
+      } else if (typeof payload.result?.markdownValue === "string") {
+        // Fallback to result.markdownValue
+        markdownContent = payload.result.markdownValue
+        console.log("[API] Extracted markdownContent from result.markdownValue.")
+      } else if (typeof payload.result?.textView === "string") {
+        // Fallback to result.textView
+        markdownContent = payload.result.textView
+        console.log("[API] Extracted markdownContent from result.textView.")
+      } else if (typeof payload.markdownContent === "string") {
+        // Fallback to top-level markdownContent
+        markdownContent = payload.markdownContent
+        console.log("[API] Extracted markdownContent from top-level markdownContent.")
+      }
+    }
 
     console.log(
       "[API] Final extracted markdownContent (first 100 chars):",
