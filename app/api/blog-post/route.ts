@@ -119,6 +119,48 @@ export async function POST(req: NextRequest) {
       allowOverwrite: true, // Allow overwriting existing blobs with the same name
     })
 
+    let finalImageUrl: string | null = null
+
+    const imageFile = payload.imageFile // Assuming imageFile is part of the payload
+    const imageUrl = payload.imageUrl // Assuming imageUrl is part of the payload
+
+    if (imageFile && imageFile.size > 0) {
+    } else if (imageUrl && imageUrl.trim()) {
+    } else {
+      try {
+        console.log("[API] No image provided, using placeholder image")
+
+        // Read the placeholder image from the public folder
+        const placeholderPath = new URL(
+          "/images/blog-placeholder-dumbbells.png",
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        )
+        const placeholderResponse = await fetch(placeholderPath.toString())
+
+        if (placeholderResponse.ok) {
+          const placeholderBuffer = await placeholderResponse.arrayBuffer()
+          const imageBlobPath = `blog/${fileName}.png`
+
+          console.log("[API] Uploading placeholder image to:", imageBlobPath)
+
+          const { url: uploadedImageUrl } = await put(imageBlobPath, placeholderBuffer, {
+            access: "public",
+            contentType: "image/png",
+            addRandomSuffix: false,
+            allowOverwrite: true,
+          })
+
+          finalImageUrl = uploadedImageUrl
+          console.log("[API] Placeholder image uploaded successfully:", finalImageUrl)
+        } else {
+          console.log("[API] Could not fetch placeholder image, continuing without image")
+        }
+      } catch (error) {
+        console.error("[API] Failed to upload placeholder image:", error)
+        // Continue without image rather than failing the entire request
+      }
+    }
+
     // Construct the full URL for the blog post page
     // Use NEXT_PUBLIC_APP_URL if available, otherwise default to a placeholder
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://your-domain.com"
@@ -134,6 +176,7 @@ export async function POST(req: NextRequest) {
         slug: fileName,
         blobUrl: url, // URL of the stored blob
         postUrl: postUrl, // Full URL to the blog post page
+        imageUrl: finalImageUrl, // URL of the uploaded image
       },
       { status: 201 },
     )
