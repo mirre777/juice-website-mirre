@@ -166,9 +166,29 @@ export async function POST(req: NextRequest) {
       try {
         console.log("[API] No image provided, using placeholder image")
 
-        // Since the image is already in public/images/, we can reference it directly
-        finalImageUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/images/blog-placeholder-dumbbells.png`
-        console.log("[API] Using placeholder image URL:", finalImageUrl)
+        const placeholderImagePath = new URL(
+          "/images/blog-placeholder-dumbbells.png",
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        )
+
+        try {
+          const imageResponse = await fetch(placeholderImagePath.toString())
+          if (imageResponse.ok) {
+            const imageBuffer = await imageResponse.arrayBuffer()
+            const placeholderBlob = await put(`blog-images/placeholder-dumbbells-${Date.now()}.png`, imageBuffer, {
+              access: "public",
+              contentType: "image/png",
+            })
+            finalImageUrl = placeholderBlob.url
+            console.log("[API] Uploaded placeholder image to Blob storage:", finalImageUrl)
+          } else {
+            console.log("[API] Failed to fetch placeholder image, using direct URL")
+            finalImageUrl = placeholderImagePath.toString()
+          }
+        } catch (fetchError) {
+          console.log("[API] Error fetching placeholder image:", fetchError)
+          finalImageUrl = placeholderImagePath.toString()
+        }
       } catch (error) {
         console.error("[API] Failed to set placeholder image:", error)
         // Continue without image rather than failing the entire request
