@@ -29,7 +29,15 @@ export async function POST(req: NextRequest) {
     // --- MODIFICATION START ---
     let markdownContent: string | undefined
 
-    if (payload.subject?.json && typeof payload.subject.json === "string") {
+    if (payload.ok && payload.messages && Array.isArray(payload.messages) && payload.messages.length > 0) {
+      const messageText = payload.messages[0].text
+      if (typeof messageText === "string" && messageText.trim()) {
+        markdownContent = messageText.trim()
+        console.log("[API] Extracted markdownContent from raw Slack JSON payload.")
+      }
+    }
+
+    if (!markdownContent && payload.subject?.json && typeof payload.subject.json === "string") {
       try {
         const slackData = JSON.parse(payload.subject.json)
         if (slackData.messages && Array.isArray(slackData.messages) && slackData.messages.length > 0) {
