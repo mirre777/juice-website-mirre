@@ -163,9 +163,9 @@ export default function HomePage() {
                   <Image
                     src="/app-store-badge-white.png"
                     alt="Download on the App Store"
-                    width={200}
-                    height={60}
-                    className="h-14 w-auto"
+                    width={220}
+                    height={65}
+                    className="h-16 w-auto"
                   />
                 </a>
                 <a
