@@ -110,6 +110,8 @@ export async function POST(req: NextRequest) {
     console.log("[API] Subject value title:", subjectValueTitle)
 
     let fileName = providedSlug
+    console.log("[API] Starting slug generation process...")
+    console.log("[API] Initial fileName (providedSlug):", fileName)
 
     // Prioritize: explicit slug > frontmatter title > article name > subject value > content excerpt + timestamp
     if (!fileName) {
@@ -125,11 +127,18 @@ export async function POST(req: NextRequest) {
       } else {
         // Fallback: generate slug from first 50 chars of markdown content + timestamp
         const contentExcerpt = markdownContent.substring(0, 50).replace(/\n/g, " ") // Take first 50 chars, remove newlines
+        console.log("[API] Content excerpt for slug:", contentExcerpt)
         fileName = slugify(`${contentExcerpt}-${Date.now()}`)
         console.log("[API] Slug derived from content excerpt + timestamp (fallback):", fileName)
       }
     } else {
       console.log("[API] Slug explicitly provided:", fileName)
+    }
+
+    console.log("[API] Final fileName before blob storage:", fileName)
+    if (!fileName || fileName.trim() === "") {
+      console.log("[API] ERROR: fileName is empty, using emergency fallback")
+      fileName = `blog-post-${Date.now()}`
     }
 
     // Define the path in Blob storage (e.g., "blog/my-post.md")
