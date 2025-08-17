@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAllPosts } from "@/lib/blog"
+import { del, list } from "@vercel/blob"
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,6 +35,54 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to fetch blog posts",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { slug } = await request.json()
+
+    if (!slug) {
+      return NextResponse.json({ error: "Slug is required" }, { status: 400 })
+    }
+
+    // Prevent deletion of hardcoded posts
+    if (isHardcodedPost(slug)) {
+      return NextResponse.json({ error: "Cannot delete hardcoded sample posts" }, { status: 403 })
+    }
+
+    console.log(`[v0] Blog admin API: Deleting post with slug: ${slug}`)
+
+    // List all blob files to find files related to this slug
+    const { blobs } = await list({ prefix: "blog/" })
+    const filesToDelete = blobs.filter((blob) => blob.pathname.includes(slug))
+
+    console.log(`[v0] Blog admin API: Found ${filesToDelete.length} files to delete for slug: ${slug}`)
+
+    // Delete all related files (markdown content and images)
+    const deletePromises = filesToDelete.map((blob) => {
+      console.log(`[v0] Blog admin API: Deleting file: ${blob.pathname}`)
+      return del(blob.url)
+    })
+
+    await Promise.all(deletePromises)
+
+    console.log(`[v0] Blog admin API: Successfully deleted ${filesToDelete.length} files for post: ${slug}`)
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully deleted post: ${slug}`,
+      deletedFiles: filesToDelete.length,
+    })
+  } catch (error) {
+    console.error("[v0] Blog admin API delete error:", error)
+    return NextResponse.json(
+      {
+        error: "Failed to delete blog post",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },

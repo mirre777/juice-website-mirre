@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Calendar, Tag, Database, FileText, Lock } from "lucide-react"
+import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -35,6 +35,7 @@ export default function BlogAdminPage() {
   const [blogData, setBlogData] = useState<BlogDebugData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deletingPosts, setDeletingPosts] = useState<Set<string>>(new Set())
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,6 +64,45 @@ export default function BlogAdminPage() {
       console.error("Blog admin fetch error:", err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeletePost = async (slug: string, source: "hardcoded" | "blob") => {
+    if (source === "hardcoded") {
+      alert("Cannot delete hardcoded sample posts")
+      return
+    }
+
+    if (!confirm(`Are you sure you want to delete the post "${slug}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setDeletingPosts((prev) => new Set(prev).add(slug))
+
+      const response = await fetch("/api/admin/blog-posts", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ slug }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete post: ${response.status}`)
+      }
+
+      // Refresh the blog data after successful deletion
+      await fetchBlogData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete post")
+      console.error("Delete post error:", err)
+    } finally {
+      setDeletingPosts((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(slug)
+        return newSet
+      })
     }
   }
 
@@ -228,12 +268,28 @@ export default function BlogAdminPage() {
                         </div>
 
                         <div className="flex-shrink-0">
-                          <Link href={`/blog/${post.slug}`} target="_blank">
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
-                            </Button>
-                          </Link>
+                          <div className="flex gap-2">
+                            <Link href={`/blog/${post.slug}`} target="_blank">
+                              <Button variant="outline" size="sm">
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Button>
+                            </Link>
+                            {post.source === "blob" && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeletePost(post.slug, post.source)}
+                                disabled={deletingPosts.has(post.slug)}
+                              >
+                                {deletingPosts.has(post.slug) ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
