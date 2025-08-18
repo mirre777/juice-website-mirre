@@ -75,6 +75,11 @@ export default function GratisWorkoutAppClientPage() {
         description: "Geen verborgen kosten, geen verplichtingen, volledige controle",
       },
     ],
+    ctaData: {
+      title: "Download gratis workout app",
+      subtitle: "Haal de app en train thuis, zonder abonnement en zonder grenzen.",
+      bulletPoints: ["Gratis te starten, altijd uit te breiden", "Transparant: geen verborgen kosten"],
+    },
   }
 
   const faqProps = {

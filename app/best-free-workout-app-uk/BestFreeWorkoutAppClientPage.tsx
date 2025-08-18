@@ -69,6 +69,11 @@ export default function BestFreeWorkoutAppClientPage() {
         description: "Best fitness planner app with community features to keep you consistent and motivated",
       },
     ],
+    ctaData: {
+      title: "Download the best free workout app",
+      subtitle: "Get the app and start training at home, no subscription, no limits.",
+      bulletPoints: ["Free to start, always expandable", "Transparent: no hidden costs"],
+    },
   }
 
   const faqData = {
