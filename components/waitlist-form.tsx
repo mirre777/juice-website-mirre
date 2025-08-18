@@ -126,7 +126,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
@@ -143,7 +143,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
@@ -160,7 +160,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
