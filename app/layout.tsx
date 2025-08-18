@@ -99,6 +99,11 @@ export default function RootLayout({
               // Use a DOMContentLoaded listener or check for Calendly object
               document.addEventListener('DOMContentLoaded', function() {
                 function initCalendly() {
+                  if (window.location.pathname === '/gratis-workout-app-met-trainer') {
+                    console.log("Skipping Calendly widget on client landing page");
+                    return;
+                  }
+                  
                   if (window.Calendly) {
                     window.Calendly.initBadgeWidget({
                       url: 'https://calendly.com/sofree-mirre/talk',
