@@ -9,49 +9,42 @@ export function ClientFAQSection() {
 
           <div className="space-y-8">
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3 text-black">Wat is de beste gratis fitness app in Nederland?</h3>
+              <h3 className="text-xl font-bold mb-3 text-black">Welche ist die beste kostenlose Fitness App?</h3>
               <p className="text-gray-700 leading-relaxed">
-                Onze app is volledig gratis te gebruiken met toegang tot workouts, schema's en progressie-tracking. Je
-                betaalt alleen als je kiest voor begeleiding van een personal trainer.
+                Unsere App bietet dir Training ohne Abo und ist komplett gratis nutzbar.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3 text-black">
-                Kan ik met een personal trainer trainen zonder sportschool?
-              </h3>
+              <h3 className="text-xl font-bold mb-3 text-black">Brauche ich Geräte für die Workouts?</h3>
               <p className="text-gray-700 leading-relaxed">
-                Ja. Via de app kies je voor een personal trainer aan huis of online. Je traint waar je wil: thuis,
-                buiten of in je eigen gym.
+                Nein. Alle Übungen sind mit dem eigenen Körpergewicht möglich.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3 text-black">Wat kost een personal trainer via de app?</h3>
+              <h3 className="text-xl font-bold mb-3 text-black">Kann ich einen Trainingsplan erstellen?</h3>
               <p className="text-gray-700 leading-relaxed">
-                Je betaalt per sessie. Geen abonnement of verborgen kosten. Je kiest zelf wie je begeleidt en wanneer.
+                Ja. Mit unserer Trainingsplan App bekommst du dein persönliches Programm.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3 text-black">Is dit een workout app of een personal trainer app?</h3>
+              <h3 className="text-xl font-bold mb-3 text-black">Funktioniert die App offline?</h3>
+              <p className="text-gray-700 leading-relaxed">Ja. Lade deinen Plan runter und trainiere überall.</p>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-bold mb-3 text-black">Ist die App für Anfänger geeignet?</h3>
               <p className="text-gray-700 leading-relaxed">
-                Beide. Je gebruikt de app zelfstandig als gratis workout app of schakelt een gecertificeerde trainer in
-                wanneer je begeleiding wil.
+                Absolut. Unsere Fitness App bietet Übungen für jedes Level - von Einsteiger bis Fortgeschrittene.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3 text-black">Werkt de app ook voor beginners?</h3>
+              <h3 className="text-xl font-bold mb-3 text-black">Gibt es versteckte Kosten?</h3>
               <p className="text-gray-700 leading-relaxed">
-                Zeker. Onze fitness trainer opties en schema's zijn afgestemd op elk niveau. Geen ervaring nodig.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3 text-black">Kan ik trainen zonder internetverbinding?</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Ja. Je kan je schema downloaden en offline volgen. Handig voor onderweg of op vakantie.
+                Nein. Die App ist komplett kostenlos. Transparent: keine versteckten Kosten.
               </p>
             </div>
           </div>
