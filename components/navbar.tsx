@@ -17,7 +17,8 @@ export function Navbar() {
     (!isCoach &&
       pathname !== "/download-juice-app" &&
       pathname !== "/gratis-workout-app-met-trainer" &&
-      pathname !== "/trainingsplan-app-gratis") ||
+      pathname !== "/trainingsplan-app-gratis" &&
+      pathname !== "/gratis-fitness-app-danmark") ||
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer"
