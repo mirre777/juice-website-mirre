@@ -13,17 +13,16 @@ import { useTheme } from "@/contexts/theme-context"
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "MobileApplication",
-  name: "Juice Kostenlose Workout App",
-  description:
-    "Kostenlose Workout App für Training mit Personal Trainer zu Hause oder selbstständiges Training. Kein Fitnessstudio nötig.",
-  url: "https://juice-website-mirre.vercel.app/kostenlose-workout-app-mit-trainer",
+  name: "Juice Kostenlose Fitness App",
+  description: "Kostenlose Fitness App für dein Training zuhause. Deine Workouts, dein Plan, kein Abo.",
+  url: "https://juice-website-mirre.vercel.app/trainingsplan-app-gratis",
   applicationCategory: "HealthApplication",
   operatingSystem: ["iOS", "Android"],
   offers: {
     "@type": "Offer",
     price: "0",
     priceCurrency: "EUR",
-    description: "Kostenlose Workout App, bezahle nur für Personal Trainer Sessions",
+    description: "Kostenlose Fitness App mit Übungen für jedes Level",
   },
   publisher: {
     "@type": "Organization",
@@ -40,7 +39,7 @@ const structuredData = {
   },
 }
 
-export default function KostenloseWorkoutAppClientPage() {
+export default function TrainingsplanAppClientPage() {
   const { setIsCoach } = useTheme()
 
   // Automatically set to client mode when page loads
