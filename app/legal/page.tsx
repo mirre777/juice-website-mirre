@@ -1,4 +1,5 @@
-import { ClientTabHandler } from "./client-tab-handler"
+import { Suspense } from "react"
+import { LegalContent } from "./legal-content"
 
 export const metadata = {
   title: "Juice Legal Information | Terms of Service & Privacy Policy",
@@ -9,7 +10,14 @@ export const metadata = {
   },
 }
 
-export default function LegalPage() {
+interface LegalPageProps {
+  searchParams: { tab?: string }
+}
+
+export default function LegalPage({ searchParams }: LegalPageProps) {
+  const activeTab =
+    searchParams.tab && ["terms", "privacy", "cookie", "gdpr"].includes(searchParams.tab) ? searchParams.tab : "terms"
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-16">
@@ -19,7 +27,9 @@ export default function LegalPage() {
             <p className="text-zinc-400 text-lg">Our commitment to transparency and your rights</p>
           </div>
 
-          <ClientTabHandler />
+          <Suspense fallback={<div className="text-center">Loading...</div>}>
+            <LegalContent initialTab={activeTab} />
+          </Suspense>
         </div>
       </div>
     </div>

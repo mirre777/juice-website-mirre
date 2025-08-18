@@ -73,15 +73,6 @@ export default function NotFound() {
                 Go back to homepage
               </Button>
             </Link>
-            <Link href="/contact" passHref>
-              <Button
-                size="lg"
-                variant="outline"
-                className={`${isCoach ? "border-gray-400 bg-white/30 hover:bg-white/50" : "border-zinc-700 bg-black/30 hover:bg-black/50"} text-lg px-8`}
-              >
-                Contact Support
-              </Button>
-            </Link>
           </motion.div>
         </div>
       </div>
