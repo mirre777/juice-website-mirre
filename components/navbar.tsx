@@ -14,7 +14,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const isNavbarDark =
-    (!isCoach && pathname !== "/download-juice-app") ||
+    (!isCoach && pathname !== "/download-juice-app" && pathname !== "/gratis-workout-app-met-trainer") ||
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer"

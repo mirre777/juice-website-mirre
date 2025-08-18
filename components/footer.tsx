@@ -12,13 +12,13 @@ export function Footer() {
   const pathname = usePathname()
 
   // Determine if the footer background should be dark
-  // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app
+  // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app and gratis-workout-app-met-trainer
   const isFooterDark =
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
     pathname.startsWith("/client") ||
-    (pathname !== "/download-juice-app" && !isCoach)
+    (pathname !== "/download-juice-app" && pathname !== "/gratis-workout-app-met-trainer" && !isCoach)
 
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
 
