@@ -111,11 +111,11 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-3 max-w-md mx-auto">
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Email Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="email" className="text-sm font-medium text-left block text-white">
+        <div className="space-y-1 flex-2">
+          <label htmlFor="email" className="text-sm font-medium text-left block text-black">
             Email
           </label>
           <input
@@ -126,13 +126,13 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-11 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* Phone Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="phone" className="text-sm font-medium text-left block text-white">
+        <div className="space-y-1 flex-2">
+          <label htmlFor="phone" className="text-sm font-medium text-left block text-black">
             Phone
           </label>
           <input
@@ -143,13 +143,13 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-11 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* City Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="city" className="text-sm font-medium text-left block text-white">
+        <div className="space-y-1 flex-2">
+          <label htmlFor="city" className="text-sm font-medium text-left block text-black">
             City
           </label>
           <input
@@ -160,23 +160,23 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-11 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* Client Count Stepper */}
         {showClientCounter && (
           <div className="space-y-1 flex-1">
-            <label htmlFor="numClients" className="text-sm font-medium text-left block text-white">
+            <label htmlFor="numClients" className="text-sm font-medium text-left block text-black">
               Get clients
             </label>
-            <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
+            <div className="flex items-center border border-gray-300 rounded-full bg-white text-black overflow-hidden h-11 max-w-[180px] mx-auto">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
+                className="h-11 w-11 rounded-full text-black hover:bg-zinc-200"
               >
                 -
               </Button>
@@ -194,7 +194,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
                 variant="ghost"
                 size="icon"
                 onClick={() => setClientCount((prev) => prev + 1)}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
+                className="h-11 w-11 rounded-full text-black hover:bg-zinc-200"
               >
                 +
               </Button>
@@ -213,7 +213,11 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       <div className="flex justify-center mt-6">
         <Button
           type="submit"
-          className="bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300"
+          className={
+            isCoach
+              ? "bg-black text-white hover:bg-gray-800 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-900 rounded-full"
+              : "bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300 rounded-full"
+          }
           disabled={isSubmitting || buttonDisabled}
           id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
           data-plan={selectedPlan || ""}
