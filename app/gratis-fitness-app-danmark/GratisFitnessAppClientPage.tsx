@@ -1,10 +1,45 @@
 "use client"
 
+import { useEffect } from "react"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
 import { ClientHeroSection } from "@/components/client-hero-section"
 import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
+import { FloatingDownloadCTA } from "@/components/floating-download-cta"
+import { useTheme } from "@/contexts/theme-context"
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  name: "Juice Gratis Fitness App Danmark",
+  description: "Gratis fitness app i Danmark – Træn når og hvor du vil. Træningsprogrammer, tracking og community.",
+  url: "https://juice-website-mirre.vercel.app/gratis-fitness-app-danmark",
+  applicationCategory: "HealthApplication",
+  operatingSystem: ["iOS", "Android"],
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "DKK",
+    description: "Gratis fitness app med træningsprogrammer til alle niveauer",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Juice",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://juice-website-mirre.vercel.app/images/juiceNewLogoPrime.png",
+    },
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "5",
+    ratingCount: "100",
+  },
+}
 
 export default function GratisFitnessAppClientPage() {
+  const { setIsCoach } = useTheme()
   const heroData = {
     title: "Gratis fitness app i Danmark – Træn når og hvor du vil",
     subtitle:
@@ -66,11 +101,21 @@ export default function GratisFitnessAppClientPage() {
     ],
   }
 
+  useEffect(() => {
+    setIsCoach(false)
+  }, [setIsCoach])
+
   return (
-    <div className="min-h-screen bg-white">
-      <ClientHeroSection {...heroData} />
-      <ClientFeaturesSection {...featuresData} />
-      <ClientFAQSection {...faqData} />
-    </div>
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <main className="flex min-h-screen flex-col bg-white">
+        <Navbar />
+        <ClientHeroSection {...heroData} />
+        <ClientFeaturesSection {...featuresData} />
+        <ClientFAQSection {...faqData} />
+        <Footer />
+        <FloatingDownloadCTA />
+      </main>
+    </>
   )
 }
