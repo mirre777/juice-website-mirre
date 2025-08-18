@@ -5,17 +5,14 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 import { Loader2, CheckCircle } from "lucide-react"
-import { useTheme } from "@/components/theme-provider"
 import { motion } from "framer-motion"
 import { successAnimations } from "@/utils/animations"
 
-interface WaitlistFormProps {
-  selectedPlan: string | null
-  showClientCounter?: boolean
+interface ClientWaitlistFormProps {
+  selectedPlan?: string | null
 }
 
-export function WaitlistForm({ selectedPlan, showClientCounter = true }: WaitlistFormProps) {
-  const { isCoach } = useTheme()
+export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStatus, setFormStatus] = useState<{
     success?: boolean
@@ -26,23 +23,16 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   const [email, setEmail] = useState("")
   const [city, setCity] = useState("")
   const [phone, setPhone] = useState("")
-  const [clientCount, setClientCount] = useState(1)
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
-    // Determine user type - fix the undefined issue
-    const userType = isCoach ? "trainer" : "client"
-
-    // Add all form data
-    if (showClientCounter) {
-      formData.append("numClients", clientCount.toString())
-    }
+    // Set user type to client
+    formData.append("user_type", "client")
     formData.append("city", city)
     formData.append("phone", phone)
-    formData.append("user_type", userType) // Explicitly set user_type
 
     // Provide immediate visual feedback
     setButtonDisabled(true)
@@ -58,12 +48,9 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         setEmail("")
         setPhone("")
         setCity("")
-        if (showClientCounter) {
-          setClientCount(1)
-        }
       }
     } catch (error) {
-      console.error("Form submission error:", error)
+      console.error("Client form submission error:", error)
       setFormStatus({
         success: false,
         message: "Something went wrong. Please try again.",
@@ -111,112 +98,74 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
-      <div className="flex flex-col sm:flex-row gap-3">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
+      <div className="flex flex-col gap-4">
         {/* Email Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="email" className="text-sm font-medium text-left block text-white">
+        <div className="space-y-2">
+          <label htmlFor="client-email" className="text-sm font-medium text-left block text-white">
             Email
           </label>
           <input
-            id="email"
+            id="client-email"
             name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-12 rounded-full border border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
           />
         </div>
 
         {/* Phone Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="phone" className="text-sm font-medium text-left block text-white">
+        <div className="space-y-2">
+          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-white">
             Phone
           </label>
           <input
-            id="phone"
+            id="client-phone"
             name="phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-12 rounded-full border border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
           />
         </div>
 
         {/* City Input */}
-        <div className="space-y-1 flex-1">
-          <label htmlFor="city" className="text-sm font-medium text-left block text-white">
+        <div className="space-y-2">
+          <label htmlFor="client-city" className="text-sm font-medium text-left block text-white">
             City
           </label>
           <input
-            id="city"
+            id="client-city"
             name="city"
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-12 rounded-full border border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
           />
         </div>
-
-        {/* Client Count Stepper */}
-        {showClientCounter && (
-          <div className="space-y-1 flex-1">
-            <label htmlFor="numClients" className="text-sm font-medium text-left block text-white">
-              Get clients
-            </label>
-            <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setClientCount((prev) => Math.max(1, prev - 1))}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-              >
-                -
-              </Button>
-              <input
-                id="numClients"
-                name="numClients"
-                type="number"
-                value={clientCount}
-                onChange={(e) => setClientCount(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                className="w-16 text-center bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                min="1"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setClientCount((prev) => prev + 1)}
-                className="h-10 w-10 rounded-full text-black hover:bg-zinc-200"
-              >
-                +
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Hidden inputs for form data */}
-      <input type="hidden" name="plan" value={selectedPlan || ""} />
+      <input type="hidden" name="plan" value={selectedPlan || "basic"} />
 
-      <p className="text-xs text-zinc-400 text-center mt-2">
+      <p className="text-xs text-zinc-400 text-center mt-4">
         By joining, you agree to receive updates about our launch. 💪
       </p>
 
       <div className="flex justify-center mt-6">
         <Button
           type="submit"
-          className="bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300"
+          className="bg-white text-black hover:bg-gray-200 py-3 h-auto px-8 transition-all active:scale-95 active:bg-gray-300 rounded-full font-medium"
           disabled={isSubmitting || buttonDisabled}
-          id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
-          data-plan={selectedPlan || ""}
+          id="waitlist_submit_client"
+          data-plan={selectedPlan || "basic"}
         >
           {isSubmitting ? (
             <>

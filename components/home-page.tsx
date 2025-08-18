@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { WaitlistForm } from "@/components/waitlist-form"
+import { ClientWaitlistForm } from "@/components/client-waitlist-form"
 import { FeaturesSection } from "@/components/features-section"
 import { HowItWorks } from "@/components/how-it-works"
 import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
@@ -212,7 +213,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <WaitlistForm selectedPlan={selectedPlan} />
+                  {isCoach ? (
+                    <WaitlistForm selectedPlan={selectedPlan} />
+                  ) : (
+                    <ClientWaitlistForm selectedPlan={selectedPlan} />
+                  )}
                 </div>
               </div>
             </div>
@@ -232,15 +237,43 @@ export default function HomePage() {
                 </div>
               ) : (
                 <div className="flex justify-center py-8">
-                  <div className="w-full max-w-md mx-auto">
-                    <Image
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/grouped2.png-5fgujVXCN7IjtalAMRb3UbRpx7bgEC.jpeg"
-                      alt="Juice App Interface for Clients"
-                      width={400}
-                      height={320}
-                      className="w-auto h-auto"
-                      priority
-                    />
+                  <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/import-program.png"
+                        alt="Import workout program screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/workout-program.png"
+                        alt="Workout program overview screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/workout-logging.png"
+                        alt="Workout logging screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/statistics.png"
+                        alt="Statistics and progress screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

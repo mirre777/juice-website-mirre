@@ -11,31 +11,23 @@ export function HowItWorks() {
 
   const clientSteps = [
     {
-      title: "Sign up",
-      description: "Create your account and connect with your personal trainer through our simple invitation system.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%205-zliJmLGfVhvFrnFoAunOzzrXKfhV2j.svg",
-      isCustomImage: true,
-    },
-    {
-      title: "Access your program",
-      description: "View your personalized workout programs created by your trainer.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%206-u3ETphKaJdW3Q2m3Fkx0DUHHBXmEfG.svg",
+      title: "Get a program from your trainer",
+      description:
+        "Access personalized workout programs created by your trainer, or choose from our free programs to get started.",
+      image: "/images/workout-program-new.png",
       isCustomImage: true,
     },
     {
       title: "Track workouts",
       description: "Log your workouts, track your progress, and share results directly with your trainer.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%207-T1S5NqKwaF8HKNAREjRHzEjMEefk05.svg",
+      image: "/images/workout-logging-new.png",
       isCustomImage: true,
     },
     {
-      title: "Get feedback",
-      description: "Receive real-time feedback and adjustments to your program based on your performance.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Iphone%2014%20-%208-DPVFUYjwaJfVfuAKeYDCMg4hs080JP.svg",
+      title: "Get feedback and see results",
+      description:
+        "Receive real-time feedback from your trainer and track your progress with detailed statistics and insights.",
+      image: "/images/statistics-new.png",
       isCustomImage: true,
     },
   ]
@@ -169,13 +161,13 @@ export function HowItWorks() {
                     <div className="relative rounded-xl overflow-hidden shadow-lg bg-transparent border-0">
                       {step.isCustomImage ? (
                         <div className="flex justify-center py-2 bg-transparent">
-                          <div className="relative w-[320px] h-[580px] md:w-[360px] md:h-[640px]">
+                          <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px]">
                             <Image
                               src={step.image || "/placeholder.svg"}
                               alt={step.title}
                               fill
-                              className="object-contain object-center"
-                              style={{ objectFit: "scale-down", objectPosition: "center 45%" }}
+                              className="object-contain object-center rounded-2xl"
+                              style={{ objectFit: "contain", objectPosition: "center" }}
                             />
                           </div>
                         </div>
