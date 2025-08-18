@@ -114,7 +114,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
     <form onSubmit={handleSubmit} className="space-y-3 max-w-md mx-auto">
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Email Input */}
-        <div className="space-y-1 flex-1">
+        <div className="space-y-1 flex-2">
           <label htmlFor="email" className="text-sm font-medium text-left block text-black">
             Email
           </label>
@@ -131,7 +131,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         </div>
 
         {/* Phone Input */}
-        <div className="space-y-1 flex-1">
+        <div className="space-y-1 flex-2">
           <label htmlFor="phone" className="text-sm font-medium text-left block text-black">
             Phone
           </label>
@@ -148,7 +148,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         </div>
 
         {/* City Input */}
-        <div className="space-y-1 flex-1">
+        <div className="space-y-1 flex-2">
           <label htmlFor="city" className="text-sm font-medium text-left block text-black">
             City
           </label>
