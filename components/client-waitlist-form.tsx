@@ -29,8 +29,6 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
-    console.log("[v0] Client waitlist form submission started")
-
     // Set user type to client
     formData.append("user_type", "client")
     formData.append("city", city)
@@ -41,10 +39,7 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
     setIsSubmitting(true)
 
     try {
-      console.log("[v0] Calling joinWaitlist with client data:", Object.fromEntries(formData.entries()))
-
       const result = await joinWaitlist(formData)
-      console.log("[v0] joinWaitlist result:", result)
 
       setFormStatus(result)
 
@@ -55,7 +50,7 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
         setCity("")
       }
     } catch (error) {
-      console.error("[v0] Client form submission error:", error)
+      console.error("Client form submission error:", error)
       setFormStatus({
         success: false,
         message: "Something went wrong. Please try again.",

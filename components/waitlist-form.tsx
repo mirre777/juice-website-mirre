@@ -33,12 +33,8 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
-    console.log("Form submission started")
-    console.log("isCoach from theme:", isCoach)
-
     // Determine user type - fix the undefined issue
     const userType = isCoach ? "trainer" : "client"
-    console.log("Determined user type:", userType)
 
     // Add all form data
     if (showClientCounter) {
@@ -53,10 +49,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
     setIsSubmitting(true)
 
     try {
-      console.log("Calling joinWaitlist with data:", Object.fromEntries(formData.entries()))
-
       const result = await joinWaitlist(formData)
-      console.log("joinWaitlist result:", result)
 
       setFormStatus(result)
 
@@ -133,7 +126,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
@@ -150,7 +143,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
@@ -167,7 +160,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-black text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
@@ -212,9 +205,6 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
 
       {/* Hidden inputs for form data */}
       <input type="hidden" name="plan" value={selectedPlan || ""} />
-
-      {/* Debug info */}
-      <div className="text-xs text-zinc-500 text-center">Debug: User type will be {isCoach ? "trainer" : "client"}</div>
 
       <p className="text-xs text-zinc-400 text-center mt-2">
         By joining, you agree to receive updates about our launch. 💪
