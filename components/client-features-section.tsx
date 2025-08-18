@@ -1,5 +1,7 @@
 "use client"
 
+import Image from "next/image"
+
 export function ClientFeaturesSection() {
   return (
     <section className="py-16 bg-white">
@@ -74,24 +76,29 @@ export function ClientFeaturesSection() {
               href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
+              className="transition-transform hover:scale-105"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 18l7-7h-4V5H7v6H3l7 7z" />
-              </svg>
-              Download voor iOS
+              <Image
+                src="https://upload.wikimedia.org/wikipedia/commons/5/51/Download_on_the_App_Store_Badge_US-UK_RGB_blk.svg"
+                alt="Download on the App Store"
+                width={200}
+                height={60}
+                className="h-14 w-auto"
+              />
             </a>
-
             <a
               href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
+              className="transition-transform hover:scale-105"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 18l7-7h-4V5H7v6H3l7 7z" />
-              </svg>
-              Download voor Android
+              <Image
+                src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                alt="Get it on Google Play"
+                width={200}
+                height={60}
+                className="h-14 w-auto"
+              />
             </a>
           </div>
         </div>
