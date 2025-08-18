@@ -18,7 +18,8 @@ export function Navbar() {
       pathname !== "/download-juice-app" &&
       pathname !== "/gratis-workout-app-met-trainer" &&
       pathname !== "/trainingsplan-app-gratis" &&
-      pathname !== "/gratis-fitness-app-danmark") ||
+      pathname !== "/gratis-fitness-app-danmark" &&
+      pathname !== "/best-free-workout-app-uk") || // Added UK page path for white navbar background
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer"
