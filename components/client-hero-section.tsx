@@ -9,14 +9,12 @@ export function ClientHeroSection() {
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-black">
-          Persoonlijke <span className="juice-text-gradient">fitness app</span>
+          Kostenlose <span className="juice-text-gradient">Fitness App</span>
           <br />
-          zonder gedoe
+          für dein Training zuhause
         </h1>
 
-        <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Train met een personal trainer of zelfstandig. Waar en wanneer jij wil.
-        </p>
+        <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">Deine Workouts, dein Plan, kein Abo.</p>
 
         {/* Star Rating */}
         <div className="flex items-center justify-center mb-12">
@@ -27,7 +25,7 @@ export function ClientHeroSection() {
               </svg>
             ))}
           </div>
-          <span className="text-gray-600">5/5 door onze moeders</span>
+          <span className="text-gray-600">5/5 von unseren Nutzern</span>
         </div>
 
         <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
