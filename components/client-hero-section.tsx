@@ -27,34 +27,11 @@ export function ClientHeroSection() {
               </svg>
             ))}
           </div>
-          <span className="text-gray-600">5/5 door onze gebruikers</span>
+          <span className="text-gray-600">5/5 door onze moeders</span>
         </div>
 
-        {/* Download Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <a
-            href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 18l7-7h-4V5H7v6H3l7 7z" />
-            </svg>
-            Download voor iOS
-          </a>
-
-          <a
-            href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 18l7-7h-4V5H7v6H3l7 7z" />
-            </svg>
-            Download voor Android
-          </a>
+        <div className="flex justify-center items-center">
+          <img src="/download-buttons-placeholder.png" alt="Download buttons placeholder" className="max-w-md w-full h-auto" />
         </div>
       </div>
 
