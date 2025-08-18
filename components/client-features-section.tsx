@@ -3,80 +3,47 @@
 import Image from "next/image"
 import { Check } from "lucide-react"
 
-export function ClientFeaturesSection() {
+interface Feature {
+  title: string
+  description: string
+}
+
+interface ClientFeaturesSectionProps {
+  title: string
+  features: Feature[]
+}
+
+export function ClientFeaturesSection({ title, features }: ClientFeaturesSectionProps) {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        {/* Personal trainer section */}
-        <div className="text-center mb-40">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Für Einsteiger und Fortgeschrittene</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Du willst fitter werden, ohne Vertrag und ohne Studio? Unsere Fitness App kostenlos bringt dir Workouts,
-            Trainingspläne und Fortschrittskontrolle direkt auf dein Smartphone.
-          </p>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">Funktioniert zuhause, draußen oder im Gym.</p>
-        </div>
-
         {/* Features grid section */}
         <div className="text-center mb-40">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Warum diese App?</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">{title}</h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center justify-center mb-4">
-                <div className="bg-lime-500 rounded-full p-2">
-                  <Check className="h-6 w-6 text-white" />
+            {features.map((feature, index) => (
+              <div key={index} className="bg-gray-50 p-8 rounded-2xl">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="bg-lime-500 rounded-full p-2">
+                    <Check className="h-6 w-6 text-white" />
+                  </div>
                 </div>
+                <h3 className="text-2xl font-bold mb-4 text-black">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-black">Kostenlos starten</h3>
-              <p className="text-gray-600">Kostenlose Fitness App mit Übungen für jedes Level</p>
-            </div>
-
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center justify-center mb-4">
-                <div className="bg-lime-500 rounded-full p-2">
-                  <Check className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-black">Individueller Plan</h3>
-              <p className="text-gray-600">Trainingsplan App für Kraft, Ausdauer oder HIIT</p>
-            </div>
-
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center justify-center mb-4">
-                <div className="bg-lime-500 rounded-full p-2">
-                  <Check className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-black">Online & Offline</h3>
-              <p className="text-gray-600">Nutze die App online oder als Fitness Online App offline verfügbar</p>
-            </div>
-
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center justify-center mb-4">
-                <div className="bg-lime-500 rounded-full p-2">
-                  <Check className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-black">Transparent</h3>
-              <p className="text-gray-600">Keine Werbung, kein Abo, volle Kontrolle</p>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-lime-50 to-green-50 p-8 rounded-2xl max-w-2xl mx-auto">
-            <h3 className="text-2xl font-bold mb-4 text-black">Motivation inklusive</h3>
-            <p className="text-gray-700">Motivation durch Fortschrittsanzeige und Tipps vom Trainer</p>
+            ))}
           </div>
         </div>
 
         {/* CTA section */}
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Jetzt kostenlos starten</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Download gratis fitness app</h2>
 
           <div className="space-y-4 mb-8">
-            <p className="text-xl text-gray-700">Hol dir die App und trainiere zuhause, ohne Abo und ohne Grenzen.</p>
-            <p className="text-lg text-gray-600">Kostenlos starten, jederzeit erweiterbar</p>
-            <p className="text-lg text-gray-600">Transparent: keine versteckten Kosten</p>
+            <p className="text-xl text-gray-700">Hent appen og træn hjemme, uden abonnement og uden grænser.</p>
+            <p className="text-lg text-gray-600">Gratis at starte, kan altid udvides</p>
+            <p className="text-lg text-gray-600">Transparent: ingen skjulte omkostninger</p>
           </div>
 
           {/* Download Buttons */}
