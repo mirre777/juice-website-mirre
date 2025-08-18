@@ -7,7 +7,7 @@ export function ClientHeroSection() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white"></div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-4xl mx-auto text-center">
+      <div className="relative z-10 max-w-6xl mx-auto text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-black">
           Persoonlijke <span className="juice-text-gradient">fitness app</span>
           <br />
@@ -19,7 +19,7 @@ export function ClientHeroSection() {
         </p>
 
         {/* Star Rating */}
-        <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center justify-center mb-12">
           <div className="flex text-yellow-400 mr-2">
             {[...Array(5)].map((_, i) => (
               <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
@@ -30,8 +30,35 @@ export function ClientHeroSection() {
           <span className="text-gray-600">5/5 door onze moeders</span>
         </div>
 
-        <div className="flex justify-center items-center">
-          <img src="/download-buttons-placeholder.png" alt="Download buttons placeholder" className="max-w-md w-full h-auto" />
+        <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
+          <div className="flex-shrink-0">
+            <img
+              src="/images/import-program.png"
+              alt="Import workout program screen"
+              className="w-48 h-auto rounded-2xl shadow-lg"
+            />
+          </div>
+          <div className="flex-shrink-0">
+            <img
+              src="/images/workout-program.png"
+              alt="Workout program overview screen"
+              className="w-48 h-auto rounded-2xl shadow-lg"
+            />
+          </div>
+          <div className="flex-shrink-0">
+            <img
+              src="/images/workout-logging.png"
+              alt="Workout logging screen"
+              className="w-48 h-auto rounded-2xl shadow-lg"
+            />
+          </div>
+          <div className="flex-shrink-0">
+            <img
+              src="/images/statistics.png"
+              alt="Statistics and progress screen"
+              className="w-48 h-auto rounded-2xl shadow-lg"
+            />
+          </div>
         </div>
       </div>
 
