@@ -68,6 +68,11 @@ export default function GratisFitnessAppClientPage() {
         description: "Del din træning med venner og bliv motiveret af fællesskabet",
       },
     ],
+    ctaData: {
+      title: "Download gratis fitness app",
+      subtitle: "Hent appen og træn hjemme, uden abonnement og uden grænser.",
+      bulletPoints: ["Gratis at starte, kan altid udvides", "Transparent: ingen skjulte omkostninger"],
+    },
   }
 
   const faqData = {

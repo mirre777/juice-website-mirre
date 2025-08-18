@@ -74,6 +74,11 @@ export default function TrainingsplanAppClientPage() {
         description: "Keine Werbung, kein Abo, volle Kontrolle",
       },
     ],
+    ctaData: {
+      title: "Kostenlose Fitness App herunterladen",
+      subtitle: "Hol dir die App und trainiere zuhause, ohne Abo und ohne Grenzen.",
+      bulletPoints: ["Kostenlos starten, jederzeit erweiterbar", "Transparent: keine versteckten Kosten"],
+    },
   }
 
   const faqProps = {

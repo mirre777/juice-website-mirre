@@ -8,12 +8,19 @@ interface Feature {
   description: string
 }
 
+interface CTAData {
+  title: string
+  subtitle: string
+  bulletPoints: string[]
+}
+
 interface ClientFeaturesSectionProps {
   title: string
   features: Feature[]
+  ctaData: CTAData
 }
 
-export function ClientFeaturesSection({ title, features }: ClientFeaturesSectionProps) {
+export function ClientFeaturesSection({ title, features, ctaData }: ClientFeaturesSectionProps) {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -38,12 +45,15 @@ export function ClientFeaturesSection({ title, features }: ClientFeaturesSection
 
         {/* CTA section */}
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Download gratis fitness app</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">{ctaData.title}</h2>
 
           <div className="space-y-4 mb-8">
-            <p className="text-xl text-gray-700">Hent appen og træn hjemme, uden abonnement og uden grænser.</p>
-            <p className="text-lg text-gray-600">Gratis at starte, kan altid udvides</p>
-            <p className="text-lg text-gray-600">Transparent: ingen skjulte omkostninger</p>
+            <p className="text-xl text-gray-700">{ctaData.subtitle}</p>
+            {ctaData.bulletPoints.map((point, index) => (
+              <p key={index} className="text-lg text-gray-600">
+                {point}
+              </p>
+            ))}
           </div>
 
           {/* Download Buttons */}
