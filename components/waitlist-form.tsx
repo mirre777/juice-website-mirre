@@ -215,8 +215,8 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           type="submit"
           className={
             isCoach
-              ? "bg-black text-white hover:bg-gray-800 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-900"
-              : "bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300"
+              ? "bg-black text-white hover:bg-gray-800 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-900 rounded-full"
+              : "bg-white text-black hover:bg-gray-200 py-2 h-auto px-8 transition-all active:scale-95 active:bg-gray-300 rounded-full"
           }
           disabled={isSubmitting || buttonDisabled}
           id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
