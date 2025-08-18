@@ -61,11 +61,6 @@ export function ClientHeroSection() {
           </div>
         </div>
       </div>
-
-      {/* Phone mockup */}
-      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-10">
-        <div className="w-64 h-96 bg-gray-300 rounded-3xl"></div>
-      </div>
     </section>
   )
 }
