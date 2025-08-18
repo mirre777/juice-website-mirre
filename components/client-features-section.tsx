@@ -5,7 +5,7 @@ export function ClientFeaturesSection() {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
         {/* Personal trainer section */}
-        <div className="text-center mb-24">
+        <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">🏋️ Personal trainer, zonder sportschool</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Wil je sporten met een personal trainer maar liever niet naar de gym? Onze fitness app koppelt je aan een
@@ -15,7 +15,7 @@ export function ClientFeaturesSection() {
         </div>
 
         {/* App features */}
-        <div className="text-center mb-24">
+        <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">📲 Alles in één app</h2>
           <p className="text-xl text-gray-600 mb-8">De workout app bevat:</p>
 
@@ -87,7 +87,7 @@ export function ClientFeaturesSection() {
         </div>
 
         {/* Pricing section */}
-        <div className="text-center mb-24">
+        <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">💶 Wat kost een personal trainer?</h2>
           <p className="text-xl text-gray-600 mb-8">Via onze app bepaal jij zelf:</p>
 
