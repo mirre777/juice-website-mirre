@@ -1,4 +1,5 @@
 import { LegalContent } from "./legal-content"
+import { ClientTabHandler } from "./client-tab-handler"
 
 export const metadata = {
   title: "Juice Legal Information | Terms of Service & Privacy Policy",
@@ -26,7 +27,8 @@ export default function LegalPage({ searchParams }: LegalPageProps) {
             <p className="text-zinc-400 text-lg">Our commitment to transparency and your rights</p>
           </div>
 
-          <LegalContent initialTab={activeTab} />
+          <LegalContent activeTab={activeTab} />
+          <ClientTabHandler initialTab={activeTab} />
         </div>
       </div>
     </div>
