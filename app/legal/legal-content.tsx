@@ -1,12 +1,34 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface LegalContentProps {
-  activeTab: string
+  initialTab: string
 }
 
-export function LegalContent({ activeTab }: LegalContentProps) {
+export function LegalContent({ initialTab }: LegalContentProps) {
+  const [activeTab, setActiveTab] = useState(initialTab)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    if (tab && ["terms", "privacy", "cookie", "gdpr"].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    const url = new URL(window.location.href)
+    url.searchParams.set("tab", value)
+    window.history.pushState({}, "", url.toString())
+  }
+
   return (
-    <Tabs value={activeTab} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <div className="flex justify-center mb-8">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 bg-zinc-800">
           <TabsTrigger value="terms" className="data-[state=active]:bg-juice data-[state=active]:text-black">

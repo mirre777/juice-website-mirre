@@ -1,5 +1,5 @@
+import { Suspense } from "react"
 import { LegalContent } from "./legal-content"
-import { ClientTabHandler } from "./client-tab-handler"
 
 export const metadata = {
   title: "Juice Legal Information | Terms of Service & Privacy Policy",
@@ -27,8 +27,9 @@ export default function LegalPage({ searchParams }: LegalPageProps) {
             <p className="text-zinc-400 text-lg">Our commitment to transparency and your rights</p>
           </div>
 
-          <LegalContent activeTab={activeTab} />
-          <ClientTabHandler initialTab={activeTab} />
+          <Suspense fallback={<div className="text-center">Loading...</div>}>
+            <LegalContent initialTab={activeTab} />
+          </Suspense>
         </div>
       </div>
     </div>
