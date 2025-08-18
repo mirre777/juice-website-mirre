@@ -1,4 +1,3 @@
-import { Suspense } from "react"
 import { LegalContent } from "./legal-content"
 
 export const metadata = {
@@ -27,9 +26,7 @@ export default function LegalPage({ searchParams }: LegalPageProps) {
             <p className="text-zinc-400 text-lg">Our commitment to transparency and your rights</p>
           </div>
 
-          <Suspense fallback={<div className="text-center">Loading...</div>}>
-            <LegalContent initialTab={activeTab} />
-          </Suspense>
+          <LegalContent initialTab={activeTab} />
         </div>
       </div>
     </div>
