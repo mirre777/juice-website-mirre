@@ -232,15 +232,43 @@ export default function HomePage() {
                 </div>
               ) : (
                 <div className="flex justify-center py-8">
-                  <div className="w-full max-w-md mx-auto">
-                    <Image
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/grouped2.png-5fgujVXCN7IjtalAMRb3UbRpx7bgEC.jpeg"
-                      alt="Juice App Interface for Clients"
-                      width={400}
-                      height={320}
-                      className="w-auto h-auto"
-                      priority
-                    />
+                  <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/import-program.png"
+                        alt="Import workout program screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/workout-program.png"
+                        alt="Workout program overview screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/workout-logging.png"
+                        alt="Workout logging screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src="/images/statistics.png"
+                        alt="Statistics and progress screen"
+                        width={192}
+                        height={416}
+                        className="w-48 h-auto rounded-2xl shadow-lg"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
