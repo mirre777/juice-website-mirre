@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { Check } from "lucide-react"
 
 export function ClientFeaturesSection() {
   return (
@@ -22,21 +23,41 @@ export function ClientFeaturesSection() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
             <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-lime-500 rounded-full p-2">
+                  <Check className="h-6 w-6 text-white" />
+                </div>
+              </div>
               <h3 className="text-2xl font-bold mb-4 text-black">Kostenlos starten</h3>
               <p className="text-gray-600">Kostenlose Fitness App mit Übungen für jedes Level</p>
             </div>
 
             <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-lime-500 rounded-full p-2">
+                  <Check className="h-6 w-6 text-white" />
+                </div>
+              </div>
               <h3 className="text-2xl font-bold mb-4 text-black">Individueller Plan</h3>
               <p className="text-gray-600">Trainingsplan App für Kraft, Ausdauer oder HIIT</p>
             </div>
 
             <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-lime-500 rounded-full p-2">
+                  <Check className="h-6 w-6 text-white" />
+                </div>
+              </div>
               <h3 className="text-2xl font-bold mb-4 text-black">Online & Offline</h3>
               <p className="text-gray-600">Nutze die App online oder als Fitness Online App offline verfügbar</p>
             </div>
 
             <div className="bg-gray-50 p-8 rounded-2xl">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-lime-500 rounded-full p-2">
+                  <Check className="h-6 w-6 text-white" />
+                </div>
+              </div>
               <h3 className="text-2xl font-bold mb-4 text-black">Transparent</h3>
               <p className="text-gray-600">Keine Werbung, kein Abo, volle Kontrolle</p>
             </div>
