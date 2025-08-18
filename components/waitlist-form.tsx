@@ -115,7 +115,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Email Input */}
         <div className="space-y-1 flex-1">
-          <label htmlFor="email" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="email" className="text-sm font-medium text-left block text-black">
             Email
           </label>
           <input
@@ -126,13 +126,13 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* Phone Input */}
         <div className="space-y-1 flex-1">
-          <label htmlFor="phone" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="phone" className="text-sm font-medium text-left block text-black">
             Phone
           </label>
           <input
@@ -143,13 +143,13 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* City Input */}
         <div className="space-y-1 flex-1">
-          <label htmlFor="city" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="city" className="text-sm font-medium text-left block text-black">
             City
           </label>
           <input
@@ -160,14 +160,14 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-3 h-10 rounded-full border border-white bg-zinc-700 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-3 h-10 rounded-full border border-white bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
           />
         </div>
 
         {/* Client Count Stepper */}
         {showClientCounter && (
           <div className="space-y-1 flex-1">
-            <label htmlFor="numClients" className="text-sm font-medium text-left block text-white">
+            <label htmlFor="numClients" className="text-sm font-medium text-left block text-black">
               Get clients
             </label>
             <div className="flex items-center border border-white rounded-full bg-white text-black overflow-hidden h-10 max-w-[180px] mx-auto">
