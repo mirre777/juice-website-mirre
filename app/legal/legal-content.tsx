@@ -1,13 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export function ClientTabHandler() {
-  const [activeTab, setActiveTab] = useState("terms")
-  const searchParams = useSearchParams()
+interface LegalContentProps {
+  initialTab: string
+}
+
+export function LegalContent({ initialTab }: LegalContentProps) {
+  const [activeTab, setActiveTab] = useState(initialTab)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     const tab = searchParams.get("tab")
@@ -18,7 +22,6 @@ export function ClientTabHandler() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
-    // Update URL without full page refresh
     const url = new URL(window.location.href)
     url.searchParams.set("tab", value)
     window.history.pushState({}, "", url.toString())
@@ -163,8 +166,8 @@ export function ClientTabHandler() {
                 <h3 className="text-xl font-semibold mb-3">1. Who We Are</h3>
                 <p>
                   Juice Fitness App is operated by Folger Eduardo Fonseca Velasco, who is also the designated data
-                  protection officer. He is located at Karl-Marx-Allee 53, 10243 Berlin, Germany. You can contact with
-                  us at crew@juice.fitness.
+                  protection officer. He is located at Karl-Marx-Allee 53, 10243 Berlin, Germany. You can contact us at
+                  crew@juice.fitness.
                 </p>
               </section>
 
@@ -329,7 +332,6 @@ export function ClientTabHandler() {
                   <br />
                   crew@juice.fitness
                 </p>
-                <p className="mt-2">Thank you for trusting Juice Fitness App with your personal data.</p>
               </section>
             </div>
           </div>
