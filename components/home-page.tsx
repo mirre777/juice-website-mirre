@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { WaitlistForm } from "@/components/waitlist-form"
+import { ClientWaitlistForm } from "@/components/client-waitlist-form"
 import { FeaturesSection } from "@/components/features-section"
 import { HowItWorks } from "@/components/how-it-works"
 import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
@@ -212,7 +213,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <WaitlistForm selectedPlan={selectedPlan} />
+                  {isCoach ? (
+                    <WaitlistForm selectedPlan={selectedPlan} />
+                  ) : (
+                    <ClientWaitlistForm selectedPlan={selectedPlan} />
+                  )}
                 </div>
               </div>
             </div>
