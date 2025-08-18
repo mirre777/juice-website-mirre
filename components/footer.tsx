@@ -88,19 +88,10 @@ export function Footer() {
         <div>
           <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Company</h3>
           <ul className="space-y-2">
-            <li>
-              <Link href="/about" className={cn("text-sm", getTextColorClass())}>
-                About Us
-              </Link>
-            </li>
+            {/* Removed About Us and Contact links */}
             <li>
               <Link href="/blog" className={cn("text-sm", getTextColorClass())}>
                 Blog
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className={cn("text-sm", getTextColorClass())}>
-                Contact
               </Link>
             </li>
           </ul>
