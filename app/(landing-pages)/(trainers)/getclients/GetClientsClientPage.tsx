@@ -22,98 +22,100 @@ export default function GetClientsClientPage() {
             </div>
           </section>
 
-          {/* Main intro section */}
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-              Find Clients as a Personal Trainer with Juice Marketplace
-            </h1>
-            <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed">
-              Struggling to find new clients as a personal trainer? Juice Marketplace connects elite trainers with
-              motivated clients looking for expert guidance. Whether you coach in-person or online, our platform helps
-              you get discovered, build your business, and grow faster.
-            </p>
-          </div>
-
-          <div className="text-center py-8">
-            <div className="max-w-3xl mx-auto">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/client%20and%20trainer%20in%20gym%20drinking%20coffee-uMwFoamOgrbeLhsUdLYsWk89kCDmkH.png"
-                alt="Personal trainer and client having coffee in a modern gym, representing the connection between trainers and clients through Juice Marketplace"
-                className="w-full h-auto rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
-
-          {/* Who is it for section */}
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Who Is Juice Marketplace For?</h2>
-            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              <div className="bg-zinc-900 p-6 rounded-lg">
-                <p className="text-zinc-300">Personal Trainers wanting steady clients</p>
-              </div>
-              <div className="bg-zinc-900 p-6 rounded-lg">
-                <p className="text-zinc-300">Fitness Coaches offering online programs</p>
-              </div>
-              <div className="bg-zinc-900 p-6 rounded-lg">
-                <p className="text-zinc-300">Strength & Conditioning Experts looking to expand reach</p>
-              </div>
-              <div className="bg-zinc-900 p-6 rounded-lg">
-                <p className="text-zinc-300">Group Class Trainers seeking motivated participants</p>
-              </div>
-            </div>
-          </div>
-
-          {/* How it works section */}
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">How It Works</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="space-y-3">
-                <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
-                  1
-                </div>
-                <p className="text-zinc-300">Enter personal data</p>
-              </div>
-              <div className="space-y-3">
-                <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
-                  2
-                </div>
-                <p className="text-zinc-300">Tell us a bit about yourself</p>
-              </div>
-              <div className="space-y-3">
-                <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
-                  3
-                </div>
-                <p className="text-zinc-300">We will match you with clients</p>
-              </div>
-              <div className="space-y-3">
-                <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
-                  4
-                </div>
-                <p className="text-zinc-300">Grow your business</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Testimonial section */}
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Testimonials & Proof</h2>
-            <div className="bg-zinc-900 p-8 rounded-lg max-w-2xl mx-auto">
-              <p className="text-lg text-zinc-300 italic mb-4">
-                "Since joining Juice Marketplace, I've added 5 new clients in my first month."
+          <div className="space-y-24 max-w-4xl mx-auto">
+            {/* Main intro section */}
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+                Find Clients as a Personal Trainer with Juice Marketplace
+              </h1>
+              <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed">
+                Struggling to find new clients as a personal trainer? Juice Marketplace connects elite trainers with
+                motivated clients looking for expert guidance. Whether you coach in-person or online, our platform helps
+                you get discovered, build your business, and grow faster.
               </p>
-              <p className="text-zinc-400">– Trainer in Amsterdam</p>
             </div>
-          </div>
 
-          {/* Final CTA section */}
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Ready to Get More Clients?</h2>
-            <p className="text-lg text-zinc-300 mb-8 max-w-2xl mx-auto">
-              👉 Join the waitlist today and be one of the first trainers to connect with clients through Juice
-              Marketplace.
-            </p>
-            <div className="max-w-sm mx-auto">
-              <WaitlistForm selectedPlan="trainer-marketplace-interest" />
+            <div className="text-center py-8">
+              <div className="max-w-3xl mx-auto">
+                <img
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/client%20and%20trainer%20in%20gym%20drinking%20coffee-uMwFoamOgrbeLhsUdLYsWk89kCDmkH.png"
+                  alt="Personal trainer and client having coffee in a modern gym, representing the connection between trainers and clients through Juice Marketplace"
+                  className="w-full h-auto rounded-lg shadow-lg"
+                />
+              </div>
+            </div>
+
+            {/* Who is it for section */}
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Who Is Juice Marketplace For?</h2>
+              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Personal Trainers wanting steady clients</p>
+                </div>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Fitness Coaches offering online programs</p>
+                </div>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Strength & Conditioning Experts looking to expand reach</p>
+                </div>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Group Class Trainers seeking motivated participants</p>
+                </div>
+              </div>
+            </div>
+
+            {/* How it works section */}
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">How It Works</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
+                    1
+                  </div>
+                  <p className="text-zinc-300">Enter personal data</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
+                    2
+                  </div>
+                  <p className="text-zinc-300">Tell us a bit about yourself</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
+                    3
+                  </div>
+                  <p className="text-zinc-300">We will match you with clients</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
+                    4
+                  </div>
+                  <p className="text-zinc-300">Grow your business</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial section */}
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Testimonials & Proof</h2>
+              <div className="bg-zinc-900 p-8 rounded-lg max-w-2xl mx-auto">
+                <p className="text-lg text-zinc-300 italic mb-4">
+                  "Since joining Juice Marketplace, I've added 5 new clients in my first month."
+                </p>
+                <p className="text-zinc-400">– Trainer in Amsterdam</p>
+              </div>
+            </div>
+
+            {/* Final CTA section */}
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Ready to Get More Clients?</h2>
+              <p className="text-lg text-zinc-300 mb-8 max-w-2xl mx-auto">
+                👉 Join the waitlist today and be one of the first trainers to connect with clients through Juice
+                Marketplace.
+              </p>
+              <div className="max-w-sm mx-auto">
+                <WaitlistForm selectedPlan="trainer-marketplace-interest" />
+              </div>
             </div>
           </div>
         </main>
