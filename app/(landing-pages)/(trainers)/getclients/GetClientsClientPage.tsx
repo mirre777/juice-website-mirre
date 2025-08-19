@@ -93,13 +93,29 @@ export default function GetClientsClientPage() {
 
             {/* Testimonial section */}
             <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Testimonials of Our Trainers
-</h2>
-              <div className="bg-zinc-900 p-8 rounded-lg max-w-2xl mx-auto">
-                <p className="text-lg text-zinc-300 italic mb-4">
-                  "Since joining Juice Marketplace, I've added 5 new clients in my first month."
-                </p>
-                <p className="text-zinc-400">– Trainer in Amsterdam</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">What Trainers Say</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <div className="flex items-start gap-4">
+                    <img src="/images/laner.png" alt="Laner" className="w-12 h-12 rounded-full object-cover" />
+                    <div>
+                      <p className="text-white font-medium mb-2">"Super smooth, I had my website in 3 minutes."</p>
+                      <p className="text-zinc-400 text-sm">- Laner</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <div className="flex items-start gap-4">
+                    <img src="/images/rici.png" alt="Rici" className="w-12 h-12 rounded-full object-cover" />
+                    <div>
+                      <p className="text-white font-medium mb-2">
+                        "I never knew a website could be made this fast and good"
+                      </p>
+                      <p className="text-zinc-400 text-sm">- Rici</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
