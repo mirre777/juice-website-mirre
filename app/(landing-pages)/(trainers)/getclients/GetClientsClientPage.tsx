@@ -39,21 +39,7 @@ export default function GetClientsClientPage() {
             </div>
 
             {/* Why Join section */}
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
-                Why Join the Juice Trainer Marketplace?
-              </h2>
-              <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                <div className="space-y-4">
-                  <p className="text-zinc-300">• Access a growing network of clients searching for trainers</p>
-                  <p className="text-zinc-300">• Showcase your expertise with a professional profile</p>
-                </div>
-                <div className="space-y-4">
-                  <p className="text-zinc-300">• Connect locally and online — scale your reach</p>
-                  <p className="text-zinc-300">• No need to build your own app or website</p>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Who is it for section */}
             <div className="text-center">
@@ -82,25 +68,25 @@ export default function GetClientsClientPage() {
                   <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
                     1
                   </div>
-                  <p className="text-zinc-300">Sign up in minutes</p>
+                  <p className="text-zinc-300">Enter personal data</p>
                 </div>
                 <div className="space-y-3">
                   <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
                     2
                   </div>
-                  <p className="text-zinc-300">Create your profile with your skills, specialties & availability</p>
+                  <p className="text-zinc-300">Tell us a bit about yourself</p>
                 </div>
                 <div className="space-y-3">
                   <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
                     3
                   </div>
-                  <p className="text-zinc-300">Get matched with clients looking for trainers like you</p>
+                  <p className="text-zinc-300">We will match you with clients</p>
                 </div>
                 <div className="space-y-3">
                   <div className="w-12 h-12 bg-lime-400 text-black rounded-full flex items-center justify-center font-bold text-xl mx-auto">
                     4
                   </div>
-                  <p className="text-zinc-300">Grow your business — focus on training, we handle discovery</p>
+                  <p className="text-zinc-300">Grow your business</p>
                 </div>
               </div>
             </div>
