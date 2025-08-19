@@ -81,48 +81,52 @@ export default function GetClientsClientPage() {
                 </div>
                 <a
                   href="/marketplace/personal-trainer-website"
-                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block relative"
+                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block"
                 >
-                  <p className="text-zinc-300">Website builder: build your own page in a few clicks</p>
-                  <svg
-                    className="absolute top-4 right-4 w-5 h-5 text-zinc-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
+                  <p className="text-zinc-300 flex items-center justify-between">
+                    Website builder: build your own page in a few clicks
+                    <svg
+                      className="w-5 h-5 text-zinc-500 ml-2 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </p>
                 </a>
                 <a
                   href="/download-juice-app"
-                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block relative"
+                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block"
                 >
-                  <p className="text-zinc-300">Mobile App: your client receives your training program</p>
-                  <svg
-                    className="absolute top-4 right-4 w-5 h-5 text-zinc-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
+                  <p className="text-zinc-300 flex items-center justify-between">
+                    Mobile App: your client receives your training program
+                    <svg
+                      className="w-5 h-5 text-zinc-500 ml-2 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </p>
                 </a>
                 <a
                   href="/workout-planner"
-                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block relative"
+                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block"
                 >
-                  <p className="text-zinc-300">
+                  <p className="text-zinc-300 flex items-center justify-between">
                     Online Platform: transform your Google sheet workout programs into something you can send your
                     client via app
+                    <svg
+                      className="w-5 h-5 text-zinc-500 ml-2 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
                   </p>
-                  <svg
-                    className="absolute top-4 right-4 w-5 h-5 text-zinc-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
                 </a>
               </div>
             </div>
