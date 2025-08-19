@@ -77,17 +77,19 @@ export default function GetClientsClientPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">What Does Juice Offer?</h2>
               <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                 <div className="bg-zinc-900 p-6 rounded-lg">
-                  <p className="text-zinc-300">Client Matching
-Personal Trainers wanting steady clients</p>
+                  <p className="text-zinc-300">Client Matching: Personal Trainers wanting steady clients</p>
                 </div>
                 <div className="bg-zinc-900 p-6 rounded-lg">
-                  <p className="text-zinc-300">Website builder:
-build your own page in a few clicks</p>
+                  <p className="text-zinc-300">Website builder: build your own page in a few clicks</p>
                 </div>
                 <div className="bg-zinc-900 p-6 rounded-lg">
                   <p className="text-zinc-300">Mobile App: your client receives your training program</p>
                 </div>
-                <div className="bg-zinc-900 p-6Online Platform: transform your Google sheet workout programs into something you can send your client via appzinc-300">Group Class Trainers seeking motivated participants</p>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">
+                    Online Platform: transform your Google sheet workout programs into something you can send your
+                    client via app
+                  </p>
                 </div>
               </div>
             </div>
@@ -100,7 +102,9 @@ build your own page in a few clicks</p>
                   <div className="flex items-start gap-4">
                     <img src="/images/laner.png" alt="Laner" className="w-12 h-12 rounded-full object-cover" />
                     <div>
-                      <p className="text-white font-medium mb-2">"very easy, they just matched me with 2 new people in two days."</p>
+                      <p className="text-white font-medium mb-2">
+                        "very easy, they just matched me with 2 new people in two days."
+                      </p>
                       <p className="text-zinc-400 text-sm">- Laner</p>
                     </div>
                   </div>
@@ -110,9 +114,7 @@ build your own page in a few clicks</p>
                   <div className="flex items-start gap-4">
                     <img src="/images/rici.png" alt="Rici" className="w-12 h-12 rounded-full object-cover" />
                     <div>
-                      <p className="text-white font-medium mb-2">
-                        "Def worth the 50euros"
-                      </p>
+                      <p className="text-white font-medium mb-2">"Def worth the 50euros"</p>
                       <p className="text-zinc-400 text-sm">- Rici</p>
                     </div>
                   </div>
