@@ -22,20 +22,16 @@ export default function GetClientsClientPage() {
             </div>
           </section>
 
-          <div className="space-y-36 max-w-4xl mx-auto pt-12">
-            {/* Main intro section */}
+          <div className="space-y-24 max-w-4xl mx-auto pt-12">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
                 Find Clients as a Personal Trainer with Juice Marketplace
               </h1>
-              <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed mb-12">
                 Struggling to find new clients as a personal trainer? Juice Marketplace connects elite trainers with
                 motivated clients looking for expert guidance. Whether you coach in-person or online, our platform helps
                 you get discovered, build your business, and grow faster.
               </p>
-            </div>
-
-            <div className="text-center py-8">
               <div className="max-w-3xl mx-auto">
                 <img
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/client%20and%20trainer%20in%20gym%20drinking%20coffee-uMwFoamOgrbeLhsUdLYsWk89kCDmkH.png"
