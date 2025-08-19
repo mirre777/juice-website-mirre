@@ -79,18 +79,27 @@ export default function GetClientsClientPage() {
                 <div className="bg-zinc-900 p-6 rounded-lg">
                   <p className="text-zinc-300">Client Matching: Personal Trainers wanting steady clients</p>
                 </div>
-                <div className="bg-zinc-900 p-6 rounded-lg">
+                <a
+                  href="/marketplace/personal-trainer-website"
+                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block"
+                >
                   <p className="text-zinc-300">Website builder: build your own page in a few clicks</p>
-                </div>
-                <div className="bg-zinc-900 p-6 rounded-lg">
+                </a>
+                <a
+                  href="/download-juice-app"
+                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block"
+                >
                   <p className="text-zinc-300">Mobile App: your client receives your training program</p>
-                </div>
-                <div className="bg-zinc-900 p-6 rounded-lg">
+                </a>
+                <a
+                  href="/workout-planner"
+                  className="bg-zinc-900 p-6 rounded-lg hover:bg-zinc-800 transition-colors block"
+                >
                   <p className="text-zinc-300">
                     Online Platform: transform your Google sheet workout programs into something you can send your
                     client via app
                   </p>
-                </div>
+                </a>
               </div>
             </div>
 
