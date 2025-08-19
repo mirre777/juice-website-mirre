@@ -22,7 +22,7 @@ export default function GetClientsClientPage() {
             </div>
           </section>
 
-          <div className="space-y-24 max-w-4xl mx-auto">
+          <div className="space-y-36 max-w-4xl mx-auto pt-12">
             {/* Main intro section */}
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
