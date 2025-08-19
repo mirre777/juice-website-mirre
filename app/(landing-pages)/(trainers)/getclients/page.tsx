@@ -1,11 +1,16 @@
 import GetClientsClientPage from "./GetClientsClientPage"
 
 export const metadata = {
-  title: "Get Clients | Juice Marketplace for Personal Trainers",
+  title: "Get More Clients | Elite Personal Trainer Marketplace - Juice",
   description:
-    "Join Juice's elite trainer marketplace and platform for personal trainers. Discover how to get more clients and expand your fitness business.",
+    "Join Juice's curated marketplace for elite personal trainers. Get qualified leads, streamlined client acquisition, and grow your fitness business with our proven 3-step process.",
+  keywords:
+    "personal trainer marketplace, get fitness clients, trainer leads, fitness business growth, elite trainers, qualified clients",
   openGraph: {
-    images: "/images/og-feature-graphic.png", // Specific image for getclients
+    title: "Get More Clients | Elite Personal Trainer Marketplace - Juice",
+    description:
+      "Join Juice's curated marketplace for elite personal trainers. Get qualified leads and grow your fitness business.",
+    images: "/images/og-feature-graphic.png",
   },
   alternates: {
     canonical: "/getclients",
