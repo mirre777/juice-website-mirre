@@ -22,7 +22,8 @@ export function Navbar() {
       pathname !== "/best-free-workout-app-uk") || // Added UK page path for white navbar background
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
-    pathname === "/findatrainer"
+    pathname === "/findatrainer" ||
+    pathname === "/getclients" // Added getclients route for dark navbar
   const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
@@ -71,6 +72,12 @@ export function Navbar() {
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
                 Marketplace
+              </Link>
+              <Link
+                href="/getclients"
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+              >
+                Get Clients
               </Link>
             </div>
           </div>
@@ -155,6 +162,13 @@ export function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Marketplace
+            </Link>
+            <Link
+              href="/getclients"
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Get Clients
             </Link>
           </div>
         </div>

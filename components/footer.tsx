@@ -17,6 +17,7 @@ export function Footer() {
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
+    pathname === "/getclients" || // Added getclients route for dark footer
     pathname.startsWith("/client") ||
     (pathname !== "/download-juice-app" &&
       pathname !== "/gratis-workout-app-met-trainer" &&
