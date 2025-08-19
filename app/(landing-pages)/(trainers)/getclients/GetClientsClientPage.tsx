@@ -45,25 +45,6 @@ export default function GetClientsClientPage() {
               </div>
             </div>
 
-            {/* Who is it for section */}
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Who Is Juice Marketplace For?</h2>
-              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                <div className="bg-zinc-900 p-6 rounded-lg">
-                  <p className="text-zinc-300">Personal Trainers wanting steady clients</p>
-                </div>
-                <div className="bg-zinc-900 p-6 rounded-lg">
-                  <p className="text-zinc-300">Fitness Coaches offering online programs</p>
-                </div>
-                <div className="bg-zinc-900 p-6 rounded-lg">
-                  <p className="text-zinc-300">Strength & Conditioning Experts looking to expand reach</p>
-                </div>
-                <div className="bg-zinc-900 p-6 rounded-lg">
-                  <p className="text-zinc-300">Group Class Trainers seeking motivated participants</p>
-                </div>
-              </div>
-            </div>
-
             {/* How it works section */}
             <div className="text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">How It Works</h2>
@@ -91,6 +72,25 @@ export default function GetClientsClientPage() {
                     4
                   </div>
                   <p className="text-zinc-300">Grow your business</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Who is it for section */}
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">Who Is Juice Marketplace For?</h2>
+              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Personal Trainers wanting steady clients</p>
+                </div>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Fitness Coaches offering online programs</p>
+                </div>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Strength & Conditioning Experts looking to expand reach</p>
+                </div>
+                <div className="bg-zinc-900 p-6 rounded-lg">
+                  <p className="text-zinc-300">Group Class Trainers seeking motivated participants</p>
                 </div>
               </div>
             </div>
