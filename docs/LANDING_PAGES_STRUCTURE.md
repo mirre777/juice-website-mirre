@@ -36,11 +36,10 @@ All landing pages are organized using Next.js route groups for clean file organi
         page.tsx
       /personal-training-wien
         page.tsx
+    /(trainers)
       /getclients
         page.tsx
         GetClientsClientPage.tsx
-    /(trainers)
-      (future trainer-focused pages)
 \`\`\`
 
 ## 🎯 **Route Groups Explained**
@@ -219,7 +218,7 @@ export default function PageName() {
 
 ## 📊 **Current Landing Pages Inventory**
 
-### **Client Pages (12 total):**
+### **Client Pages (11 total):**
 1. `/download-juice-app` - Main app download page
 2. `/findatrainer` - Trainer discovery page
 3. `/gratis-fitness-app-danmark` - Danish fitness app page
@@ -231,10 +230,9 @@ export default function PageName() {
 9. `/personal-training-koebenhavn` - Copenhagen personal training
 10. `/personal-training-muenchen` - Munich personal training
 11. `/personal-training-wien` - Vienna personal training
-12. `/getclients` - Trainer client acquisition page
 
-### **Trainer Pages:**
-- None yet - ready for future trainer-focused landing pages
+### **Trainer Pages (1 total):**
+1. `/getclients` - Trainer client acquisition page
 
 ## 🔧 **Maintenance**
 
