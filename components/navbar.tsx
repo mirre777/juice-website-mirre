@@ -68,12 +68,6 @@ export function Navbar() {
                 </Link>
               )}
               <Link
-                href="/marketplace"
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-              >
-                Marketplace
-              </Link>
-              <Link
                 href="/getclients"
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
@@ -156,13 +150,6 @@ export function Navbar() {
                 Workout Planner
               </Link>
             )}
-            <Link
-              href="/marketplace"
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Marketplace
-            </Link>
             <Link
               href="/getclients"
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
