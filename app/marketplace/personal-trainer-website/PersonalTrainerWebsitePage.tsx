@@ -532,30 +532,11 @@ export default function PersonalTrainerWebsitePage() {
                 <ArrowDown className="w-5 h-5 ml-2" />
               </Button>
               <p className="text-sm text-gray-600 mt-3 max-w-md">
-                We won't charge you for creating the page, you only pay when you want to put it live.
+                We won't charge you for creating the page.
               </p>
             </div>
 
-            <div className="flex items-center gap-8 mb-12">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Increase visibility</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Super fast</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <Star className="w-5 h-5 text-purple-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Professional design</span>
-              </div>
-            </div>
+            
           </div>
         </div>
       </section>
