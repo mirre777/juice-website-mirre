@@ -13,6 +13,8 @@ export function Navbar() {
   const { isCoach, setIsCoach } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  console.log("[v0] Navbar isCoach state:", isCoach)
+
   const isNavbarDark =
     (!isCoach &&
       pathname !== "/download-juice-app" &&
@@ -42,13 +44,13 @@ export function Navbar() {
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
               <Link
-                href="/#how-it-works"
+                href={`/#how-it-works${!isCoach ? "?view=client" : ""}`}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
                 How It Works
               </Link>
               <Link
-                href="/pricing-demo"
+                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
                 Pricing
@@ -67,18 +69,21 @@ export function Navbar() {
                   Workout Planner
                 </Link>
               )}
-              <Link
-                href="/marketplace"
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-              >
-                Marketplace
-              </Link>
-              <Link
-                href="/getclients"
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-              >
-                Get Clients
-              </Link>
+              {!isCoach ? (
+                <Link
+                  href="/findatrainer"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                >
+                  Find A Trainer
+                </Link>
+              ) : (
+                <Link
+                  href="/getclients"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                >
+                  Get Clients
+                </Link>
+              )}
             </div>
           </div>
 
@@ -127,14 +132,14 @@ export function Navbar() {
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link
-              href="/#how-it-works"
+              href={`/#how-it-works${!isCoach ? "?view=client" : ""}`}
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               How It Works
             </Link>
             <Link
-              href="/pricing-demo"
+              href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -156,20 +161,23 @@ export function Navbar() {
                 Workout Planner
               </Link>
             )}
-            <Link
-              href="/marketplace"
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Marketplace
-            </Link>
-            <Link
-              href="/getclients"
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Get Clients
-            </Link>
+            {!isCoach ? (
+              <Link
+                href="/findatrainer"
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Find A Trainer
+              </Link>
+            ) : (
+              <Link
+                href="/getclients"
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Get Clients
+              </Link>
+            )}
           </div>
         </div>
       )}
