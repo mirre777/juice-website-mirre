@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react'
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Navbar from "@/components/navbar"
 
 interface FormData {
   fullName: string
@@ -261,9 +262,7 @@ export default function PersonalTrainerWebsitePage() {
         return router.push(body.redirectUrl)
       }
       const msg =
-        body?.error ||
-        body?.message ||
-        `Failed to create trainer profile. Server responded with status ${status}.`
+        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
       console.error("Form submission failed:", { status, body })
       alert(msg)
     } catch (err) {
@@ -286,9 +285,7 @@ export default function PersonalTrainerWebsitePage() {
         return router.push(body.redirectUrl)
       }
       const msg =
-        body?.error ||
-        body?.message ||
-        `Failed to create trainer profile. Server responded with status ${status}.`
+        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
       console.error("Form submission failed:", { status, body })
       alert(msg)
     } catch (err) {
@@ -496,6 +493,8 @@ export default function PersonalTrainerWebsitePage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Navbar />
+
       {/* Hero Section */}
       <section className="pt-20 pb-[30px] bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -532,6 +531,9 @@ export default function PersonalTrainerWebsitePage() {
                 Create for free
                 <ArrowDown className="w-5 h-5 ml-2" />
               </Button>
+              <p className="text-sm text-gray-600 mt-3 max-w-md">
+                We won't charge you for creating the page, you only pay when you want to put it live.
+              </p>
             </div>
 
             <div className="flex items-center gap-8 mb-12">
@@ -588,7 +590,6 @@ export default function PersonalTrainerWebsitePage() {
       </section>
 
       {/* Stats Section */}
-      
 
       {/* Form Section */}
       <section id="trainer-form" className="py-20 bg-white">
