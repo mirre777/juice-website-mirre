@@ -12,24 +12,26 @@ export default function GetClientsClientPage() {
 
         <main className="flex-grow flex flex-col items-center justify-center pt-20 pb-10 px-4">
           <section className="w-full max-w-3xl text-center py-16 md:py-24">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 juice-text-gradient leading-tight">Get more clients.</h1>
+            <div className="relative inline-block">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 juice-text-gradient leading-tight">
+                Get more clients.
+              </h1>
+              <a
+                href="/marketplace/personal-trainer-website"
+                className="absolute -top-2 -right-8 md:-right-12 w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-lime-400 to-green-400 text-black rounded-full flex items-center justify-center text-xs md:text-sm font-bold hover:from-lime-300 hover:to-green-300 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-110 animate-pulse"
+                title="Also need a website? 3-click setup for €70/year"
+              >
+                <div className="text-center leading-tight">
+                  <div>Website</div>
+                  <div>€70/y</div>
+                </div>
+              </a>
+            </div>
+
             <p className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl mx-auto">
               A curated network for elite trainers. Gain access to a growing community of clients seeking your
               expertise. Be among the first to join.
             </p>
-
-            <div className="mb-8">
-              <a
-                href="/marketplace/personal-trainer-website"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-lime-400 to-green-400 text-black px-6 py-3 rounded-full font-semibold hover:from-lime-300 hover:to-green-300 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <div className="w-2 h-2 bg-black rounded-full animate-pulse"></div>
-                <span>Also need a website? 3-click setup for €70/year</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-            </div>
 
             <div className="max-w-sm mx-auto">
               <WaitlistForm selectedPlan="trainer-marketplace-interest" />
