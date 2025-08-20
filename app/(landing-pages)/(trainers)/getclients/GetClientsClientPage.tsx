@@ -17,6 +17,20 @@ export default function GetClientsClientPage() {
               A curated network for elite trainers. Gain access to a growing community of clients seeking your
               expertise. Be among the first to join.
             </p>
+
+            <div className="mb-8">
+              <a
+                href="/marketplace/personal-trainer-website"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-lime-400 to-green-400 text-black px-6 py-3 rounded-full font-semibold hover:from-lime-300 hover:to-green-300 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <div className="w-2 h-2 bg-black rounded-full animate-pulse"></div>
+                <span>Also need a website? 3-click setup for €70/year</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+
             <div className="max-w-sm mx-auto">
               <WaitlistForm selectedPlan="trainer-marketplace-interest" />
             </div>
