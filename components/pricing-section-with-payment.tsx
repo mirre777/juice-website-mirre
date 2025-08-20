@@ -346,7 +346,6 @@ export function PricingSectionWithPayment() {
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Progress analytics</span>
                       </li>
-                      
                     </ul>
                   </CardContent>
                   <CardFooter className="mt-auto">
@@ -383,7 +382,7 @@ export function PricingSectionWithPayment() {
                     <div
                       className={`mt-4 flex items-baseline text-4xl font-extrabold ${isCoach ? "text-black" : "text-white"}`}
                     >
-                      €69
+                      €45
                       <span className={`ml-1 text-lg font-medium ${isCoach ? "text-gray-500" : "text-gray-400"}`}>
                         /month
                       </span>
@@ -418,7 +417,7 @@ export function PricingSectionWithPayment() {
                   </CardContent>
                   <CardFooter className="mt-auto">
                     <PaymentModal
-                      amount="69.00"
+                      amount="45.00"
                       description="Juice Elite Monthly Subscription"
                       planName="Elite"
                       onPaymentComplete={() => handlePaymentComplete("elite")}
