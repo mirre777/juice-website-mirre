@@ -588,39 +588,7 @@ export default function PersonalTrainerWebsitePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <span className="text-2xl">👥</span>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
-              <div className="text-gray-600">Trainers Trust Us</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <span className="text-2xl">📈</span>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">95%</div>
-              <div className="text-gray-600">Client Satisfaction</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <span className="text-2xl">⚡</span>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">24/7</div>
-              <div className="text-gray-600">Website Availability</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Form Section */}
       <section id="trainer-form" className="py-20 bg-white">
