@@ -321,14 +321,14 @@ export function PricingSectionWithPayment() {
                       </span>
                     </div>
                     <CardDescription className={`mt-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                      For growing coaching businesses
+                      For growing trainers
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <ul className={`space-y-3 ${isCoach ? "text-black" : "text-white"}`}>
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Unlimited clients</span>
+                        <span>3-10 Clients</span>
                       </li>
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
@@ -342,10 +342,7 @@ export function PricingSectionWithPayment() {
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Progress analytics</span>
                       </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Custom branding</span>
-                      </li>
+                      
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Email & chat support</span>
@@ -392,7 +389,7 @@ export function PricingSectionWithPayment() {
                       </span>
                     </div>
                     <CardDescription className={`mt-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                      For established coaching businesses
+                      For established trainers
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow">
@@ -413,18 +410,9 @@ export function PricingSectionWithPayment() {
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Advanced analytics</span>
                       </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>API access</span>
-                      </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>White-label solution</span>
-                      </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Dedicated account manager</span>
-                      </li>
+                      
+                      
+                      
                     </ul>
                   </CardContent>
                   <CardFooter className="mt-auto">
