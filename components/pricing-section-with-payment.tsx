@@ -346,10 +346,7 @@ export function PricingSectionWithPayment() {
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Progress analytics</span>
                       </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Email & chat support</span>
-                      </li>
+                      
                     </ul>
                   </CardContent>
                   <CardFooter className="mt-auto">
