@@ -10,14 +10,14 @@ export default function GetClientsClientPage() {
       <div className="min-h-screen bg-black text-white flex flex-col">
         <Navbar />
 
-        <div className="w-full bg-black pt-20 pb-4 px-4 border-b border-zinc-800">
-          <div className="max-w-4xl mx-auto text-center">
+        <div className="w-full bg-gradient-to-r from-lime-400 to-green-400 text-black py-3 px-4">
+          <div className="max-w-6xl mx-auto text-center">
             <a
               href="/marketplace/personal-trainer-website"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-lime-400 to-green-400 text-black px-6 py-3 rounded-full font-semibold hover:from-lime-300 hover:to-green-300 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center gap-2 font-semibold hover:underline transition-all duration-200"
             >
               <div className="w-2 h-2 bg-black rounded-full animate-pulse"></div>
-              <span>Also need a website? 3-click setup for €70/year</span>
+              <span>🚀 Need a website too? Create your trainer webpage in 3 clicks for just €70/year</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -25,7 +25,7 @@ export default function GetClientsClientPage() {
           </div>
         </div>
 
-        <main className="flex-grow flex flex-col items-center justify-center pb-10 px-4">
+        <main className="flex-grow flex flex-col items-center justify-center pt-20 pb-10 px-4">
           <section className="w-full max-w-3xl text-center py-16 md:py-24">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 juice-text-gradient leading-tight">Get more clients.</h1>
             <p className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl mx-auto">
