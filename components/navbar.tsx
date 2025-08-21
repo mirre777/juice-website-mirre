@@ -45,8 +45,8 @@ export function Navbar() {
     if (pricingElement) {
       pricingElement.scrollIntoView({ behavior: "smooth" })
     }
-    // Update URL after scrolling
-    window.history.pushState(null, "", "/trainers#pricing")
+    // Update URL after scrolling - use / for trainer homepage
+    window.history.pushState(null, "", "/#pricing")
   }
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
@@ -55,8 +55,8 @@ export function Navbar() {
     if (howItWorksElement) {
       howItWorksElement.scrollIntoView({ behavior: "smooth" })
     }
-    // Update URL after scrolling based on current page
-    const baseUrl = isCoach ? "/trainers" : "/clients"
+    // Update URL after scrolling based on current page - use / for trainer homepage
+    const baseUrl = isCoach ? "/" : "/clients"
     window.history.pushState(null, "", `${baseUrl}#how-it-works`)
   }
 

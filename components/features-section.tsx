@@ -84,7 +84,7 @@ export function FeaturesSection() {
           value={isCoach ? "trainer" : "client"}
           onValueChange={(value) => {
             if (value === "trainer") {
-              router.push("/trainers#features")
+              router.push("/#features")
             } else {
               router.push("/clients#features")
             }

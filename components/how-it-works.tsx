@@ -127,7 +127,7 @@ export function HowItWorks() {
           value={isCoach ? "trainer" : "client"}
           onValueChange={(value) => {
             if (value === "trainer") {
-              router.push("/trainers#how-it-works")
+              router.push("/#how-it-works")
             } else {
               router.push("/clients#how-it-works")
             }
