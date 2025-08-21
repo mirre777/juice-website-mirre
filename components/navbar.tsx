@@ -56,11 +56,9 @@ export function Navbar() {
       howItWorksElement.scrollIntoView({ behavior: "smooth" })
     }
     // Update URL after scrolling based on current page
-    const baseUrl = isCoach ? "/trainers" : "/clients"
+    const baseUrl = isCoach ? "/" : "/clients"
     window.history.pushState(null, "", `${baseUrl}#how-it-works`)
   }
-
-  console.log("[v0] Navbar isCoach state:", isCoach)
 
   const isNavbarDark =
     (!isCoach &&
@@ -91,31 +89,31 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+            <div className="ml-10 flex items-center space-x-6">
               <button
                 onClick={handleHowItWorksClick}
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
               >
                 How It Works
               </button>
               {isCoach && (
                 <button
                   onClick={handlePricingClick}
-                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
                 >
                   Pricing
                 </button>
               )}
               <Link
                 href="/download-juice-app"
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
               >
                 Download Workout App
               </Link>
               {isCoach && (
                 <Link
                   href="/workout-planner"
-                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
                 >
                   Online Workout Planner
                 </Link>
@@ -123,14 +121,14 @@ export function Navbar() {
               {!isCoach ? (
                 <Link
                   href="/findatrainer"
-                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
                 >
                   Find A Trainer
                 </Link>
               ) : (
                 <Link
                   href="/getclients"
-                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
                 >
                   Get Clients
                 </Link>
