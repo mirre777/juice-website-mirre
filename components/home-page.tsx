@@ -148,14 +148,18 @@ export default function HomePage() {
               {/* Web App */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <Image
+                  <video
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
-                    alt="Convert Google Sheets to mobile app demo"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                     width={400}
                     height={300}
-                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
-                    unoptimized
-                  />
+                  >
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
