@@ -46,14 +46,14 @@ export default function TrainerHomePage() {
   }
 
   return (
-    <main className="pt-32 pb-10 md:pb-10 md:pt-[50]">
+    <main className="min-h-screen bg-white text-black">
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-10 md:pb-10 md:pt-[50]">
+      <section className="pt-32 pb-10 md:pb-10 md:pt-[100px]">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-black">The #1 Personal Trainer Tool to</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-black">The #1 Personal Trainer Tool</h2>
           </div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
@@ -170,7 +170,7 @@ export default function TrainerHomePage() {
             </button>
           </div>
 
-          <p className="text-sm text-gray-500 mt-2 mb-8">
+          <p className="text-sm text-gray-500 mt-2 mb-16">
             No credit card required. No lock-in. Works with Google Sheets.
           </p>
 
@@ -189,17 +189,7 @@ export default function TrainerHomePage() {
               </div>
             </div>
           )}
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mt-12">
-        <FeaturesSection />
-      </section>
-
-      {/* Dashboard Image Section */}
-      <section className="py-[0]">
-        <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="relative w-full overflow-hidden">
               <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
@@ -216,6 +206,11 @@ export default function TrainerHomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="scroll-mt-20 mt-24">
+        <FeaturesSection />
       </section>
 
       {/* How It Works Section */}
