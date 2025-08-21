@@ -41,6 +41,10 @@ export default function TrainerHomePage() {
     window.location.href = "/workout-planner"
   }
 
+  const handleWebpageBuilderClick = () => {
+    window.location.href = "/marketplace/personal-trainer-website"
+  }
+
   return (
     <main className="pt-32 pb-10 md:pb-10 md:pt-[50]">
       <Navbar isHomePage={true} />
@@ -63,7 +67,10 @@ export default function TrainerHomePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
               {/* Webpage Builder */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
+                <div
+                  className="relative cursor-pointer transition-transform hover:scale-105"
+                  onClick={handleWebpageBuilderClick}
+                >
                   <Image
                     src="/images/homepage/microsite-alex.png"
                     alt="Personal trainer website builder"
@@ -73,7 +80,13 @@ export default function TrainerHomePage() {
                   />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-black">Webpage Builder</h3>
+                  <h3
+                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1"
+                    onClick={handleWebpageBuilderClick}
+                  >
+                    Webpage Builder
+                    <ChevronRight className="w-4 h-4" />
+                  </h3>
                   <p className="text-sm text-gray-600">Attract new clients through your personal page</p>
                 </div>
               </div>
