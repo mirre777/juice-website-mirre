@@ -141,7 +141,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Attract clients with your personal page</p>
                 </div>
               </div>
 
