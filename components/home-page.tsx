@@ -115,9 +115,9 @@ export default function HomePage() {
             {isCoach ? (
               <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
                 <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">
-                  Everything you need to get new clients.
+                  3 Things you need to get new clients.
                 </div>
-                <div className="text-6xl font-bold tracking-tight juice-text-gradient md:w-1/2">And keep them.</div>
+                <div className="font-bold tracking-tight juice-text-gradient md:w-1/2 text-8xl">And keep them.</div>
               </div>
             ) : (
               <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -141,7 +141,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Attract new clients through your personal page</p>
                 </div>
               </div>
 
@@ -163,7 +163,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Convert sheets to programs</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Convert your sheets to programs</p>
                 </div>
               </div>
 
@@ -180,7 +180,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Mobile App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Track workouts on the go</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Your client can easily do the workouts</p>
                 </div>
               </div>
             </div>
