@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Logo } from "@/components/logo"
@@ -35,6 +37,16 @@ export function Navbar() {
         router.push("/clients")
       }
     }
+  }
+
+  const handlePricingClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const pricingElement = document.getElementById("pricing")
+    if (pricingElement) {
+      pricingElement.scrollIntoView({ behavior: "smooth" })
+    }
+    // Update URL after scrolling
+    window.history.pushState(null, "", "/trainers#pricing")
   }
 
   console.log("[v0] Navbar isCoach state:", isCoach)
@@ -76,12 +88,12 @@ export function Navbar() {
                 How It Works
               </Link>
               {isCoach && (
-                <Link
-                  href={`/trainers#pricing`}
+                <button
+                  onClick={handlePricingClick}
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 >
                   Pricing
-                </Link>
+                </button>
               )}
               <Link
                 href="/download-juice-app"
@@ -167,13 +179,15 @@ export function Navbar() {
               How It Works
             </Link>
             {isCoach && (
-              <Link
-                href={`/trainers#pricing`}
-                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={(e) => {
+                  handlePricingClick(e)
+                  setIsMobileMenuOpen(false)
+                }}
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
               >
                 Pricing
-              </Link>
+              </button>
             )}
             <Link
               href="/download-juice-app"
