@@ -172,7 +172,7 @@ export default function TrainerHomePage() {
       </section>
 
       {/* Dashboard Image Section */}
-      <section className="py-16">
+      <section className="py-[0]">
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="relative w-full overflow-hidden">
