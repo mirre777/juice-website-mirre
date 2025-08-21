@@ -37,6 +37,10 @@ export default function TrainerHomePage() {
     window.location.href = "/for-clients#how-it-works"
   }
 
+  const handleWebAppClick = () => {
+    window.location.href = "/workout-planner"
+  }
+
   return (
     <main className="pt-32 pb-10 md:pb-10 md:pt-[50]">
       <Navbar isHomePage={true} />
@@ -76,7 +80,10 @@ export default function TrainerHomePage() {
 
               {/* Web App */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
+                <div
+                  className="relative cursor-pointer transition-transform hover:scale-105"
+                  onClick={handleWebAppClick}
+                >
                   <video
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
                     autoPlay
@@ -91,7 +98,13 @@ export default function TrainerHomePage() {
                   </video>
                 </div>
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-black">Web App</h3>
+                  <h3
+                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1"
+                    onClick={handleWebAppClick}
+                  >
+                    Web App
+                    <ChevronRight className="w-4 h-4" />
+                  </h3>
                   <p className="text-sm text-gray-600">Convert your sheets to programs</p>
                 </div>
               </div>
