@@ -49,12 +49,14 @@ export function Navbar() {
               >
                 How It Works
               </Link>
-              <Link
-                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-              >
-                Pricing
-              </Link>
+              {isCoach && (
+                <Link
+                  href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                >
+                  Pricing
+                </Link>
+              )}
               <Link
                 href="/download-juice-app"
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
@@ -66,7 +68,7 @@ export function Navbar() {
                   href="/workout-planner"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 >
-                  Workout Planner
+                  Online Workout Planner
                 </Link>
               )}
               {!isCoach ? (
@@ -138,13 +140,15 @@ export function Navbar() {
             >
               How It Works
             </Link>
-            <Link
-              href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Pricing
-            </Link>
+            {isCoach && (
+              <Link
+                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+            )}
             <Link
               href="/download-juice-app"
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
@@ -158,7 +162,7 @@ export function Navbar() {
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Workout Planner
+                Online Workout Planner
               </Link>
             )}
             {!isCoach ? (
