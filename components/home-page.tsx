@@ -113,11 +113,11 @@ export default function HomePage() {
         <div className="container mx-auto px-4 md:px-6 text-center">
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
-              <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">Kill the hassle.</span>
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
-                  Keep the gains.
-                </span>
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+                <div className="text-6xl font-bold tracking-tight text-black">
+                  Everything you need to get new clients.
+                </div>
+                <div className="text-6xl font-bold tracking-tight juice-text-gradient">And keep them.</div>
               </div>
             ) : (
               <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
