@@ -11,20 +11,12 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
-import { useScrollSpy } from "@/hooks/use-scroll-spy"
 
 export default function ClientHomePage() {
   const { setIsCoach } = useTheme()
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
   const waitlistRef = useRef<HTMLDivElement>(null)
-
-  const activeSection = useScrollSpy(["features", "how-it-works", "pricing", "benefits"], {
-    rootMargin: "-20% 0px -70% 0px",
-    threshold: 0.3,
-    debounceMs: 1500,
-    minViewTime: 1000,
-  })
 
   // Set to client mode
   useEffect(() => {

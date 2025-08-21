@@ -16,7 +16,6 @@ import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
-import { useScrollSpy } from "@/hooks/use-scroll-spy"
 
 export default function HomePage() {
   const router = useRouter()
@@ -26,13 +25,6 @@ export default function HomePage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
   const waitlistRef = useRef<HTMLDivElement>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const activeSection = useScrollSpy(["features", "how-it-works", "pricing", "benefits"], {
-    rootMargin: "-20% 0px -70% 0px",
-    threshold: 0.3,
-    debounceMs: 1500,
-    minViewTime: 1000,
-  })
 
   const handleWaitlistClick = () => {
     setShowWaitlist(true)
