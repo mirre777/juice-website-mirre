@@ -1,17 +1,35 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Logo } from "@/components/logo"
 import { UserToggle } from "@/components/user-toggle"
 import { useTheme } from "@/contexts/theme-context"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { isCoach, setIsCoach } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (pathname === "/trainers" || pathname === "/for-trainers") {
+      setIsCoach(true)
+    } else if (pathname === "/clients" || pathname === "/for-clients") {
+      setIsCoach(false)
+    }
+  }, [pathname, setIsCoach])
+
+  const handleToggleChange = (newIsCoach: boolean) => {
+    setIsCoach(newIsCoach)
+    if (newIsCoach && (pathname === "/clients" || pathname === "/for-clients")) {
+      router.push("/trainers")
+    } else if (!newIsCoach && (pathname === "/trainers" || pathname === "/for-trainers")) {
+      router.push("/clients")
+    }
+  }
 
   console.log("[v0] Navbar isCoach state:", isCoach)
 
@@ -44,14 +62,14 @@ export function Navbar() {
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
               <Link
-                href={`/#how-it-works${!isCoach ? "?view=client" : ""}`}
+                href={`${isCoach ? "/trainers" : "/clients"}#how-it-works`}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
                 How It Works
               </Link>
               {isCoach && (
                 <Link
-                  href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                  href={`/trainers#pricing`}
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 >
                   Pricing
@@ -92,7 +110,7 @@ export function Navbar() {
           {/* User Toggle and CTA - Fixed spacing */}
           <div className="hidden md:flex items-center gap-4">
             <div className="flex-shrink-0">
-              <UserToggle isCoach={isCoach} onChange={setIsCoach} isDarkBackground={isNavbarDark} />
+              <UserToggle isCoach={isCoach} onChange={handleToggleChange} isDarkBackground={isNavbarDark} />
             </div>
             <div className="flex-shrink-0">
               {isCoach ? (
@@ -134,7 +152,7 @@ export function Navbar() {
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link
-              href={`/#how-it-works${!isCoach ? "?view=client" : ""}`}
+              href={`${isCoach ? "/trainers" : "/clients"}#how-it-works`}
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -142,7 +160,7 @@ export function Navbar() {
             </Link>
             {isCoach && (
               <Link
-                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                href={`/trainers#pricing`}
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
