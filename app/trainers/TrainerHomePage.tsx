@@ -45,7 +45,7 @@ export default function TrainerHomePage() {
       <section className="pt-32 pb-10 md:pb-10 md:pt-[100px]">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-black">The #1 Personal Trainer Tool</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-black">The #1 Personal Trainer Tool to</h2>
           </div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
