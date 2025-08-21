@@ -136,7 +136,7 @@ export default function HomePage() {
                     alt="Mobile workout tracking app"
                     width={240}
                     height={520}
-                    className="w-48 h-auto rounded-2xl shadow-lg"
+                    className="w-48 h-auto"
                   />
                 </div>
                 <div className="text-center">
