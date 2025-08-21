@@ -38,11 +38,11 @@ export default function TrainerHomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="pt-32 pb-10 md:pb-10 md:pt-[50]">
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-10 md:pb-10 md:pt-[100px]">
+      <section className="pt-32 pb-10 md:pb-10 md:pt-[50]">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-black">The #1 Personal Trainer Tool to</h2>
