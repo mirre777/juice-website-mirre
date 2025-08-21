@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react'
+import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Navbar from "@/components/navbar"
 
 interface FormData {
   fullName: string
@@ -261,9 +262,7 @@ export default function PersonalTrainerWebsitePage() {
         return router.push(body.redirectUrl)
       }
       const msg =
-        body?.error ||
-        body?.message ||
-        `Failed to create trainer profile. Server responded with status ${status}.`
+        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
       console.error("Form submission failed:", { status, body })
       alert(msg)
     } catch (err) {
@@ -286,9 +285,7 @@ export default function PersonalTrainerWebsitePage() {
         return router.push(body.redirectUrl)
       }
       const msg =
-        body?.error ||
-        body?.message ||
-        `Failed to create trainer profile. Server responded with status ${status}.`
+        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
       console.error("Form submission failed:", { status, body })
       alert(msg)
     } catch (err) {
@@ -496,6 +493,8 @@ export default function PersonalTrainerWebsitePage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Navbar />
+
       {/* Hero Section */}
       <section className="pt-20 pb-[30px] bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -532,28 +531,12 @@ export default function PersonalTrainerWebsitePage() {
                 Create for free
                 <ArrowDown className="w-5 h-5 ml-2" />
               </Button>
+              <p className="text-sm text-gray-600 mt-3 max-w-md">
+                We won't charge you for creating the page.
+              </p>
             </div>
 
-            <div className="flex items-center gap-8 mb-12">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Increase visibility</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Super fast</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <Star className="w-5 h-5 text-purple-600" />
-                </div>
-                <span className="text-gray-700 font-medium">Professional design</span>
-              </div>
-            </div>
+            
           </div>
         </div>
       </section>
@@ -588,39 +571,6 @@ export default function PersonalTrainerWebsitePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <span className="text-2xl">👥</span>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">500+</div>
-              <div className="text-gray-600">Trainers Trust Us</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <span className="text-2xl">📈</span>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">95%</div>
-              <div className="text-gray-600">Client Satisfaction</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-[#D2FF28] rounded-full">
-                  <span className="text-2xl">⚡</span>
-                </div>
-              </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">24/7</div>
-              <div className="text-gray-600">Website Availability</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Form Section */}
       <section id="trainer-form" className="py-20 bg-white">

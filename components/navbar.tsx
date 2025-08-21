@@ -36,7 +36,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <Logo />
+              <Logo isDarkBackground={isNavbarDark} />
             </Link>
           </div>
 
@@ -49,24 +49,26 @@ export function Navbar() {
               >
                 How It Works
               </Link>
-              <Link
-                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-              >
-                Pricing
-              </Link>
+              {isCoach && (
+                <Link
+                  href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                >
+                  Pricing
+                </Link>
+              )}
               <Link
                 href="/download-juice-app"
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
-                Download
+                Download Workout App
               </Link>
               {isCoach && (
                 <Link
                   href="/workout-planner"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 >
-                  Workout Planner
+                  Online Workout Planner
                 </Link>
               )}
               {!isCoach ? (
@@ -138,19 +140,21 @@ export function Navbar() {
             >
               How It Works
             </Link>
-            <Link
-              href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Pricing
-            </Link>
+            {isCoach && (
+              <Link
+                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+            )}
             <Link
               href="/download-juice-app"
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Download
+              Download Workout App
             </Link>
             {isCoach && (
               <Link
@@ -158,7 +162,7 @@ export function Navbar() {
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Workout Planner
+                Online Workout Planner
               </Link>
             )}
             {!isCoach ? (

@@ -321,14 +321,18 @@ export function PricingSectionWithPayment() {
                       </span>
                     </div>
                     <CardDescription className={`mt-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                      For growing coaching businesses
+                      For growing trainers
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <ul className={`space-y-3 ${isCoach ? "text-black" : "text-white"}`}>
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Unlimited clients</span>
+                        <span>3-10 Clients</span>
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="mr-2 h-5 w-5 text-juice" />
+                        <span>Everything in Free</span>
                       </li>
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
@@ -341,14 +345,6 @@ export function PricingSectionWithPayment() {
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Progress analytics</span>
-                      </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Custom branding</span>
-                      </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Email & chat support</span>
                       </li>
                     </ul>
                   </CardContent>
@@ -386,17 +382,21 @@ export function PricingSectionWithPayment() {
                     <div
                       className={`mt-4 flex items-baseline text-4xl font-extrabold ${isCoach ? "text-black" : "text-white"}`}
                     >
-                      €69
+                      €45
                       <span className={`ml-1 text-lg font-medium ${isCoach ? "text-gray-500" : "text-gray-400"}`}>
                         /month
                       </span>
                     </div>
                     <CardDescription className={`mt-4 ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
-                      For established coaching businesses
+                      For established trainers
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <ul className={`space-y-3 ${isCoach ? "text-black" : "text-white"}`}>
+                      <li className="flex items-center">
+                        <Check className="mr-2 h-5 w-5 text-juice" />
+                        <span>11-20 Clients</span>
+                      </li>
                       <li className="flex items-center">
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Everything in Pro</span>
@@ -413,23 +413,11 @@ export function PricingSectionWithPayment() {
                         <Check className="mr-2 h-5 w-5 text-juice" />
                         <span>Advanced analytics</span>
                       </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>API access</span>
-                      </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>White-label solution</span>
-                      </li>
-                      <li className="flex items-center">
-                        <Check className="mr-2 h-5 w-5 text-juice" />
-                        <span>Dedicated account manager</span>
-                      </li>
                     </ul>
                   </CardContent>
                   <CardFooter className="mt-auto">
                     <PaymentModal
-                      amount="69.00"
+                      amount="45.00"
                       description="Juice Elite Monthly Subscription"
                       planName="Elite"
                       onPaymentComplete={() => handlePaymentComplete("elite")}
