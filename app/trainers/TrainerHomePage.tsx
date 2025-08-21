@@ -144,7 +144,7 @@ export default function TrainerHomePage() {
             </button>
           </div>
 
-          <p className="text-sm text-gray-500 mt-2 mb-16">
+          <p className="text-sm text-gray-500 mt-2 mb-8">
             No credit card required. No lock-in. Works with Google Sheets.
           </p>
 
@@ -167,7 +167,7 @@ export default function TrainerHomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mt-24">
+      <section id="features" className="scroll-mt-20 mt-12">
         <FeaturesSection />
       </section>
 
