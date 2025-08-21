@@ -1,10 +1,5 @@
-import { Suspense } from "react"
-import HomePage from "@/components/home-page"
+import { redirect } from "next/navigation"
 
 export default function Page() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomePage />
-    </Suspense>
-  )
+  redirect("/for-trainers")
 }
