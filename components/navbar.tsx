@@ -49,6 +49,17 @@ export function Navbar() {
     window.history.pushState(null, "", "/trainers#pricing")
   }
 
+  const handleHowItWorksClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const howItWorksElement = document.getElementById("how-it-works")
+    if (howItWorksElement) {
+      howItWorksElement.scrollIntoView({ behavior: "smooth" })
+    }
+    // Update URL after scrolling based on current page
+    const baseUrl = isCoach ? "/trainers" : "/clients"
+    window.history.pushState(null, "", `${baseUrl}#how-it-works`)
+  }
+
   console.log("[v0] Navbar isCoach state:", isCoach)
 
   const isNavbarDark =
@@ -81,12 +92,12 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <Link
-                href={`${isCoach ? "/trainers" : "/clients"}#how-it-works`}
+              <button
+                onClick={handleHowItWorksClick}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
                 How It Works
-              </Link>
+              </button>
               {isCoach && (
                 <button
                   onClick={handlePricingClick}
@@ -171,13 +182,15 @@ export function Navbar() {
           className={`md:hidden ${isNavbarDark ? "bg-black" : "bg-white"} border-t ${isNavbarDark ? "border-gray-800" : "border-gray-200"}`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              href={`${isCoach ? "/trainers" : "/clients"}#how-it-works`}
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
+            <button
+              onClick={(e) => {
+                handleHowItWorksClick(e)
+                setIsMobileMenuOpen(false)
+              }}
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
             >
               How It Works
-            </Link>
+            </button>
             {isCoach && (
               <button
                 onClick={(e) => {
