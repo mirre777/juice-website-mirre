@@ -163,7 +163,17 @@ export default function TrainerHomePage() {
               </div>
             </div>
           )}
+        </div>
+      </section>
 
+      {/* Features Section */}
+      <section id="features" className="scroll-mt-20 mt-24">
+        <FeaturesSection />
+      </section>
+
+      {/* Dashboard Image Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="relative w-full overflow-hidden">
               <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
@@ -179,35 +189,7 @@ export default function TrainerHomePage() {
               <p className="text-xl text-gray-600 mt-6 text-center">Because trainers should train, not juggle admin.</p>
             </div>
           </div>
-
-          {/* Comprehensive Trainer Dashboard Section */}
-          <div className="max-w-6xl mx-auto mt-16">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-black mb-4">Easy workout logging for clients</h3>
-              <p className="text-lg text-gray-600">
-                Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.
-              </p>
-            </div>
-            <div className="relative w-full overflow-hidden">
-              <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
-                <Image
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OAYOgWWG0YkpwsZ42fGjGp9x6E65iT.png"
-                  alt="Comprehensive trainer dashboard showing client workouts, revenue tracking, and session management"
-                  width={1200}
-                  height={800}
-                  className="w-full h-auto"
-                />
-                <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-              </div>
-              <p className="text-xl text-gray-600 mt-6 text-center">Because trainers should train, not juggle admin.</p>
-            </div>
-          </div>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mt-24">
-        <FeaturesSection />
       </section>
 
       {/* How It Works Section */}
