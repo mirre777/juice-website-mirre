@@ -43,7 +43,9 @@ export function Navbar() {
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
-    pathname === "/getclients" // Added getclients route for dark navbar
+    pathname === "/getclients" || // Added getclients route for dark navbar
+    pathname === "/clients" // Clients page gets dark navbar to match client-focused styling
+
   const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
