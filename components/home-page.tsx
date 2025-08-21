@@ -132,7 +132,7 @@ export default function HomePage() {
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/workoutprogram%20%281%29-IHmNGG58tmo5NgxCUJ18N6iZU4npKl.png"
+                    src="/images/homepage/workoutprogram.png"
                     alt="Mobile workout tracking app"
                     width={240}
                     height={520}
@@ -148,12 +148,14 @@ export default function HomePage() {
               {/* Web App */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <video autoPlay loop muted playsInline className="w-full max-w-lg h-auto rounded-xl shadow-lg">
-                    <source
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
-                      type="video/mp4"
-                    />
-                  </video>
+                  <Image
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
+                    alt="Convert Google Sheets to mobile app demo"
+                    width={400}
+                    height={300}
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
+                    unoptimized
+                  />
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
@@ -165,7 +167,7 @@ export default function HomePage() {
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/microsite%20image%20alex-TQagzRVyzQETG1LBIK3DqQbv4FBB9j.png"
+                    src="/images/homepage/microsite-alex.png"
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
