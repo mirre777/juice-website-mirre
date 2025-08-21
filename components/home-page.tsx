@@ -136,7 +136,7 @@ export default function HomePage() {
                     alt="Mobile workout tracking app"
                     width={240}
                     height={520}
-                    className="w-60 h-auto rounded-2xl shadow-lg"
+                    className="w-48 h-auto rounded-2xl shadow-lg"
                   />
                 </div>
                 <div className="text-center">
@@ -148,7 +148,7 @@ export default function HomePage() {
               {/* Web App */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <video autoPlay loop muted playsInline className="w-full max-w-md h-auto rounded-xl shadow-lg">
+                  <video autoPlay loop muted playsInline className="w-full max-w-lg h-auto rounded-xl shadow-lg">
                     <source
                       src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
                       type="video/mp4"
@@ -169,7 +169,7 @@ export default function HomePage() {
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
-                    className="w-full max-w-md h-auto rounded-xl shadow-lg"
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                   />
                 </div>
                 <div className="text-center">
