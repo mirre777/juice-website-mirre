@@ -116,7 +116,7 @@ export default function TrainerHomePage() {
                     Mobile App
                     <ChevronRight className="w-4 h-4" />
                   </h3>
-                  <p className="text-sm text-gray-600">Your client can easily do the workouts you share</p>
+                  <p className="text-sm text-gray-600">Your client can easily do the workouts</p>
                 </div>
               </div>
             </div>

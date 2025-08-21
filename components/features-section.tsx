@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartphone, Users } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
+import { useRouter } from "next/navigation"
 
 interface Feature {
   icon: React.ReactNode
@@ -14,6 +15,7 @@ interface Feature {
 
 export function FeaturesSection() {
   const { isCoach, setIsCoach } = useTheme()
+  const router = useRouter()
 
   const clientFeatures: Feature[] = [
     {
@@ -80,7 +82,13 @@ export function FeaturesSection() {
         <Tabs
           defaultValue="client"
           value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => setIsCoach(value === "trainer")}
+          onValueChange={(value) => {
+            if (value === "trainer") {
+              router.push("/trainers#features")
+            } else {
+              router.push("/clients#features")
+            }
+          }}
           className="w-full max-w-4xl mx-auto"
         >
           <div className="flex justify-center mb-8">

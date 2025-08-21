@@ -101,7 +101,13 @@ export function PricingSectionWithPayment() {
         <Tabs
           defaultValue="client"
           value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => setIsCoach(value === "trainer")}
+          onValueChange={(value) => {
+            if (value === "trainer") {
+              router.push("/trainers#pricing")
+            } else {
+              router.push("/clients#pricing")
+            }
+          }}
           className="w-full max-w-4xl mx-auto"
         >
           <div className="flex justify-center mb-8">

@@ -5,9 +5,11 @@ import { useTheme } from "@/components/theme-provider"
 import { StatisticsScreen } from "./statistics-screen"
 import Image from "next/image"
 import { useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export function HowItWorks() {
   const { isCoach, setIsCoach } = useTheme()
+  const router = useRouter()
 
   const clientSteps = [
     {
@@ -123,7 +125,13 @@ export function HowItWorks() {
         <Tabs
           defaultValue="client"
           value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => setIsCoach(value === "trainer")}
+          onValueChange={(value) => {
+            if (value === "trainer") {
+              router.push("/trainers#how-it-works")
+            } else {
+              router.push("/clients#how-it-works")
+            }
+          }}
           className="w-full max-w-5xl mx-auto"
         >
           <div className="flex justify-center mb-8">
@@ -211,18 +219,7 @@ export function HowItWorks() {
                   </div>
                   <div className="flex-1">
                     <div className="relative rounded-xl overflow-hidden shadow-lg bg-transparent border-0">
-                      {step.isVideo ? (
-                        <div className="bg-white rounded-xl p-3 shadow-md">
-                          <div className="rounded-lg overflow-hidden">
-                            <VideoPlayer src={step.video || ""} className="w-full h-auto object-contain rounded-lg" />
-                          </div>
-                          <p className="text-xs text-center text-gray-500 mt-2">Client progress tracking interface</p>
-                        </div>
-                      ) : step.isStatisticsScreen ? (
-                        <div className="flex justify-center py-4 bg-black">
-                          <StatisticsScreen />
-                        </div>
-                      ) : step.isMultiImage ? (
+                      {step.isMultiImage ? (
                         <div className="flex flex-col gap-4 py-4">
                           {step.images?.map((image, imgIndex) => (
                             <div key={imgIndex} className="bg-white rounded-xl p-2 shadow-md">
