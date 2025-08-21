@@ -14,9 +14,9 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link" // Import Link
+import Link from "next/link"
 
-export default function HomePage() {
+export function PersonalTrainerAppClientPage() {
   const router = useRouter()
   const pathname = usePathname()
   const { isCoach, setIsCoach } = useTheme()
@@ -57,14 +57,9 @@ export default function HomePage() {
     }
   }, [])
 
-  // Check if we're on the client route and set view accordingly
   useEffect(() => {
-    if (pathname === "/client") {
-      setIsCoach(false)
-    } else {
-      setIsCoach(true)
-    }
-  }, [pathname, setIsCoach])
+    setIsCoach(true)
+  }, [setIsCoach])
 
   // Handle escape key to close mobile menu
   useEffect(() => {
@@ -114,9 +109,9 @@ export default function HomePage() {
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
               <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl font-bold tracking-tight lg:text-4xl">Everything you need to get new clients.</span>
+                <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-8xl">Kill the hassle.</span>
                 <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
-                  And keep them.
+                  Keep the gains.
                 </span>
               </div>
             ) : (
