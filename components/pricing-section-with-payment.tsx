@@ -103,7 +103,7 @@ export function PricingSectionWithPayment() {
           value={isCoach ? "trainer" : "client"}
           onValueChange={(value) => {
             if (value === "trainer") {
-              router.push("/trainers#pricing")
+              router.push("/#pricing")
             } else {
               router.push("/clients#pricing")
             }
