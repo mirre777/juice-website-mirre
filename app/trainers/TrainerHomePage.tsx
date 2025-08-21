@@ -50,9 +50,7 @@ export default function TrainerHomePage() {
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-              <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">
-                Get new clients.
-              </div>
+              <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">Get new clients.</div>
               <div className="font-bold tracking-tight juice-text-gradient md:w-1/2 text-6xl">And keep them.</div>
             </div>
           </h1>
@@ -174,6 +172,29 @@ export default function TrainerHomePage() {
                   alt="Juice Dashboard Interface for Coaches"
                   width={1200}
                   height={675}
+                  className="w-full h-auto"
+                />
+                <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+              </div>
+              <p className="text-xl text-gray-600 mt-6 text-center">Because trainers should train, not juggle admin.</p>
+            </div>
+          </div>
+
+          {/* Comprehensive Trainer Dashboard Section */}
+          <div className="max-w-6xl mx-auto mt-16">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-black mb-4">Easy workout logging for clients</h3>
+              <p className="text-lg text-gray-600">
+                Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.
+              </p>
+            </div>
+            <div className="relative w-full overflow-hidden">
+              <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
+                <Image
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OAYOgWWG0YkpwsZ42fGjGp9x6E65iT.png"
+                  alt="Comprehensive trainer dashboard showing client workouts, revenue tracking, and session management"
+                  width={1200}
+                  height={800}
                   className="w-full h-auto"
                 />
                 <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
