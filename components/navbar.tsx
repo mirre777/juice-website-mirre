@@ -36,7 +36,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <Logo />
+              <Logo isDarkBackground={isNavbarDark} />
             </Link>
           </div>
 
