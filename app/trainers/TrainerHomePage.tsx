@@ -72,7 +72,7 @@ export default function TrainerHomePage() {
                   onClick={handleWebpageBuilderClick}
                 >
                   <Image
-                    src="/images/homepage/microsite-alex.png"
+                    src="/images/homepage/microsite-alex-cropped.png"
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
