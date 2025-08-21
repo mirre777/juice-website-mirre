@@ -114,9 +114,9 @@ export default function HomePage() {
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
               <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl font-bold tracking-tight lg:text-4xl">Everything you need to get new clients.</span>
+                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">Kill the hassle.</span>
                 <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
-                  And keep them.
+                  Keep the gains.
                 </span>
               </div>
             ) : (
@@ -125,6 +125,61 @@ export default function HomePage() {
               </span>
             )}
           </h1>
+
+          <div className="mb-10 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+              {/* Mobile App */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <Image
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/workoutprogram%20%281%29-IHmNGG58tmo5NgxCUJ18N6iZU4npKl.png"
+                    alt="Mobile workout tracking app"
+                    width={240}
+                    height={520}
+                    className="w-60 h-auto rounded-2xl shadow-lg"
+                  />
+                </div>
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Mobile App</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Track workouts on the go</p>
+                </div>
+              </div>
+
+              {/* Web App */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <video autoPlay loop muted playsInline className="w-full max-w-md h-auto rounded-xl shadow-lg">
+                    <source
+                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
+                      type="video/mp4"
+                    />
+                  </video>
+                </div>
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Convert sheets to programs</p>
+                </div>
+              </div>
+
+              {/* Webpage Builder */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <Image
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/microsite%20image%20alex-TQagzRVyzQETG1LBIK3DqQbv4FBB9j.png"
+                    alt="Personal trainer website builder"
+                    width={400}
+                    height={300}
+                    className="w-full max-w-md h-auto rounded-xl shadow-lg"
+                  />
+                </div>
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
             {isCoach ? (
               <>
