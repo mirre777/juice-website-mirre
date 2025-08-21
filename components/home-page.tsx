@@ -128,20 +128,20 @@ export default function HomePage() {
 
           <div className="mb-10 max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-              {/* Mobile App */}
+              {/* Webpage Builder */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <Image
-                    src="/images/homepage/workoutprogram.png"
-                    alt="Mobile workout tracking app"
-                    width={240}
-                    height={520}
-                    className="w-48 h-auto"
+                    src="/images/homepage/microsite-alex.png"
+                    alt="Personal trainer website builder"
+                    width={400}
+                    height={300}
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                   />
                 </div>
                 <div className="text-center">
-                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Mobile App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Track workouts on the go</p>
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
                 </div>
               </div>
 
@@ -167,20 +167,20 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Webpage Builder */}
+              {/* Mobile App */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <Image
-                    src="/images/homepage/microsite-alex.png"
-                    alt="Personal trainer website builder"
-                    width={400}
-                    height={300}
-                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
+                    src="/images/homepage/workoutprogram.png"
+                    alt="Mobile workout tracking app"
+                    width={240}
+                    height={520}
+                    className="w-48 h-auto"
                   />
                 </div>
                 <div className="text-center">
-                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Mobile App</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Track workouts on the go</p>
                 </div>
               </div>
             </div>
