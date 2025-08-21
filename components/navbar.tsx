@@ -59,7 +59,7 @@ export function Navbar() {
                 href="/download-juice-app"
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
-                Download
+                Download Workout App
               </Link>
               {isCoach && (
                 <Link
@@ -150,7 +150,7 @@ export function Navbar() {
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Download
+              Download Workout App
             </Link>
             {isCoach && (
               <Link
