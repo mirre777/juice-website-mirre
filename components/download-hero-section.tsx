@@ -8,7 +8,7 @@ export function DownloadHeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white"></div>
+      <div className="absolute inset-0 bg-white"></div>
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto text-center">
