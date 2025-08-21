@@ -15,7 +15,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (pathname === "/trainers" || pathname === "/for-trainers") {
+    if (pathname === "/" || pathname === "/trainers" || pathname === "/for-trainers") {
       setIsCoach(true)
     } else if (pathname === "/clients" || pathname === "/for-clients") {
       setIsCoach(false)
@@ -24,10 +24,16 @@ export function Navbar() {
 
   const handleToggleChange = (newIsCoach: boolean) => {
     setIsCoach(newIsCoach)
-    if (newIsCoach && (pathname === "/clients" || pathname === "/for-clients")) {
-      router.push("/trainers")
-    } else if (!newIsCoach && (pathname === "/trainers" || pathname === "/for-trainers")) {
-      router.push("/clients")
+    if (newIsCoach) {
+      // Switching to trainer - navigate to root if on clients page
+      if (pathname === "/clients" || pathname === "/for-clients") {
+        router.push("/")
+      }
+    } else {
+      // Switching to client - navigate to clients if on root or trainers page
+      if (pathname === "/" || pathname === "/trainers" || pathname === "/for-trainers") {
+        router.push("/clients")
+      }
     }
   }
 
