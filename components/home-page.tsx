@@ -14,7 +14,8 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link" // Import Link
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
 
 export default function HomePage() {
   const router = useRouter()
@@ -33,6 +34,15 @@ export default function HomePage() {
       if (waitlistRef.current) {
         waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
       }
+    }, 100)
+  }
+
+  const handleMobileAppClick = () => {
+    // Set to client view first
+    setIsCoach(false)
+    // Then scroll to how-it-works section
+    setTimeout(() => {
+      scrollToSection("how-it-works")
     }, 100)
   }
 
@@ -141,7 +151,9 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Attract new clients through your personal page</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Attract new clients through your personal page
+                  </p>
                 </div>
               </div>
 
@@ -163,13 +175,18 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Convert your sheets to programs</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Convert your sheets to programs
+                  </p>
                 </div>
               </div>
 
               {/* Mobile App */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
+                <div
+                  className="relative cursor-pointer transition-transform hover:scale-105"
+                  onClick={handleMobileAppClick}
+                >
                   <Image
                     src="/images/homepage/workoutprogram.png"
                     alt="Mobile workout tracking app"
@@ -179,8 +196,16 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="text-center">
-                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Mobile App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Your client can easily do the workouts</p>
+                  <h3
+                    className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"} cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1`}
+                    onClick={handleMobileAppClick}
+                  >
+                    Mobile App
+                    <ChevronRight className="w-4 h-4" />
+                  </h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Your client can easily do the workouts
+                  </p>
                 </div>
               </div>
             </div>
