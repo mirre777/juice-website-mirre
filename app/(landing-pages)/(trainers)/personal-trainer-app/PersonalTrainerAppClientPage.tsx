@@ -14,9 +14,9 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link" // Import Link
+import Link from "next/link"
 
-export default function HomePage() {
+export function PersonalTrainerAppClientPage() {
   const router = useRouter()
   const pathname = usePathname()
   const { isCoach, setIsCoach } = useTheme()
@@ -57,14 +57,9 @@ export default function HomePage() {
     }
   }, [])
 
-  // Check if we're on the client route and set view accordingly
   useEffect(() => {
-    if (pathname === "/client") {
-      setIsCoach(false)
-    } else {
-      setIsCoach(true)
-    }
-  }, [pathname, setIsCoach])
+    setIsCoach(true)
+  }, [setIsCoach])
 
   // Handle escape key to close mobile menu
   useEffect(() => {
@@ -114,7 +109,9 @@ export default function HomePage() {
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
               <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">Kill the hassle.</span>
+                <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-8xl">
+                  Kill the hassle.
+                </span>
                 <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
                   Keep the gains.
                 </span>
@@ -125,67 +122,6 @@ export default function HomePage() {
               </span>
             )}
           </h1>
-
-          <div className="mb-10 max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-              {/* Mobile App */}
-              <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
-                  <Image
-                    src="/images/homepage/workoutprogram.png"
-                    alt="Mobile workout tracking app"
-                    width={240}
-                    height={520}
-                    className="w-48 h-auto"
-                  />
-                </div>
-                <div className="text-center">
-                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Mobile App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Track workouts on the go</p>
-                </div>
-              </div>
-
-              {/* Web App */}
-              <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
-                  <video
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
-                    width={400}
-                    height={300}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-                <div className="text-center">
-                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Convert sheets to programs</p>
-                </div>
-              </div>
-
-              {/* Webpage Builder */}
-              <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
-                  <Image
-                    src="/images/homepage/microsite-alex.png"
-                    alt="Personal trainer website builder"
-                    width={400}
-                    height={300}
-                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
-                  />
-                </div>
-                <div className="text-center">
-                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
             {isCoach ? (
               <>
