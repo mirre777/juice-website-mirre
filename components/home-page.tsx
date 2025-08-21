@@ -114,10 +114,10 @@ export default function HomePage() {
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
               <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                <div className="text-6xl font-bold tracking-tight text-black">
+                <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">
                   Everything you need to get new clients.
                 </div>
-                <div className="text-6xl font-bold tracking-tight juice-text-gradient">And keep them.</div>
+                <div className="text-6xl font-bold tracking-tight juice-text-gradient md:w-1/2">And keep them.</div>
               </div>
             ) : (
               <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -141,7 +141,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-center">
                   <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Attract clients with your personal page</p>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>Professional trainer sites</p>
                 </div>
               </div>
 
