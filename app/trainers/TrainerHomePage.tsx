@@ -44,6 +44,10 @@ export default function TrainerHomePage() {
       {/* Hero Section */}
       <section className="pt-32 pb-10 md:pt-40 md:pb-10">
         <div className="container mx-auto px-4 md:px-6 text-center">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">The #1 Personal Trainer Tool</h2>
+          </div>
+
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
               <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">
