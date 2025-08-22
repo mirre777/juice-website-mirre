@@ -72,12 +72,14 @@ export function FeaturesSection() {
   const getPageSpecificContent = () => {
     if (isTrainerPage) {
       return {
+        smallHeader: "Webpage Builder",
         header: "Powerful tools for personal trainers",
         description:
           "Everything you need to manage clients, track progress, and grow your fitness business with the best personal training software.",
       }
     } else if (isClientPage) {
       return {
+        smallHeader: "Features",
         header: "Powerful tools for fitness enthusiasts",
         description:
           "Achieve your fitness goals faster with personalized workouts, progress tracking, and direct trainer communication.",
@@ -85,6 +87,7 @@ export function FeaturesSection() {
     } else {
       // Fallback for other pages with toggles
       return {
+        smallHeader: "Features",
         header: "Powerful tools for both sides of fitness",
         description:
           "Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional results, Juice has you covered as the best personal training software.",
@@ -92,13 +95,13 @@ export function FeaturesSection() {
     }
   }
 
-  const { header, description } = getPageSpecificContent()
+  const { smallHeader, header, description } = getPageSpecificContent()
 
   return (
     <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6 pb-4">
         <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>Webpage Builder</span>
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>{smallHeader}</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>{header}</h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
         </div>
