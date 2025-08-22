@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartphone, Users } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 
 interface Feature {
   icon: React.ReactNode
@@ -16,6 +16,10 @@ interface Feature {
 export function FeaturesSection() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
+  const pathname = usePathname()
+
+  const isTrainerPage = pathname === "/"
+  const isClientPage = pathname === "/clients"
 
   const clientFeatures: Feature[] = [
     {
@@ -65,18 +69,38 @@ export function FeaturesSection() {
     },
   ]
 
+  const getPageSpecificContent = () => {
+    if (isTrainerPage) {
+      return {
+        header: "Powerful tools for personal trainers",
+        description:
+          "Everything you need to manage clients, track progress, and grow your fitness business with the best personal training software.",
+      }
+    } else if (isClientPage) {
+      return {
+        header: "Powerful tools for fitness enthusiasts",
+        description:
+          "Achieve your fitness goals faster with personalized workouts, progress tracking, and direct trainer communication.",
+      }
+    } else {
+      // Fallback for other pages with toggles
+      return {
+        header: "Powerful tools for both sides of fitness",
+        description:
+          "Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional results, Juice has you covered as the best personal training software.",
+      }
+    }
+  }
+
+  const { header, description } = getPageSpecificContent()
+
   return (
     <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6 pb-4">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>FEATURES</span>
-          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Powerful tools for both sides of fitness
-          </h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional
-            results, Juice has you covered as the best personal training software.
-          </p>
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>{header}</h2>
+          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
         </div>
 
         <Tabs
