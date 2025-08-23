@@ -72,7 +72,7 @@ export function FeaturesSection() {
   const getPageSpecificContent = () => {
     if (isTrainerPage) {
       return {
-        smallHeader: "Webpage Builder",
+        smallHeader: "FEATURES",
         header: "Powerful tools for personal trainers",
         description:
           "Everything you need to manage clients, track progress, and grow your fitness business with the best personal training software.",
