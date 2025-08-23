@@ -112,7 +112,7 @@ export function HomePageHowItWorks() {
     >
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>HOW IT WORKS</span>
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEB APP</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
             Simple setup, powerful results
           </h2>
