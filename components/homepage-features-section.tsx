@@ -3,7 +3,7 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartphone, Users } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -121,8 +121,6 @@ export function HomePageFeaturesSection() {
           }}
           className="w-full max-w-4xl mx-auto"
         >
-          
-
           <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
             <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
               {clientFeatures.map((feature, index) => (
@@ -172,10 +170,10 @@ export function HomePageFeaturesSection() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="text-center relative"
+                      className="text-left relative"
                     >
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-juice/10 flex items-center justify-center mx-auto mb-3 lg:mb-4">
-                        <div className="text-juice">{benefit.icon}</div>
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-juice/10 flex items-center justify-start mb-3 lg:mb-4">
+                        <div className="text-juice ml-3">{benefit.icon}</div>
                       </div>
                       <h3 className={`text-sm lg:text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                         {benefit.title}
