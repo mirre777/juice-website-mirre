@@ -2,8 +2,8 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { WaitlistForm } from "@/components/waitlist-form"
-import { FeaturesSection } from "@/components/features-section"
-import { HowItWorks } from "@/components/how-it-works"
+import { HomePageFeaturesSection } from "@/components/homepage-features-section"
+import { HomePageHowItWorks } from "@/components/homepage-how-it-works"
 import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
 import { BenefitsSection } from "@/components/benefits-section"
 import { useTheme } from "@/components/theme-provider"
@@ -151,12 +151,12 @@ export default function HomePage() {
 
           {/* Features Section */}
           <section id="features" className="scroll-mt-20 mt-16">
-            <FeaturesSection />
+            <HomePageFeaturesSection />
           </section>
 
           {/* How It Works Section */}
           <section id="how-it-works" className="scroll-mt-20 mt-16">
-            <HowItWorks />
+            <HomePageHowItWorks />
           </section>
 
           {/* Pricing Section */}
