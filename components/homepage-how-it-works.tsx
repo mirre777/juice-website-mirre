@@ -6,13 +6,10 @@ import { StatisticsScreen } from "./statistics-screen"
 import Image from "next/image"
 import { useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { usePathname } from "next/navigation"
 
-export function HowItWorks() {
+export function HomePageHowItWorks() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
-  const pathname = usePathname()
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
 
   const clientSteps = [
     {
@@ -109,23 +106,23 @@ export function HowItWorks() {
   }
 
   return (
-    <section
-      id="how-it-works"
-      className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}
-    >
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>HOW IT WORKS</span>
-          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Simple setup, powerful results
-          </h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Our streamlined platform makes fitness training and progress tracking effortless for both trainers and
-            clients.
-          </p>
-        </div>
+    <>
+      <section
+        id="how-it-works"
+        className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}
+      >
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEB APP</span>
+            <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+              Convert programs, see all progress
+            </h2>
+            <p className="text-zinc-400 max-w-2xl">
+              Our streamlined platform makes fitness training and progress tracking effortless for both trainers and
+              clients.
+            </p>
+          </div>
 
-        {!isPersonalTrainerAppPage ? (
           <Tabs
             defaultValue="client"
             value={isCoach ? "trainer" : "client"}
@@ -207,7 +204,7 @@ export function HowItWorks() {
                         </div>
                         <h3 className="text-2xl font-bold">{step.title}</h3>
                       </div>
-                      <p className="text-zinc-400 mb-6">{step.description}</p>
+                      <p className="mb-6 text-left">{step.description}</p>
                       <div className="h-1 w-20 bg-juice rounded-full"></div>
                     </div>
                     <div className="flex-1">
@@ -252,70 +249,65 @@ export function HowItWorks() {
               </div>
             </TabsContent>
           </Tabs>
-        ) : (
-          <div className="w-full max-w-5xl mx-auto">
-            <div className="space-y-16">
-              {trainerSteps.map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 items-center`}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-juice text-black font-bold">
-                        {index + 1}
-                      </div>
-                      <h3 className="text-2xl font-bold">{step.title}</h3>
-                    </div>
-                    <p className="text-zinc-400 mb-6">{step.description}</p>
-                    <div className="h-1 w-20 bg-juice rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="relative rounded-xl overflow-hidden shadow-lg bg-transparent border-0">
-                      {step.isMultiImage ? (
-                        <div className="flex flex-col gap-4 py-4">
-                          {step.images?.map((image, imgIndex) => (
-                            <div key={imgIndex} className="bg-white rounded-xl p-2 shadow-md">
-                              <Image
-                                src={image.src || "/placeholder.svg"}
-                                alt={image.alt}
-                                width={500}
-                                height={350}
-                                className="w-full h-auto object-contain rounded-lg"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      ) : step.isCustomImage ? (
-                        <div className="flex justify-center py-4 bg-white rounded-xl">
-                          <div className={index === 3 ? "max-w-[300px]" : ""}>
-                            <Image
-                              src={step.image || "/placeholder.svg"}
-                              alt={step.title}
-                              width={index === 3 ? 300 : 600}
-                              height={index === 3 ? 400 : 800}
-                              className="w-full h-auto object-contain rounded-xl"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <img
-                          src={step.image || "/placeholder.svg"}
-                          alt={step.title}
-                          className="w-full h-auto object-contain"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+        </div>
+      </section>
+
+      <section className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>MOBILE APP</span>
+            <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
+              Your client sees shared workout plans
+            </h2>
+            <p className="text-zinc-400 max-w-2xl">
+              After creating or converting a program in our web app, you can easily send it to any client with the
+              mobile app. They will get notified of the new program and can log all the workouts you planned as a
+              trainer.
+            </p>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-center my-0">
+            <div className="flex-1 lg:max-w-sm">
+              <VideoPlayer
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%202x%20speed%20client%20receives%20a%20program-wIKCg2g0tq497ZT7Zs6uGMpHkv640S.mp4"
+                className="w-full h-auto rounded-2xl shadow-lg"
+              />
+            </div>
+
+            <div className="flex-1 space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-juice text-black font-bold text-sm">
+                  1
+                </div>
+                <div className="text-left">
+                  <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                    Instant Program Delivery
+                  </h3>
+                  <p className="">
+                    Send workout programs directly to your clients' mobile devices with real-time notifications and
+                    seamless synchronization.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-juice text-black font-bold text-sm">
+                  2
+                </div>
+                <div className="text-left">
+                  <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                    Progress Tracking Made Simple
+                  </h3>
+                  <p className="">
+                    Clients can easily log workouts, track their progress, and share results back to you for continuous
+                    improvement and motivation.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   )
 }

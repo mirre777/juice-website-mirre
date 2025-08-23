@@ -1,5 +1,7 @@
 import { Suspense } from "react"
 import { LegalContent } from "./legal-content"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
 
 export const metadata = {
   title: "Juice Legal Information | Terms of Service & Privacy Policy",
@@ -20,6 +22,8 @@ export default function LegalPage({ searchParams }: LegalPageProps) {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Navbar />
+
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -32,6 +36,8 @@ export default function LegalPage({ searchParams }: LegalPageProps) {
           </Suspense>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }

@@ -14,7 +14,8 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link" // Import Link
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
 
 export default function HomePage() {
   const router = useRouter()
@@ -33,6 +34,15 @@ export default function HomePage() {
       if (waitlistRef.current) {
         waitlistRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
       }
+    }, 100)
+  }
+
+  const handleMobileAppClick = () => {
+    // Set to client view first
+    setIsCoach(false)
+    // Then scroll to how-it-works section
+    setTimeout(() => {
+      scrollToSection("how-it-works")
     }, 100)
   }
 
@@ -113,11 +123,11 @@ export default function HomePage() {
         <div className="container mx-auto px-4 md:px-6 text-center">
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
-              <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">Kill the hassle.</span>
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
-                  Keep the gains.
-                </span>
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+                <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">
+                  3 Things you need to get new clients.
+                </div>
+                <div className="font-bold tracking-tight juice-text-gradient md:w-1/2 text-8xl">And keep them.</div>
               </div>
             ) : (
               <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -125,6 +135,82 @@ export default function HomePage() {
               </span>
             )}
           </h1>
+
+          <div className="mb-10 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+              {/* Webpage Builder */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <Image
+                    src="/images/homepage/microsite-alex.png"
+                    alt="Personal trainer website builder"
+                    width={400}
+                    height={300}
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
+                  />
+                </div>
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Webpage Builder</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Attract new clients through your personal page
+                  </p>
+                </div>
+              </div>
+
+              {/* Web App */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <video
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%20convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app-CUUp6nXO3X3CGsUHIAuJFq9BsQklhB.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
+                    width={400}
+                    height={300}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"}`}>Web App</h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Convert your sheets to programs
+                  </p>
+                </div>
+              </div>
+
+              {/* Mobile App */}
+              <div className="flex flex-col items-center space-y-4">
+                <div
+                  className="relative cursor-pointer transition-transform hover:scale-105"
+                  onClick={handleMobileAppClick}
+                >
+                  <Image
+                    src="/images/homepage/workoutprogram.png"
+                    alt="Mobile workout tracking app"
+                    width={240}
+                    height={520}
+                    className="w-48 h-auto"
+                  />
+                </div>
+                <div className="text-center">
+                  <h3
+                    className={`text-lg font-semibold ${isCoach ? "text-black" : "text-white"} cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1`}
+                    onClick={handleMobileAppClick}
+                  >
+                    Mobile App
+                    <ChevronRight className="w-4 h-4" />
+                  </h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Your client can easily do the workouts
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
             {isCoach ? (
               <>

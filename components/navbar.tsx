@@ -1,17 +1,100 @@
 "use client"
 
+import type React from "react"
+
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Logo } from "@/components/logo"
 import { UserToggle } from "@/components/user-toggle"
 import { useTheme } from "@/contexts/theme-context"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { isCoach, setIsCoach } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (
+      pathname === "/" ||
+      pathname === "/trainers" ||
+      pathname === "/for-trainers" ||
+      pathname === "/personal-trainer-app"
+    ) {
+      setIsCoach(true)
+    } else if (pathname === "/clients" || pathname === "/for-clients") {
+      setIsCoach(false)
+    }
+  }, [pathname, setIsCoach])
+
+  const handleToggleChange = (newIsCoach: boolean) => {
+    setIsCoach(newIsCoach)
+
+    const currentHash = window.location.hash
+
+    if (newIsCoach) {
+      // Switching to trainer - navigate to root if on clients page
+      if (pathname === "/clients" || pathname === "/for-clients") {
+        router.push("/" + currentHash)
+      }
+    } else {
+      // Switching to client - navigate to clients if on root, trainers, trainer app pages, or download pages
+      if (
+        pathname === "/" ||
+        pathname === "/trainers" ||
+        pathname === "/for-trainers" ||
+        pathname === "/personal-trainer-app" ||
+        pathname === "/download-juice-app"
+      ) {
+        router.push("/clients" + currentHash)
+      }
+    }
+  }
+
+  const handlePricingClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const pricingElement = document.getElementById("pricing")
+    if (pricingElement) {
+      pricingElement.scrollIntoView({ behavior: "smooth" })
+    }
+    // Update URL after scrolling - use / for trainer homepage
+    window.history.pushState(null, "", "/#pricing")
+  }
+
+  const handleHowItWorksClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+
+    const pagesWithHowItWorks = ["/", "/clients"]
+    const currentPageHasSection = pagesWithHowItWorks.includes(pathname)
+
+    if (isCoach) {
+      if (currentPageHasSection) {
+        // We're on a page that has the section, scroll to it
+        const howItWorksElement = document.getElementById("how-it-works")
+        if (howItWorksElement) {
+          howItWorksElement.scrollIntoView({ behavior: "smooth" })
+        }
+        window.history.pushState(null, "", "/#how-it-works")
+      } else {
+        // We're on a different page, redirect to homepage with anchor
+        router.push("/#how-it-works")
+      }
+    } else {
+      if (currentPageHasSection) {
+        // We're on a page that has the section, scroll to it
+        const howItWorksElement = document.getElementById("how-it-works")
+        if (howItWorksElement) {
+          howItWorksElement.scrollIntoView({ behavior: "smooth" })
+        }
+        window.history.pushState(null, "", "/clients#how-it-works")
+      } else {
+        // We're on a different page, redirect to clients page with anchor
+        router.push("/clients#how-it-works")
+      }
+    }
+  }
 
   console.log("[v0] Navbar isCoach state:", isCoach)
 
@@ -25,7 +108,10 @@ export function Navbar() {
     pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
-    pathname === "/getclients" // Added getclients route for dark navbar
+    pathname === "/getclients" || // Added getclients route for dark navbar
+    pathname === "/clients" || // Clients page gets dark navbar to match client-focused styling
+    pathname === "/legal" // Added legal page for dark navbar to match black background
+
   const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
 
   return (
@@ -43,19 +129,19 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <Link
-                href={`/#how-it-works${!isCoach ? "?view=client" : ""}`}
+              <button
+                onClick={handleHowItWorksClick}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
                 How It Works
-              </Link>
+              </button>
               {isCoach && (
-                <Link
-                  href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
+                <button
+                  onClick={handlePricingClick}
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 >
                   Pricing
-                </Link>
+                </button>
               )}
               <Link
                 href="/download-juice-app"
@@ -92,7 +178,7 @@ export function Navbar() {
           {/* User Toggle and CTA - Fixed spacing */}
           <div className="hidden md:flex items-center gap-4">
             <div className="flex-shrink-0">
-              <UserToggle isCoach={isCoach} onChange={setIsCoach} isDarkBackground={isNavbarDark} />
+              <UserToggle isCoach={isCoach} onChange={handleToggleChange} isDarkBackground={isNavbarDark} />
             </div>
             <div className="flex-shrink-0">
               {isCoach ? (
@@ -133,21 +219,25 @@ export function Navbar() {
           className={`md:hidden ${isNavbarDark ? "bg-black" : "bg-white"} border-t ${isNavbarDark ? "border-gray-800" : "border-gray-200"}`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              href={`/#how-it-works${!isCoach ? "?view=client" : ""}`}
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
+            <button
+              onClick={(e) => {
+                handleHowItWorksClick(e)
+                setIsMobileMenuOpen(false)
+              }}
+              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
             >
               How It Works
-            </Link>
+            </button>
             {isCoach && (
-              <Link
-                href={`/pricing-demo${!isCoach ? "?view=client" : ""}`}
-                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={(e) => {
+                  handlePricingClick(e)
+                  setIsMobileMenuOpen(false)
+                }}
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
               >
                 Pricing
-              </Link>
+              </button>
             )}
             <Link
               href="/download-juice-app"

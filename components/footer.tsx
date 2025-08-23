@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react"
+import { Facebook, Instagram, Linkedin } from "lucide-react"
 import { Logo } from "./logo"
 import { useTheme } from "@/components/theme-provider"
 import { usePathname } from "next/navigation"
@@ -18,6 +18,7 @@ export function Footer() {
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
     pathname === "/getclients" || // Added getclients route for dark footer
+    pathname === "/legal" || // Added legal page for dark footer to match black background
     pathname.startsWith("/client") ||
     (pathname !== "/download-juice-app" &&
       pathname !== "/gratis-workout-app-met-trainer" &&
@@ -37,7 +38,7 @@ export function Footer() {
   }
 
   return (
-    <footer className={cn("py-12", footerBgClass)}>
+    <footer className={cn("py-[18px]", footerBgClass)}>
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2">
@@ -49,9 +50,6 @@ export function Footer() {
               <Facebook className="h-5 w-5" />
             </Link>
             <Link href="#" className={getTextColorClass()}>
-              <Twitter className="h-5 w-5" />
-            </Link>
-            <Link href="#" className={getTextColorClass()}>
               <Instagram className="h-5 w-5" />
             </Link>
             <Link href="#" className={getTextColorClass()}>
@@ -61,35 +59,24 @@ export function Footer() {
         </div>
 
         <div>
-          <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Product</h3>
-          <ul className="space-y-2">
+          <h3 className={cn("text-lg font-semibold mb-4 text-left", getTextColorClass(true))}>Product</h3>
+          <ul className="space-y-2 text-left">
             <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
+              <Link href="/#features" className={cn("text-sm", getTextColorClass())}>
                 Features
               </Link>
             </li>
             <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
+              <Link href="/#pricing" className={cn("text-sm", getTextColorClass())}>
                 Pricing
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
-                Testimonials
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
-                FAQ
               </Link>
             </li>
           </ul>
         </div>
 
         <div>
-          <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Company</h3>
-          <ul className="space-y-2">
-            {/* Removed About Us and Contact links */}
+          <h3 className={cn("text-lg font-semibold mb-4 text-left", getTextColorClass(true))}>Company</h3>
+          <ul className="space-y-2 text-left">
             <li>
               <Link href="/blog" className={cn("text-sm", getTextColorClass())}>
                 Blog
@@ -99,8 +86,8 @@ export function Footer() {
         </div>
 
         <div>
-          <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Legal</h3>
-          <ul className="space-y-2">
+          <h3 className={cn("text-lg font-semibold mb-4 text-left", getTextColorClass(true))}>Legal</h3>
+          <ul className="space-y-2 text-left">
             <li>
               <Link href="/legal?tab=terms" className={cn("text-sm", getTextColorClass())}>
                 Terms of Service

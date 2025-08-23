@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartphone, Users } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
+import { useRouter, usePathname } from "next/navigation"
 
 interface Feature {
   icon: React.ReactNode
@@ -12,8 +13,20 @@ interface Feature {
   description: string
 }
 
+interface Benefit {
+  icon: React.ReactNode
+  title: string
+  description: string
+}
+
 export function FeaturesSection() {
   const { isCoach, setIsCoach } = useTheme()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const isTrainerPage = pathname === "/"
+  const isClientPage = pathname === "/clients"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
 
   const clientFeatures: Feature[] = [
     {
@@ -63,46 +76,156 @@ export function FeaturesSection() {
     },
   ]
 
+  const trainerBenefits: Benefit[] = [
+    {
+      icon: <Dumbbell className="h-8 w-8" />,
+      title: "Workout builder app",
+      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
+    },
+    {
+      icon: <Users className="h-8 w-8" />,
+      title: "Client management",
+      description: "All your clients' details, goals, and progress in one fitness coaching app.",
+    },
+    {
+      icon: <Smartphone className="h-8 w-8" />,
+      title: "Easy workout logging for clients",
+      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+    },
+    {
+      icon: <BarChart3 className="h-8 w-8" />,
+      title: "Instant performance insights",
+      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
+    },
+  ]
+
+  const getPageSpecificContent = () => {
+    if (isTrainerPage) {
+      return {
+        smallHeader: "FEATURES",
+        header: "Powerful tools for personal trainers",
+        description:
+          "Everything you need to manage clients, track progress, and grow your fitness business with the best personal training software.",
+      }
+    } else if (isClientPage) {
+      return {
+        smallHeader: "FEATURES",
+        header: "Powerful tools for fitness enthusiasts",
+        description:
+          "Achieve your fitness goals faster with personalized workouts, progress tracking, and direct trainer communication.",
+      }
+    } else if (isPersonalTrainerAppPage) {
+      return {
+        smallHeader: "FEATURES",
+        header: "Powerful tools for personal trainers",
+        description:
+          "Everything you need to manage clients, track progress, and grow your fitness business with the best personal training software.",
+      }
+    } else {
+      // Fallback for other pages with toggles
+      return {
+        smallHeader: "FEATURES",
+        header: "Powerful tools for both sides of fitness",
+        description:
+          "Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional results, Juice has you covered as the best personal training software.",
+      }
+    }
+  }
+
+  const { smallHeader, header, description } = getPageSpecificContent()
+
   return (
     <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6 pb-4">
         <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>FEATURES</span>
-          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Powerful tools for both sides of fitness
-          </h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional
-            results, Juice has you covered as the best personal training software.
-          </p>
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>{smallHeader}</span>
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>{header}</h2>
+          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
         </div>
 
-        <Tabs
-          defaultValue="client"
-          value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => setIsCoach(value === "trainer")}
-          className="w-full max-w-4xl mx-auto"
-        >
-          <div className="flex justify-center mb-8">
-            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
-              <TabsTrigger
-                value="client"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Client_Features"
-              >
-                For Clients
+        {!isPersonalTrainerAppPage && !isClientPage ? (
+          <Tabs
+            defaultValue="client"
+            value={isCoach ? "trainer" : "client"}
+            onValueChange={(value) => {
+              if (value === "trainer") {
+                router.push("/#features")
+              } else {
+                router.push("/clients#features")
+              }
+            }}
+            className="w-full max-w-4xl mx-auto"
+          >
+            <TabsList className="mb-4">
+              <TabsTrigger value="client" className="mr-2">
+                Client Features
               </TabsTrigger>
-              <TabsTrigger
-                value="trainer"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Trainer_Features"
-              >
-                For Trainers
-              </TabsTrigger>
+              <TabsTrigger value="trainer">Trainer Benefits</TabsTrigger>
             </TabsList>
-          </div>
 
-          <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
+            <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
+              <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
+                {clientFeatures.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <div className="feature-card">
+                      <div className="flex flex-col md:flex-row items-start">
+                        <div className="mr-4 mt-1">{feature.icon}</div>
+                        <div>
+                          <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                            {feature.title}
+                          </h3>
+                          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {trainerBenefits.map((benefit, index) => (
+                  <div key={index} className="flex items-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="text-center flex-1"
+                    >
+                      <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <div className="text-juice">{benefit.icon}</div>
+                      </div>
+                      <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                        {benefit.title}
+                      </h3>
+                      <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
+                    </motion.div>
+
+                    {index < trainerBenefits.length - 1 && (
+                      <div className="hidden lg:flex items-center justify-center mx-4">
+                        <svg
+                          className={`w-6 h-6 ${isCoach ? "text-gray-400" : "text-gray-600"}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : isClientPage ? (
+          <div className="w-full max-w-4xl mx-auto">
             <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
               {clientFeatures.map((feature, index) => (
                 <motion.div
@@ -125,33 +248,44 @@ export function FeaturesSection() {
                 </motion.div>
               ))}
             </div>
-          </TabsContent>
-
-          <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
-            <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
-              {trainerFeatures.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <div className="feature-card">
-                    <div className="flex flex-col md:flex-row items-start">
-                      <div className="mr-4 mt-1">{feature.icon}</div>
-                      <div>
-                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                          {feature.title}
-                        </h3>
-                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
-                      </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {trainerBenefits.map((benefit, index) => (
+                <div key={index} className="flex items-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="text-center flex-1"
+                  >
+                    <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <div className="text-juice">{benefit.icon}</div>
                     </div>
-                  </div>
-                </motion.div>
+                    <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                      {benefit.title}
+                    </h3>
+                    <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
+                  </motion.div>
+
+                  {index < trainerBenefits.length - 1 && (
+                    <div className="hidden lg:flex items-center justify-center mx-4">
+                      <svg
+                        className={`w-6 h-6 ${isCoach ? "text-gray-400" : "text-gray-600"}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </div>
   )
