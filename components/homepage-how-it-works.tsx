@@ -204,7 +204,7 @@ export function HomePageHowItWorks() {
                         </div>
                         <h3 className="text-2xl font-bold">{step.title}</h3>
                       </div>
-                      <p className="text-zinc-400 mb-6 text-left">{step.description}</p>
+                      <p className="mb-6 text-left">{step.description}</p>
                       <div className="h-1 w-20 bg-juice rounded-full"></div>
                     </div>
                     <div className="flex-1">
@@ -283,7 +283,7 @@ export function HomePageHowItWorks() {
                   <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                     Instant Program Delivery
                   </h3>
-                  <p className="text-zinc-400">
+                  <p className="">
                     Send workout programs directly to your clients' mobile devices with real-time notifications and
                     seamless synchronization.
                   </p>
@@ -298,7 +298,7 @@ export function HomePageHowItWorks() {
                   <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                     Progress Tracking Made Simple
                   </h3>
-                  <p className="text-zinc-400">
+                  <p className="">
                     Clients can easily log workouts, track their progress, and share results back to you for continuous
                     improvement and motivation.
                   </p>
