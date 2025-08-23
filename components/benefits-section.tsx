@@ -55,8 +55,22 @@ export function BenefitsSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="flex flex-col items-start text-left p-4 md:p-6"
+              className="flex flex-col items-start text-left p-4 md:p-6 relative"
             >
+              <div
+                className={`absolute w-8 h-8 rounded-full bg-juice text-black font-bold text-sm flex items-center justify-center ${
+                  index === 0
+                    ? "-top-2 -left-2"
+                    : index === 1
+                      ? "-top-2 -right-2"
+                      : index === 2
+                        ? "-bottom-2 -left-2"
+                        : "-bottom-2 -right-2"
+                }`}
+              >
+                {index + 1}
+              </div>
+
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-juice/10 mb-4">
                 <div className="text-juice">{benefit.icon}</div>
               </div>
