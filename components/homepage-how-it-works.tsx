@@ -109,7 +109,7 @@ export function HomePageHowItWorks() {
     <>
       <section
         id="how-it-works"
-        className={`pt-16 pb-0 mb-[0] mt-16 ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}
+        className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}
       >
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center mb-12">
@@ -252,7 +252,7 @@ export function HomePageHowItWorks() {
         </div>
       </section>
 
-      <section className={`pt-0 pb-0 mt-16 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
+      <section className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center mb-12">
             <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>MOBILE APP</span>
