@@ -266,12 +266,44 @@ export function HomePageHowItWorks() {
             </p>
           </div>
 
-          <div className="flex justify-center">
-            <div className="relative max-w-sm mx-auto">
+          <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start">
+            <div className="flex-1 lg:max-w-md">
               <VideoPlayer
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%202x%20speed%20client%20receives%20a%20program-wIKCg2g0tq497ZT7Zs6uGMpHkv640S.mp4"
                 className="w-full h-auto rounded-2xl shadow-lg"
               />
+            </div>
+
+            <div className="flex-1 space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-juice text-black font-bold text-sm">
+                  1
+                </div>
+                <div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                    Instant Program Delivery
+                  </h3>
+                  <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Send workout programs directly to your clients' mobile devices with real-time notifications and
+                    seamless synchronization.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-juice text-black font-bold text-sm">
+                  2
+                </div>
+                <div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                    Progress Tracking Made Simple
+                  </h3>
+                  <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                    Clients can easily log workouts, track their progress, and share results back to you for continuous
+                    improvement and motivation.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
