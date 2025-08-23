@@ -49,7 +49,7 @@ export default function HomePage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-10 md:pb-10 md:pt-[100px]">
+      <section className="pt-32 pb-16 md:pb-16 md:pt-[100px]">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-black">The #1 Personal Trainer Tool to</h2>
@@ -150,28 +150,28 @@ export default function HomePage() {
           </div>
 
           {/* Features Section */}
-          <section id="features" className="scroll-mt-20 mt-12">
+          <section id="features" className="scroll-mt-20 mt-16">
             <FeaturesSection />
           </section>
 
           {/* How It Works Section */}
-          <section id="how-it-works" className="scroll-mt-20 mt-24">
+          <section id="how-it-works" className="scroll-mt-20 mt-16">
             <HowItWorks />
           </section>
 
           {/* Pricing Section */}
-          <section id="pricing" className="scroll-mt-20 mt-24">
+          <section id="pricing" className="scroll-mt-20 mt-16">
             <PricingSectionWithPayment />
           </section>
 
           {/* Benefits Section */}
-          <section id="benefits" className="scroll-mt-20 mt-24">
+          <section id="benefits" className="scroll-mt-20 mt-16">
             <BenefitsSection />
           </section>
 
           {/* Waitlist Section */}
           {showWaitlist && (
-            <section id="waitlist" ref={waitlistRef} className="scroll-mt-20 mt-24">
+            <section id="waitlist" ref={waitlistRef} className="scroll-mt-20 mt-16">
               <WaitlistForm />
             </section>
           )}

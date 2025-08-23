@@ -104,7 +104,7 @@ export function WorkoutProgramAppClientPage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-10 md:pt-40 md:pb-10">
+      <section className="pt-32 pb-16 md:pt-40 md:pb-16">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
@@ -286,32 +286,32 @@ export function WorkoutProgramAppClientPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mt-24">
+      <section id="features" className="scroll-mt-20 mt-16">
         <FeaturesSection />
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="scroll-mt-20 mt-24">
+      <section id="how-it-works" className="scroll-mt-20 mt-16">
         <HowItWorks />
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-20 mt-24">
+      <section id="pricing" className="scroll-mt-20 mt-16">
         <PricingSectionWithPayment />
       </section>
 
       {/* Divider */}
-      <div className="w-full flex justify-center mt-24">
+      <div className="w-full flex justify-center mt-16">
         <div className="w-2/3 h-2 bg-juice"></div>
       </div>
 
       {/* Benefits Section */}
-      <section id="benefits" className="scroll-mt-20 mt-24">
+      <section id="benefits" className="scroll-mt-20 mt-16">
         <BenefitsSection />
       </section>
 
       {/* Blog Call to Action Section */}
-      <section className="py-16 mt-24">
+      <section className="py-16 mt-16">
         <div className="container mx-auto px-4 md:px-6">
           <div className={`rounded-3xl p-8 md:p-12 shadow-lg text-center ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
             <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
@@ -332,7 +332,7 @@ export function WorkoutProgramAppClientPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-10 mt-24">
+      <section className="py-10 mt-16">
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
