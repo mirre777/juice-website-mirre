@@ -73,7 +73,7 @@ export default function HomePage() {
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
-                    className="w-full max-w-md h-auto rounded-xl shadow-lg"
+                    className="w-full max-w-sm h-auto rounded-xl shadow-lg"
                   />
                 </div>
                 <div className="text-left">
