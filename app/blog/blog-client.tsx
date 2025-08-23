@@ -15,7 +15,6 @@ const getPlaceholderImage = (category: string) => {
     technology: "/fitness-tech-digital-health.png",
     fitness: "/gym-dumbbells.png",
     nutrition: "/healthy-meal-prep.png",
-    visibility: "/seo-tips-fitness-coaches-europe.png",
     marketing: "/personal-trainer-booking-page-mobile.png",
     general: "/fitness-equipment.png",
     myths: "/fitness-equipment.png",
@@ -165,7 +164,7 @@ export function BlogClient({ posts }: BlogClientProps) {
               <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">No posts found</h3>
-            <p className="text-gray-600 mb-8">
+            <p className="text-lg text-gray-700 mb-8">
               {!showAllPosts && selectedCategories.length === 0
                 ? "Select some categories to see posts."
                 : "No posts match the selected categories. Try selecting different categories."}
