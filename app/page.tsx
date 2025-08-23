@@ -59,7 +59,7 @@ export default function HomePage() {
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 lg:gap-8">
-              <div className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black md:w-1/2">
+              <div className="text-4xl md:text-5xl font-bold tracking-tight text-black md:w-1/2 lg:text-6xl">
                 Get new clients.
               </div>
               <div className="font-bold tracking-tight juice-text-gradient md:w-1/2 text-4xl md:text-5xl lg:text-6xl">
