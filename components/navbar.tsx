@@ -63,18 +63,33 @@ export function Navbar() {
   const handleHowItWorksClick = (e: React.MouseEvent) => {
     e.preventDefault()
 
+    const pagesWithHowItWorks = ["/", "/clients"]
+    const currentPageHasSection = pagesWithHowItWorks.includes(pathname)
+
     if (isCoach) {
-      const howItWorksElement = document.getElementById("how-it-works")
-      if (howItWorksElement) {
-        howItWorksElement.scrollIntoView({ behavior: "smooth" })
+      if (currentPageHasSection) {
+        // We're on a page that has the section, scroll to it
+        const howItWorksElement = document.getElementById("how-it-works")
+        if (howItWorksElement) {
+          howItWorksElement.scrollIntoView({ behavior: "smooth" })
+        }
+        window.history.pushState(null, "", "/#how-it-works")
+      } else {
+        // We're on a different page, redirect to homepage with anchor
+        router.push("/#how-it-works")
       }
-      window.history.pushState(null, "", "/#how-it-works")
     } else {
-      const howItWorksElement = document.getElementById("how-it-works")
-      if (howItWorksElement) {
-        howItWorksElement.scrollIntoView({ behavior: "smooth" })
+      if (currentPageHasSection) {
+        // We're on a page that has the section, scroll to it
+        const howItWorksElement = document.getElementById("how-it-works")
+        if (howItWorksElement) {
+          howItWorksElement.scrollIntoView({ behavior: "smooth" })
+        }
+        window.history.pushState(null, "", "/clients#how-it-works")
+      } else {
+        // We're on a different page, redirect to clients page with anchor
+        router.push("/clients#how-it-works")
       }
-      window.history.pushState(null, "", "/clients#how-it-works")
     }
   }
 
