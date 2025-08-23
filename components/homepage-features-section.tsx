@@ -75,23 +75,23 @@ export function HomePageFeaturesSection() {
   const trainerBenefits: Benefit[] = [
     {
       icon: <Dumbbell className="h-8 w-8" />,
-      title: "Workout builder app",
-      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
+      title: "Professional Templates",
+      description: "Choose from trainer-optimized designs that convert visitors into paying clients.",
     },
     {
       icon: <Users className="h-8 w-8" />,
-      title: "Client management",
-      description: "All your clients' details, goals, and progress in one fitness coaching app.",
+      title: "Lead Capture System",
+      description: "Built-in contact forms and booking widgets to capture potential clients automatically.",
     },
     {
       icon: <Smartphone className="h-8 w-8" />,
-      title: "Easy workout logging for clients",
-      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+      title: "Mobile-First Design",
+      description: "Your website looks perfect on all devices, ensuring clients can book from anywhere.",
     },
     {
       icon: <BarChart3 className="h-8 w-8" />,
-      title: "Instant performance insights",
-      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
+      title: "SEO Optimized",
+      description: "Get found on Google with built-in SEO features that boost your local search rankings.",
     },
   ]
 
@@ -180,25 +180,28 @@ export function HomePageFeaturesSection() {
                 </div>
               </div>
 
-              {/* Right side - Trainer Benefits Grid */}
+              {/* Right side - Trainer Benefits in horizontal row */}
               <div className="flex-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                   {trainerBenefits.map((benefit, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="text-center"
+                      className="text-center relative"
                     >
-                      
-                      <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-juice/10 flex items-center justify-center mx-auto mb-3 lg:mb-4">
+                        <div className="text-juice">{benefit.icon}</div>
+                      </div>
+                      <h3 className={`text-sm lg:text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                         {benefit.title}
                       </h3>
-                      <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
-                      {/* Add arrow between benefits except for the last one */}
-                      {index < trainerBenefits.length - 1 && index % 2 === 0 && (
-                        <div className="hidden lg:block absolute top-1/2 -right-6 transform -translate-y-1/2">
+                      <p className={`text-xs lg:text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                        {benefit.description}
+                      </p>
+                      {index < trainerBenefits.length - 1 && (
+                        <div className="hidden lg:block absolute top-8 -right-3 transform -translate-y-1/2">
                           <svg className="w-4 h-4 text-juice" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
