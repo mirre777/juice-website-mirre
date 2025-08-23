@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react"
+import { Facebook, Instagram, Linkedin } from "lucide-react"
 import { Logo } from "./logo"
 import { useTheme } from "@/components/theme-provider"
 import { usePathname } from "next/navigation"
@@ -47,9 +47,6 @@ export function Footer() {
           <div className="flex space-x-4">
             <Link href="#" className={getTextColorClass()}>
               <Facebook className="h-5 w-5" />
-            </Link>
-            <Link href="#" className={getTextColorClass()}>
-              <Twitter className="h-5 w-5" />
             </Link>
             <Link href="#" className={getTextColorClass()}>
               <Instagram className="h-5 w-5" />
