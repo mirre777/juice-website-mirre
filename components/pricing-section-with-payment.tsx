@@ -21,6 +21,7 @@ export function PricingSectionWithPayment() {
   const [stripePreloaded, setStripePreloaded] = useState(false)
   const pathname = usePathname()
   const isPersonalTrainerAppPage = pathname === "/personal-trainer-app" || pathname === "/workout-program-app"
+  const isHomepage = pathname === "/"
 
   useEffect(() => {
     // Preload Stripe.js when the pricing section is visible
@@ -101,7 +102,7 @@ export function PricingSectionWithPayment() {
           </p>
         </div>
 
-        {!isPersonalTrainerAppPage ? (
+        {!isPersonalTrainerAppPage && !isHomepage ? (
           <Tabs
             defaultValue="client"
             value={isCoach ? "trainer" : "client"}
@@ -390,7 +391,7 @@ export function PricingSectionWithPayment() {
                   transition={{ duration: 0.4, delay: 0.2 }}
                 >
                   <Card
-                    className={`${isCoach ? "bg-white border-gray-200" : "bg-zinc-900 border-zinc-800"} h-full flex flex-col`}
+                    className={`${isCoach ? "bg-white" : "bg-zinc-900"} border-juice juice-glow h-full flex flex-col`}
                   >
                     <CardHeader>
                       <div className="flex justify-between items-center">
