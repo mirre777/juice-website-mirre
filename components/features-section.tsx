@@ -13,6 +13,12 @@ interface Feature {
   description: string
 }
 
+interface Benefit {
+  icon: React.ReactNode
+  title: string
+  description: string
+}
+
 export function FeaturesSection() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
@@ -67,6 +73,29 @@ export function FeaturesSection() {
       icon: <Smartphone className="h-6 w-6 text-juice" />,
       title: "Easy workout logging for clients",
       description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+    },
+  ]
+
+  const trainerBenefits: Benefit[] = [
+    {
+      icon: <Activity className="h-8 w-8" />,
+      title: "Save Time",
+      description: "Automate client management and workout tracking to focus on what matters most - training.",
+    },
+    {
+      icon: <BarChart3 className="h-8 w-8" />,
+      title: "Grow Your Business",
+      description: "Impress clients with professional tools and deliver better results to attract more referrals.",
+    },
+    {
+      icon: <Users className="h-8 w-8" />,
+      title: "Reduce Admin Work",
+      description: "Eliminate spreadsheets and manual tracking with our all-in-one platform built for trainers.",
+    },
+    {
+      icon: <Dumbbell className="h-8 w-8" />,
+      title: "Improve Client Results",
+      description: "Track progress more effectively and provide data-driven feedback to help clients succeed.",
     },
   ]
 
@@ -172,6 +201,26 @@ export function FeaturesSection() {
             </TabsContent>
 
             <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {trainerBenefits.map((benefit, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <div className="text-juice">{benefit.icon}</div>
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                      {benefit.title}
+                    </h3>
+                    <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
+                  </motion.div>
+                ))}
+              </div>
+
               <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
                 {trainerFeatures.map((feature, index) => (
                   <motion.div
@@ -198,6 +247,26 @@ export function FeaturesSection() {
           </Tabs>
         ) : (
           <div className="w-full max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {trainerBenefits.map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="text-center"
+                >
+                  <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <div className="text-juice">{benefit.icon}</div>
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                    {benefit.title}
+                  </h3>
+                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
+                </motion.div>
+              ))}
+            </div>
+
             <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
               {trainerFeatures.map((feature, index) => (
                 <motion.div
