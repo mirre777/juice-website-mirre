@@ -108,7 +108,7 @@ export function Navbar() {
                 onClick={handleHowItWorksClick}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
-                Features
+                How It Works
               </button>
               {isCoach && (
                 <button
