@@ -30,7 +30,7 @@ export function BenefitsSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
+            className="flex flex-col items-start text-left p-4 md:p-6"
           >
             <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
               <Clock className="h-8 w-8 text-black" />
@@ -45,7 +45,7 @@ export function BenefitsSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
+            className="flex flex-col items-start text-left p-4 md:p-6"
           >
             <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
               <Award className="h-8 w-8 text-black" />
@@ -60,7 +60,7 @@ export function BenefitsSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
+            className="flex flex-col items-start text-left p-4 md:p-6"
           >
             <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
               <Shield className="h-8 w-8 text-black" />
@@ -75,7 +75,7 @@ export function BenefitsSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            className="flex flex-col items-center text-center p-4 md:p-6"
+            className="flex flex-col items-start text-left p-4 md:p-6"
           >
             <div className="w-16 h-16 rounded-full bg-[#f7ffd7] flex items-center justify-center mb-4">
               <Check className="h-8 w-8 text-black" />
