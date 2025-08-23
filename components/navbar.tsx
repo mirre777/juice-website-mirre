@@ -37,12 +37,13 @@ export function Navbar() {
         router.push("/")
       }
     } else {
-      // Switching to client - navigate to clients if on root, trainers, or trainer app pages
+      // Switching to client - navigate to clients if on root, trainers, trainer app pages, or download pages
       if (
         pathname === "/" ||
         pathname === "/trainers" ||
         pathname === "/for-trainers" ||
-        pathname === "/personal-trainer-app"
+        pathname === "/personal-trainer-app" ||
+        pathname === "/download-juice-app"
       ) {
         router.push("/clients")
       }
@@ -63,11 +64,11 @@ export function Navbar() {
     e.preventDefault()
 
     if (isCoach) {
-      const benefitsElement = document.getElementById("benefits")
-      if (benefitsElement) {
-        benefitsElement.scrollIntoView({ behavior: "smooth" })
+      const howItWorksElement = document.getElementById("how-it-works")
+      if (howItWorksElement) {
+        howItWorksElement.scrollIntoView({ behavior: "smooth" })
       }
-      window.history.pushState(null, "", "/#benefits")
+      window.history.pushState(null, "", "/#how-it-works")
     } else {
       const howItWorksElement = document.getElementById("how-it-works")
       if (howItWorksElement) {

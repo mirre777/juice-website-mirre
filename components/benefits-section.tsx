@@ -37,7 +37,7 @@ export function BenefitsSection() {
   ]
 
   return (
-    <section id="benefits" className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
+    <section id="how-it-works" className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>HOW IT WORKS</span>
