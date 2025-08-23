@@ -1,6 +1,6 @@
 "use client"
 import { motion } from "framer-motion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
 import { StatisticsScreen } from "./statistics-screen"
 import Image from "next/image"
@@ -12,7 +12,7 @@ export function HowItWorks() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app" || pathname === "/workout-program-app"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
 
   const clientSteps = [
     {
@@ -138,8 +138,6 @@ export function HowItWorks() {
             }}
             className="w-full max-w-5xl mx-auto"
           >
-            
-
             <TabsContent value="client" className="mt-0 min-h-[450px]">
               <div className="space-y-4 md:space-y-2">
                 {clientSteps.map((step, index) => (

@@ -21,8 +21,7 @@ export function Navbar() {
       pathname === "/" ||
       pathname === "/trainers" ||
       pathname === "/for-trainers" ||
-      pathname === "/personal-trainer-app" ||
-      pathname === "/workout-program-app"
+      pathname === "/personal-trainer-app"
     ) {
       setIsCoach(true)
     } else if (pathname === "/clients" || pathname === "/for-clients") {
@@ -43,8 +42,7 @@ export function Navbar() {
         pathname === "/" ||
         pathname === "/trainers" ||
         pathname === "/for-trainers" ||
-        pathname === "/personal-trainer-app" ||
-        pathname === "/workout-program-app"
+        pathname === "/personal-trainer-app"
       ) {
         router.push("/clients")
       }

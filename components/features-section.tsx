@@ -26,7 +26,7 @@ export function FeaturesSection() {
 
   const isTrainerPage = pathname === "/"
   const isClientPage = pathname === "/clients"
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app" || pathname === "/workout-program-app"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
 
   const clientFeatures: Feature[] = [
     {
@@ -156,7 +156,12 @@ export function FeaturesSection() {
             }}
             className="w-full max-w-4xl mx-auto"
           >
-            
+            <TabsList className="mb-4">
+              <TabsTrigger value="client" className="mr-2">
+                Client Features
+              </TabsTrigger>
+              <TabsTrigger value="trainer">Trainer Benefits</TabsTrigger>
+            </TabsList>
 
             <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
               <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
