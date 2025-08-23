@@ -155,37 +155,47 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
-          {/* Benefits Section */}
-          <section id="benefits" className="scroll-mt-20 mt-16">
-            <BenefitsSection />
-          </section>
-
-          {/* Features Section */}
-          <section id="features" className="scroll-mt-20 mt-16">
-            <HomePageFeaturesSection />
-          </section>
-
-          {/* How It Works Section */}
-          <section id="how-it-works" className="scroll-mt-20 mt-16">
-            <HomePageHowItWorks />
-          </section>
-
-          {/* Pricing Section */}
-          <section id="pricing" className="scroll-mt-20 mt-16">
-            <PricingSectionWithPayment />
-          </section>
-
-          {/* Waitlist Section */}
-          {showWaitlist && (
-            <section id="waitlist" ref={waitlistRef} className="scroll-mt-20 mt-16">
-              <WaitlistForm />
-            </section>
-          )}
-
-          <Footer />
         </div>
       </section>
+
+      {/* Benefits Section */}
+      <section id="benefits" className="scroll-mt-24 mb-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+          <BenefitsSection />
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="scroll-mt-24 mb-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+          <HomePageFeaturesSection />
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="scroll-mt-24 mb-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+          <HomePageHowItWorks />
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="scroll-mt-24 mb-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+          <PricingSectionWithPayment />
+        </div>
+      </section>
+
+      {/* Waitlist Section */}
+      {showWaitlist && (
+        <section id="waitlist" ref={waitlistRef} className="scroll-mt-24 mb-20">
+          <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+            <WaitlistForm />
+          </div>
+        </section>
+      )}
+
+      <Footer />
     </main>
   )
 }
