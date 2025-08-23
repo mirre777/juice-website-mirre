@@ -219,7 +219,7 @@ export default function TrainerHomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="trainers-pricing" className="scroll-mt-20 mt-24">
+      <section id="pricing" className="scroll-mt-20 mt-24">
         <PricingSectionWithPayment />
       </section>
 

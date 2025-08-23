@@ -180,7 +180,7 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="homepage-pricing" className="scroll-mt-24 mb-20">
+      <section id="pricing" className="scroll-mt-24 mb-20">
         <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
           <PricingSectionWithPayment />
         </div>

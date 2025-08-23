@@ -305,7 +305,7 @@ export function PersonalTrainerAppClientPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="personal-trainer-app-pricing" className="scroll-mt-20 mb-20">
+      <section id="pricing" className="scroll-mt-20 mb-20">
         <PricingSectionWithPayment />
       </section>
 

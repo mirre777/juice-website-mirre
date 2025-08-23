@@ -79,10 +79,7 @@ export function PricingSectionWithPayment() {
 
   // Add the maintain-scroll class to the main container
   return (
-    <section
-      id="pricing-component"
-      className={`pb-0 pt-[0] ${isCoach ? "bg-white" : "bg-black"} scroll-mt-24 maintain-scroll`}
-    >
+    <section id="pricing" className={`pb-0 pt-[0] ${isCoach ? "bg-white" : "bg-black"} scroll-mt-24 maintain-scroll`}>
       <div className="container px-4 md:px-6 mb-16">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>PRICING</span>
@@ -110,9 +107,11 @@ export function PricingSectionWithPayment() {
             value={isCoach ? "trainer" : "client"}
             onValueChange={(value) => {
               if (value === "trainer") {
-                router.push("/#homepage-pricing")
+                // Always go to homepage pricing section for trainers
+                router.push("/#pricing")
               } else {
-                router.push("/clients#clients-pricing")
+                // Always go to clients pricing section for clients
+                router.push("/clients#pricing")
               }
             }}
             className="w-full max-w-4xl mx-auto"
