@@ -238,8 +238,8 @@ export function HomePageHowItWorks() {
                           <Image
                             src={step.image || "/placeholder.svg"}
                             alt={step.title}
-                            width={450}
-                            height={600}
+                            width={600}
+                            height={800}
                             className="w-full h-auto object-contain rounded-xl"
                           />
                         </div>
