@@ -166,7 +166,7 @@ export function HomePageFeaturesSection() {
           </TabsContent>
 
           <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
               {/* Left side - Webpage Builder Image */}
               <div className="flex-1 lg:max-w-md">
                 <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
@@ -181,8 +181,8 @@ export function HomePageFeaturesSection() {
               </div>
 
               {/* Right side - Trainer Benefits in horizontal row */}
-              <div className="flex-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="flex-1 flex items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 w-full">
                   {trainerBenefits.map((benefit, index) => (
                     <motion.div
                       key={index}
