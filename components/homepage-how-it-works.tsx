@@ -266,7 +266,7 @@ export function HomePageHowItWorks() {
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-center my-16">
+          <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-center my-0">
             <div className="flex-1 lg:max-w-sm">
               <VideoPlayer
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%202x%20speed%20client%20receives%20a%20program-wIKCg2g0tq497ZT7Zs6uGMpHkv640S.mp4"
