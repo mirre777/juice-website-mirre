@@ -52,7 +52,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gym_woman-WTRGVNMDnOgXsKU3vNuaL1mAUze1Zr.png",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/blog_guy%20with%20laptop-J2A42ox9aOnq2sEVe3dPE64ShSp7EI.png",
     slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
   },
   {
@@ -72,7 +73,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
     category: "Technology",
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/black%20man%20with%20laptop%20in%20cafe-W7EvxZjuJ6xcO3vD0QK1p7KCaaSMYy.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/blog_max_LS%20%281%29-7dH43C8bxib9m8h89EuIAdRpLF4eoZ.png",
     slug: "top-5-free-personal-trainer-website-builders-2025",
   },
   {
