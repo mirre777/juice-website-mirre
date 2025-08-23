@@ -224,12 +224,12 @@ export function HomePageHowItWorks() {
                         </div>
                       ) : step.isCustomImage ? (
                         <div className="flex justify-center py-4 bg-white rounded-xl">
-                          <div className={index === 3 ? "max-w-[250px]" : ""}>
+                          <div className={index === 3 ? "max-w-[300px]" : ""}>
                             <Image
                               src={step.image || "/placeholder.svg"}
                               alt={step.title}
-                              width={index === 3 ? 250 : 600}
-                              height={index === 3 ? 300 : 800}
+                              width={index === 3 ? 300 : 600}
+                              height={index === 3 ? 400 : 800}
                               className="w-full h-auto object-contain rounded-xl"
                             />
                           </div>
