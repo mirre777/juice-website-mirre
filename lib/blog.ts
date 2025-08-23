@@ -62,7 +62,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
     category: "Marketing",
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/asian%20woman%20gym-yjGZ80lQKAuFqFbDgrG7xqwwx6XNpI.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/blog_how%20to%20get%20more%20clients%20with%20a%20booking%20page-wmImlXq2hLze6A2vut6CuRN8RzUFNK.png",
     slug: "how-to-get-more-clients-with-booking-page",
   },
   {
@@ -71,7 +71,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/boxer_gym-6wlg1r57kNLLkVRoWE8X6aD02l6k6y.png",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/black%20man%20with%20laptop%20in%20cafe-W7EvxZjuJ6xcO3vD0QK1p7KCaaSMYy.png",
     slug: "top-5-free-personal-trainer-website-builders-2025",
   },
   {
