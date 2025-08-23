@@ -101,7 +101,7 @@ export function HomePageFeaturesSection() {
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEBPAGE BUILDER</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Your Own Page To Get Client Bookings
+            Your own page to get client bookings
           </h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
             We have a standard layout but you can add your services, a booking button and even a link to an already
