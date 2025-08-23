@@ -115,7 +115,7 @@ export function HomePageHowItWorks() {
           <div className="flex flex-col items-center text-center mb-12">
             <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEB APP</span>
             <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-              2] Convert programs, see all progress
+              Convert programs, see all progress
             </h2>
             <p className="text-zinc-400 max-w-2xl">
               Our streamlined platform makes fitness training and progress tracking effortless for both trainers and
@@ -257,7 +257,7 @@ export function HomePageHowItWorks() {
           <div className="flex flex-col items-center text-center mb-12">
             <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>MOBILE APP</span>
             <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-              3] Your client sees shared workout plans
+              Your client sees shared workout plans
             </h2>
             <p className="text-zinc-400 max-w-2xl">
               After creating or converting a program in our web app, you can easily send it to any client with the
