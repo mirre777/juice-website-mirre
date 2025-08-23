@@ -62,7 +62,7 @@ export function Footer() {
 
         <div>
           <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Product</h3>
-          <ul className="space-y-2">
+          <ul className="space-y-2 text-left">
             <li>
               <Link href="#" className={cn("text-sm", getTextColorClass())}>
                 Features
@@ -88,8 +88,7 @@ export function Footer() {
 
         <div>
           <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Company</h3>
-          <ul className="space-y-2">
-            {/* Removed About Us and Contact links */}
+          <ul className="space-y-2 text-left">
             <li>
               <Link href="/blog" className={cn("text-sm", getTextColorClass())}>
                 Blog
@@ -100,7 +99,7 @@ export function Footer() {
 
         <div>
           <h3 className={cn("text-lg font-semibold mb-4", getTextColorClass(true))}>Legal</h3>
-          <ul className="space-y-2">
+          <ul className="space-y-2 text-left">
             <li>
               <Link href="/legal?tab=terms" className={cn("text-sm", getTextColorClass())}>
                 Terms of Service
