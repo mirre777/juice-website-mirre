@@ -78,24 +78,24 @@ export function FeaturesSection() {
 
   const trainerBenefits: Benefit[] = [
     {
-      icon: <Activity className="h-8 w-8" />,
-      title: "Save Time",
-      description: "Automate client management and workout tracking to focus on what matters most - training.",
+      icon: <Users className="h-8 w-8" />,
+      title: "Client management",
+      description: "All your clients' details, goals, and progress in one fitness coaching app.",
     },
     {
       icon: <BarChart3 className="h-8 w-8" />,
-      title: "Grow Your Business",
-      description: "Impress clients with professional tools and deliver better results to attract more referrals.",
-    },
-    {
-      icon: <Users className="h-8 w-8" />,
-      title: "Reduce Admin Work",
-      description: "Eliminate spreadsheets and manual tracking with our all-in-one platform built for trainers.",
+      title: "Instant performance insights",
+      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
     },
     {
       icon: <Dumbbell className="h-8 w-8" />,
-      title: "Improve Client Results",
-      description: "Track progress more effectively and provide data-driven feedback to help clients succeed.",
+      title: "Workout builder app",
+      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
+    },
+    {
+      icon: <Smartphone className="h-8 w-8" />,
+      title: "Easy workout logging for clients",
+      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
     },
   ]
 
