@@ -93,7 +93,7 @@ export function BenefitsSection() {
               className="bg-juice hover:bg-juice/90 text-black font-semibold px-8 py-3 text-lg"
               onClick={() => (window.location.href = "/personal-trainer-app")}
             >
-              Get Started Now
+              Go to web app
             </Button>
           </motion.div>
         </div>
