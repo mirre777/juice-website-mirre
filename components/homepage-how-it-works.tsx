@@ -279,7 +279,7 @@ export function HomePageHowItWorks() {
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-juice text-black font-bold text-sm">
                   1
                 </div>
-                <div>
+                <div className="text-left">
                   <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                     Instant Program Delivery
                   </h3>
@@ -294,7 +294,7 @@ export function HomePageHowItWorks() {
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-juice text-black font-bold text-sm">
                   2
                 </div>
-                <div>
+                <div className="text-left">
                   <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                     Progress Tracking Made Simple
                   </h3>
