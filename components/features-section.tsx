@@ -78,24 +78,24 @@ export function FeaturesSection() {
 
   const trainerBenefits: Benefit[] = [
     {
-      icon: <Users className="h-8 w-8" />,
-      title: "Client management",
-      description: "All your clients' details, goals, and progress in one fitness coaching app.",
-    },
-    {
-      icon: <BarChart3 className="h-8 w-8" />,
-      title: "Instant performance insights",
-      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
-    },
-    {
       icon: <Dumbbell className="h-8 w-8" />,
       title: "Workout builder app",
       description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
     },
     {
+      icon: <Users className="h-8 w-8" />,
+      title: "Client management",
+      description: "All your clients' details, goals, and progress in one fitness coaching app.",
+    },
+    {
       icon: <Smartphone className="h-8 w-8" />,
       title: "Easy workout logging for clients",
       description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+    },
+    {
+      icon: <BarChart3 className="h-8 w-8" />,
+      title: "Instant performance insights",
+      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
     },
   ]
 
@@ -203,12 +203,49 @@ export function FeaturesSection() {
             <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {trainerBenefits.map((benefit, index) => (
+                  <div key={index} className="flex items-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="text-center flex-1"
+                    >
+                      <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <div className="text-juice">{benefit.icon}</div>
+                      </div>
+                      <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                        {benefit.title}
+                      </h3>
+                      <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
+                    </motion.div>
+
+                    {index < trainerBenefits.length - 1 && (
+                      <div className="hidden lg:flex items-center justify-center mx-4">
+                        <svg
+                          className={`w-6 h-6 ${isCoach ? "text-gray-400" : "text-gray-600"}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {trainerBenefits.map((benefit, index) => (
+                <div key={index} className="flex items-center">
                   <motion.div
-                    key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="text-center"
+                    className="text-center flex-1"
                   >
                     <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                       <div className="text-juice">{benefit.icon}</div>
@@ -218,35 +255,25 @@ export function FeaturesSection() {
                     </h3>
                     <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
                   </motion.div>
-                ))}
-              </div>
 
-              
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <div className="w-full max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              {trainerBenefits.map((benefit, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <div className="text-juice">{benefit.icon}</div>
-                  </div>
-                  <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                    {benefit.title}
-                  </h3>
-                  <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
-                </motion.div>
+                  {index < trainerBenefits.length - 1 && (
+                    <div className="hidden lg:flex items-center justify-center mx-4">
+                      <svg
+                        className={`w-6 h-6 ${isCoach ? "text-gray-400" : "text-gray-600"}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
-
-            
           </div>
         )}
       </div>
+    </div>
+  )
+}
