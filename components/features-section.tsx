@@ -221,28 +221,7 @@ export function FeaturesSection() {
                 ))}
               </div>
 
-              <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
-                {trainerFeatures.map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                  >
-                    <div className="feature-card">
-                      <div className="flex flex-col md:flex-row items-start">
-                        <div className="mr-4 mt-1">{feature.icon}</div>
-                        <div>
-                          <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                            {feature.title}
-                          </h3>
-                          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              
             </TabsContent>
           </Tabs>
         ) : (
@@ -267,31 +246,7 @@ export function FeaturesSection() {
               ))}
             </div>
 
-            <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
-              {trainerFeatures.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <div className="feature-card">
-                    <div className="flex flex-col md:flex-row items-start">
-                      <div className="mr-4 mt-1">{feature.icon}</div>
-                      <div>
-                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                          {feature.title}
-                        </h3>
-                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            
           </div>
         )}
       </div>
-    </div>
-  )
-}
