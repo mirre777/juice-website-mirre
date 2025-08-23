@@ -63,13 +63,20 @@ export function Navbar() {
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    const howItWorksElement = document.getElementById("how-it-works")
-    if (howItWorksElement) {
-      howItWorksElement.scrollIntoView({ behavior: "smooth" })
+
+    if (isCoach) {
+      const benefitsElement = document.getElementById("benefits")
+      if (benefitsElement) {
+        benefitsElement.scrollIntoView({ behavior: "smooth" })
+      }
+      window.history.pushState(null, "", "/#benefits")
+    } else {
+      const howItWorksElement = document.getElementById("how-it-works")
+      if (howItWorksElement) {
+        howItWorksElement.scrollIntoView({ behavior: "smooth" })
+      }
+      window.history.pushState(null, "", "/clients#how-it-works")
     }
-    // Update URL after scrolling based on current page - use / for trainer homepage
-    const baseUrl = isCoach ? "/" : "/clients"
-    window.history.pushState(null, "", `${baseUrl}#how-it-works`)
   }
 
   console.log("[v0] Navbar isCoach state:", isCoach)
