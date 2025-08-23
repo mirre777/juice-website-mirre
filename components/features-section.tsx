@@ -79,7 +79,7 @@ export function FeaturesSection() {
       }
     } else if (isClientPage) {
       return {
-        smallHeader: "Features",
+        smallHeader: "FEATURES",
         header: "Powerful tools for fitness enthusiasts",
         description:
           "Achieve your fitness goals faster with personalized workouts, progress tracking, and direct trainer communication.",
@@ -87,7 +87,7 @@ export function FeaturesSection() {
     } else {
       // Fallback for other pages with toggles
       return {
-        smallHeader: "Features",
+        smallHeader: "FEATURES",
         header: "Powerful tools for both sides of fitness",
         description:
           "Whether you're a client looking to achieve your fitness goals or a trainer wanting to deliver exceptional results, Juice has you covered as the best personal training software.",
