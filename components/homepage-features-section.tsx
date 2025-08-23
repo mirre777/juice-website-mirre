@@ -191,9 +191,7 @@ export function HomePageFeaturesSection() {
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className="text-center"
                     >
-                      <div className="w-16 h-16 rounded-full bg-juice/10 flex items-center justify-center mx-auto mb-4">
-                        <div className="text-juice">{benefit.icon}</div>
-                      </div>
+                      
                       <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                         {benefit.title}
                       </h3>
