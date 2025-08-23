@@ -6,6 +6,7 @@ import { Activity, BarChart3, Calendar, Dumbbell, MessageSquare, Share2, Smartph
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface Feature {
   icon: React.ReactNode
@@ -103,7 +104,8 @@ export function HomePageFeaturesSection() {
             Your Own Page To Get Client Bookings
           </h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            We have a standard layout but you can add your services, a booking button and even a link to an already existing website.
+            We have a standard layout but you can add your services, a booking button and even a link to an already
+            existing website.
           </p>
         </div>
 
@@ -164,3 +166,54 @@ export function HomePageFeaturesSection() {
           </TabsContent>
 
           <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+              {/* Left side - Webpage Builder Image */}
+              <div className="flex-1 lg:max-w-md">
+                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
+                  <Image
+                    src="/images/homepage/microsite-alex.png"
+                    alt="Personal trainer website builder"
+                    width={400}
+                    height={300}
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+
+              {/* Right side - Trainer Benefits Grid */}
+              <div className="flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {trainerBenefits.map((benefit, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="text-center"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-juice/10 flex items-center justify-center mx-auto mb-4">
+                        <div className="text-juice">{benefit.icon}</div>
+                      </div>
+                      <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                        {benefit.title}
+                      </h3>
+                      <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
+                      {/* Add arrow between benefits except for the last one */}
+                      {index < trainerBenefits.length - 1 && index % 2 === 0 && (
+                        <div className="hidden lg:block absolute top-1/2 -right-6 transform -translate-y-1/2">
+                          <svg className="w-4 h-4 text-juice" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
