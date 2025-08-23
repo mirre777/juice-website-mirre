@@ -260,8 +260,7 @@ export function HomePageHowItWorks() {
               3] Your clients can see shared workout plans
             </h2>
             <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-              Take your fitness journey on the go with our intuitive mobile app designed for seamless workout tracking
-              and progress monitoring.
+              After creating or converting a program in our web app, you can easily send it to any client with the mobile app. They will get notified of the new program and can log all the workouts you planned as a trainer.
             </p>
           </div>
 
