@@ -124,7 +124,8 @@ app/
 │   │   └── personal-training-wien/
 │   └── (trainers)/
 │       ├── getclients/
-│       └── personal-trainer-app/
+│       ├── personal-trainer-app/
+│       └── 100trainers/
 ├── marketplace/
 ├── admin/
 ├── account/
