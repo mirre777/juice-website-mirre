@@ -54,7 +54,7 @@ export default function HomePage() {
           <div className="mb-6 md:mb-16">
             <h2 className="mb-6 max-w-4xl mx-auto text-center text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
               <span className="text-black">All-in-One Platform </span>
-              <span className="juice-text-gradient">for Personal Trainers</span>
+              <span className="text-black">for Personal Trainers</span>
             </h2>
           </div>
 
