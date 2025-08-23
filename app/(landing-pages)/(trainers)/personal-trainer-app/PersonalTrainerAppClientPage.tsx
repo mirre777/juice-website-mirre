@@ -112,7 +112,7 @@ export function PersonalTrainerAppClientPage() {
               <h1 className="mb-6">
                 {isCoach ? (
                   <div className="flex flex-col space-y-2">
-                    <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-8xl">
+                    <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-6xl">
                       Kill the hassle.
                     </span>
                     <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
