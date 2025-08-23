@@ -157,14 +157,14 @@ export default function HomePage() {
             <HomePageHowItWorks />
           </section>
 
-          {/* Pricing Section */}
-          <section id="pricing" className="scroll-mt-20 mt-16">
-            <PricingSectionWithPayment />
-          </section>
-
           {/* Benefits Section */}
           <section id="benefits" className="scroll-mt-20 mt-16">
             <BenefitsSection />
+          </section>
+
+          {/* Pricing Section */}
+          <section id="pricing" className="scroll-mt-20 mt-16">
+            <PricingSectionWithPayment />
           </section>
 
           {/* Waitlist Section */}
