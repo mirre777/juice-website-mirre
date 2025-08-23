@@ -96,8 +96,8 @@ export function HomePageFeaturesSection() {
   ]
 
   return (
-    <div className={`pb-0 pt-0 mt-16 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
-      <div className="container px-4 md:px-6 pb-4">
+    <div className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
+      <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEBPAGE BUILDER</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
