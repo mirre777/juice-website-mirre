@@ -69,11 +69,11 @@ export default function HomePage() {
                   onClick={handleWebpageBuilderClick}
                 >
                   <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/microsite%20image%20alex%20cut%20edges-9dZ52nWUecE0UuM0D9blzzJ263IKcn.png"
+                    src="/images/homepage/microsite-alex.png"
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
-                    className="w-full max-w-sm h-auto rounded-xl shadow-lg"
+                    className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                   />
                 </div>
                 <div className="text-left">

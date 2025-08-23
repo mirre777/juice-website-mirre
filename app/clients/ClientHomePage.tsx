@@ -49,7 +49,7 @@ export default function ClientHomePage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-10 md:pt-40 md:pb-10">
+      <section className="pt-32 pb-20 md:pt-40 md:pb-20">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -164,32 +164,32 @@ export default function ClientHomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mt-24">
+      <section id="features" className="scroll-mt-20 pt-20 pb-20">
         <FeaturesSection />
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="scroll-mt-20 mt-24">
+      <section id="how-it-works" className="scroll-mt-20 pt-20 pb-20">
         <HowItWorks />
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-20 mt-24">
+      <section id="pricing" className="scroll-mt-20 pt-20 pb-20">
         <PricingSectionWithPayment />
       </section>
 
       {/* Divider */}
-      <div className="w-full flex justify-center mt-24">
+      <div className="w-full flex justify-center">
         <div className="w-2/3 h-2 bg-juice"></div>
       </div>
 
       {/* Benefits Section */}
-      <section id="benefits" className="scroll-mt-20 mt-24">
+      <section id="benefits" className="scroll-mt-20 pt-20 pb-20">
         <BenefitsSection />
       </section>
 
       {/* Blog Call to Action Section */}
-      <section className="py-16 mt-24">
+      <section className="pt-20 pb-20">
         <div className="container mx-auto px-4 md:px-6">
           <div className="rounded-3xl p-8 md:p-12 shadow-lg text-center bg-zinc-900">
             <h2 className="text-3xl font-bold mb-4 text-white">Stay Updated with the Juice Blog</h2>
@@ -206,7 +206,7 @@ export default function ClientHomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-10 mt-24">
+      <section className="pt-20 pb-20">
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4 text-white">Get ready to train.</h2>
