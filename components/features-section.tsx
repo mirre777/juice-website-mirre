@@ -20,7 +20,7 @@ export function FeaturesSection() {
 
   const isTrainerPage = pathname === "/"
   const isClientPage = pathname === "/clients"
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app" || pathname === "/workout-program-app"
 
   const clientFeatures: Feature[] = [
     {
