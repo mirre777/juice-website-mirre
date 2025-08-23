@@ -264,6 +264,15 @@ export function HomePageHowItWorks() {
               and progress monitoring.
             </p>
           </div>
+
+          <div className="flex justify-center">
+            <div className="relative max-w-md mx-auto">
+              <VideoPlayer
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%202x%20speed%20client%20receives%20a%20program-wIKCg2g0tq497ZT7Zs6uGMpHkv640S.mp4"
+                className="w-full h-auto rounded-2xl shadow-lg"
+              />
+            </div>
+          </div>
         </div>
       </section>
     </>
