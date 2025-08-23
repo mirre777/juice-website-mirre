@@ -260,12 +260,14 @@ export function HomePageHowItWorks() {
               3] Your clients can see shared workout plans
             </h2>
             <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-              After creating or converting a program in our web app, you can easily send it to any client with the mobile app. They will get notified of the new program and can log all the workouts you planned as a trainer.
+              After creating or converting a program in our web app, you can easily send it to any client with the
+              mobile app. They will get notified of the new program and can log all the workouts you planned as a
+              trainer.
             </p>
           </div>
 
           <div className="flex justify-center">
-            <div className="relative max-w-md mx-auto">
+            <div className="relative max-w-sm mx-auto">
               <VideoPlayer
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%202x%20speed%20client%20receives%20a%20program-wIKCg2g0tq497ZT7Zs6uGMpHkv640S.mp4"
                 className="w-full h-auto rounded-2xl shadow-lg"
