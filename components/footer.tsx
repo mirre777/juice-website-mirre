@@ -64,22 +64,22 @@ export function Footer() {
           <h3 className={cn("text-lg font-semibold mb-4 text-left", getTextColorClass(true))}>Product</h3>
           <ul className="space-y-2 text-left">
             <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
+              <Link href="/#features" className={cn("text-sm", getTextColorClass())}>
                 Features
               </Link>
             </li>
             <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
+              <Link href="/#pricing" className={cn("text-sm", getTextColorClass())}>
                 Pricing
               </Link>
             </li>
             <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
+              <Link href="/#testimonials" className={cn("text-sm", getTextColorClass())}>
                 Testimonials
               </Link>
             </li>
             <li>
-              <Link href="#" className={cn("text-sm", getTextColorClass())}>
+              <Link href="/#faq" className={cn("text-sm", getTextColorClass())}>
                 FAQ
               </Link>
             </li>
