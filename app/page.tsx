@@ -51,7 +51,11 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="pt-32 pb-16 md:pb-16 md:pt-[100px]">
         <div className="container mx-auto px-4 text-center md:px-6">
-          <div className="mb-8"></div>
+          <div className="mb-8">
+            <h2 className="text-lg md:text-xl font-medium text-gray-600 tracking-wide">
+              All-in-One Platform for Personal Trainers
+            </h2>
+          </div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
