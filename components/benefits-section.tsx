@@ -13,8 +13,8 @@ export function BenefitsSection() {
   }
 
   return (
-    <div className={`pt-10 pb-0 ${isCoach ? "bg-white" : "bg-black"}`}>
-      <div className="container mx-auto px-4 md:px-6">
+    <div className={`pb-0 pt-0 ${isCoach ? "bg-white" : "bg-black"}`}>
+      <div className="container mx-auto px-4 md:px-0 mb-16">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>BENEFITS</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
@@ -25,7 +25,7 @@ export function BenefitsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

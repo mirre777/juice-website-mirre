@@ -37,7 +37,7 @@ export function Footer() {
   }
 
   return (
-    <footer className={cn("py-12", footerBgClass)}>
+    <footer className={cn("py-[18px]", footerBgClass)}>
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2">

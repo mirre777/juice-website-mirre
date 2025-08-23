@@ -50,7 +50,7 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 md:pb-16 md:pt-[100px]">
-        <div className="container mx-auto px-4 md:px-6 text-center">
+        <div className="container mx-auto px-4 text-center md:px-6">
           <div className="mb-8"></div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
@@ -65,7 +65,7 @@ export default function HomePage() {
               {/* Webpage Builder */}
               <div className="flex flex-col items-center space-y-4">
                 <div
-                  className="relative cursor-pointer transition-transform hover:scale-105"
+                  className="relative cursor-pointer transition-transform hover:scale-105 pl-2.5"
                   onClick={handleWebpageBuilderClick}
                 >
                   <Image
@@ -120,7 +120,7 @@ export default function HomePage() {
               </div>
 
               {/* Mobile App */}
-              <div className="flex flex-col items-center space-y-4">
+              <div className="flex flex-col items-center space-y-4 pr-2.5">
                 <div
                   className="relative cursor-pointer transition-transform hover:scale-105"
                   onClick={handleMobileAppClick}
