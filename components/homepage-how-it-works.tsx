@@ -1,6 +1,6 @@
 "use client"
 import { motion } from "framer-motion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
 import { StatisticsScreen } from "./statistics-screen"
 import Image from "next/image"
@@ -114,7 +114,7 @@ export function HomePageHowItWorks() {
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEB APP</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Convert programs, see all progress
+            2] Convert programs, see all progress
           </h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
             Our streamlined platform makes fitness training and progress tracking effortless for both trainers and
@@ -134,8 +134,6 @@ export function HomePageHowItWorks() {
           }}
           className="w-full max-w-5xl mx-auto"
         >
-          
-
           <TabsContent value="client" className="mt-0 min-h-[450px]">
             <div className="space-y-4 md:space-y-2">
               {clientSteps.map((step, index) => (
@@ -229,8 +227,8 @@ export function HomePageHowItWorks() {
                           <Image
                             src={step.image || "/placeholder.svg"}
                             alt={step.title}
-                            width={index === 3 ? 400 : 600}
-                            height={index === 3 ? 500 : 800}
+                            width={index === 3 ? 300 : 600}
+                            height={index === 3 ? 400 : 800}
                             className="w-full h-auto object-contain rounded-xl"
                           />
                         </div>
