@@ -49,10 +49,10 @@ export default function HomePage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 md:pb-16 md:pt-[100px]">
+      <section className="pt-32 pb-16 md:pb-16 md:pt-[50px]">
         <div className="container mx-auto px-4 text-center md:px-6">
           <div className="mb-8">
-            <h2 className="text-lg md:text-xl font-medium text-gray-600 tracking-wide">
+            <h2 className="text-lg md:text-xl text-gray-600 tracking-wide font-medium underline">
               All-in-One Platform for Personal Trainers
             </h2>
           </div>
