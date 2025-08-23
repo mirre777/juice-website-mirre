@@ -20,6 +20,7 @@ export function FeaturesSection() {
 
   const isTrainerPage = pathname === "/"
   const isClientPage = pathname === "/clients"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
 
   const clientFeatures: Feature[] = [
     {
@@ -84,6 +85,13 @@ export function FeaturesSection() {
         description:
           "Achieve your fitness goals faster with personalized workouts, progress tracking, and direct trainer communication.",
       }
+    } else if (isPersonalTrainerAppPage) {
+      return {
+        smallHeader: "FEATURES",
+        header: "Powerful tools for personal trainers",
+        description:
+          "Everything you need to manage clients, track progress, and grow your fitness business with the best personal training software.",
+      }
     } else {
       // Fallback for other pages with toggles
       return {
@@ -106,63 +114,90 @@ export function FeaturesSection() {
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
         </div>
 
-        <Tabs
-          defaultValue="client"
-          value={isCoach ? "trainer" : "client"}
-          onValueChange={(value) => {
-            if (value === "trainer") {
-              router.push("/#features")
-            } else {
-              router.push("/clients#features")
-            }
-          }}
-          className="w-full max-w-4xl mx-auto"
-        >
-          <div className="flex justify-center mb-8">
-            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
-              <TabsTrigger
-                value="client"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Client_Features"
-              >
-                For Clients
-              </TabsTrigger>
-              <TabsTrigger
-                value="trainer"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Trainer_Features"
-              >
-                For Trainers
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
-            <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
-              {clientFeatures.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
+        {!isPersonalTrainerAppPage ? (
+          <Tabs
+            defaultValue="client"
+            value={isCoach ? "trainer" : "client"}
+            onValueChange={(value) => {
+              if (value === "trainer") {
+                router.push("/#features")
+              } else {
+                router.push("/clients#features")
+              }
+            }}
+            className="w-full max-w-4xl mx-auto"
+          >
+            <div className="flex justify-center mb-8">
+              <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
+                <TabsTrigger
+                  value="client"
+                  className="data-[state=active]:bg-juice data-[state=active]:text-black"
+                  id="Tab_Client_Features"
                 >
-                  <div className="feature-card">
-                    <div className="flex flex-col md:flex-row items-start">
-                      <div className="mr-4 mt-1">{feature.icon}</div>
-                      <div>
-                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                          {feature.title}
-                        </h3>
-                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                  For Clients
+                </TabsTrigger>
+                <TabsTrigger
+                  value="trainer"
+                  className="data-[state=active]:bg-juice data-[state=active]:text-black"
+                  id="Tab_Trainer_Features"
+                >
+                  For Trainers
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
+              <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
+                {clientFeatures.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <div className="feature-card">
+                      <div className="flex flex-col md:flex-row items-start">
+                        <div className="mr-4 mt-1">{feature.icon}</div>
+                        <div>
+                          <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                            {feature.title}
+                          </h3>
+                          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </TabsContent>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
 
-          <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
+            <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
+              <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
+                {trainerFeatures.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <div className="feature-card">
+                      <div className="flex flex-col md:flex-row items-start">
+                        <div className="mr-4 mt-1">{feature.icon}</div>
+                        <div>
+                          <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                            {feature.title}
+                          </h3>
+                          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="w-full max-w-4xl mx-auto">
             <div id="trainer-features" className="grid grid-cols-1 gap-4 md:gap-6">
               {trainerFeatures.map((feature, index) => (
                 <motion.div
@@ -185,8 +220,8 @@ export function FeaturesSection() {
                 </motion.div>
               ))}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </div>
   )
