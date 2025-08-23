@@ -52,8 +52,15 @@ export default function HomePage() {
       <section className="pt-20 pb-16 md:pb-16 md:pt-[50px]">
         <div className="container mx-auto px-4 text-center md:px-6">
           <div className="mb-6 md:mb-8">
-            <h2 className="text-base md:text-lg lg:text-xl text-gray-600 tracking-wide font-medium underline">
-              All-in-One Platform for Personal Trainers
+            <h2 className="mb-6 max-w-4xl mx-auto text-center">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 lg:gap-8">
+                <div className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-black md:w-1/2">
+                  All-in-One Platform
+                </div>
+                <div className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight juice-text-gradient md:w-1/2">
+                  for Personal Trainers
+                </div>
+              </div>
             </h2>
           </div>
 
