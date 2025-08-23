@@ -79,7 +79,7 @@ export function PricingSectionWithPayment() {
 
   // Add the maintain-scroll class to the main container
   return (
-    <section id="pricing" className={`pb-0 pt-[0] ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}>
+    <section id="pricing" className={`pb-0 pt-[0] ${isCoach ? "bg-white" : "bg-black"} scroll-mt-24 maintain-scroll`}>
       <div className="container px-4 md:px-6 mb-16">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>PRICING</span>
@@ -391,7 +391,7 @@ export function PricingSectionWithPayment() {
                   transition={{ duration: 0.4, delay: 0.2 }}
                 >
                   <Card
-                    className={`${isCoach ? "bg-white border-gray-200" : "bg-zinc-900 border-zinc-800"} h-full flex flex-col`}
+                    className={`${isCoach ? "bg-white" : "bg-zinc-900"} border-juice juice-glow h-full flex flex-col`}
                   >
                     <CardHeader>
                       <div className="flex justify-between items-center">
