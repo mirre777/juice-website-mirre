@@ -17,7 +17,13 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (pathname === "/" || pathname === "/trainers" || pathname === "/for-trainers") {
+    if (
+      pathname === "/" ||
+      pathname === "/trainers" ||
+      pathname === "/for-trainers" ||
+      pathname === "/personal-trainer-app" ||
+      pathname === "/workout-program-app"
+    ) {
       setIsCoach(true)
     } else if (pathname === "/clients" || pathname === "/for-clients") {
       setIsCoach(false)
@@ -32,8 +38,14 @@ export function Navbar() {
         router.push("/")
       }
     } else {
-      // Switching to client - navigate to clients if on root or trainers page
-      if (pathname === "/" || pathname === "/trainers" || pathname === "/for-trainers") {
+      // Switching to client - navigate to clients if on root, trainers, or trainer app pages
+      if (
+        pathname === "/" ||
+        pathname === "/trainers" ||
+        pathname === "/for-trainers" ||
+        pathname === "/personal-trainer-app" ||
+        pathname === "/workout-program-app"
+      ) {
         router.push("/clients")
       }
     }
@@ -96,7 +108,7 @@ export function Navbar() {
                 onClick={handleHowItWorksClick}
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
-                How It Works
+                Features
               </button>
               {isCoach && (
                 <button
