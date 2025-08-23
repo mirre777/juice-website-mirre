@@ -182,7 +182,7 @@ export function HomePageFeaturesSection() {
 
               {/* Right side - Trainer Benefits in horizontal row */}
               <div className="flex-1 flex items-center">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 lg:gap-6 w-full">
                   {trainerBenefits.map((benefit, index) => (
                     <motion.div
                       key={index}
@@ -200,13 +200,6 @@ export function HomePageFeaturesSection() {
                       <p className={`text-xs lg:text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>
                         {benefit.description}
                       </p>
-                      {index < trainerBenefits.length - 1 && (
-                        <div className="hidden lg:block absolute top-8 -right-3 transform -translate-y-1/2">
-                          <svg className="w-4 h-4 text-juice" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      )}
                     </motion.div>
                   ))}
                 </div>
