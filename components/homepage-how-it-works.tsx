@@ -117,7 +117,7 @@ export function HomePageHowItWorks() {
             <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
               2] Convert programs, see all progress
             </h2>
-            <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl text-left`}>
+            <p className="text-zinc-400 max-w-2xl">
               Our streamlined platform makes fitness training and progress tracking effortless for both trainers and
               clients.
             </p>
@@ -259,7 +259,7 @@ export function HomePageHowItWorks() {
             <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
               3] Your clients sees shared workout plans
             </h2>
-            <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl text-left`}>
+            <p className="text-zinc-400 max-w-2xl">
               After creating or converting a program in our web app, you can easily send it to any client with the
               mobile app. They will get notified of the new program and can log all the workouts you planned as a
               trainer.
@@ -283,7 +283,7 @@ export function HomePageHowItWorks() {
                   <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                     Instant Program Delivery
                   </h3>
-                  <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                  <p className="text-zinc-400">
                     Send workout programs directly to your clients' mobile devices with real-time notifications and
                     seamless synchronization.
                   </p>
@@ -298,7 +298,7 @@ export function HomePageHowItWorks() {
                   <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
                     Progress Tracking Made Simple
                   </h3>
-                  <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>
+                  <p className="text-zinc-400">
                     Clients can easily log workouts, track their progress, and share results back to you for continuous
                     improvement and motivation.
                   </p>
