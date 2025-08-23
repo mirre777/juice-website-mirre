@@ -106,10 +106,11 @@ export function PricingSectionWithPayment() {
             defaultValue="client"
             value={isCoach ? "trainer" : "client"}
             onValueChange={(value) => {
+              const currentHash = window.location.hash
               if (value === "trainer") {
-                router.push("/#pricing")
+                router.push(`/${currentHash}`)
               } else {
-                router.push("/clients#pricing")
+                router.push(`/clients${currentHash}`)
               }
             }}
             className="w-full max-w-4xl mx-auto"
