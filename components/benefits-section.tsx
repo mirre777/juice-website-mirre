@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { UserPlus, Send, Eye, Smartphone } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
+import { Button } from "@/components/ui/button"
 
 export function BenefitsSection() {
   const { isCoach } = useTheme()
@@ -79,6 +80,22 @@ export function BenefitsSection() {
               <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
             </motion.div>
           ))}
+        </div>
+
+        <div className="flex justify-center mt-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.6 }}
+          >
+            <Button
+              size="lg"
+              className="bg-juice hover:bg-juice/90 text-black font-semibold px-8 py-3 text-lg"
+              onClick={() => (window.location.href = "/personal-trainer-app")}
+            >
+              Get Started Now
+            </Button>
+          </motion.div>
         </div>
       </div>
     </section>
