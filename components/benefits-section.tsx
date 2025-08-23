@@ -57,22 +57,8 @@ export function BenefitsSection() {
               transition={{ duration: 0.4, delay: index * 0.1 }}
               className="flex flex-col items-start text-left p-4 md:p-6 relative"
             >
-              <div
-                className={`absolute w-8 h-8 rounded-full bg-juice text-black font-bold text-sm flex items-center justify-center ${
-                  index === 0
-                    ? "-top-2 -left-2"
-                    : index === 1
-                      ? "-top-2 -right-2"
-                      : index === 2
-                        ? "-bottom-2 -left-2"
-                        : "-bottom-2 -right-2"
-                }`}
-              >
-                {index + 1}
-              </div>
-
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-juice/10 mb-4">
-                <div className="text-juice">{benefit.icon}</div>
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-juice mb-4">
+                <div className="text-black font-bold text-2xl">{index + 1}</div>
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>{benefit.title}</h3>
               <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
