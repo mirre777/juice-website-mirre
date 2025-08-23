@@ -55,12 +55,12 @@ export function BenefitsSection() {
             fill="none"
           >
             <path
-              d="M 120 100 Q 300 50 400 100 T 880 100"
+              d="M 120 64 Q 300 20 400 64 Q 500 108 600 64 Q 700 20 880 64"
               stroke="#c4f82a"
-              strokeWidth="3"
-              strokeDasharray="8,8"
+              strokeWidth="4"
+              strokeDasharray="12,6"
               fill="none"
-              opacity="0.6"
+              opacity="0.8"
             />
           </svg>
 
