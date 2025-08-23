@@ -184,9 +184,7 @@ export default function ClientHomePage() {
       </div>
 
       {/* Benefits Section */}
-      <section id="benefits" className="scroll-mt-20 pt-20 pb-20">
-        <BenefitsSection />
-      </section>
+      
 
       {/* Blog Call to Action Section */}
       <section className="pt-20 pb-20">
