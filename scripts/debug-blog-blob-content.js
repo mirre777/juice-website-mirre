@@ -55,11 +55,11 @@ async function debugBlogContent() {
   console.log("\n4. Hardcoded Sample Posts:")
   try {
     // Import the blog module to check sample posts
-    const blogModule = require("../lib/blog.ts")
+    const blogModule = require("../lib/blog")
     if (blogModule.SAMPLE_POSTS) {
       console.log(`Found ${blogModule.SAMPLE_POSTS.length} hardcoded sample posts`)
     } else {
-      console.log("Could not access SAMPLE_POSTS from lib/blog.ts")
+      console.log("Could not access SAMPLE_POSTS from lib/blog")
     }
   } catch (error) {
     console.log("Could not import blog module:", error.message)
