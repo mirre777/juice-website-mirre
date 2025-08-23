@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { UserPlus, Send, Eye, Smartphone } from "lucide-react"
+import { UserPlus, Send, Eye, Smartphone, ArrowRight } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 
@@ -94,6 +94,7 @@ export function BenefitsSection() {
               onClick={() => (window.location.href = "/personal-trainer-app")}
             >
               Go to web app
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
         </div>
