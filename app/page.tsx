@@ -151,6 +151,11 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Benefits Section */}
+          <section id="benefits" className="scroll-mt-20 mt-16">
+            <BenefitsSection />
+          </section>
+
           {/* Features Section */}
           <section id="features" className="scroll-mt-20 mt-16">
             <HomePageFeaturesSection />
@@ -159,11 +164,6 @@ export default function HomePage() {
           {/* How It Works Section */}
           <section id="how-it-works" className="scroll-mt-20 mt-16">
             <HomePageHowItWorks />
-          </section>
-
-          {/* Benefits Section */}
-          <section id="benefits" className="scroll-mt-20 mt-16">
-            <BenefitsSection />
           </section>
 
           {/* Pricing Section */}
