@@ -106,11 +106,12 @@ export function PricingSectionWithPayment() {
             defaultValue="client"
             value={isCoach ? "trainer" : "client"}
             onValueChange={(value) => {
-              const currentHash = window.location.hash
               if (value === "trainer") {
-                router.push(`/${currentHash}`)
+                // Always go to homepage pricing section for trainers
+                router.push("/#pricing")
               } else {
-                router.push(`/clients${currentHash}`)
+                // Always go to clients pricing section for clients
+                router.push("/clients#pricing")
               }
             }}
             className="w-full max-w-4xl mx-auto"
@@ -584,7 +585,7 @@ export function PricingSectionWithPayment() {
                 transition={{ duration: 0.4, delay: 0.2 }}
               >
                 <Card
-                  className={`${isCoach ? "bg-white border-gray-200" : "bg-zinc-900 border-zinc-800"} h-full flex flex-col`}
+                  className={`${isCoach ? "bg-white" : "bg-zinc-900"} border-juice juice-glow h-full flex flex-col`}
                 >
                   <CardHeader>
                     <div className="flex justify-between items-center">
