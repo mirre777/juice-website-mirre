@@ -104,7 +104,7 @@ export function PersonalTrainerAppClientPage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-10 md:pt-40 md:pb-10">
+      <section className="pt-32 pb-10 md:pb-10 md:pt-[100px]">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
             {/* Left side - Text content */}
@@ -214,9 +214,7 @@ export function PersonalTrainerAppClientPage() {
                   />
                   <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
                 </div>
-                <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mt-6 text-center`}>
-                  Because trainers should train, not juggle admin.
-                </p>
+                
               </div>
             )}
           </div>
