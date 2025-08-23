@@ -48,14 +48,29 @@ export function BenefitsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none hidden lg:block"
+            viewBox="0 0 1000 200"
+            fill="none"
+          >
+            <path
+              d="M 120 100 Q 300 50 400 100 T 880 100"
+              stroke="#c4f82a"
+              strokeWidth="3"
+              strokeDasharray="8,8"
+              fill="none"
+              opacity="0.6"
+            />
+          </svg>
+
           {benefits.map((benefit, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="flex flex-col items-start text-left p-4 md:p-6 relative"
+              className="flex flex-col items-start text-left p-4 md:p-6 relative z-10"
             >
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-juice mb-4">
                 <div className="text-black font-bold text-2xl">{index + 1}</div>
