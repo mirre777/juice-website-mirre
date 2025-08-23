@@ -252,7 +252,7 @@ export function HomePageHowItWorks() {
         </div>
       </section>
 
-      <section className={`pt-16 pb-16 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
+      <section className={`pt-16 pb-[0] ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center mb-12">
             <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>MOBILE APP</span>
@@ -266,7 +266,7 @@ export function HomePageHowItWorks() {
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-center">
+          <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-center my-16">
             <div className="flex-1 lg:max-w-sm">
               <VideoPlayer
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DEMO%202x%20speed%20client%20receives%20a%20program-wIKCg2g0tq497ZT7Zs6uGMpHkv640S.mp4"
