@@ -385,7 +385,7 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-20 mt-24">
+      <section id="home-page-pricing" className="scroll-mt-20 mt-24">
         <PricingSectionWithPayment />
       </section>
 
