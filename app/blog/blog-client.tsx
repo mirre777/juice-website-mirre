@@ -127,7 +127,9 @@ export function BlogClient({ posts }: BlogClientProps) {
                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      <span>{post.date}</span>
+                      <span>
+                        {typeof post.date === "string" ? post.date : new Date(post.date).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
