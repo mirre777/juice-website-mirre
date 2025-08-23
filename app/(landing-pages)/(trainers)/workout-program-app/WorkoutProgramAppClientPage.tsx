@@ -104,25 +104,27 @@ export function WorkoutProgramAppClientPage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 md:pt-40 md:pb-16">
+      <section className="pt-20 pb-16 md:pt-40 md:pb-16">
         <div className="container mx-auto px-4 md:px-6 text-center">
-          <h1 className="mb-6 max-w-4xl mx-auto text-center">
+          <h1 className="mb-4 md:mb-6 max-w-4xl mx-auto text-center">
             {isCoach ? (
-              <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-8xl">
+              <div className="flex flex-col space-y-1 md:space-y-2">
+                <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight leading-tight">
                   Kill the hassle.
                 </span>
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
+                <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight juice-text-gradient pb-2 md:pb-4">
                   Keep the gains.
                 </span>
               </div>
             ) : (
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+              <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight">
                 Simplify <span className="text-[#D2FF28]">Training.</span>
               </span>
             )}
           </h1>
-          <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
+          <p
+            className={`text-lg md:text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8 md:mb-10 max-w-3xl mx-auto`}
+          >
             {isCoach ? (
               <>
                 Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate every

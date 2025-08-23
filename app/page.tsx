@@ -49,23 +49,27 @@ export default function HomePage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 md:pb-16 md:pt-[50px]">
+      <section className="pt-20 pb-16 md:pb-16 md:pt-[50px]">
         <div className="container mx-auto px-4 text-center md:px-6">
-          <div className="mb-8">
-            <h2 className="text-lg md:text-xl text-gray-600 tracking-wide font-medium underline">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-base md:text-lg lg:text-xl text-gray-600 tracking-wide font-medium underline">
               All-in-One Platform for Personal Trainers
             </h2>
           </div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-              <div className="text-6xl font-bold tracking-tight text-black md:w-1/2">Get new clients.</div>
-              <div className="font-bold tracking-tight juice-text-gradient md:w-1/2 text-6xl">And keep them.</div>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 lg:gap-8">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black md:w-1/2">
+                Get new clients.
+              </div>
+              <div className="font-bold tracking-tight juice-text-gradient md:w-1/2 text-4xl md:text-5xl lg:text-6xl">
+                And keep them.
+              </div>
             </div>
           </h1>
 
-          <div className="mb-10 max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+          <div className="mb-8 md:mb-10 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center">
               {/* Webpage Builder */}
               <div className="flex flex-col items-center space-y-4">
                 <div

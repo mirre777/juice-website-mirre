@@ -49,20 +49,20 @@ export default function ClientHomePage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-0 md:pt-40 mb-20">
+      <section className="pt-20 pb-0 md:pt-40 mb-20">
         <div className="container mx-auto px-4 md:px-6 text-center">
-          <h1 className="mb-6 max-w-4xl mx-auto text-center">
-            <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+          <h1 className="mb-4 md:mb-6 max-w-4xl mx-auto text-center">
+            <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight">
               Simplify <span className="text-[#D2FF28]">Training.</span>
             </span>
           </h1>
 
-          <p className="text-xl text-gray-400 mb-10 max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-gray-400 mb-8 md:mb-10 max-w-3xl mx-auto">
             Super simple workout logging. Get insights into your training. Share your workouts.
           </p>
 
-          <div className="flex flex-col items-center gap-6 mb-4">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col items-center gap-4 md:gap-6 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
               <a
                 href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
                 target="_blank"

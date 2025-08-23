@@ -104,28 +104,30 @@ export function PersonalTrainerAppClientPage() {
       <Navbar isHomePage={true} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 md:pb-16 md:pt-[100px]">
+      <section className="pt-20 pb-16 md:pb-16 md:pt-[100px]">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
+          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12 xl:gap-20">
             {/* Left side - Text content */}
             <div className="flex-1 text-left">
-              <h1 className="mb-6">
+              <h1 className="mb-4 md:mb-6">
                 {isCoach ? (
-                  <div className="flex flex-col space-y-2">
-                    <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-6xl">
+                  <div className="flex flex-col space-y-1 md:space-y-2">
+                    <span className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-tight">
                       Kill the hassle.
                     </span>
-                    <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
+                    <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight juice-text-gradient pb-2 md:pb-4">
                       Keep the gains.
                     </span>
                   </div>
                 ) : (
-                  <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+                  <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight">
                     Simplify <span className="text-[#D2FF28]">Training.</span>
                   </span>
                 )}
               </h1>
-              <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-2xl`}>
+              <p
+                className={`text-lg md:text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8 md:mb-10 max-w-2xl`}
+              >
                 {isCoach ? (
                   <>
                     Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate
