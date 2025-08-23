@@ -51,9 +51,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="pt-32 pb-16 md:pb-16 md:pt-[100px]">
         <div className="container mx-auto px-4 md:px-6 text-center">
-          <div className="mb-8">
-            
-          </div>
+          <div className="mb-8"></div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
@@ -78,9 +76,9 @@ export default function HomePage() {
                     className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                   />
                 </div>
-                <div className="text-center">
+                <div className="text-left">
                   <h3
-                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1"
+                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-start gap-1"
                     onClick={handleWebpageBuilderClick}
                   >
                     Webpage Builder
@@ -109,9 +107,9 @@ export default function HomePage() {
                     Your browser does not support the video tag.
                   </video>
                 </div>
-                <div className="text-center">
+                <div className="text-left">
                   <h3
-                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1"
+                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-start gap-1"
                     onClick={handleWebAppClick}
                   >
                     Web App
@@ -135,9 +133,9 @@ export default function HomePage() {
                     className="w-40 h-auto"
                   />
                 </div>
-                <div className="text-center">
+                <div className="text-left">
                   <h3
-                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center gap-1"
+                    className="text-lg font-semibold text-black cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-start gap-1"
                     onClick={handleMobileAppClick}
                   >
                     Mobile App
