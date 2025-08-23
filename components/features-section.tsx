@@ -113,7 +113,11 @@ export function FeaturesSection() {
         >
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>{smallHeader}</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>{header}</h2>
-          <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
+          <p
+            className={`${isCoach ? "text-gray-600" : "text-gray-400"} ${isPersonalTrainerAppPage ? "" : "max-w-2xl"}`}
+          >
+            {description}
+          </p>
         </div>
 
         {!isPersonalTrainerAppPage ? (
