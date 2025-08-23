@@ -121,24 +121,7 @@ export function HomePageFeaturesSection() {
           }}
           className="w-full max-w-4xl mx-auto"
         >
-          <div className="flex justify-center mb-8">
-            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
-              <TabsTrigger
-                value="client"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Client_Features"
-              >
-                For Clients
-              </TabsTrigger>
-              <TabsTrigger
-                value="trainer"
-                className="data-[state=active]:bg-juice data-[state=active]:text-black"
-                id="Tab_Trainer_Features"
-              >
-                For Trainers
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          
 
           <TabsContent value="client" className="mt-0 pb-0 min-h-[400px] -mb-16">
             <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">

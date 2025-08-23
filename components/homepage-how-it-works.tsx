@@ -134,16 +134,7 @@ export function HomePageHowItWorks() {
           }}
           className="w-full max-w-5xl mx-auto"
         >
-          <div className="flex justify-center mb-8">
-            <TabsList className={`grid grid-cols-2 ${isCoach ? "bg-gray-100" : "bg-zinc-800"}`}>
-              <TabsTrigger value="client" className="data-[state=active]:bg-juice data-[state=active]:text-black">
-                For Clients
-              </TabsTrigger>
-              <TabsTrigger value="trainer" className="data-[state=active]:bg-juice data-[state=active]:text-black">
-                For Trainers
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          
 
           <TabsContent value="client" className="mt-0 min-h-[450px]">
             <div className="space-y-4 md:space-y-2">
