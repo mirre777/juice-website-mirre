@@ -98,13 +98,12 @@ export function HomePageFeaturesSection() {
     <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6 pb-4">
         <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>FEATURES</span>
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>WEBPAGE BUILDER</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Powerful tools for personal trainers
+            Your Own Page To Get Client Bookings
           </h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Everything you need to manage clients, track progress, and grow your fitness business with the best personal
-            training software.
+            We have a standard layout but you can add your services, a booking button and even a link to an already existing website.
           </p>
         </div>
 
@@ -165,42 +164,3 @@ export function HomePageFeaturesSection() {
           </TabsContent>
 
           <TabsContent value="trainer" className="mt-0 pb-0 min-h-[400px] -mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              {trainerBenefits.map((benefit, index) => (
-                <div key={index} className="flex items-center">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="text-center flex-1"
-                  >
-                    <div className="bg-juice/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <div className="text-juice">{benefit.icon}</div>
-                    </div>
-                    <h3 className={`text-lg font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
-                      {benefit.title}
-                    </h3>
-                    <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
-                  </motion.div>
-
-                  {index < trainerBenefits.length - 1 && (
-                    <div className="hidden lg:flex items-center justify-center mx-4">
-                      <svg
-                        className={`w-6 h-6 ${isCoach ? "text-gray-400" : "text-gray-600"}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  )
-}
