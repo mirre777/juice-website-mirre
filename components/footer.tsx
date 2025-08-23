@@ -73,16 +73,6 @@ export function Footer() {
                 Pricing
               </Link>
             </li>
-            <li>
-              <Link href="/#testimonials" className={cn("text-sm", getTextColorClass())}>
-                Testimonials
-              </Link>
-            </li>
-            <li>
-              <Link href="/#faq" className={cn("text-sm", getTextColorClass())}>
-                FAQ
-              </Link>
-            </li>
           </ul>
         </div>
 
