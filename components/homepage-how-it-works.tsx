@@ -257,7 +257,7 @@ export function HomePageHowItWorks() {
           <div className="flex flex-col items-center text-center mb-12">
             <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>MOBILE APP</span>
             <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-              3] Train anywhere, anytime
+              3] Your clients can see shared workout plans
             </h2>
             <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
               Take your fitness journey on the go with our intuitive mobile app designed for seamless workout tracking
