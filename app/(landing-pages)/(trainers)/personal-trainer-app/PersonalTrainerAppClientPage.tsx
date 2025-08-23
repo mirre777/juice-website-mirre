@@ -105,105 +105,130 @@ export function PersonalTrainerAppClientPage() {
 
       {/* Hero Section */}
       <section className="pt-32 pb-10 md:pt-40 md:pb-10">
-        <div className="container mx-auto px-4 md:px-6 text-center">
-          <h1 className="mb-6 max-w-4xl mx-auto text-center">
-            {isCoach ? (
-              <div className="flex flex-col space-y-2">
-                <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-8xl">
-                  Kill the hassle.
-                </span>
-                <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
-                  Keep the gains.
-                </span>
-              </div>
-            ) : (
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
-                Simplify <span className="text-[#D2FF28]">Training.</span>
-              </span>
-            )}
-          </h1>
-          <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-3xl mx-auto`}>
-            {isCoach ? (
-              <>
-                Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate every
-                PR—all in one easy-to-use platform.
-              </>
-            ) : (
-              <>Super simple workout logging. Get insights into your training. Share your workouts.</>
-            )}
-          </p>
-          {isCoach ? (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-              <button
-                onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
-                id="early_access_trainer_hero"
-              >
-                Start now
-              </button>
-              <button
-                onClick={handleWaitlistClick}
-                className="rounded-full px-6 py-3 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                id="get_updates_trainer"
-              >
-                Get updates
-              </button>
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            {/* Left side - Text content */}
+            <div className="flex-1 text-left">
+              <h1 className="mb-6">
+                {isCoach ? (
+                  <div className="flex flex-col space-y-2">
+                    <span className="text-5xl md:text-7xl font-bold tracking-tight leading-7 lg:text-8xl">
+                      Kill the hassle.
+                    </span>
+                    <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight juice-text-gradient pb-4">
+                      Keep the gains.
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+                    Simplify <span className="text-[#D2FF28]">Training.</span>
+                  </span>
+                )}
+              </h1>
+              <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-10 max-w-2xl`}>
+                {isCoach ? (
+                  <>
+                    Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate
+                    every PR—all in one easy-to-use platform.
+                  </>
+                ) : (
+                  <>Super simple workout logging. Get insights into your training. Share your workouts.</>
+                )}
+              </p>
+              {isCoach ? (
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                  <button
+                    onClick={() => (window.location.href = "https://app.juice.fitness/")}
+                    className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                    id="early_access_trainer_hero"
+                  >
+                    Start now
+                  </button>
+                  <button
+                    onClick={handleWaitlistClick}
+                    className="rounded-full px-6 py-3 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                    id="get_updates_trainer"
+                  >
+                    Get updates
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-start gap-6 mb-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <a
+                      href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-105"
+                    >
+                      <Image
+                        src="https://upload.wikimedia.org/wikipedia/commons/5/51/Download_on_the_App_Store_Badge_US-UK_RGB_blk.svg"
+                        alt="Download on the App Store"
+                        width={200}
+                        height={60}
+                        className="h-14 w-auto"
+                      />
+                    </a>
+                    <a
+                      href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-105"
+                    >
+                      <Image
+                        src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                        alt="Get it on Google Play"
+                        width={200}
+                        height={60}
+                        className="h-14 w-auto"
+                      />
+                    </a>
+                  </div>
+                  <button
+                    onClick={handleWaitlistClick}
+                    className="rounded-full px-6 py-3 border border-zinc-800 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+                    id="get_updates_client"
+                  >
+                    Get updates
+                  </button>
+                </div>
+              )}
+              {/* Only show this line for trainer view */}
+              {isCoach && (
+                <p className="text-sm text-gray-500 mt-2">
+                  No credit card required. No lock-in. Works with Google Sheets.
+                </p>
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-6 mb-4">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105"
-                >
+
+            {/* Right side - Dashboard image */}
+            {isCoach && (
+              <div className="flex-1 max-w-2xl">
+                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
                   <Image
-                    src="https://upload.wikimedia.org/wikipedia/commons/5/51/Download_on_the_App_Store_Badge_US-UK_RGB_blk.svg"
-                    alt="Download on the App Store"
-                    width={200}
-                    height={60}
-                    className="h-14 w-auto"
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
+                    alt="Juice Dashboard Interface for Coaches"
+                    width={1200}
+                    height={675}
+                    className="w-full h-auto"
                   />
-                </a>
-                <a
-                  href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105"
-                >
-                  <Image
-                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                    alt="Get it on Google Play"
-                    width={200}
-                    height={60}
-                    className="h-14 w-auto"
-                  />
-                </a>
+                  <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+                </div>
+                <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mt-6 text-center`}>
+                  Because trainers should train, not juggle admin.
+                </p>
               </div>
-              <button
-                onClick={handleWaitlistClick}
-                className="rounded-full px-6 py-3 border border-zinc-800 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
-                id="get_updates_client"
-              >
-                Get updates
-              </button>
-            </div>
-          )}
-          {/* Only show this line for trainer view */}
-          {isCoach && (
-            <p className="text-sm text-gray-500 mt-2 mb-16">
-              No credit card required. No lock-in. Works with Google Sheets.
-            </p>
-          )}
+            )}
+          </div>
+
           {/* Waitlist Form */}
           {showWaitlist && (
-            <div ref={waitlistRef} className="max-w-md mx-auto mb-16 animate-fadeIn">
+            <div ref={waitlistRef} className="max-w-md mt-16 animate-fadeIn">
               <div
                 className={`${isCoach ? "bg-white" : "bg-zinc-900"} border-2 border-[#D2FF28] rounded-xl overflow-hidden shadow-lg`}
               >
                 <div className={`${isCoach ? "bg-gray-100" : "bg-zinc-800"} py-3 px-4`}>
-                  <div className="text-center">
+                  <div className="text-left">
                     <h3 className={`text-xl font-bold ${isCoach ? "text-black" : "text-white"}`}>
                       Get early access. Join the waitlist.
                     </h3>
@@ -219,20 +244,11 @@ export function PersonalTrainerAppClientPage() {
               </div>
             </div>
           )}
-          <div className="max-w-6xl mx-auto">
-            <div className="relative w-full overflow-hidden">
-              {isCoach ? (
-                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
-                  <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
-                    alt="Juice Dashboard Interface for Coaches"
-                    width={1200}
-                    height={675}
-                    className="w-full h-auto"
-                  />
-                  <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-                </div>
-              ) : (
+
+          {/* Client view mobile screens - only show if not coach */}
+          {!isCoach && (
+            <div className="max-w-6xl mx-auto mt-16">
+              <div className="relative w-full overflow-hidden">
                 <div className="flex justify-center py-8">
                   <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
                     <div className="flex-shrink-0">
@@ -273,15 +289,9 @@ export function PersonalTrainerAppClientPage() {
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
-            {/* Moved this line to underneath the dashboard image */}
-            {isCoach && (
-              <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mt-6 text-center`}>
-                Because trainers should train, not juggle admin.
-              </p>
-            )}
-          </div>
+          )}
         </div>
       </section>
 
@@ -313,7 +323,7 @@ export function PersonalTrainerAppClientPage() {
       {/* Blog Call to Action Section */}
       <section className="py-16 mt-24">
         <div className="container mx-auto px-4 md:px-6">
-          <div className={`rounded-3xl p-8 md:p-12 shadow-lg text-center ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
+          <div className={`rounded-3xl p-8 md:p-12 shadow-lg ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
             <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
               Stay Updated with the Juice Blog
             </h2>
@@ -334,7 +344,7 @@ export function PersonalTrainerAppClientPage() {
       {/* CTA Section */}
       <section className="py-10 mt-24">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-4xl mx-auto">
             <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
               {isCoach ? "Best coaching app for personal trainers" : "Get ready to train."}
             </h2>
@@ -343,7 +353,7 @@ export function PersonalTrainerAppClientPage() {
                 ? "Ready to transform your coaching business?"
                 : "Join thousands of bicep babes who are elevating their training with Juice."}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => (window.location.href = "https://app.juice.fitness/")}
                 className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
