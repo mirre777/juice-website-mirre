@@ -80,7 +80,7 @@ export function PricingSectionWithPayment() {
   // Add the maintain-scroll class to the main container
   return (
     <section id="pricing" className={`pb-0 pt-[0] ${isCoach ? "bg-white" : "bg-black"} scroll-mt-16 maintain-scroll`}>
-      <div className="container px-4 md:px-6 mb-16">
+      <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center text-center mb-12">
           <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>PRICING</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>

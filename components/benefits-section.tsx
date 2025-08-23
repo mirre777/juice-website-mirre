@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Check, Shield, Clock, Award } from "lucide-react"
+import { UserPlus, Send, Eye, Smartphone } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 
 export function BenefitsSection() {
@@ -14,24 +14,24 @@ export function BenefitsSection() {
 
   const benefits = [
     {
-      icon: <Clock className="h-8 w-8" />,
-      title: "Save Time",
-      description: "Automate client management and workout tracking to focus on what matters most - training.",
+      icon: <Smartphone className="h-8 w-8" />,
+      title: "Sign up for the web app",
+      description: "Get started in minutes with our intuitive platform designed specifically for personal trainers.",
     },
     {
-      icon: <Award className="h-8 w-8" />,
-      title: "Grow Your Business",
-      description: "Impress clients with professional tools and deliver better results to attract more referrals.",
+      icon: <UserPlus className="h-8 w-8" />,
+      title: "Invite your client",
+      description: "Easily onboard clients to the platform with simple invitation links and seamless setup.",
     },
     {
-      icon: <Shield className="h-8 w-8" />,
-      title: "Reduce Admin Work",
-      description: "Eliminate spreadsheets and manual tracking with our all-in-one platform built for trainers.",
+      icon: <Send className="h-8 w-8" />,
+      title: "Convert and send them a program",
+      description: "Transform your existing workout plans into digital programs and deliver them instantly to clients.",
     },
     {
-      icon: <Check className="h-8 w-8" />,
-      title: "Improve Client Results",
-      description: "Track progress more effectively and provide data-driven feedback to help clients succeed.",
+      icon: <Eye className="h-8 w-8" />,
+      title: "See their workout results instantly",
+      description: "Monitor client progress in real-time and get immediate feedback on their workout performance.",
     },
   ]
 
@@ -39,12 +39,12 @@ export function BenefitsSection() {
     <section id="benefits" className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>HOW IT WORKS</span>
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>BENEFITS</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-            Getting Started
+            Why trainers choose Juice
           </h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>
-            Don't stress. We'll hold your hand.
+            Our platform is designed to make your life easier and your business more successful.
           </p>
         </div>
 
