@@ -55,7 +55,7 @@ export function BenefitsSection() {
             fill="none"
           >
             <path
-              d="M 120 64 Q 300 20 400 64 Q 500 108 600 64 Q 700 20 880 64"
+              d="M 120 32 Q 300 -12 400 32 Q 500 76 600 32 Q 700 -12 880 32"
               stroke="#c4f82a"
               strokeWidth="4"
               strokeDasharray="12,6"
