@@ -143,7 +143,7 @@ export function FeaturesSection() {
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
         </div>
 
-        {!isPersonalTrainerAppPage ? (
+        {!isPersonalTrainerAppPage && !isClientPage ? (
           <Tabs
             defaultValue="client"
             value={isCoach ? "trainer" : "client"}
@@ -224,6 +224,31 @@ export function FeaturesSection() {
               </div>
             </TabsContent>
           </Tabs>
+        ) : isClientPage ? (
+          <div className="w-full max-w-4xl mx-auto">
+            <div id="client-features" className="grid grid-cols-1 gap-4 md:gap-6">
+              {clientFeatures.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                >
+                  <div className="feature-card">
+                    <div className="flex flex-col md:flex-row items-start">
+                      <div className="mr-4 mt-1">{feature.icon}</div>
+                      <div>
+                        <h3 className={`text-xl font-semibold mb-2 ${isCoach ? "text-black" : "text-white"}`}>
+                          {feature.title}
+                        </h3>
+                        <p className={`${isCoach ? "text-gray-600" : "text-gray-400"}`}>{feature.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="w-full max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
