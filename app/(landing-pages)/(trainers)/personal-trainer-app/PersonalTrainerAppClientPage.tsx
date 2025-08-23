@@ -106,7 +106,7 @@ export function PersonalTrainerAppClientPage() {
       {/* Hero Section */}
       <section className="pt-32 pb-10 md:pt-40 md:pb-10">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
             {/* Left side - Text content */}
             <div className="flex-1 text-left">
               <h1 className="mb-6">
@@ -203,7 +203,7 @@ export function PersonalTrainerAppClientPage() {
 
             {/* Right side - Dashboard image */}
             {isCoach && (
-              <div className="flex-1 max-w-2xl">
+              <div className="flex-1 lg:flex-[1.2]">
                 <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
                   <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
