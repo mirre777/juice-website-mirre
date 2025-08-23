@@ -31,10 +31,13 @@ export function Navbar() {
 
   const handleToggleChange = (newIsCoach: boolean) => {
     setIsCoach(newIsCoach)
+
+    const currentHash = window.location.hash
+
     if (newIsCoach) {
       // Switching to trainer - navigate to root if on clients page
       if (pathname === "/clients" || pathname === "/for-clients") {
-        router.push("/")
+        router.push("/" + currentHash)
       }
     } else {
       // Switching to client - navigate to clients if on root, trainers, trainer app pages, or download pages
@@ -45,7 +48,7 @@ export function Navbar() {
         pathname === "/personal-trainer-app" ||
         pathname === "/download-juice-app"
       ) {
-        router.push("/clients")
+        router.push("/clients" + currentHash)
       }
     }
   }
