@@ -34,9 +34,34 @@ async function debugBlogContent() {
       })
     }
 
+    const rpeBlobs = blobs.filter(
+      (blob) => blob.pathname.toLowerCase().includes("rpe") || blob.pathname.toLowerCase().includes("training-smarter"),
+    )
+
+    if (rpeBlobs.length > 0) {
+      console.log("3. Found RPE-related posts:")
+      rpeBlobs.forEach((blob, index) => {
+        console.log(`${index + 1}. ${blob.pathname}`)
+        console.log(`   URL: ${blob.url}`)
+      })
+
+      // Try to fetch content from RPE blob if exists
+      console.log("\n4. Sample content from RPE post:")
+      try {
+        const response = await fetch(rpeBlobs[0].url)
+        const content = await response.text()
+        console.log("First 300 characters:")
+        console.log(content.substring(0, 300) + "...")
+      } catch (error) {
+        console.log("❌ Error fetching RPE blob content:", error.message)
+      }
+    } else {
+      console.log("3. No RPE-related posts found in blob storage")
+    }
+
     // Try to fetch content from first blob if exists
-    if (blobs.length > 0) {
-      console.log("3. Sample content from first blob:")
+    if (blobs.length > 0 && rpeBlobs.length === 0) {
+      console.log("4. Sample content from first blob:")
       try {
         const response = await fetch(blobs[0].url)
         const content = await response.text()
@@ -52,7 +77,7 @@ async function debugBlogContent() {
   }
 
   // Check hardcoded sample posts count
-  console.log("\n4. Hardcoded Sample Posts:")
+  console.log("\n5. Hardcoded Sample Posts:")
   try {
     // Import the blog module to check sample posts
     const blogModule = require("../lib/blog")
