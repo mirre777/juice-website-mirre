@@ -1,12 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const isBuildTime =
-  process.env.NODE_ENV === "production" &&
-  (process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.CI === "true" ||
-    process.env.VERCEL_ENV === undefined ||
-    (typeof window === "undefined" && !process.env.VERCEL_URL))
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 if (isBuildTime) {
   console.log("Build time detected - skipping Stripe initialization in payment route")
