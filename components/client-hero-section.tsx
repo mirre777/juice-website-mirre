@@ -17,7 +17,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
   const titleSubtitle = titleParts[1] || ""
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+    <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white"></div>
 
