@@ -10,12 +10,7 @@
  */
 "use client"
 
-const isBuildTime =
-  typeof window === "undefined" &&
-  (process.env.NODE_ENV === "production" ||
-    process.env.CI === "true" ||
-    process.env.VERCEL_ENV === "production" ||
-    !process.env.VERCEL)
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 let auth: any = null
 let db: any = null

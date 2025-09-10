@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const isBuildTime =
-  process.env.NODE_ENV === "production" &&
-  (process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.CI === "true" ||
-    process.env.VERCEL_ENV === undefined ||
-    (typeof window === "undefined" && !process.env.STRIPE_SECRET_KEY))
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 async function getStripe() {
   if (isBuildTime) {

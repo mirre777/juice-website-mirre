@@ -1,13 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 async function getStripe() {
-  // Detect build time and prevent initialization
-  if (
-    process.env.NODE_ENV === "production" &&
-    (process.env.VERCEL_ENV === undefined ||
-      process.env.CI === "true" ||
-      process.env.NEXT_PHASE === "phase-production-build")
-  ) {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
     throw new Error("Build time detected - skipping Stripe initialization")
   }
 
@@ -19,12 +13,7 @@ async function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    if (
-      process.env.NODE_ENV === "production" &&
-      (process.env.VERCEL_ENV === undefined ||
-        process.env.CI === "true" ||
-        process.env.NEXT_PHASE === "phase-production-build")
-    ) {
+    if (process.env.NEXT_PHASE === "phase-production-build") {
       return NextResponse.json({ error: "Build time detected" }, { status: 503 })
     }
 

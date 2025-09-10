@@ -9,12 +9,7 @@
  * patterns documented in FIREBASE_BUILD_ISSUES.md to avoid deployment failures.
  */
 
-const isBuildTime =
-  typeof window === "undefined" &&
-  (process.env.NODE_ENV === "production" ||
-    process.env.CI === "true" ||
-    process.env.VERCEL_ENV === "production" ||
-    !process.env.VERCEL)
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 let hasRealFirebaseConfig = false
 let db = null

@@ -4,12 +4,7 @@
  */
 
 const isBuildTime = () => {
-  return (
-    typeof window === "undefined" &&
-    ((process.env.NODE_ENV === "production" && !process.env.VERCEL) ||
-      process.env.CI === "true" ||
-      process.env.NEXT_PHASE === "phase-production-build")
-  )
+  return process.env.NEXT_PHASE === "phase-production-build"
 }
 
 export const getFirebaseApp = async () => {
