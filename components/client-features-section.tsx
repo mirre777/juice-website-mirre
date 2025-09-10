@@ -62,179 +62,138 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-8 text-black">What's Inside the Program</h2>
 
-          <div className="max-w-6xl mx-auto bg-gray-50 rounded-2xl p-6 overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-[#D2FF28] text-black">
-                  <th className="px-4 py-3 font-bold">Day</th>
-                  <th className="px-4 py-3 font-bold">Exercise</th>
-                  <th className="px-4 py-3 font-bold">Equipment</th>
-                  <th className="px-4 py-3 font-bold">Sets</th>
-                  <th className="px-4 py-3 font-bold">Reps</th>
-                  <th className="px-4 py-3 font-bold">Muscle Group</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                <tr className="border-b border-gray-200">
-                  <td rowSpan={7} className="px-4 py-3 font-semibold text-black border-r border-gray-200">
-                    Day 1
-                  </td>
-                  <td className="px-4 py-3">Squat</td>
-                  <td className="px-4 py-3">Barbell</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">6-8</td>
-                  <td className="px-4 py-3">Quads, Glutes</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Bench press</td>
-                  <td className="px-4 py-3">Barbell</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Chest, Triceps</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">(Assisted) Pull-up</td>
-                  <td className="px-4 py-3">Bar / Machine</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Back</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Wide-grip row</td>
-                  <td className="px-4 py-3">Cable machine</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Back</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Lateral raise</td>
-                  <td className="px-4 py-3">Dumbbells</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Delts</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Hamstring curl</td>
-                  <td className="px-4 py-3">Machine</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Hamstrings</td>
-                </tr>
-                <tr className="border-b border-gray-300">
-                  <td className="px-4 py-3">Cable curls</td>
-                  <td className="px-4 py-3">Cable machine</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Biceps</td>
-                </tr>
+          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+            {/* Day 1 */}
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
+                Day 1
+              </div>
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <div className="font-semibold">Squat</div>
+                  <div className="text-gray-600">Barbell • 3 sets • 6-8 reps</div>
+                  <div className="text-gray-500 text-xs">Quads, Glutes</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Bench press</div>
+                  <div className="text-gray-600">Barbell • 3 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Chest, Triceps</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">(Assisted) Pull-up</div>
+                  <div className="text-gray-600">Bar/Machine • 3 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Back</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Wide-grip row</div>
+                  <div className="text-gray-600">Cable • 2 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Back</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Lateral raise</div>
+                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Delts</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Hamstring curl</div>
+                  <div className="text-gray-600">Machine • 2 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Hamstrings</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Cable curls</div>
+                  <div className="text-gray-600">Cable • 2 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Biceps</div>
+                </div>
+              </div>
+            </div>
 
-                <tr className="border-b border-gray-200">
-                  <td rowSpan={7} className="px-4 py-3 font-semibold text-black border-r border-gray-200">
-                    Day 2
-                  </td>
-                  <td className="px-4 py-3">Deadlift</td>
-                  <td className="px-4 py-3">Barbell</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">5-8</td>
-                  <td className="px-4 py-3">Hamstrings, Glutes</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Shoulder press</td>
-                  <td className="px-4 py-3">Dumbbells</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">6-8</td>
-                  <td className="px-4 py-3">Delts, Chest</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Leg press</td>
-                  <td className="px-4 py-3">Machine</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-10</td>
-                  <td className="px-4 py-3">Quads, Glutes</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">T-bar rows</td>
-                  <td className="px-4 py-3">T-bar</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Back</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Pec deck</td>
-                  <td className="px-4 py-3">Machine</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">5-8</td>
-                  <td className="px-4 py-3">Chest</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Rear delt fly</td>
-                  <td className="px-4 py-3">Cable machine</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Delts</td>
-                </tr>
-                <tr className="border-b border-gray-300">
-                  <td className="px-4 py-3">Overhead extension</td>
-                  <td className="px-4 py-3">Cable machine</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Triceps</td>
-                </tr>
+            {/* Day 2 */}
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
+                Day 2
+              </div>
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <div className="font-semibold">Deadlift</div>
+                  <div className="text-gray-600">Barbell • 3 sets • 5-8 reps</div>
+                  <div className="text-gray-500 text-xs">Hamstrings, Glutes</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Shoulder press</div>
+                  <div className="text-gray-600">Dumbbells • 3 sets • 6-8 reps</div>
+                  <div className="text-gray-500 text-xs">Delts, Chest</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Leg press</div>
+                  <div className="text-gray-600">Machine • 2 sets • 8-10 reps</div>
+                  <div className="text-gray-500 text-xs">Quads, Glutes</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">T-bar rows</div>
+                  <div className="text-gray-600">T-bar • 3 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Back</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Pec deck</div>
+                  <div className="text-gray-600">Machine • 3 sets • 5-8 reps</div>
+                  <div className="text-gray-500 text-xs">Chest</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Rear delt fly</div>
+                  <div className="text-gray-600">Cable • 2 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Delts</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Overhead extension</div>
+                  <div className="text-gray-600">Cable • 3 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Triceps</div>
+                </div>
+              </div>
+            </div>
 
-                <tr className="border-b border-gray-200">
-                  <td rowSpan={7} className="px-4 py-3 font-semibold text-black border-r border-gray-200">
-                    Day 3
-                  </td>
-                  <td className="px-4 py-3">Chest press</td>
-                  <td className="px-4 py-3">Machine</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">5-8</td>
-                  <td className="px-4 py-3">Chest</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Lat pulldowns</td>
-                  <td className="px-4 py-3">Cable machine</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">5-8</td>
-                  <td className="px-4 py-3">Back</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Leg extensions</td>
-                  <td className="px-4 py-3">Machine</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Quads</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Incline press</td>
-                  <td className="px-4 py-3">Dumbbells</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">6-8</td>
-                  <td className="px-4 py-3">Chest, Delts</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Cable lateral raise</td>
-                  <td className="px-4 py-3">Cable machine</td>
-                  <td className="px-4 py-3">3</td>
-                  <td className="px-4 py-3">10-12</td>
-                  <td className="px-4 py-3">Delts</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-3">Preacher Curls</td>
-                  <td className="px-4 py-3">(EZ) Bar</td>
-                  <td className="px-4 py-3">2</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Biceps</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3">Calf raises</td>
-                  <td className="px-4 py-3">Machine</td>
-                  <td className="px-4 py-3">4</td>
-                  <td className="px-4 py-3">8-12</td>
-                  <td className="px-4 py-3">Calves</td>
-                </tr>
-              </tbody>
-            </table>
+            {/* Day 3 */}
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
+                Day 3
+              </div>
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <div className="font-semibold">Chest press</div>
+                  <div className="text-gray-600">Machine • 3 sets • 5-8 reps</div>
+                  <div className="text-gray-500 text-xs">Chest</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Lat pulldowns</div>
+                  <div className="text-gray-600">Cable • 3 sets • 5-8 reps</div>
+                  <div className="text-gray-500 text-xs">Back</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Leg extensions</div>
+                  <div className="text-gray-600">Machine • 2 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Quads</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Incline press</div>
+                  <div className="text-gray-600">Dumbbells • 3 sets • 6-8 reps</div>
+                  <div className="text-gray-500 text-xs">Chest, Delts</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Cable lateral raise</div>
+                  <div className="text-gray-600">Cable • 3 sets • 10-12 reps</div>
+                  <div className="text-gray-500 text-xs">Delts</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Preacher Curls</div>
+                  <div className="text-gray-600">(EZ) Bar • 2 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Biceps</div>
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold">Calf raises</div>
+                  <div className="text-gray-600">Machine • 4 sets • 8-12 reps</div>
+                  <div className="text-gray-500 text-xs">Calves</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
