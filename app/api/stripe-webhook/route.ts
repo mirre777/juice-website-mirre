@@ -7,8 +7,16 @@ import { type NextRequest, NextResponse } from "next/server"
 
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
+console.log("[v0] Build-time detection debug:", {
+  NEXT_PHASE: process.env.NEXT_PHASE,
+  NODE_ENV: process.env.NODE_ENV,
+  VERCEL_ENV: process.env.VERCEL_ENV,
+  isBuildTime: isBuildTime,
+  timestamp: new Date().toISOString(),
+})
+
 if (isBuildTime) {
-  console.log("Build time detected - completely skipping Firebase initialization")
+  console.log("[v0] Build time detected - completely skipping Firebase initialization")
 }
 
 let stripe: any = null
@@ -53,7 +61,14 @@ async function getFirebaseDb() {
 }
 
 export async function POST(request: NextRequest) {
+  console.log("[v0] POST request received - build-time check:", {
+    isBuildTime: isBuildTime,
+    NEXT_PHASE: process.env.NEXT_PHASE,
+    timestamp: new Date().toISOString(),
+  })
+
   if (isBuildTime) {
+    console.log("[v0] Returning 503 due to build-time detection")
     return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
   }
 
