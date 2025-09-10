@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import DumbbellWorkoutClientPage from "./DumbbellWorkoutClientPage"
 
 export const metadata: Metadata = {
-  title: "Dumbbell Workout Program – Build Muscle & Strength at Home | Juice",
+  title: "Dumbbell Workouts for Fast Muscle Gains | Juice",
   description:
-    "Transform your physique with our comprehensive dumbbell workout program. Build muscle, increase strength, and get fit at home with structured training plans and expert guidance.",
+    "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training you can use with clients anywhere. Perfect for online or gym PTs.",
   keywords: [
     "dumbbell workout program",
     "dumbbell workout",
@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     "strength training program",
   ],
   openGraph: {
-    title: "Dumbbell Workout Program – Build Muscle & Strength at Home",
+    title: "Top Dumbbell Workouts for Real Results",
     description:
-      "Transform your physique with our comprehensive dumbbell workout program. Build muscle, increase strength, and get fit at home with structured training plans and expert guidance.",
+      "Train your clients with fast, effective dumbbell routines. These workouts save time, build muscle, and work in any space.",
     url: "/workout-programs/paid/dumbbell-workout",
     siteName: "Juice",
     locale: "en_GB",
@@ -38,9 +38,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dumbbell Workout Program – Build Muscle & Strength at Home",
+    title: "Top Dumbbell Workouts for Real Results",
     description:
-      "Transform your physique with our comprehensive dumbbell workout program. Build muscle, increase strength, and get fit at home with structured training plans and expert guidance.",
+      "Train your clients with fast, effective dumbbell routines. These workouts save time, build muscle, and work in any space.",
     images: ["/images/og-feature-graphic.png"],
   },
   robots: {
