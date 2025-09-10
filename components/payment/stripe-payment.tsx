@@ -313,7 +313,7 @@ function CheckoutForm({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment/success?payment_intent=${paymentIntentId || ""}&tempId=${tempId || ""}`,
+          return_url: `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${paymentIntentId || ""}&payment_success=true`,
           receipt_email: email,
         },
         redirect: "if_required",
@@ -348,7 +348,7 @@ function CheckoutForm({
         }
 
         onPaymentComplete()
-        window.location.href = `${window.location.origin}/payment/success?payment_intent=${result.paymentIntent.id}&tempId=${tempId || ""}`
+        window.location.href = `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${result.paymentIntent.id}&payment_success=true`
       } else {
         console.log("Payment requires additional action or is processing")
       }

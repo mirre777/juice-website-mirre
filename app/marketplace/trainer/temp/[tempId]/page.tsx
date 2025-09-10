@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Clock } from 'lucide-react'
+import { AlertCircle, Clock, CheckCircle } from "lucide-react"
 
 interface TempTrainerPageProps {
   params: {
@@ -17,6 +17,7 @@ interface TempTrainerPageProps {
 
 export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const { tempId } = params
+  const searchParams = useSearchParams()
   const [trainer, setTrainer] = useState<TrainerData | null>(null)
   const [content, setContent] = useState<TrainerContent | null>(null)
   const [editingContent, setEditingContent] = useState<TrainerContent | null>(null)
@@ -26,8 +27,14 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [isEditing, setIsEditing] = useState(false)
   const [verifyingPayment, setVerifyingPayment] = useState(false)
+  const [activationStatus, setActivationStatus] = useState<"idle" | "verifying" | "activating" | "success" | "error">(
+    "idle",
+  )
   const router = useRouter()
   const hasAttemptedActivationRef = useRef(false)
+
+  const paymentSuccess = searchParams.get("payment_success") === "true"
+  const paymentIntentFromUrl = searchParams.get("payment_intent")
 
   // Fetch temp trainer data
   useEffect(() => {
@@ -96,51 +103,62 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     return () => clearInterval(interval)
   }, [timeLeft, router])
 
-  // Verify payment and attempt activation if user returns to this page after paying.
   useEffect(() => {
     const verifyAndActivate = async () => {
       if (hasAttemptedActivationRef.current) return
       if (!trainer) return
 
-      const paymentIntentId = localStorage.getItem("juice_payment_reference")
-      if (!paymentIntentId) return
+      // Check for payment intent from URL parameters or localStorage
+      const paymentIntentId = paymentIntentFromUrl || localStorage.getItem("juice_payment_reference")
 
+      // Only proceed if we have payment success indication or stored payment reference
+      if (!paymentIntentId && !paymentSuccess) return
+
+      console.log("[v0] Payment verification triggered", { paymentIntentId, paymentSuccess, paymentIntentFromUrl })
+
+      setActivationStatus("verifying")
       setVerifyingPayment(true)
-      try {
-        // 1) Verify payment status server-side (read-only)
-        const verifyRes = await fetch("/api/verify-payment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentIntentId }),
-        })
-        const verifyData = await verifyRes.json()
+      hasAttemptedActivationRef.current = true
 
-        if (verifyRes.ok && verifyData?.success) {
-          // 2) If payment succeeded but trainer still temp, call activate (idempotent)
-          if (trainer.status !== "active") {
-            const activateRes = await fetch("/api/trainer/activate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ paymentIntentId }),
-            })
-            const activateData = await activateRes.json()
-            if (activateRes.ok && activateData?.success) {
-              localStorage.removeItem("juice_payment_reference")
-              hasAttemptedActivationRef.current = true
+      try {
+        // If we have a payment intent, verify and activate
+        if (paymentIntentId) {
+          console.log("[v0] Activating trainer with payment intent:", paymentIntentId)
+          setActivationStatus("activating")
+
+          const activateRes = await fetch("/api/trainer/activate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ paymentIntentId }),
+          })
+
+          const activateData = await activateRes.json()
+          console.log("[v0] Activation response:", activateData)
+
+          if (activateRes.ok && activateData?.success) {
+            setActivationStatus("success")
+            localStorage.removeItem("juice_payment_reference")
+
+            // Show success message briefly before redirecting
+            setTimeout(() => {
               router.replace(`/marketplace/trainer/${activateData.trainerId}`)
-              return
-            }
+            }, 2000)
+            return
+          } else {
+            throw new Error(activateData?.error || "Activation failed")
           }
         }
       } catch (e) {
-        console.error("Temp page verify/activate error:", e)
+        console.error("Payment verification/activation error:", e)
+        setActivationStatus("error")
+        setError(e instanceof Error ? e.message : "Failed to activate trainer profile")
       } finally {
         setVerifyingPayment(false)
       }
     }
 
     verifyAndActivate()
-  }, [trainer, router])
+  }, [trainer, router, paymentIntentFromUrl, paymentSuccess])
 
   // Generate default content for new trainers
   const generateDefaultContent = (trainerData: any): TrainerContent => {
@@ -163,24 +181,23 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
           trainerData.bio ||
           "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
       },
-      services:
-        trainerData.services?.map((service: string, index: number) => ({
-          id: String(index + 1),
-          title: service,
-          description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+      services: trainerData.services?.map((service: string, index: number) => ({
+        id: String(index + 1),
+        title: service,
+        description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+        price: 60,
+        duration: "60 minutes",
+        featured: index === 0,
+      })) || [
+        {
+          id: "1",
+          title: "Personal Training",
+          description: "Personalized training sessions tailored to your goals",
           price: 60,
           duration: "60 minutes",
-          featured: index === 0,
-        })) || [
-          {
-            id: "1",
-            title: "Personal Training",
-            description: "Personalized training sessions tailored to your goals",
-            price: 60,
-            duration: "60 minutes",
-            featured: true,
-          },
-        ],
+          featured: true,
+        },
+      ],
       contact: {
         title: "Let's Start Your Fitness Journey",
         description:
@@ -261,6 +278,46 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
     alert("This is a preview! Activate your profile to enable client bookings.")
   }
 
+  if (activationStatus === "verifying" || activationStatus === "activating") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <h2 className="text-xl font-semibold mb-2">
+                {activationStatus === "verifying" ? "Verifying Payment..." : "Activating Your Profile..."}
+              </h2>
+              <p className="text-muted-foreground">
+                {activationStatus === "verifying"
+                  ? "Confirming your payment was successful..."
+                  : "Setting up your live trainer website..."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (activationStatus === "success") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Profile Activated!</h2>
+              <p className="text-muted-foreground mb-4">
+                Your trainer website is now live. Redirecting you to your new page...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -280,7 +337,9 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
             <div className="text-center">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Preview Not Found</h2>
-              <p className="text-muted-foreground mb-4">{error || "This trainer preview has expired or doesn't exist."}</p>
+              <p className="text-muted-foreground mb-4">
+                {error || "This trainer preview has expired or doesn't exist."}
+              </p>
               <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
             </div>
           </CardContent>
@@ -298,7 +357,9 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
             <div className="text-center">
               <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Preview Expired</h2>
-              <p className="text-muted-foreground mb-4">This trainer preview has expired. Create a new profile to get started.</p>
+              <p className="text-muted-foreground mb-4">
+                This trainer preview has expired. Create a new profile to get started.
+              </p>
               <Button onClick={() => router.push("/marketplace/personal-trainer-website")}>Create New Profile</Button>
             </div>
           </CardContent>
