@@ -5,7 +5,11 @@
 
 import { type NextRequest, NextResponse } from "next/server"
 
-const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
+const isBuildTime =
+  typeof window === "undefined" &&
+  process.env.NODE_ENV === "production" &&
+  !process.env.VERCEL_URL &&
+  !process.env.VERCEL_ENV
 
 console.log("[v0] COMPREHENSIVE BUILD-TIME DEBUG:", {
   NEXT_PHASE: process.env.NEXT_PHASE,
@@ -25,6 +29,7 @@ console.log("[v0] Build-time detection debug:", {
   NEXT_PHASE: process.env.NEXT_PHASE,
   NODE_ENV: process.env.NODE_ENV,
   VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL_URL: process.env.VERCEL_URL,
   isBuildTime: isBuildTime,
   timestamp: new Date().toISOString(),
 })
