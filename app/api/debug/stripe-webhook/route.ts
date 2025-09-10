@@ -3,12 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const isBuildTime =
-  process.env.NODE_ENV === "production" &&
-  (process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.CI === "true" ||
-    process.env.VERCEL_ENV === undefined ||
-    (typeof window === "undefined" && !process.env.VERCEL_URL))
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 if (isBuildTime) {
   console.log("Build time detected - completely skipping debug stripe-webhook initialization")
