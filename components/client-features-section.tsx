@@ -65,7 +65,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
           <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
             {/* Day 1 */}
             <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">
                 Day 1
               </div>
               <div className="space-y-3 text-left">
@@ -109,7 +109,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
             {/* Day 2 */}
             <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">
                 Day 2
               </div>
               <div className="space-y-3 text-left">
@@ -153,7 +153,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
             {/* Day 3 */}
             <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">
                 Day 3
               </div>
               <div className="space-y-3 text-left">
