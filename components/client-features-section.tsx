@@ -65,9 +65,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
           <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
             {/* Day 1 */}
             <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">
-                Day 1
-              </div>
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">Day 1</div>
               <div className="space-y-3 text-left">
                 <div className="text-sm">
                   <div className="font-semibold">Squat</div>
@@ -109,9 +107,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
             {/* Day 2 */}
             <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">
-                Day 2
-              </div>
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">Day 2</div>
               <div className="space-y-3 text-left">
                 <div className="text-sm">
                   <div className="font-semibold">Deadlift</div>
@@ -153,9 +149,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
             {/* Day 3 */}
             <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">
-                Day 3
-              </div>
+              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">Day 3</div>
               <div className="space-y-3 text-left">
                 <div className="text-sm">
                   <div className="font-semibold">Chest press</div>
@@ -194,6 +188,20 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mt-12 flex justify-center">
+            <a
+              href="https://app.juice.fitness/public/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-bold py-4 px-8 rounded-full text-lg transition-all duration-200 hover:scale-105"
+            >
+              Get Free Program
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
           </div>
         </div>
 
