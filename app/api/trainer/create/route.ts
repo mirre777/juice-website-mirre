@@ -30,11 +30,7 @@ function makeTempId() {
 }
 
 export async function POST(request: NextRequest) {
-  if (
-    process.env.CI === "true" ||
-    process.env.NEXT_PHASE === "phase-production-build" ||
-    (process.env.VERCEL_ENV === "preview" && !process.env.FIREBASE_PROJECT_ID)
-  ) {
+  if (process.env.CI === "true" || process.env.NEXT_PHASE === "phase-production-build") {
     console.log("Build time detected - completely skipping Firebase initialization in trainer create route")
     return json(503, { error: "Service temporarily unavailable during build" })
   }
