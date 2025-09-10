@@ -9,17 +9,7 @@ import { type NextRequest, NextResponse } from "next/server"
 let firebaseAdminCache: any = null
 
 async function getFirebaseAdmin() {
-  if (
-    process.env.NODE_ENV === "production" &&
-    (process.env.VERCEL_ENV === undefined ||
-      process.env.CI === "true" ||
-      process.env.NEXT_PHASE === "phase-production-build" ||
-      process.env.NEXT_PHASE === "phase-production-server" ||
-      (typeof window === "undefined" && !process.env.VERCEL_URL) ||
-      !process.env.FIREBASE_PROJECT_ID ||
-      !process.env.FIREBASE_CLIENT_EMAIL ||
-      !process.env.FIREBASE_PRIVATE_KEY)
-  ) {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
     console.log("Build time detected - completely skipping Firebase initialization in trainer temp route")
     return null
   }
@@ -32,12 +22,16 @@ async function getFirebaseAdmin() {
     const { getApps, initializeApp, cert } = await import("firebase-admin/app")
     const { getFirestore } = await import("firebase-admin/firestore")
 
-    const projectId = process.env.FIREBASE_PROJECT_ID
+    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
 
     if (!projectId || !clientEmail || !privateKey) {
-      console.log("Missing Firebase credentials - skipping initialization")
+      console.error("Missing Firebase credentials:", {
+        hasProjectId: !!projectId,
+        hasClientEmail: !!clientEmail,
+        hasPrivateKey: !!privateKey,
+      })
       return null
     }
 
