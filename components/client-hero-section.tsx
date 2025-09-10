@@ -96,7 +96,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
             className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <a
-              href="https://app.juice.fitness/public/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+              href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2"

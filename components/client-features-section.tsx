@@ -192,7 +192,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
           <div className="mt-12 flex justify-center">
             <a
-              href="https://app.juice.fitness/public/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+              href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-bold py-4 px-8 rounded-full text-lg transition-all duration-200 hover:scale-105"
