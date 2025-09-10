@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
 
 interface ClientHeroSectionProps {
   title: string
@@ -98,8 +99,10 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
               href="https://app.juice.fitness/public/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
               target="_blank"
               rel="noopener noreferrer"
+              className="flex items-center gap-2"
             >
-              Start Your 3-Day Program Now
+              Get Free Program
+              <ArrowRight className="w-5 h-5" />
             </a>
           </Button>
           <p className="text-sm text-gray-500 mt-3">Access your complete workout program instantly</p>
