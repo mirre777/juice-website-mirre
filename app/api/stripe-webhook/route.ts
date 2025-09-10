@@ -1,24 +1,67 @@
+/**
+ * CRITICAL: Read docs/FIREBASE_BUILD_ISSUES.md before modifying this file!
+ * This file contains Firebase Admin SDK usage that MUST be properly guarded against build-time initialization.
+ */
+
 import { type NextRequest, NextResponse } from "next/server"
-import Stripe from "stripe"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-})
+const isBuildTime =
+  process.env.NODE_ENV === "production" &&
+  (process.env.VERCEL_ENV === undefined ||
+    process.env.CI === "true" ||
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    (typeof window === "undefined" && !process.env.VERCEL_URL))
 
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  })
+if (isBuildTime) {
+  console.log("Build time detected - completely skipping Firebase initialization")
 }
-const db = getFirestore()
+
+let stripe: any = null
+
+async function getStripe() {
+  if (isBuildTime) {
+    throw new Error("Stripe not available during build time")
+  }
+
+  if (!stripe) {
+    const Stripe = (await import("stripe")).default
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-06-20",
+    })
+  }
+  return stripe
+}
+
+let db: any = null
+
+async function getFirebaseDb() {
+  if (isBuildTime) {
+    throw new Error("Firebase not available during build time")
+  }
+
+  if (!db) {
+    const { initializeApp, getApps, cert } = await import("firebase-admin/app")
+    const { getFirestore } = await import("firebase-admin/firestore")
+
+    if (!getApps().length) {
+      initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        }),
+      })
+    }
+    db = getFirestore()
+  }
+  return db
+}
 
 export async function POST(request: NextRequest) {
+  if (isBuildTime) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   const debugId = Math.random().toString(36).slice(2, 10)
 
   console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
@@ -29,6 +72,8 @@ export async function POST(request: NextRequest) {
   })
 
   try {
+    const stripeInstance = await getStripe()
+
     const rawBody = await request.text()
     const signature = request.headers.get("stripe-signature")
 
@@ -47,7 +92,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 })
     }
 
-    let event: Stripe.Event
+    let event: any
     try {
       // Trim webhook secret to remove any whitespace
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!.trim()
@@ -59,7 +104,7 @@ export async function POST(request: NextRequest) {
         signaturePrefix: signature.substring(0, 20),
       })
 
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+      event = stripeInstance.webhooks.constructEvent(rawBody, signature, webhookSecret)
 
       console.log("✅ SIGNATURE VERIFICATION SUCCESSFUL", {
         debugId,
@@ -94,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     switch (event.type) {
       case "checkout.session.completed":
-        const session = event.data.object as Stripe.Checkout.Session
+        const session = event.data.object as any // Using any type to avoid Stripe import issues
         console.log("✅ Processing checkout.session.completed", {
           debugId,
           sessionId: session.id,
@@ -107,8 +152,8 @@ export async function POST(request: NextRequest) {
           try {
             const userId = session.client_reference_id
 
-            // Update user subscription status in Firebase
-            const userRef = db.collection("users").doc(userId)
+            const firebaseDb = await getFirebaseDb()
+            const userRef = firebaseDb.collection("users").doc(userId)
             await userRef.set(
               {
                 subscriptionId: session.subscription,
@@ -140,8 +185,8 @@ export async function POST(request: NextRequest) {
           try {
             const trainerId = session.client_reference_id
 
-            // Update trainer status in Firebase
-            const trainerRef = db.collection("trainers").doc(trainerId)
+            const firebaseDb = await getFirebaseDb()
+            const trainerRef = firebaseDb.collection("trainers").doc(trainerId)
             await trainerRef.set(
               {
                 status: "active",
@@ -172,7 +217,7 @@ export async function POST(request: NextRequest) {
         break
 
       case "customer.subscription.created":
-        const subscription = event.data.object as Stripe.Subscription
+        const subscription = event.data.object as any // Using any type to avoid Stripe import issues
         console.log("✅ Processing customer.subscription.created", {
           debugId,
           subscriptionId: subscription.id,
@@ -182,7 +227,8 @@ export async function POST(request: NextRequest) {
 
         try {
           // Find user by customer ID and update subscription status
-          const usersQuery = await db.collection("users").where("customerId", "==", subscription.customer).get()
+          const firebaseDb = await getFirebaseDb()
+          const usersQuery = await firebaseDb.collection("users").where("customerId", "==", subscription.customer).get()
 
           if (!usersQuery.empty) {
             const userDoc = usersQuery.docs[0]
@@ -212,7 +258,7 @@ export async function POST(request: NextRequest) {
         break
 
       case "customer.subscription.updated":
-        const updatedSubscription = event.data.object as Stripe.Subscription
+        const updatedSubscription = event.data.object as any // Using any type to avoid Stripe import issues
         console.log("✅ Processing customer.subscription.updated", {
           debugId,
           subscriptionId: updatedSubscription.id,
@@ -220,7 +266,11 @@ export async function POST(request: NextRequest) {
         })
 
         try {
-          const usersQuery = await db.collection("users").where("subscriptionId", "==", updatedSubscription.id).get()
+          const firebaseDb = await getFirebaseDb()
+          const usersQuery = await firebaseDb
+            .collection("users")
+            .where("subscriptionId", "==", updatedSubscription.id)
+            .get()
 
           if (!usersQuery.empty) {
             const userDoc = usersQuery.docs[0]
@@ -249,7 +299,7 @@ export async function POST(request: NextRequest) {
         break
 
       case "invoice.payment_succeeded":
-        const invoice = event.data.object as Stripe.Invoice
+        const invoice = event.data.object as any // Using any type to avoid Stripe import issues
         console.log("✅ Processing invoice.payment_succeeded", {
           debugId,
           invoiceId: invoice.id,
@@ -291,6 +341,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  if (isBuildTime) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   return NextResponse.json({
     message: "Stripe webhook endpoint is reachable",
     timestamp: new Date().toISOString(),

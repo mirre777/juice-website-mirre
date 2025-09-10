@@ -1,5 +1,4 @@
-import { db } from "@/app/api/firebase-config"
-import { collection, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore"
+"use server"
 
 // Utility function to standardize phone numbers
 function standardizePhoneNumber(phone: string): string {
@@ -27,11 +26,53 @@ function standardizePhoneNumber(phone: string): string {
   return phone
 }
 
+// Initialize Firebase modules only when needed and not during build time
+let dbInstance: any = null
+let collectionInstance: any = null
+let docInstance: any = null
+let getDocInstance: any = null
+let addDocInstance: any = null
+let updateDocInstance: any = null
+let serverTimestampInstance: any = null
+
+async function initializeFirebase() {
+  const isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL
+
+  if (isBuildTime || dbInstance) {
+    return dbInstance !== null
+  }
+
+  try {
+    const firebaseConfig = await import("@/app/api/firebase-config")
+    dbInstance = firebaseConfig.db
+
+    if (!dbInstance) {
+      console.log("Firebase not available in status management")
+      return false
+    }
+
+    const firestore = await import("firebase/firestore")
+    collectionInstance = firestore.collection
+    docInstance = firestore.doc
+    getDocInstance = firestore.getDoc
+    addDocInstance = firestore.addDoc
+    updateDocInstance = firestore.updateDoc
+    serverTimestampInstance = firestore.serverTimestamp
+
+    return true
+  } catch (error) {
+    console.log("Firebase not available during build:", error)
+    return false
+  }
+}
+
 export async function convertPotentialUserToTrainer(userId: string) {
   console.log("🔄 Starting convertPotentialUserToTrainer for:", userId)
 
   try {
-    if (!db) {
+    const firebaseAvailable = await initializeFirebase()
+
+    if (!firebaseAvailable || !dbInstance) {
       console.error("❌ Firebase database not configured")
       return {
         success: false,
@@ -40,6 +81,14 @@ export async function convertPotentialUserToTrainer(userId: string) {
         trainerData: null,
       }
     }
+
+    const db = dbInstance
+    const collection = collectionInstance
+    const doc = docInstance
+    const getDoc = getDocInstance
+    const addDoc = addDocInstance
+    const updateDoc = updateDocInstance
+    const serverTimestamp = serverTimestampInstance
 
     console.log("✅ Database configured, fetching potential user...")
 

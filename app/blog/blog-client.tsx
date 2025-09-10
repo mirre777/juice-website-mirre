@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, ArrowRight, X } from "lucide-react"
+import { ArrowRight, X } from "lucide-react"
 import { useState } from "react"
 
 // Fitness-related placeholder images for blog posts
@@ -15,7 +15,6 @@ const getPlaceholderImage = (category: string) => {
     technology: "/fitness-tech-digital-health.png",
     fitness: "/gym-dumbbells.png",
     nutrition: "/healthy-meal-prep.png",
-    visibility: "/seo-tips-fitness-coaches-europe.png",
     marketing: "/personal-trainer-booking-page-mobile.png",
     general: "/fitness-equipment.png",
     myths: "/fitness-equipment.png",
@@ -125,17 +124,6 @@ export function BlogClient({ posts }: BlogClientProps) {
                 </div>
 
                 <CardHeader className="pb-3">
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{post.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>5 min read</span>
-                    </div>
-                  </div>
-
                   <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
                     {post.title}
                   </CardTitle>
@@ -144,7 +132,7 @@ export function BlogClient({ posts }: BlogClientProps) {
                 <CardContent className="pt-0 flex-1 flex flex-col justify-between">
                   <CardDescription className="text-gray-600 mb-4 line-clamp-3 flex-1">{post.excerpt}</CardDescription>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-end">
                     <Button
                       variant="ghost"
                       className="group/btn p-0 h-auto font-semibold text-black hover:text-juice hover:bg-transparent"
@@ -165,7 +153,7 @@ export function BlogClient({ posts }: BlogClientProps) {
               <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">No posts found</h3>
-            <p className="text-gray-600 mb-8">
+            <p className="text-lg text-gray-700 mb-8">
               {!showAllPosts && selectedCategories.length === 0
                 ? "Select some categories to see posts."
                 : "No posts match the selected categories. Try selecting different categories."}

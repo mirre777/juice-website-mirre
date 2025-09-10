@@ -1,19 +1,31 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import Stripe from "stripe"
+import { isBuildTime } from "@/lib/firebase-global-guard"
 
-export const dynamic = "force-dynamic" // Added this line
+export const dynamic = "force-dynamic"
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2023-10-16",
-})
+async function getStripe() {
+  if (isBuildTime()) {
+    console.log("Build time detected - skipping Stripe initialization in payment-success route")
+    throw new Error("Stripe not available during build time")
+  }
+
+  const { default: Stripe } = await import("stripe")
+  return new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+    apiVersion: "2023-10-16",
+  })
+}
 
 /**
  * GET /api/payment-success?payment_intent=pi_123&user_id=456
  * Handle payment success and redirect
  */
 export async function GET(request: NextRequest) {
+  if (isBuildTime()) {
+    console.log("Build time detected - completely skipping payment-success route")
+    return new Response("Build time - route disabled", { status: 503 })
+  }
+
   try {
     const paymentIntentId = request.nextUrl.searchParams.get("payment_intent")
     const userId = request.nextUrl.searchParams.get("user_id")
@@ -22,6 +34,8 @@ export async function GET(request: NextRequest) {
       // Redirect to error page if no payment intent
       return NextResponse.redirect(new URL("/payment-error", request.url))
     }
+
+    const stripe = await getStripe()
 
     // Verify the payment with Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)

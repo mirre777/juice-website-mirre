@@ -1,23 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { doc, deleteDoc } from "firebase/firestore"
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { getFirebaseClientDb, isBuildTime } from "@/lib/firebase-global-guard"
 
 export async function DELETE(request: NextRequest, { params }: { params: { userId: string } }) {
+  if (isBuildTime()) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   console.log("🗑️ DELETE USER API CALLED")
   console.log("🕐 Timestamp:", new Date().toISOString())
   console.log("📊 User ID:", params.userId)
 
   try {
-    if (!hasRealFirebaseConfig || !db) {
-      console.error("❌ Firebase not properly configured")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Firebase not configured",
-        },
-        { status: 500 },
-      )
-    }
+    const db = await getFirebaseClientDb()
 
     if (!params.userId) {
       console.error("❌ User ID is required")
@@ -32,6 +26,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { userI
 
     console.log("🔄 Deleting user from potential_users collection...")
 
+    const { doc, deleteDoc } = await import("firebase/firestore")
     const userRef = doc(db, "potential_users", params.userId)
     await deleteDoc(userRef)
 

@@ -1,18 +1,31 @@
 import { type NextRequest, NextResponse } from "next/server"
-import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-})
+const isBuildTime =
+  process.env.NODE_ENV === "production" &&
+  (process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.CI === "true" ||
+    process.env.VERCEL_ENV === undefined ||
+    (typeof window === "undefined" && !process.env.STRIPE_SECRET_KEY))
+
+async function getStripe() {
+  if (isBuildTime) {
+    throw new Error("Stripe not available during build time")
+  }
+
+  const { default: Stripe } = await import("stripe")
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2024-06-20",
+  })
+}
 
 async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string) {
+  if (isBuildTime) return undefined
+
   try {
+    const stripe = await getStripe()
     const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
 
-    let trainerId =
-      (pi.metadata as any)?.trainerId ||
-      (pi.metadata as any)?.tempId ||
-      undefined
+    let trainerId = (pi.metadata as any)?.trainerId || (pi.metadata as any)?.tempId || undefined
 
     if (!trainerId) {
       const sessions = await stripe.checkout.sessions.list({ payment_intent: paymentIntentId, limit: 1 })
@@ -34,12 +47,17 @@ async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string) {
  * Purely read-only; returns Stripe status and trainerId if resolvable.
  */
 export async function POST(request: NextRequest) {
+  if (isBuildTime) {
+    return NextResponse.json({ success: false, message: "Service unavailable during build" }, { status: 503 })
+  }
+
   try {
     const { paymentIntentId } = await request.json()
     if (!paymentIntentId) {
       return NextResponse.json({ success: false, message: "paymentIntentId required" }, { status: 400 })
     }
 
+    const stripe = await getStripe()
     const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
     const trainerId = await resolveTrainerIdFromPaymentIntent(paymentIntentId)
 

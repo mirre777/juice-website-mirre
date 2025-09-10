@@ -1,20 +1,59 @@
+/**
+ * CRITICAL: READ docs/FIREBASE_BUILD_ISSUES.md BEFORE MAKING CHANGES
+ * This file uses Firebase Admin SDK and requires build-time detection to prevent
+ * initialization errors during Next.js builds.
+ */
+
 import { type NextRequest, NextResponse } from "next/server"
-import { getApps, initializeApp, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
 
-// Initialize Firebase Admin once
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // Support both literal "\n" and actual newlines in the private key
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  })
+let firebaseAdminCache: any = null
+
+async function getFirebaseAdmin() {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    console.log("Build time detected - completely skipping Firebase initialization in trainer temp route")
+    return null
+  }
+
+  if (firebaseAdminCache) {
+    return firebaseAdminCache
+  }
+
+  try {
+    const { getApps, initializeApp, cert } = await import("firebase-admin/app")
+    const { getFirestore } = await import("firebase-admin/firestore")
+
+    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
+
+    if (!projectId || !clientEmail || !privateKey) {
+      console.error("Missing Firebase credentials:", {
+        hasProjectId: !!projectId,
+        hasClientEmail: !!clientEmail,
+        hasPrivateKey: !!privateKey,
+      })
+      return null
+    }
+
+    // Initialize Firebase Admin once
+    if (!getApps().length) {
+      initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+      })
+    }
+
+    const db = getFirestore()
+    firebaseAdminCache = { db }
+    return firebaseAdminCache
+  } catch (error) {
+    console.error("Failed to initialize Firebase Admin:", error)
+    return null
+  }
 }
-
-const db = getFirestore()
 
 function json(body: Record<string, any>, init?: { status?: number; headers?: Record<string, string> }) {
   return NextResponse.json(body, {
@@ -45,13 +84,18 @@ function isExpired(expiresAt?: unknown) {
  * - 500 only for unexpected errors (always JSON)
  */
 export async function GET(_request: NextRequest, { params }: { params: { tempId: string } }) {
+  const firebase = await getFirebaseAdmin()
+  if (!firebase) {
+    return json({ success: false, error: "Service temporarily unavailable" }, { status: 503 })
+  }
+
   try {
     const { tempId } = params
     if (!tempId) {
       return json({ success: false, error: "Temp ID is required" }, { status: 400 })
     }
 
-    const ref = db.collection("trainers").doc(tempId)
+    const ref = firebase.db.collection("trainers").doc(tempId)
     const snap = await ref.get()
 
     if (!snap.exists) {
@@ -90,6 +134,11 @@ export async function GET(_request: NextRequest, { params }: { params: { tempId:
  * - 200 on success
  */
 export async function PUT(request: NextRequest, { params }: { params: { tempId: string } }) {
+  const firebase = await getFirebaseAdmin()
+  if (!firebase) {
+    return json({ success: false, error: "Service temporarily unavailable" }, { status: 503 })
+  }
+
   try {
     const { tempId } = params
     if (!tempId) {
@@ -108,7 +157,7 @@ export async function PUT(request: NextRequest, { params }: { params: { tempId: 
       return json({ success: false, error: "Content is required" }, { status: 400 })
     }
 
-    const ref = db.collection("trainers").doc(tempId)
+    const ref = firebase.db.collection("trainers").doc(tempId)
     const snap = await ref.get()
 
     if (!snap.exists) {

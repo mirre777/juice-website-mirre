@@ -1,3 +1,9 @@
+/**
+ * CRITICAL: READ docs/FIREBASE_BUILD_ISSUES.md BEFORE MAKING CHANGES
+ * This file uses Firebase Admin SDK and requires build-time detection to prevent
+ * initialization errors during Next.js builds.
+ */
+
 import { type NextRequest, NextResponse } from "next/server"
 
 type CreateBody = {
@@ -24,6 +30,11 @@ function makeTempId() {
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    console.log("Build time detected - completely skipping Firebase initialization in trainer create route")
+    return json(503, { error: "Service temporarily unavailable during build" })
+  }
+
   // 1) Parse body safely
   let body: CreateBody
   try {
@@ -92,10 +103,31 @@ export async function POST(request: NextRequest) {
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
     let privateKey = process.env.FIREBASE_PRIVATE_KEY
 
-    if (!privateKey && typeof privateKey === "string") {
-      // no-op; guard to satisfy types
+    if (!projectId) {
+      console.error("Missing FIREBASE_PROJECT_ID environment variable")
+      return json(500, {
+        error: "Server misconfiguration",
+        details: "Firebase project ID is not configured. Please check environment variables.",
+      })
     }
-    if (privateKey && privateKey.includes("\\n")) {
+
+    if (!clientEmail) {
+      console.error("Missing FIREBASE_CLIENT_EMAIL environment variable")
+      return json(500, {
+        error: "Server misconfiguration",
+        details: "Firebase client email is not configured. Please check environment variables.",
+      })
+    }
+
+    if (!privateKey) {
+      console.error("Missing FIREBASE_PRIVATE_KEY environment variable")
+      return json(500, {
+        error: "Server misconfiguration",
+        details: "Firebase private key is not configured. Please check environment variables.",
+      })
+    }
+
+    if (privateKey.includes("\\n")) {
       privateKey = privateKey.replace(/\\n/g, "\n")
     }
 
@@ -104,13 +136,6 @@ export async function POST(request: NextRequest) {
     const { getFirestore } = await import("firebase-admin/firestore")
 
     if (getApps().length === 0) {
-      if (!projectId || !clientEmail || !privateKey) {
-        return json(500, {
-          error: "Server misconfiguration",
-          details:
-            "Firebase Admin is not initialized. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
-        })
-      }
       initializeApp({
         credential: cert({ projectId, clientEmail, privateKey }),
       })

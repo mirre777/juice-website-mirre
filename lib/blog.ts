@@ -52,7 +52,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's be real: fancy coaching apps are sexy. But Google Sheets? That's where trainers roll up their sleeves. Customize whatever you want, track everything, and stay lean on cost. But spoiler: it's not always client-friendly.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/gym_woman-WTRGVNMDnOgXsKU3vNuaL1mAUze1Zr.png",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/blog_guy%20with%20laptop-J2A42ox9aOnq2sEVe3dPE64ShSp7EI.png",
     slug: "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
   },
   {
@@ -62,7 +63,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
       "Still relying on DMs and WhatsApp back-and-forths? You're losing clients while checking your phone. A booking page converts scrolls into sessions while you sleep.",
     category: "Marketing",
     image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/asian%20woman%20gym-yjGZ80lQKAuFqFbDgrG7xqwwx6XNpI.png",
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/blog_how%20to%20get%20more%20clients%20with%20a%20booking%20page-wmImlXq2hLze6A2vut6CuRN8RzUFNK.png",
     slug: "how-to-get-more-clients-with-booking-page",
   },
   {
@@ -71,7 +72,8 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     excerpt:
       "Let's cut the fluff. You're a personal trainer, not a web developer. You need a high-converting website that books sessions while you're smashing reps with clients. Here are the 5 best free website builders made for trainers in 2025.",
     category: "Technology",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/boxer_gym-6wlg1r57kNLLkVRoWE8X6aD02l6k6y.png",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/blog_max_LS%20%281%29-7dH43C8bxib9m8h89EuIAdRpLF4eoZ.png",
     slug: "top-5-free-personal-trainer-website-builders-2025",
   },
   {
@@ -79,7 +81,7 @@ const SAMPLE_POSTS: BlogPostFrontmatter[] = [
     date: "2025-01-30",
     excerpt:
       "Let's get something straight: SEO isn't for nerds in glasses. It's for smart coaches who want to get found while they're training. Here's how to rank higher, book more, and dominate your local market.",
-    category: "Visibility",
+    category: "Marketing",
     image:
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/optimusprime07375_httpss.mj.runwQjHnEwDZQI_httpss.mj.runJ2xzh_89a563be-ee33-4e4b-9446-d2cc6db82549_1-fl8B6QPcHBkfcmbSfZlo1jklJx4Rfr.png",
     slug: "seo-tips-for-fitness-coaches-in-europe",
@@ -711,9 +713,28 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
   const errors: string[] = []
 
+  const isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL
+  const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
+
+  // Only skip blob storage if we're in build time AND don't have a token
+  if (isBuildTime && !hasBlobToken) {
+    console.log("Build time detected without blob token - returning sample posts only")
+    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
+
+  // Skip blob storage if no token is available (but log the reason)
+  if (!hasBlobToken) {
+    console.log("No BLOB_READ_WRITE_TOKEN available - returning sample posts only")
+    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
+
+  console.log("[v0] Attempting to fetch from blob storage with token available")
+
   try {
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+
+    console.log("[v0] Found", blobs.blobs.length, "blobs in storage")
 
     for (const blob of blobs.blobs) {
       try {
@@ -735,6 +756,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           }
 
           posts.push(post)
+          console.log("[v0] Added blob post:", extractedTitle)
         }
       } catch (error) {
         const errorMessage = `Error processing blob ${blob.pathname}: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -746,48 +768,54 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
     const errorMessage = `Error fetching from blob storage: ${error instanceof Error ? error.message : "Unknown error"}`
     console.error(errorMessage)
     errors.push(errorMessage)
+    console.log("Falling back to sample posts due to blob storage error")
   }
   ;(getAllPosts as any).lastErrors = errors
 
+  console.log("[v0] Total posts found:", posts.length, "(8 sample +", posts.length - 8, "from blob)")
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   console.log("[v0] getPostBySlug called with slug:", slug)
 
-  try {
-    const { list } = await import("@vercel/blob")
-    const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+  const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
 
-    for (const blob of blobs.blobs) {
-      const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-      const cleanSlug = cleanSlugFromFilename(rawSlug)
+  if (hasBlobToken) {
+    try {
+      const { list } = await import("@vercel/blob")
+      const blobs = await list({ prefix: BLOG_CONTENT_PATH })
 
-      if (cleanSlug === slug) {
-        console.log("[v0] Found blob post for slug:", slug)
-        const content = await fetchBlobContent(blob.downloadUrl)
-        if (content) {
-          const { data: frontmatter, content: markdownContent } = matter(content)
-          const extractedTitle = extractTitleFromContent(content, rawSlug)
-          const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
-          const enhancedContent = enhanceMarkdownContent(markdownContent)
-          const mdxSource = await serialize(enhancedContent)
+      for (const blob of blobs.blobs) {
+        const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+        const cleanSlug = cleanSlugFromFilename(rawSlug)
 
-          return {
-            title: extractedTitle,
-            date: frontmatter.date || new Date().toISOString().split("T")[0],
-            excerpt: extractedExcerpt,
-            category: frontmatter.category || "General",
-            image: getImageForBlobPost(extractedTitle, frontmatter),
-            slug: cleanSlug,
-            content: mdxSource,
-            rawContent: enhancedContent,
+        if (cleanSlug === slug) {
+          console.log("[v0] Found blob post for slug:", slug)
+          const content = await fetchBlobContent(blob.downloadUrl)
+          if (content) {
+            const { data: frontmatter, content: markdownContent } = matter(content)
+            const extractedTitle = extractTitleFromContent(content, rawSlug)
+            const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
+            const enhancedContent = enhanceMarkdownContent(markdownContent)
+            const mdxSource = await serialize(enhancedContent)
+
+            return {
+              title: extractedTitle,
+              date: frontmatter.date || new Date().toISOString().split("T")[0],
+              excerpt: extractedExcerpt,
+              category: frontmatter.category || "General",
+              image: getImageForBlobPost(extractedTitle, frontmatter),
+              slug: cleanSlug,
+              content: mdxSource,
+              rawContent: enhancedContent,
+            }
           }
         }
       }
+    } catch (error) {
+      console.error(`Error fetching from blob storage for slug "${slug}":`, error)
     }
-  } catch (error) {
-    console.error(`Error fetching from blob storage for slug "${slug}":`, error)
   }
 
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)

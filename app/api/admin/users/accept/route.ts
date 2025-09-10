@@ -1,23 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { doc, updateDoc, Timestamp } from "firebase/firestore"
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
+import { getFirebaseClientDb, isBuildTime } from "@/lib/firebase-global-guard"
 
 export async function POST(request: NextRequest) {
+  if (isBuildTime()) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   console.log("📞 CONTACTED USER API CALLED")
   console.log("🕐 Timestamp:", new Date().toISOString())
 
   try {
-    if (!hasRealFirebaseConfig || !db) {
-      console.error("❌ Firebase not properly configured")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Firebase not configured",
-        },
-        { status: 500 },
-      )
-    }
-
+    const db = await getFirebaseClientDb()
     const { userId } = await request.json()
     console.log("📊 User ID:", userId)
 
@@ -34,6 +27,7 @@ export async function POST(request: NextRequest) {
 
     console.log("🔄 Updating user status to contacted...")
 
+    const { doc, updateDoc, Timestamp } = await import("firebase/firestore")
     const userRef = doc(db, "potential_users", userId)
     await updateDoc(userRef, {
       status: "contacted",
