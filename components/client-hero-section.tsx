@@ -89,7 +89,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
           </div>
         </div>
 
-        <div className="mt-12 pt-8">
+        <div className="mt-0 pt-0">
           <Button
             asChild
             size="lg"

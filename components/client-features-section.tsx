@@ -39,7 +39,7 @@ const getFeatureIcon = (title: string) => {
 
 export function ClientFeaturesSection({ title, features, ctaData }: ClientFeaturesSectionProps) {
   return (
-    <section className="py-16 bg-white">
+    <section className="bg-white py-8">
       <div className="container mx-auto px-4">
         {/* Program content overview section */}
         <div className="text-center mb-16">
