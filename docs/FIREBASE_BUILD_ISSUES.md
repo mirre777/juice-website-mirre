@@ -20,18 +20,39 @@ import { db } from '@/firebase'
 import { collection, getDocs } from 'firebase/firestore'
 \`\`\`
 
-### ✅ ALWAYS DO THIS
+### ❌ PROBLEMATIC PATTERN (Blocks Production Requests)
 \`\`\`typescript
-// Use dynamic imports with build-time guards
+// This blocks legitimate requests in Vercel production environments
 const isBuildTime = typeof window === 'undefined' && 
   (process.env.NODE_ENV === 'production' && !process.env.VERCEL) ||
-  process.env.CI === 'true'
+  process.env.CI === 'true'  // ❌ This blocks legitimate requests
+\`\`\`
+
+### ✅ RECOMMENDED PATTERN (Still Under Investigation)
+\`\`\`typescript
+// Use dynamic imports with proper build-time guards
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 if (!isBuildTime) {
   const { db } = await import('@/firebase')
   const { collection, getDocs } = await import('firebase/firestore')
 }
 \`\`\`
+
+## Current Status: Ongoing Issues
+
+⚠️ **UNRESOLVED**: Despite implementing the recommended patterns above, we are still experiencing:
+- 503 errors on Stripe webhook endpoints
+- Trainer status updates not processing after successful payments
+- Build-time detection may still be incorrectly triggering in production
+
+**Investigation needed**: The root cause of webhook failures remains unidentified.
+
+## Important Notes
+
+- **Never use `process.env.CI === 'true'`** - This blocks legitimate requests in Vercel production environments where CI is always true
+- **Use `process.env.NEXT_PHASE === "phase-production-build"`** - This only blocks during actual Next.js build phases, but may still have issues
+- **Webhook endpoints are particularly sensitive** - Incorrect build-time detection can cause 503 errors for external services like Stripe
 
 ## File Patterns to Avoid
 
@@ -47,3 +68,4 @@ if (!isBuildTime) {
 - [ ] No debug/test files with Firebase imports
 - [ ] Environment variables properly configured
 - [ ] Server actions use conditional imports
+- [ ] **TODO**: Resolve ongoing 503 webhook errors and trainer activation failures
