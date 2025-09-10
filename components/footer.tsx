@@ -14,18 +14,18 @@ export function Footer() {
   // Determine if the footer background should be dark
   // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app, gratis-workout-app-met-trainer, trainingsplan-app-gratis, gratis-fitness-app-danmark, best-free-workout-app-uk, and workout-programs
   const isFooterDark =
-    pathname === "/marketplace" ||
+    pathname.startsWith("/marketplace") || // Updated marketplace path check to include all marketplace subpages
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
-    pathname === "/getclients" || // Added getclients route for dark footer
-    pathname === "/legal" || // Added legal page for dark footer to match black background
+    pathname === "/getclients" ||
+    pathname === "/legal" ||
     pathname.startsWith("/client") ||
     (pathname !== "/download-juice-app" &&
       pathname !== "/gratis-workout-app-met-trainer" &&
       pathname !== "/trainingsplan-app-gratis" &&
       pathname !== "/gratis-fitness-app-danmark" &&
-      pathname !== "/best-free-workout-app-uk" && // Added UK page path for white footer background
-      !pathname.startsWith("/workout-programs") && // Added workout program pages for white footer background
+      pathname !== "/best-free-workout-app-uk" &&
+      !pathname.startsWith("/workout-programs") &&
       !isCoach)
 
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
