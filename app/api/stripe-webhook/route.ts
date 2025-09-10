@@ -5,24 +5,9 @@
 
 import { type NextRequest, NextResponse } from "next/server"
 
-const isBuildTime =
-  process.env.NODE_ENV === "production" &&
-  (process.env.VERCEL_ENV === undefined ||
-    process.env.CI === "true" ||
-    process.env.NEXT_PHASE === "phase-production-build" ||
-    (typeof window === "undefined" && !process.env.VERCEL_URL))
-
-if (isBuildTime) {
-  console.log("Build time detected - completely skipping Firebase initialization")
-}
-
 let stripe: any = null
 
 async function getStripe() {
-  if (isBuildTime) {
-    throw new Error("Stripe not available during build time")
-  }
-
   if (!stripe) {
     const Stripe = (await import("stripe")).default
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -35,10 +20,6 @@ async function getStripe() {
 let db: any = null
 
 async function getFirebaseDb() {
-  if (isBuildTime) {
-    throw new Error("Firebase not available during build time")
-  }
-
   if (!db) {
     const { initializeApp, getApps, cert } = await import("firebase-admin/app")
     const { getFirestore } = await import("firebase-admin/firestore")
@@ -58,10 +39,6 @@ async function getFirebaseDb() {
 }
 
 export async function POST(request: NextRequest) {
-  if (isBuildTime) {
-    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
-  }
-
   const debugId = Math.random().toString(36).slice(2, 10)
 
   console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
@@ -341,10 +318,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  if (isBuildTime) {
-    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
-  }
-
   return NextResponse.json({
     message: "Stripe webhook endpoint is reachable",
     timestamp: new Date().toISOString(),

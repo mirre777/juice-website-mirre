@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers"
 
-const isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 let db: any = null
 let hasRealFirebaseConfig = false

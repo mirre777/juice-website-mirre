@@ -14,7 +14,7 @@ export function Footer() {
   // Determine if the footer background should be dark
   // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app, gratis-workout-app-met-trainer, trainingsplan-app-gratis, gratis-fitness-app-danmark, best-free-workout-app-uk, and workout-programs
   const isFooterDark =
-    pathname.startsWith("/marketplace") || // Updated marketplace path check to include all marketplace subpages
+    (pathname.startsWith("/marketplace") && pathname !== "/marketplace/personal-trainer-website") || // Added exception for personal trainer website page to use light footer
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
     pathname === "/getclients" ||

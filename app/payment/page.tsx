@@ -207,7 +207,7 @@ function PaymentForm({ tempTrainer }: { tempTrainer: TempTrainer }) {
     const { error: confirmError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/payment/success?tempId=${tempTrainer.id}`,
+        return_url: `${window.location.origin}/marketplace/trainer/temp/${tempTrainer.id}?payment_success=true`,
       },
     })
 

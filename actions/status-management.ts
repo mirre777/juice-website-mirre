@@ -36,7 +36,7 @@ let updateDocInstance: any = null
 let serverTimestampInstance: any = null
 
 async function initializeFirebase() {
-  const isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL
+  const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
   if (isBuildTime || dbInstance) {
     return dbInstance !== null

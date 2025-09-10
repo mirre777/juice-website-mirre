@@ -3,17 +3,6 @@ import { type NextRequest, NextResponse } from "next/server"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const isBuildTime =
-  process.env.NODE_ENV === "production" &&
-  (process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.CI === "true" ||
-    process.env.VERCEL_ENV === undefined ||
-    (typeof window === "undefined" && !process.env.VERCEL_URL))
-
-if (isBuildTime) {
-  console.log("Build time detected - completely skipping debug stripe-webhook initialization")
-}
-
 const mask = (val?: string, visible = 6) => {
   if (!val) return "(unset)"
   const tail = val.slice(-visible)
@@ -21,10 +10,6 @@ const mask = (val?: string, visible = 6) => {
 }
 
 export async function GET(request: NextRequest) {
-  if (isBuildTime) {
-    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
-  }
-
   const auth = request.headers.get("authorization") || ""
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : undefined
   const expected = process.env.DEBUG_TOKEN

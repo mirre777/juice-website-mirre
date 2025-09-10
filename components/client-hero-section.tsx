@@ -1,6 +1,8 @@
 "use client"
 
 import { Check } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
 
 interface ClientHeroSectionProps {
   title: string
@@ -15,7 +17,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
   const titleSubtitle = titleParts[1] || ""
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+    <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white"></div>
 
@@ -40,7 +42,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
 
         {titleSubtitle && <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-600">{titleSubtitle}</h2>}
 
-        <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">{subtitle}</p>
+        <p className="text-xl md:text-2xl text-gray-600 mb-8 mx-auto">{subtitle}</p>
 
         {/* Star Rating */}
 
@@ -85,6 +87,25 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
+        </div>
+
+        <div className="mt-0 pt-0">
+          <Button
+            asChild
+            size="lg"
+            className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <a
+              href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              Get Free Program
+              <ArrowRight className="w-5 h-5" />
+            </a>
+          </Button>
+          <p className="text-sm text-gray-500 mt-3">Access your complete workout program instantly</p>
         </div>
       </div>
     </section>
