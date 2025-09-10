@@ -68,7 +68,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
               <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
                 Day 1
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 text-left">
                 <div className="text-sm">
                   <div className="font-semibold">Squat</div>
                   <div className="text-gray-600">Barbell • 3 sets • 6-8 reps</div>
@@ -112,7 +112,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
               <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
                 Day 2
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 text-left">
                 <div className="text-sm">
                   <div className="font-semibold">Deadlift</div>
                   <div className="text-gray-600">Barbell • 3 sets • 5-8 reps</div>
@@ -156,7 +156,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
               <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-center">
                 Day 3
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 text-left">
                 <div className="text-sm">
                   <div className="font-semibold">Chest press</div>
                   <div className="text-gray-600">Machine • 3 sets • 5-8 reps</div>
