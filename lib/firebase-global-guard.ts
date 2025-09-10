@@ -8,13 +8,7 @@
  */
 
 const isBuildTime = () => {
-  return (
-    process.env.NODE_ENV === "production" &&
-    (process.env.NEXT_PHASE === "phase-production-build" ||
-      process.env.CI === "true" ||
-      process.env.VERCEL_ENV === undefined ||
-      (typeof window === "undefined" && !process.env.VERCEL_URL))
-  )
+  return process.env.NEXT_PHASE === "phase-production-build"
 }
 
 let firebaseClientDb: any = null
