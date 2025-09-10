@@ -7,6 +7,20 @@ import { type NextRequest, NextResponse } from "next/server"
 
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
+console.log("[v0] COMPREHENSIVE BUILD-TIME DEBUG:", {
+  NEXT_PHASE: process.env.NEXT_PHASE,
+  NODE_ENV: process.env.NODE_ENV,
+  VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL: process.env.VERCEL,
+  CI: process.env.CI,
+  VERCEL_URL: process.env.VERCEL_URL,
+  isBuildTime: isBuildTime,
+  timestamp: new Date().toISOString(),
+  allEnvKeys: Object.keys(process.env)
+    .filter((key) => key.includes("NEXT") || key.includes("VERCEL") || key.includes("CI"))
+    .sort(),
+})
+
 console.log("[v0] Build-time detection debug:", {
   NEXT_PHASE: process.env.NEXT_PHASE,
   NODE_ENV: process.env.NODE_ENV,
@@ -61,14 +75,18 @@ async function getFirebaseDb() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("[v0] POST request received - build-time check:", {
+  console.log("[v0] POST REQUEST BUILD-TIME CHECK:", {
     isBuildTime: isBuildTime,
     NEXT_PHASE: process.env.NEXT_PHASE,
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
     timestamp: new Date().toISOString(),
+    userAgent: request.headers.get("user-agent"),
+    host: request.headers.get("host"),
   })
 
   if (isBuildTime) {
-    console.log("[v0] Returning 503 due to build-time detection")
+    console.log("[v0] RETURNING 503 DUE TO BUILD-TIME DETECTION - NEXT_PHASE:", process.env.NEXT_PHASE)
     return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
   }
 
