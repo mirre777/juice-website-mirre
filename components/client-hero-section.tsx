@@ -46,28 +46,28 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
 
         {/* Star Rating */}
 
-        <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
+        <div className="flex justify-center items-center gap-2 md:gap-4 overflow-x-auto pb-4 px-4 md:px-0 -mx-4 md:mx-0">
           <div className="flex-shrink-0 relative overflow-hidden rounded-lg">
             <img
               src="/images/import-program.png"
               alt="Import workout program screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
-            <div className="absolute inset-2 bg-[#D2FF28] bg-opacity-60 rounded-lg overflow-hidden flex items-center justify-center">
-              <div className="bg-white rounded-full p-4 shadow-lg">
-                <Check className="w-12 h-12 text-[#D2FF28]" strokeWidth={3} />
+            <div className="absolute inset-1 md:inset-2 bg-[#D2FF28] bg-opacity-60 rounded-lg overflow-hidden flex items-center justify-center">
+              <div className="bg-white rounded-full p-2 md:p-4 shadow-lg">
+                <Check className="w-6 md:w-12 h-6 md:h-12 text-[#D2FF28]" strokeWidth={3} />
               </div>
             </div>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-              <p className="text-sm text-black font-medium">We already created a program for you!</p>
+            <div className="absolute -bottom-6 md:-bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              <p className="text-xs md:text-sm text-black font-medium">We already created a program for you!</p>
             </div>
           </div>
           <div className="flex-shrink-0">
             <img
               src="/images/workout-program.png"
               alt="Workout program overview screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
@@ -75,7 +75,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
             <img
               src="/images/workout-logging.png"
               alt="Workout logging screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
@@ -83,7 +83,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
             <img
               src="/images/statistics.png"
               alt="Statistics and progress screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
