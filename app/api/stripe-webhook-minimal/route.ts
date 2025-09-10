@@ -3,17 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
-
-if (isBuildTime) {
-  console.log("Build time detected - completely skipping Stripe initialization in stripe-webhook-minimal")
-}
-
 async function getStripe() {
-  if (isBuildTime) {
-    throw new Error("Stripe not available during build time")
-  }
-
   const { default: Stripe } = await import("stripe")
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2024-06-20",
@@ -21,10 +11,6 @@ async function getStripe() {
 }
 
 export async function POST(request: NextRequest) {
-  if (isBuildTime) {
-    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
-  }
-
   const debugId = Math.random().toString(36).slice(2, 8)
 
   console.log(`[minimal-webhook-${debugId}] === MINIMAL WEBHOOK TEST ===`)
