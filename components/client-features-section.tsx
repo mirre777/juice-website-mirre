@@ -58,6 +58,186 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
           </div>
         </div>
 
+        {/* Program content overview section */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-black">What's Inside the Program</h2>
+
+          <div className="max-w-6xl mx-auto bg-gray-50 rounded-2xl p-6 overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-[#D2FF28] text-black">
+                  <th className="px-4 py-3 font-bold">Day</th>
+                  <th className="px-4 py-3 font-bold">Exercise</th>
+                  <th className="px-4 py-3 font-bold">Equipment</th>
+                  <th className="px-4 py-3 font-bold">Sets</th>
+                  <th className="px-4 py-3 font-bold">Reps</th>
+                  <th className="px-4 py-3 font-bold">Muscle Group</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                <tr className="border-b border-gray-200">
+                  <td rowSpan={7} className="px-4 py-3 font-semibold text-black border-r border-gray-200">
+                    Day 1
+                  </td>
+                  <td className="px-4 py-3">Squat</td>
+                  <td className="px-4 py-3">Barbell</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">6-8</td>
+                  <td className="px-4 py-3">Quads, Glutes</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Bench press</td>
+                  <td className="px-4 py-3">Barbell</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Chest, Triceps</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">(Assisted) Pull-up</td>
+                  <td className="px-4 py-3">Bar / Machine</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Back</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Wide-grip row</td>
+                  <td className="px-4 py-3">Cable machine</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Back</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Lateral raise</td>
+                  <td className="px-4 py-3">Dumbbells</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Delts</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Hamstring curl</td>
+                  <td className="px-4 py-3">Machine</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Hamstrings</td>
+                </tr>
+                <tr className="border-b border-gray-300">
+                  <td className="px-4 py-3">Cable curls</td>
+                  <td className="px-4 py-3">Cable machine</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Biceps</td>
+                </tr>
+
+                <tr className="border-b border-gray-200">
+                  <td rowSpan={7} className="px-4 py-3 font-semibold text-black border-r border-gray-200">
+                    Day 2
+                  </td>
+                  <td className="px-4 py-3">Deadlift</td>
+                  <td className="px-4 py-3">Barbell</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">5-8</td>
+                  <td className="px-4 py-3">Hamstrings, Glutes</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Shoulder press</td>
+                  <td className="px-4 py-3">Dumbbells</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">6-8</td>
+                  <td className="px-4 py-3">Delts, Chest</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Leg press</td>
+                  <td className="px-4 py-3">Machine</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-10</td>
+                  <td className="px-4 py-3">Quads, Glutes</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">T-bar rows</td>
+                  <td className="px-4 py-3">T-bar</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Back</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Pec deck</td>
+                  <td className="px-4 py-3">Machine</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">5-8</td>
+                  <td className="px-4 py-3">Chest</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Rear delt fly</td>
+                  <td className="px-4 py-3">Cable machine</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Delts</td>
+                </tr>
+                <tr className="border-b border-gray-300">
+                  <td className="px-4 py-3">Overhead extension</td>
+                  <td className="px-4 py-3">Cable machine</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Triceps</td>
+                </tr>
+
+                <tr className="border-b border-gray-200">
+                  <td rowSpan={7} className="px-4 py-3 font-semibold text-black border-r border-gray-200">
+                    Day 3
+                  </td>
+                  <td className="px-4 py-3">Chest press</td>
+                  <td className="px-4 py-3">Machine</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">5-8</td>
+                  <td className="px-4 py-3">Chest</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Lat pulldowns</td>
+                  <td className="px-4 py-3">Cable machine</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">5-8</td>
+                  <td className="px-4 py-3">Back</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Leg extensions</td>
+                  <td className="px-4 py-3">Machine</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Quads</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Incline press</td>
+                  <td className="px-4 py-3">Dumbbells</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">6-8</td>
+                  <td className="px-4 py-3">Chest, Delts</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Cable lateral raise</td>
+                  <td className="px-4 py-3">Cable machine</td>
+                  <td className="px-4 py-3">3</td>
+                  <td className="px-4 py-3">10-12</td>
+                  <td className="px-4 py-3">Delts</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="px-4 py-3">Preacher Curls</td>
+                  <td className="px-4 py-3">(EZ) Bar</td>
+                  <td className="px-4 py-3">2</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Biceps</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3">Calf raises</td>
+                  <td className="px-4 py-3">Machine</td>
+                  <td className="px-4 py-3">4</td>
+                  <td className="px-4 py-3">8-12</td>
+                  <td className="px-4 py-3">Calves</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* CTA section */}
         <div className="text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">{ctaData.title}</h2>
