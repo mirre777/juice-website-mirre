@@ -1,24 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      }),
-    })
-  } catch (error) {
-    console.error("Firebase initialization error:", error)
-  }
-}
-
-const db = getFirestore()
+import { getFirebaseAdminDb, isBuildTime } from "@/lib/firebase-global-guard"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  if (isBuildTime()) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   try {
     console.log("=== API TRAINER CONTENT GET ===")
     console.log("1. Received trainer ID:", params.id)
@@ -27,6 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     try {
       console.log("2. Attempting Firebase lookup for:", params.id)
 
+      const db = await getFirebaseAdminDb()
       const doc = await db.collection("trainers").doc(params.id).get()
 
       if (doc.exists) {
@@ -206,14 +194,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  if (isBuildTime()) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   try {
     console.log("=== UPDATING TRAINER CONTENT ===")
     console.log("1. Trainer ID:", params.id)
 
     const { content } = await request.json()
     console.log("2. Content keys to update:", Object.keys(content))
-    console.log("3. Hero title:", content.hero?.title)
-    console.log("4. About content:", content.about?.content?.substring(0, 100) + "...")
 
     // ALWAYS try to update Firebase, regardless of trainer ID
     try {
@@ -223,6 +213,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
 
       console.log("5. Attempting Firebase update...")
+      const db = await getFirebaseAdminDb()
       await db.collection("trainers").doc(params.id).update(updateData)
       console.log("6. ✅ Successfully updated trainer content in Firebase")
 
@@ -233,39 +224,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           trainerId: params.id,
           updatedAt: updateData.updatedAt,
           contentKeys: Object.keys(content),
-          heroTitle: content.hero?.title,
-          aboutContent: content.about?.content?.substring(0, 50) + "...",
         },
       })
-    } catch (firebaseError) {
+    } catch (firebaseError: any) {
       console.error("7. ❌ Firebase update error:", firebaseError)
-
-      // Check if it's a permission error or document doesn't exist
-      if (firebaseError.code === "not-found") {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Trainer document not found in database",
-            details: firebaseError.message,
-            debug: {
-              trainerId: params.id,
-              errorCode: firebaseError.code,
-            },
-          },
-          { status: 404 },
-        )
-      }
 
       return NextResponse.json(
         {
           success: false,
           error: "Failed to update content in database",
           details: firebaseError.message,
-          debug: {
-            trainerId: params.id,
-            errorType: firebaseError.code || "unknown",
-            errorMessage: firebaseError.message,
-          },
         },
         { status: 500 },
       )

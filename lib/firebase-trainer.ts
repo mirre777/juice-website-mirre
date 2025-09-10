@@ -1,26 +1,57 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
+/**
+ * CRITICAL: Read docs/FIREBASE_BUILD_ISSUES.md before modifying this file!
+ * This file contains Firebase Admin SDK usage that MUST be properly guarded against build-time initialization.
+ */
+
 import type { TrainerFormData, TrainerContent } from "@/types/trainer"
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      }),
-    })
-  } catch (error) {
-    console.error("Firebase Admin initialization error:", error)
-  }
+const isBuildTime =
+  process.env.NODE_ENV === "production" &&
+  (process.env.VERCEL_ENV === undefined ||
+    process.env.CI === "true" ||
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    (typeof window === "undefined" && !process.env.VERCEL_URL))
+
+if (isBuildTime) {
+  console.log("Build time detected - completely skipping Firebase initialization in firebase-trainer")
 }
 
-const db = getFirestore()
+let db: any = null
+
+async function getFirebaseDb() {
+  if (isBuildTime) {
+    throw new Error("Firebase not available during build time")
+  }
+
+  if (!db) {
+    try {
+      const { initializeApp, getApps, cert } = await import("firebase-admin/app")
+      const { getFirestore } = await import("firebase-admin/firestore")
+
+      if (!getApps().length) {
+        initializeApp({
+          credential: cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+          }),
+        })
+      }
+      db = getFirestore()
+    } catch (error) {
+      console.error("Firebase Admin initialization error:", error)
+      throw error
+    }
+  }
+  return db
+}
 
 export class TrainerService {
   static async createTempTrainer(trainerData: Partial<TrainerFormData>): Promise<string> {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
     try {
       console.log("Creating temp trainer with data:", trainerData)
 
@@ -104,8 +135,8 @@ export class TrainerService {
         },
       }
 
-      // Save to Firebase
-      await db.collection("trainers").doc(tempId).set(trainerDoc)
+      const firebaseDb = await getFirebaseDb()
+      await firebaseDb.collection("trainers").doc(tempId).set(trainerDoc)
 
       console.log("Temp trainer created successfully:", tempId)
       return tempId
@@ -116,8 +147,13 @@ export class TrainerService {
   }
 
   static async getTempTrainer(tempId: string) {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
     try {
-      const doc = await db.collection("trainers").doc(tempId).get()
+      const firebaseDb = await getFirebaseDb()
+      const doc = await firebaseDb.collection("trainers").doc(tempId).get()
 
       if (!doc.exists) {
         throw new Error("Trainer not found")
@@ -138,6 +174,10 @@ export class TrainerService {
   }
 
   static async activateTrainer(tempId: string, paymentIntentId: string): Promise<string> {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
     try {
       const tempTrainer = await this.getTempTrainer(tempId)
 
@@ -158,11 +198,13 @@ export class TrainerService {
         expiresAt: null,
       }
 
+      const firebaseDb = await getFirebaseDb()
+
       // Save activated trainer
-      await db.collection("trainers").doc(permanentId).set(activatedTrainer)
+      await firebaseDb.collection("trainers").doc(permanentId).set(activatedTrainer)
 
       // Delete temp trainer
-      await db.collection("trainers").doc(tempId).delete()
+      await firebaseDb.collection("trainers").doc(tempId).delete()
 
       console.log("Trainer activated successfully:", permanentId)
       return permanentId

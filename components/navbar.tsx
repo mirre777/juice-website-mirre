@@ -112,17 +112,20 @@ export function Navbar() {
     pathname === "/clients" || // Clients page gets dark navbar to match client-focused styling
     pathname === "/legal" // Added legal page for dark navbar to match black background
 
-  const linkTextColorClass = isNavbarDark ? "text-white" : "text-black"
+  const isWorkoutProgramPage = pathname.includes("/workout-programs/")
+  const shouldUseWhiteNavbar = isWorkoutProgramPage || !isNavbarDark
+
+  const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"
 
   return (
     <nav
-      className={`sticky top-0 z-50 w-full border-b ${isNavbarDark ? "bg-black border-gray-800" : "bg-white border-gray-200"}`}
+      className={`sticky top-0 z-50 w-full border-b ${shouldUseWhiteNavbar ? "bg-white border-gray-200" : "bg-black border-gray-800"}`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <Logo isDarkBackground={isNavbarDark} />
+              <Logo isDarkBackground={!shouldUseWhiteNavbar} />
             </Link>
           </div>
 
@@ -178,7 +181,7 @@ export function Navbar() {
           {/* User Toggle and CTA - Fixed spacing */}
           <div className="hidden md:flex items-center gap-4">
             <div className="flex-shrink-0">
-              <UserToggle isCoach={isCoach} onChange={handleToggleChange} isDarkBackground={isNavbarDark} />
+              <UserToggle isCoach={isCoach} onChange={handleToggleChange} isDarkBackground={!shouldUseWhiteNavbar} />
             </div>
             <div className="flex-shrink-0">
               {isCoach ? (
@@ -186,14 +189,28 @@ export function Navbar() {
                   href="https://app.juice.fitness/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="trainer-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  className="px-4 py-2 text-sm font-semibold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  style={{
+                    background: "linear-gradient(135deg, #d2ff28 0%, #9acd32 50%, #7cb342 100%) !important",
+                    color: "#ffffff !important",
+                    fontWeight: "600 !important",
+                    backgroundColor: "#9acd32 !important",
+                    border: "2px solid #d2ff28 !important",
+                  }}
                 >
                   Start now
                 </Link>
               ) : (
                 <Link
                   href="/download-juice-app"
-                  className="trainer-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  className="px-4 py-2 text-sm font-semibold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  style={{
+                    background: "linear-gradient(135deg, #d2ff28 0%, #9acd32 50%, #7cb342 100%) !important",
+                    color: "#ffffff !important",
+                    fontWeight: "600 !important",
+                    backgroundColor: "#9acd32 !important",
+                    border: "2px solid #d2ff28 !important",
+                  }}
                 >
                   Download App
                 </Link>
@@ -216,7 +233,7 @@ export function Navbar() {
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <div
-          className={`md:hidden ${isNavbarDark ? "bg-black" : "bg-white"} border-t ${isNavbarDark ? "border-gray-800" : "border-gray-200"}`}
+          className={`md:hidden ${shouldUseWhiteNavbar ? "bg-white" : "bg-black"} border-t ${shouldUseWhiteNavbar ? "border-gray-200" : "border-gray-800"}`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <button

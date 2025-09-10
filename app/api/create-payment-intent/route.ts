@@ -1,9 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-})
+const isBuildTime =
+  process.env.NODE_ENV === "production" &&
+  (process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.CI === "true" ||
+    process.env.VERCEL_ENV === undefined ||
+    (typeof window === "undefined" && !process.env.VERCEL_URL))
+
+if (isBuildTime) {
+  console.log("Build time detected - skipping Stripe initialization in payment route")
+}
+
+const stripe = !isBuildTime
+  ? new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-06-20",
+    })
+  : null
 
 /**
  * Creates a Payment Intent for Trainer Activation.
@@ -12,9 +25,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  * - email (optional)
  */
 export async function POST(request: NextRequest) {
+  if (isBuildTime || !stripe) {
+    return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 })
+  }
+
   try {
     const body = await request.json()
-    const { trainerId: rawTrainerId, tempId: rawTempId, email } = body as {
+    const {
+      trainerId: rawTrainerId,
+      tempId: rawTempId,
+      email,
+    } = body as {
       trainerId?: string
       tempId?: string
       email?: string

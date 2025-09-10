@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, ArrowRight, X } from "lucide-react"
+import { ArrowRight, X } from "lucide-react"
 import { useState } from "react"
 
 // Fitness-related placeholder images for blog posts
@@ -124,19 +124,6 @@ export function BlogClient({ posts }: BlogClientProps) {
                 </div>
 
                 <CardHeader className="pb-3">
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {typeof post.date === "string" ? post.date : new Date(post.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>5 min read</span>
-                    </div>
-                  </div>
-
                   <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
                     {post.title}
                   </CardTitle>
@@ -145,7 +132,7 @@ export function BlogClient({ posts }: BlogClientProps) {
                 <CardContent className="pt-0 flex-1 flex flex-col justify-between">
                   <CardDescription className="text-gray-600 mb-4 line-clamp-3 flex-1">{post.excerpt}</CardDescription>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-end">
                     <Button
                       variant="ghost"
                       className="group/btn p-0 h-auto font-semibold text-black hover:text-juice hover:bg-transparent"

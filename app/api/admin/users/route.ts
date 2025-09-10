@@ -1,36 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db, hasRealFirebaseConfig } from "@/app/api/firebase-config"
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore"
+import { getFirebaseClientDb, isBuildTime } from "@/lib/firebase-global-guard"
 
 export async function GET(request: NextRequest) {
+  if (isBuildTime()) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   console.log("🔥 ADMIN USERS API CALLED - Starting request processing")
   console.log("📊 Request URL:", request.url)
   console.log("🕐 Timestamp:", new Date().toISOString())
 
   try {
     console.log("🔍 Checking Firebase configuration...")
-    console.log("✅ Has real Firebase config:", hasRealFirebaseConfig)
-    console.log("✅ Database instance exists:", !!db)
-
-    if (!hasRealFirebaseConfig || !db) {
-      console.error("❌ Firebase not properly configured")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Firebase not configured",
-          users: [],
-          count: 0,
-          debug: {
-            timestamp: new Date().toISOString(),
-            hasRealFirebaseConfig,
-            hasDb: !!db,
-          },
-        },
-        { status: 500 },
-      )
-    }
+    const db = await getFirebaseClientDb()
 
     console.log("🔥 Firebase is configured - attempting to fetch real data")
+
+    const { collection, getDocs, query, orderBy, limit } = await import("firebase/firestore")
 
     // Query the potential_users collection
     console.log("📡 Querying 'potential_users' collection...")
@@ -54,7 +40,7 @@ export async function GET(request: NextRequest) {
           timestamp: new Date().toISOString(),
           dataSource: "firebase",
           collectionEmpty: true,
-          firebaseConfigured: hasRealFirebaseConfig,
+          firebaseConfigured: true,
         },
       })
     }
@@ -136,7 +122,7 @@ export async function GET(request: NextRequest) {
         usersWithGoals: usersWithGoals.length,
         sources: sources,
         cities: cities,
-        firebaseConfigured: hasRealFirebaseConfig,
+        firebaseConfigured: true,
         collectionEmpty: false,
       },
     }
@@ -184,7 +170,7 @@ export async function GET(request: NextRequest) {
           timestamp: new Date().toISOString(),
           errorType: "firebase_query_error",
           dataSource: "error",
-          firebaseConfigured: hasRealFirebaseConfig,
+          firebaseConfigured: true,
           errorDetails: {
             name: error instanceof Error ? error.name : "Unknown",
             message: error instanceof Error ? error.message : String(error),

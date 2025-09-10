@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Clock, Star, ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
+import { ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
+import { Footer } from "@/components/footer"
 
 interface FormData {
   fullName: string
@@ -412,7 +413,7 @@ export default function PersonalTrainerWebsitePage() {
             <Label htmlFor="bio" className="text-base font-medium">
               Professional Bio
             </Label>
-            <p className="text-sm text-gray-600 mt-1 mb-2">
+            <p className="text-sm text-gray-700 mt-1 mb-2">
               Tell potential clients about your background, training philosophy, and what makes you unique. (Optional)
             </p>
             <Textarea
@@ -441,7 +442,7 @@ export default function PersonalTrainerWebsitePage() {
             <Label htmlFor="certifications" className="text-base font-medium">
               Certifications & Qualifications
             </Label>
-            <p className="text-sm text-gray-600 mt-1 mb-2">
+            <p className="text-sm text-gray-700 mt-1 mb-2">
               List your certifications, degrees, or other qualifications (comma-separated).
             </p>
             <Input
@@ -458,7 +459,7 @@ export default function PersonalTrainerWebsitePage() {
         return (
           <div>
             <Label className="text-base font-medium">Services Offered</Label>
-            <p className="text-sm text-gray-600 mt-1 mb-4">
+            <p className="text-sm text-gray-700 mt-1 mb-4">
               Select the services you provide to your clients. (Optional)
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -517,7 +518,7 @@ export default function PersonalTrainerWebsitePage() {
               <span className="bg-black text-white px-3 py-1 rounded leading-none inline-block">in 10 minutes</span>
             </h1>
 
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl">
+            <p className="text-xl text-gray-800 mb-8 leading-relaxed max-w-3xl">
               Launch a high-converting one-page site that captures leads and books sessions for you. Just complete a
               short form and your personal-training brand goes live – with SEO and client-ready.
             </p>
@@ -531,12 +532,8 @@ export default function PersonalTrainerWebsitePage() {
                 Create for free
                 <ArrowDown className="w-5 h-5 ml-2" />
               </Button>
-              <p className="text-sm text-gray-600 mt-3 max-w-md">
-                We won't charge you for creating the page.
-              </p>
+              <p className="text-sm text-gray-800 mt-3 max-w-md">We won't charge you for creating the page.</p>
             </div>
-
-            
           </div>
         </div>
       </section>
@@ -577,7 +574,7 @@ export default function PersonalTrainerWebsitePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Stand out. Book clients.</h2>
-            <p className="text-xl text-gray-600">Fill out this form to get your own page. No coding required.</p>
+            <p className="text-xl text-gray-800">Fill out this form to get your own page. No coding required.</p>
           </div>
 
           <Card className="shadow-xl border-0">
@@ -651,7 +648,7 @@ export default function PersonalTrainerWebsitePage() {
                 </div>
               </form>
 
-              <p className="text-center text-sm text-gray-600 mt-4">
+              <p className="text-center text-sm text-gray-800 mt-4">
                 Your website will be generated instantly. You can edit and activate it for{" "}
                 <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>{" "}
                 <strong>You will not be charged anything by creating the Preview.</strong>
@@ -660,6 +657,9 @@ export default function PersonalTrainerWebsitePage() {
           </Card>
         </div>
       </section>
+
+      {/* Footer Section */}
+      <Footer />
     </div>
   )
 }

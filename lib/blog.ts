@@ -713,9 +713,28 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
   const errors: string[] = []
 
+  const isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL
+  const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
+
+  // Only skip blob storage if we're in build time AND don't have a token
+  if (isBuildTime && !hasBlobToken) {
+    console.log("Build time detected without blob token - returning sample posts only")
+    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
+
+  // Skip blob storage if no token is available (but log the reason)
+  if (!hasBlobToken) {
+    console.log("No BLOB_READ_WRITE_TOKEN available - returning sample posts only")
+    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
+
+  console.log("[v0] Attempting to fetch from blob storage with token available")
+
   try {
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+
+    console.log("[v0] Found", blobs.blobs.length, "blobs in storage")
 
     for (const blob of blobs.blobs) {
       try {
@@ -737,6 +756,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           }
 
           posts.push(post)
+          console.log("[v0] Added blob post:", extractedTitle)
         }
       } catch (error) {
         const errorMessage = `Error processing blob ${blob.pathname}: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -748,48 +768,54 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
     const errorMessage = `Error fetching from blob storage: ${error instanceof Error ? error.message : "Unknown error"}`
     console.error(errorMessage)
     errors.push(errorMessage)
+    console.log("Falling back to sample posts due to blob storage error")
   }
   ;(getAllPosts as any).lastErrors = errors
 
+  console.log("[v0] Total posts found:", posts.length, "(8 sample +", posts.length - 8, "from blob)")
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   console.log("[v0] getPostBySlug called with slug:", slug)
 
-  try {
-    const { list } = await import("@vercel/blob")
-    const blobs = await list({ prefix: BLOG_CONTENT_PATH })
+  const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
 
-    for (const blob of blobs.blobs) {
-      const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
-      const cleanSlug = cleanSlugFromFilename(rawSlug)
+  if (hasBlobToken) {
+    try {
+      const { list } = await import("@vercel/blob")
+      const blobs = await list({ prefix: BLOG_CONTENT_PATH })
 
-      if (cleanSlug === slug) {
-        console.log("[v0] Found blob post for slug:", slug)
-        const content = await fetchBlobContent(blob.downloadUrl)
-        if (content) {
-          const { data: frontmatter, content: markdownContent } = matter(content)
-          const extractedTitle = extractTitleFromContent(content, rawSlug)
-          const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
-          const enhancedContent = enhanceMarkdownContent(markdownContent)
-          const mdxSource = await serialize(enhancedContent)
+      for (const blob of blobs.blobs) {
+        const rawSlug = blob.pathname.replace(BLOG_CONTENT_PATH, "").replace(/\.md$/, "")
+        const cleanSlug = cleanSlugFromFilename(rawSlug)
 
-          return {
-            title: extractedTitle,
-            date: frontmatter.date || new Date().toISOString().split("T")[0],
-            excerpt: extractedExcerpt,
-            category: frontmatter.category || "General",
-            image: getImageForBlobPost(extractedTitle, frontmatter),
-            slug: cleanSlug,
-            content: mdxSource,
-            rawContent: enhancedContent,
+        if (cleanSlug === slug) {
+          console.log("[v0] Found blob post for slug:", slug)
+          const content = await fetchBlobContent(blob.downloadUrl)
+          if (content) {
+            const { data: frontmatter, content: markdownContent } = matter(content)
+            const extractedTitle = extractTitleFromContent(content, rawSlug)
+            const extractedExcerpt = extractExcerptFromContent(content, frontmatter)
+            const enhancedContent = enhanceMarkdownContent(markdownContent)
+            const mdxSource = await serialize(enhancedContent)
+
+            return {
+              title: extractedTitle,
+              date: frontmatter.date || new Date().toISOString().split("T")[0],
+              excerpt: extractedExcerpt,
+              category: frontmatter.category || "General",
+              image: getImageForBlobPost(extractedTitle, frontmatter),
+              slug: cleanSlug,
+              content: mdxSource,
+              rawContent: enhancedContent,
+            }
           }
         }
       }
+    } catch (error) {
+      console.error(`Error fetching from blob storage for slug "${slug}":`, error)
     }
-  } catch (error) {
-    console.error(`Error fetching from blob storage for slug "${slug}":`, error)
   }
 
   const samplePost = SAMPLE_POSTS.find((post) => post.slug === slug)
