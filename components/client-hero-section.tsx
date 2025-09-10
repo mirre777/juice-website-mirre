@@ -1,6 +1,7 @@
 "use client"
 
 import { Check } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface ClientHeroSectionProps {
   title: string
@@ -85,6 +86,23 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
+        </div>
+
+        <div className="mt-12 pt-8">
+          <Button
+            asChild
+            size="lg"
+            className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <a
+              href="https://app.juice.fitness/public/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Start Your 3-Day Program Now
+            </a>
+          </Button>
+          <p className="text-sm text-gray-500 mt-3">Access your complete workout program instantly</p>
         </div>
       </div>
     </section>
