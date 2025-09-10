@@ -5,25 +5,9 @@
 
 import { type NextRequest, NextResponse } from "next/server"
 
-const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
-
-console.log("[v0] WEBHOOK BUILD-TIME DEBUG:", {
-  NEXT_PHASE: process.env.NEXT_PHASE,
-  isBuildTime: isBuildTime,
-  timestamp: new Date().toISOString(),
-})
-
-if (isBuildTime) {
-  console.log("[v0] Build time detected - completely skipping Firebase initialization")
-}
-
 let stripe: any = null
 
 async function getStripe() {
-  if (isBuildTime) {
-    throw new Error("Stripe not available during build time")
-  }
-
   if (!stripe) {
     const Stripe = (await import("stripe")).default
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -36,10 +20,6 @@ async function getStripe() {
 let db: any = null
 
 async function getFirebaseDb() {
-  if (isBuildTime) {
-    throw new Error("Firebase not available during build time")
-  }
-
   if (!db) {
     const { initializeApp, getApps, cert } = await import("firebase-admin/app")
     const { getFirestore } = await import("firebase-admin/firestore")
@@ -59,19 +39,6 @@ async function getFirebaseDb() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("[v0] POST REQUEST BUILD-TIME CHECK:", {
-    isBuildTime: isBuildTime,
-    NEXT_PHASE: process.env.NEXT_PHASE,
-    timestamp: new Date().toISOString(),
-    userAgent: request.headers.get("user-agent"),
-    host: request.headers.get("host"),
-  })
-
-  if (isBuildTime) {
-    console.log("[v0] RETURNING 503 DUE TO BUILD-TIME DETECTION - NEXT_PHASE:", process.env.NEXT_PHASE)
-    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
-  }
-
   const debugId = Math.random().toString(36).slice(2, 10)
 
   console.log("=== WEBHOOK PROCESSING (SIGNATURE VERIFICATION ENABLED) ===", {
@@ -351,10 +318,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  if (isBuildTime) {
-    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
-  }
-
   return NextResponse.json({
     message: "Stripe webhook endpoint is reachable",
     timestamp: new Date().toISOString(),
