@@ -511,7 +511,7 @@ export default function PersonalTrainerWebsitePage() {
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               <span className="text-gray-900">Get Your Professional</span>{" "}
-              <span className="text-gray-900 relative">
+              <span className="text-white relative">
                 Trainer Website
                 <div className="absolute -bottom-2 left-0 w-full h-3 bg-[#D2FF28] opacity-80 rounded"></div>
               </span>{" "}

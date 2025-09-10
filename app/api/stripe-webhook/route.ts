@@ -5,12 +5,7 @@
 
 import { type NextRequest, NextResponse } from "next/server"
 
-const isBuildTime =
-  process.env.NODE_ENV === "production" &&
-  (process.env.VERCEL_ENV === undefined ||
-    process.env.CI === "true" ||
-    process.env.NEXT_PHASE === "phase-production-build" ||
-    (typeof window === "undefined" && !process.env.VERCEL_URL))
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 if (isBuildTime) {
   console.log("Build time detected - completely skipping Firebase initialization")
