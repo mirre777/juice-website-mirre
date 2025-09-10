@@ -5,31 +5,10 @@
 
 import { type NextRequest, NextResponse } from "next/server"
 
-const isBuildTime =
-  typeof window === "undefined" &&
-  process.env.NODE_ENV === "production" &&
-  !process.env.VERCEL_URL &&
-  !process.env.VERCEL_ENV
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
-console.log("[v0] COMPREHENSIVE BUILD-TIME DEBUG:", {
+console.log("[v0] WEBHOOK BUILD-TIME DEBUG:", {
   NEXT_PHASE: process.env.NEXT_PHASE,
-  NODE_ENV: process.env.NODE_ENV,
-  VERCEL_ENV: process.env.VERCEL_ENV,
-  VERCEL: process.env.VERCEL,
-  CI: process.env.CI,
-  VERCEL_URL: process.env.VERCEL_URL,
-  isBuildTime: isBuildTime,
-  timestamp: new Date().toISOString(),
-  allEnvKeys: Object.keys(process.env)
-    .filter((key) => key.includes("NEXT") || key.includes("VERCEL") || key.includes("CI"))
-    .sort(),
-})
-
-console.log("[v0] Build-time detection debug:", {
-  NEXT_PHASE: process.env.NEXT_PHASE,
-  NODE_ENV: process.env.NODE_ENV,
-  VERCEL_ENV: process.env.VERCEL_ENV,
-  VERCEL_URL: process.env.VERCEL_URL,
   isBuildTime: isBuildTime,
   timestamp: new Date().toISOString(),
 })
@@ -83,8 +62,6 @@ export async function POST(request: NextRequest) {
   console.log("[v0] POST REQUEST BUILD-TIME CHECK:", {
     isBuildTime: isBuildTime,
     NEXT_PHASE: process.env.NEXT_PHASE,
-    NODE_ENV: process.env.NODE_ENV,
-    VERCEL_ENV: process.env.VERCEL_ENV,
     timestamp: new Date().toISOString(),
     userAgent: request.headers.get("user-agent"),
     host: request.headers.get("host"),

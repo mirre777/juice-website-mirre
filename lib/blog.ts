@@ -713,7 +713,7 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   const posts: BlogPostFrontmatter[] = [...SAMPLE_POSTS]
   const errors: string[] = []
 
-  const isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL
+  const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
   const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
 
   // Only skip blob storage if we're in build time AND don't have a token
