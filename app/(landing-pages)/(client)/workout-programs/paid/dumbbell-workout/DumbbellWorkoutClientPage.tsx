@@ -8,7 +8,7 @@ import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { PaymentModal } from "@/components/payment/payment-modal"
-import { RelatedWorkoutPrograms } from "@/components/related-workout-programs"
+import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/workout-programs/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const structuredData = {
