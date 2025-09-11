@@ -61,7 +61,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
               )}
 
               <div className="absolute top-4 left-4">
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-juice text-white">
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-juice text-black">
                   {program.isPaid ? "Paid" : "Free"}
                 </span>
               </div>
