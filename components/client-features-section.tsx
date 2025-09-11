@@ -177,7 +177,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
         {/* CTA section */}
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Only 2 euros. One for Each Dumbbell</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">Only 2 euros. One for Each Dumbbell.</h2>
 
           <div className="space-y-4 mb-8">
             <p className="text-xl text-gray-700">{ctaData.subtitle}</p>
