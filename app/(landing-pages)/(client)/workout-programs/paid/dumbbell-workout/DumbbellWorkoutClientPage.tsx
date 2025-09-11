@@ -48,10 +48,10 @@ export default function DumbbellWorkoutClientPage() {
     subtitle:
       "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training you can use with clients anywhere. Perfect for online or gym PTs.",
     rating: "4.8/5 by 250+ users",
-    ctaText: "Get Program for €2", // Updated CTA text to include "Program"
+    ctaText: "Get Program for €2",
     customCTA: (
       <PaymentModal
-        triggerText="Get Program for €2" // Updated CTA text to include "Program"
+        triggerText="Get Program for €2"
         amount="2.00"
         description="Push/Pull/Legs Dumbbell Program"
         onPaymentComplete={() => {
@@ -86,12 +86,12 @@ export default function DumbbellWorkoutClientPage() {
       },
     ],
     ctaData: {
-      title: "Start your Push/Pull/Legs transformation",
-      subtitle: "Get instant access to the complete 3-day program for just €2.",
+      title: "Get instant access to the complete 3-day program for just €2.",
+      subtitle: "Start your Push/Pull/Legs transformation",
       bulletPoints: ["Push/Pull/Legs split", "Clear exercise progression", "Dumbbell-only workouts"],
       customCTA: (
         <PaymentModal
-          triggerText="Get Program for €2" // Updated CTA text to include "Program"
+          triggerText="Get Program for €2"
           amount="2.00"
           description="Push/Pull/Legs Dumbbell Program"
           onPaymentComplete={() => {
