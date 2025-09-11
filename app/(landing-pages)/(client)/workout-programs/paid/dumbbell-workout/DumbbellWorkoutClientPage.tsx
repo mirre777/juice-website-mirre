@@ -8,6 +8,7 @@ import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { PaymentModal } from "@/components/payment/payment-modal"
+import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/workout-programs/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const structuredData = {
@@ -50,8 +51,7 @@ export default function DumbbellWorkoutClientPage() {
         Push-Pull-Legs
       </>
     ),
-    subtitle:
-      "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training you can use with clients anywhere. Perfect for online or gym PTs.",
+    subtitle: "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training.",
     rating: "4.8/5 by 250+ users",
     ctaText: "Get Program for €2",
     customCTA: (
@@ -155,6 +155,11 @@ export default function DumbbellWorkoutClientPage() {
         <ClientHeroSection {...heroData} />
         <ClientFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
+
+        <section className="container mx-auto px-4 md:px-6 py-16">
+          <RelatedWorkoutPrograms currentSlug="dumbbell-workout" />
+        </section>
+
         <Footer />
         <FloatingDownloadCTA />
       </main>
