@@ -68,17 +68,7 @@ export default function DumbbellWorkoutClientPage() {
 
   const featuresData = {
     title: "Why choose our Push/Pull/Legs dumbbell program?",
-    features: [
-      {
-        title: "Perfect for Travel & Hotel Gyms",
-        description: "Ideal routine when you're traveling or at a hotel gym with limited equipment.",
-      },
-      {
-        title: "Simple & Effective",
-        description:
-          "3-day split, 3 sets per exercise, clear rep ranges. No confusion, just results with minimal equipment",
-      },
-    ],
+    features: [],
     ctaData: {
       title: "Or just download the app",
       subtitle: "Start your Push/Pull/Legs transformation",
