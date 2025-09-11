@@ -68,7 +68,29 @@ export default function DumbbellWorkoutClientPage() {
 
   const featuresData = {
     title: "Why choose our Push/Pull/Legs dumbbell program?",
-    features: [],
+    exercises: [
+      {
+        name: "Dumbbell bench press",
+        details: "Dumbbells • 3 sets • 8-12 reps",
+        muscleGroup: "Chest",
+      },
+      {
+        name: "Overhead press",
+        details: "Dumbbells • 3 sets • 8-12 reps",
+        muscleGroup: "Shoulders",
+      },
+      {
+        name: "Single leg RDL",
+        details: "Dumbbells • 3 sets • 8-12 reps",
+        muscleGroup: "Hamstrings",
+      },
+      {
+        name: "Biceps curl",
+        details: "Dumbbells • 3 sets • 8-12 reps",
+        muscleGroup: "Biceps",
+      },
+    ],
+    features: [], // Keep feature tiles removed as requested
     ctaData: {
       title: "Or just download the app",
       subtitle: "Start your Push/Pull/Legs transformation",
