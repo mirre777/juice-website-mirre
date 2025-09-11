@@ -88,8 +88,8 @@ export default function DumbbellWorkoutClientPage() {
       },
     ],
     ctaData: {
-      title: "Or just download the app",
-      subtitle: "Start your Push/Pull/Legs transformation",
+      title: "Or Just Download The App",
+      subtitle: "Start your fitness transformation",
       bulletPoints: ["Track your workouts", "Exercise library & videos", "Progress tracking"],
       ctaButtonText: "Get Program for €2",
       ctaButtonStyle: "green" as const,
