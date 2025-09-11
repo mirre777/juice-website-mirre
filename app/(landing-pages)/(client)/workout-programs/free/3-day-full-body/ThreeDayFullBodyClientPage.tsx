@@ -1,6 +1,13 @@
 "use client"
-
-import { WorkoutProgramClientPage } from "@/components/workout-program-client-page"
+import { useEffect } from "react"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
+import { ClientHeroSection } from "@/components/client-hero-section"
+import { ClientFeaturesSection } from "@/components/client-features-section"
+import { ClientFAQSection } from "@/components/client-faq-section"
+import { FloatingDownloadCTA } from "@/components/floating-download-cta"
+import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/workout-programs/components/related-workout-programs"
+import { useTheme } from "@/contexts/theme-context"
 
 const workoutProgramData = {
   title: "Free 3-Day Full Body Workout Program - Build Strength & Muscle",
@@ -104,5 +111,49 @@ const workoutProgramData = {
 }
 
 export default function ThreeDayFullBodyClientPage() {
-  return <WorkoutProgramClientPage data={workoutProgramData} slug="3-day-full-body" />
+  const { setIsCoach } = useTheme()
+
+  const heroData = {
+    title: workoutProgramData.title,
+    subtitle: workoutProgramData.subtitle,
+    rating: workoutProgramData.rating,
+    ctaText: workoutProgramData.ctaText,
+  }
+
+  const featuresData = {
+    title: "Why choose this workout program?",
+    features: workoutProgramData.features,
+    ctaData: workoutProgramData.ctaData,
+  }
+
+  const faqData = {
+    title: "Frequently Asked Questions",
+    faqs: workoutProgramData.faqs,
+  }
+
+  useEffect(() => {
+    setIsCoach(false)
+  }, [setIsCoach])
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(workoutProgramData.structuredData) }}
+      />
+      <main className="flex min-h-screen flex-col">
+        <Navbar />
+        <ClientHeroSection {...heroData} />
+        <ClientFeaturesSection {...featuresData} />
+        <ClientFAQSection {...faqData} />
+
+        <section className="container mx-auto px-4 md:px-6 py-16">
+          <RelatedWorkoutPrograms currentSlug="3-day-full-body" />
+        </section>
+
+        <Footer />
+        <FloatingDownloadCTA />
+      </main>
+    </>
+  )
 }
