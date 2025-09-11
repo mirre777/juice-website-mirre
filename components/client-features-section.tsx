@@ -128,7 +128,10 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
                   <div className="text-gray-500 text-xs">Quads</div>
                 </div>
                 <div className="text-sm">
-                  <div className="font-semibold">Single leg RDL</div>
+                  <div className="font-semibold flex items-center gap-2">
+                    Single leg RDL
+                    <span className="text-lg transform -rotate-12">😭</span>
+                  </div>
                   <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
                   <div className="text-gray-500 text-xs">Hamstrings</div>
                 </div>
