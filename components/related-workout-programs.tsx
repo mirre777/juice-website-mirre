@@ -69,7 +69,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
                     program.isPaid ? "bg-juice text-black" : "bg-green-500 text-white"
                   }`}
                 >
-                  {program.isPaid ? program.price : "FREE"}
+                  {program.isPaid ? "Paid" : "Free"}
                 </span>
               </div>
             </div>
