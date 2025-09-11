@@ -1,20 +1,52 @@
 "use client"
 
+import type React from "react"
+
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
 interface ClientHeroSectionProps {
-  title: string
+  title: string | React.ReactNode
   subtitle: string
   rating: string
   ctaText: string
+  customCTA?: React.ReactNode
 }
 
-export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHeroSectionProps) {
-  const titleParts = title.split(" - ")
-  const mainTitle = titleParts[0] || title
-  const titleSubtitle = titleParts[1] || ""
+export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA }: ClientHeroSectionProps) {
+  const renderTitle = () => {
+    if (typeof title === "string") {
+      const titleParts = title.split(" - ")
+      const mainTitle = titleParts[0] || title
+      const titleSubtitle = titleParts[1] || ""
+
+      return (
+        <>
+          <h1 className="text-5xl md:text-6xl font-bold mb-2 text-black">
+            {mainTitle
+              .replace("3-Day", "3 Day")
+              .split(" ")
+              .map((word, index) =>
+                word.toLowerCase().includes("fitness") || word.toLowerCase().includes("app") ? (
+                  <span key={index} className="juice-text-gradient">
+                    {word}{" "}
+                  </span>
+                ) : (
+                  <span key={index} className="text-black" style={{ color: "#000000" }}>
+                    {word}{" "}
+                  </span>
+                ),
+              )}
+          </h1>
+          {titleSubtitle && <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-600">{titleSubtitle}</h2>}
+        </>
+      )
+    } else {
+      // Handle JSX title
+      return <h1 className="text-5xl md:text-6xl font-bold mb-2 text-black">{title}</h1>
+    }
+  }
 
   return (
     <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 px-4 overflow-hidden">
@@ -23,51 +55,34 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
 
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto text-center">
-        <h1 className="text-5xl md:text-6xl font-bold mb-2 text-black">
-          {mainTitle
-            .replace("3-Day", "3 Day")
-            .split(" ")
-            .map((word, index) =>
-              word.toLowerCase().includes("fitness") || word.toLowerCase().includes("app") ? (
-                <span key={index} className="juice-text-gradient">
-                  {word}{" "}
-                </span>
-              ) : (
-                <span key={index} className="text-black" style={{ color: "#000000" }}>
-                  {word}{" "}
-                </span>
-              ),
-            )}
-        </h1>
-
-        {titleSubtitle && <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-600">{titleSubtitle}</h2>}
+        {renderTitle()}
 
         <p className="text-xl md:text-2xl text-gray-600 mb-8 mx-auto">{subtitle}</p>
 
         {/* Star Rating */}
 
-        <div className="flex justify-center items-center gap-4 overflow-x-auto pb-4">
+        <div className="flex justify-center items-center gap-2 md:gap-4 overflow-x-auto pb-4 px-4 md:px-0 -mx-4 md:mx-0">
           <div className="flex-shrink-0 relative overflow-hidden rounded-lg">
             <img
               src="/images/import-program.png"
               alt="Import workout program screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
-            <div className="absolute inset-2 bg-[#D2FF28] bg-opacity-60 rounded-lg overflow-hidden flex items-center justify-center">
-              <div className="bg-white rounded-full p-4 shadow-lg">
-                <Check className="w-12 h-12 text-[#D2FF28]" strokeWidth={3} />
+            <div className="absolute inset-1 md:inset-2 bg-[#D2FF28] bg-opacity-60 rounded-lg overflow-hidden flex items-center justify-center">
+              <div className="bg-white rounded-full p-2 md:p-4 shadow-lg">
+                <Check className="w-6 md:w-12 h-6 md:h-12 text-[#D2FF28]" strokeWidth={3} />
               </div>
             </div>
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-              <p className="text-sm text-black font-medium">We already created a program for you!</p>
+            <div className="absolute -bottom-6 md:-bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              <p className="text-xs md:text-sm text-black font-medium">We already created a program for you!</p>
             </div>
           </div>
           <div className="flex-shrink-0">
             <img
               src="/images/workout-program.png"
               alt="Workout program overview screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
@@ -75,7 +90,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
             <img
               src="/images/workout-logging.png"
               alt="Workout logging screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
@@ -83,28 +98,32 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
             <img
               src="/images/statistics.png"
               alt="Statistics and progress screen"
-              className="w-48 h-auto rounded-lg border-0 bg-transparent"
+              className="w-32 md:w-48 h-auto rounded-lg border-0 bg-transparent"
               style={{ backgroundColor: "transparent", border: "none", outline: "none" }}
             />
           </div>
         </div>
 
         <div className="mt-0 pt-0">
-          <Button
-            asChild
-            size="lg"
-            className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <a
-              href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
+          {customCTA ? (
+            customCTA
+          ) : (
+            <Button
+              asChild
+              size="lg"
+              className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              Get Free Program
-              <ArrowRight className="w-5 h-5" />
-            </a>
-          </Button>
+              <a
+                href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                {ctaText}
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </Button>
+          )}
           <p className="text-sm text-gray-500 mt-3">Access your complete workout program instantly</p>
         </div>
       </div>
