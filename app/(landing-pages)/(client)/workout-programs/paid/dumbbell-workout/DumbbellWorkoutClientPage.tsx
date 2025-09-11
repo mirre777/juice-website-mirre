@@ -7,6 +7,7 @@ import { ClientHeroSection } from "@/components/client-hero-section"
 import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
+import { PaymentModal } from "@/components/payment/payment-modal"
 import { useTheme } from "@/contexts/theme-context"
 
 const structuredData = {
@@ -14,14 +15,14 @@ const structuredData = {
   "@type": "Product",
   name: "Dumbbell Workout Program",
   description:
-    "Comprehensive dumbbell workout program for building muscle and strength at home. Structured training plans with expert guidance.",
+    "Push/Pull/Legs dumbbell workout program for building muscle and strength at home. Structured 3-day training split with expert guidance.",
   url: "https://juice-website-mirre.vercel.app/workout-programs/paid/dumbbell-workout",
   category: "Fitness Program",
   offers: {
     "@type": "Offer",
-    price: "29.99",
-    priceCurrency: "GBP",
-    description: "Complete dumbbell workout program with structured training plans and progress tracking",
+    price: "2.00",
+    priceCurrency: "EUR",
+    description: "Complete Push/Pull/Legs dumbbell workout program with structured training plans",
     availability: "https://schema.org/InStock",
   },
   publisher: {
@@ -43,39 +44,61 @@ export default function DumbbellWorkoutClientPage() {
   const { setIsCoach } = useTheme()
 
   const heroData = {
-    title: "Dumbbell Workout Program – Build Muscle & Strength at Home",
+    title: "Dumbbell Workouts That Actually Work",
     subtitle:
-      "Transform your physique with our comprehensive dumbbell workout program. Build muscle, increase strength, and get fit at home with structured training plans and expert guidance.",
+      "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training you can use with clients anywhere. Perfect for online or gym PTs.",
     rating: "4.8/5 by 250+ users",
-    ctaText: "Get Dumbbell Workout Program",
+    ctaText: "Get for 2 EUR",
+    customCTA: (
+      <PaymentModal
+        triggerText="Get for 2 EUR"
+        amount="2.00"
+        description="Push/Pull/Legs Dumbbell Program"
+        onPaymentComplete={() => {
+          console.log("Dumbbell workout program purchased!")
+        }}
+      />
+    ),
   }
 
   const featuresData = {
-    title: "Why choose our dumbbell workout program?",
+    title: "Why choose our Push/Pull/Legs dumbbell program?",
     features: [
       {
-        title: "Complete Muscle Building",
+        title: "Push Day - Chest, Shoulders, Triceps",
         description:
-          "Full-body dumbbell workouts targeting all major muscle groups for balanced strength and muscle development",
+          "Chest press, incline fly, Arnold press, overhead tricep extension. 3 sets, 8-12 reps for maximum muscle activation",
       },
       {
-        title: "Progressive Training Plans",
+        title: "Pull Day - Back, Biceps",
         description:
-          "Structured 12-week program with progressive overload principles to maximize muscle growth and strength gains",
+          "Single arm row, bent-over row, reverse fly, upright row, bicep curl. Complete back development with dumbbell-only exercises",
       },
       {
-        title: "Home Gym Friendly",
-        description: "Designed specifically for home workouts - all you need is a set of dumbbells to get started",
+        title: "Legs Day - Quads, Hamstrings, Calves",
+        description:
+          "Goblet squat, lunge, single leg RDL, calf raise. Build powerful legs with just dumbbells and bodyweight",
       },
       {
-        title: "Expert Guidance",
-        description: "Professional coaching cues, form tips, and workout modifications for all fitness levels",
+        title: "Simple & Effective",
+        description:
+          "3-day split, 3 sets per exercise, clear rep ranges. No confusion, just results with minimal equipment",
       },
     ],
     ctaData: {
-      title: "Start your dumbbell transformation",
-      subtitle: "Get instant access to the complete program and start building muscle today.",
-      bulletPoints: ["12-week structured program", "Video demonstrations included", "Progress tracking tools"],
+      title: "Start your Push/Pull/Legs transformation",
+      subtitle: "Get instant access to the complete 3-day program for just 2 EUR.",
+      bulletPoints: ["Push/Pull/Legs split", "Clear exercise progression", "Dumbbell-only workouts"],
+      customCTA: (
+        <PaymentModal
+          triggerText="Get for 2 EUR"
+          amount="2.00"
+          description="Push/Pull/Legs Dumbbell Program"
+          onPaymentComplete={() => {
+            console.log("Dumbbell workout program purchased!")
+          }}
+        />
+      ),
     },
   }
 
@@ -83,29 +106,29 @@ export default function DumbbellWorkoutClientPage() {
     title: "Frequently Asked Questions",
     faqs: [
       {
-        question: "What equipment do I need for this dumbbell workout program?",
+        question: "What's included in the Push/Pull/Legs program?",
         answer:
-          "You only need a set of adjustable dumbbells or multiple pairs of fixed-weight dumbbells. The program is designed to be equipment-minimal while maximizing results.",
+          "You get a complete 3-day workout split: Push day (chest, shoulders, triceps), Pull day (back, biceps), and Legs day (quads, hamstrings, calves). Each workout includes specific exercises, sets, and rep ranges.",
       },
       {
-        question: "Is this program suitable for beginners?",
+        question: "What equipment do I need?",
         answer:
-          "Yes! The program includes modifications for all fitness levels. Beginners can start with lighter weights and progress gradually, while advanced users can challenge themselves with heavier loads.",
+          "Just a set of dumbbells! The program is designed to be equipment-minimal while maximizing results. Adjustable dumbbells work best for progression.",
       },
       {
-        question: "How long are the workouts?",
+        question: "How often should I do these workouts?",
         answer:
-          "Each workout session is designed to be 45-60 minutes, including warm-up and cool-down. The program includes 4-5 workouts per week for optimal results.",
+          "Follow the 3-day split: Push, Pull, Legs, then rest or repeat. You can do this 3-6 times per week depending on your recovery and goals.",
       },
       {
-        question: "Can I build significant muscle with just dumbbells?",
+        question: "Is this suitable for beginners?",
         answer:
-          "Dumbbells are incredibly effective for muscle building. This program uses proven techniques like progressive overload, time under tension, and compound movements to maximize muscle growth.",
+          "Yes! Start with lighter weights and focus on form. The rep ranges (8-12 for upper body, 12-20 for abs/calves) allow for progression at any level.",
       },
       {
-        question: "What's included in the program?",
+        question: "Why only 2 EUR?",
         answer:
-          "You get a complete 12-week training plan, exercise video demonstrations, nutrition guidelines, progress tracking sheets, and ongoing support through our community.",
+          "We believe effective training shouldn't be expensive. This program gives you everything you need to build muscle with dumbbells at an accessible price.",
       },
     ],
   }
