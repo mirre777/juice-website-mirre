@@ -14,9 +14,8 @@ const stripe = !isBuildTime
   : null
 
 /**
- * Creates a Payment Intent for Trainer Activation.
+ * Creates a Payment Intent for Dumbbell Program Purchase.
  * Expects JSON body with:
- * - trainerId (preferred) OR tempId (backward compatibility)
  * - email (optional)
  */
 export async function POST(request: NextRequest) {
@@ -26,36 +25,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const {
-      trainerId: rawTrainerId,
-      tempId: rawTempId,
-      email,
-    } = body as {
-      trainerId?: string
-      tempId?: string
-      email?: string
-    }
+    const { email } = body as { email?: string }
 
-    // Prefer trainerId; if only tempId is provided, use that as trainerId for now.
-    const trainerId = rawTrainerId || rawTempId
-    if (!trainerId) {
-      console.error("Missing trainerId in request body")
-      return NextResponse.json({ error: "trainerId is required" }, { status: 400 })
-    }
+    const paymentId = `dumbbell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    console.log("Creating payment intent with:", { trainerId, email })
+    console.log("Creating payment intent for dumbbell program with:", { paymentId, email })
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 6900, // €69 in cents
+      amount: 200, // €2 in cents
       currency: "eur",
-      description: `Trainer Website Activation - ${trainerId}`,
+      description: `Dumbbell Workout Program Purchase - ${paymentId}`,
       metadata: {
-        trainerId,
-        // Keep tempId too for full backward compatibility during transition
-        ...(rawTempId ? { tempId: rawTempId } : {}),
+        paymentId,
         ...(email ? { email } : {}),
-        plan: "trainer-activation",
-        planType: "Trainer Website Activation",
+        plan: "dumbbell-program",
+        planType: "Dumbbell Workout Program",
       },
       automatic_payment_methods: {
         enabled: true,

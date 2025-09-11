@@ -25,13 +25,12 @@ const getApiUrl = () => {
 }
 
 interface StripePaymentProps {
-  tempId?: string
   onPaymentComplete: () => void
   onPaymentError: (error: string) => void
   resetCounter?: number // Add a reset counter prop to force re-render
 }
 
-export function StripePayment({ tempId, onPaymentComplete, onPaymentError, resetCounter = 0 }: StripePaymentProps) {
+export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter = 0 }: StripePaymentProps) {
   const { isCoach } = useTheme()
   const [clientSecret, setClientSecret] = useState("")
   const [loading, setLoading] = useState(true)
@@ -68,7 +67,6 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              tempId: tempId,
               email: "", // Will be collected in the form
             }),
           })
@@ -117,7 +115,7 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
     }, 200) // 200ms delay before creating payment intent
 
     return () => clearTimeout(timer)
-  }, [tempId, onPaymentError, elementsKey, resetCounter])
+  }, [onPaymentError, elementsKey, resetCounter])
 
   // Reset the payment intent creation flag when resetCounter changes
   useEffect(() => {
@@ -162,7 +160,6 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    tempId: tempId,
                     email: "",
                   }),
                 })
@@ -232,7 +229,6 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
       }}
     >
       <CheckoutForm
-        tempId={tempId}
         onPaymentComplete={onPaymentComplete}
         onPaymentError={onPaymentError}
         paymentIntentId={paymentIntentId}
@@ -243,11 +239,10 @@ export function StripePayment({ tempId, onPaymentComplete, onPaymentError, reset
 
 // Separate the checkout form into its own component
 function CheckoutForm({
-  tempId,
   onPaymentComplete,
   onPaymentError,
   paymentIntentId,
-}: StripePaymentProps & { paymentIntentId?: string | null }) {
+}: { onPaymentComplete: () => void; onPaymentError: (error: string) => void; paymentIntentId?: string | null }) {
   const stripe = useStripe()
   const elements = useElements()
   const { isCoach } = useTheme()
@@ -313,7 +308,7 @@ function CheckoutForm({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${paymentIntentId || ""}&payment_success=true`,
+          return_url: `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${paymentIntentId || ""}&payment_success=true`,
           receipt_email: email,
         },
         redirect: "if_required",
@@ -348,7 +343,7 @@ function CheckoutForm({
         }
 
         onPaymentComplete()
-        window.location.href = `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${result.paymentIntent.id}&payment_success=true`
+        window.location.href = `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${result.paymentIntent.id}&payment_success=true`
       } else {
         console.log("Payment requires additional action or is processing")
       }
@@ -417,7 +412,7 @@ function CheckoutForm({
             Processing...
           </>
         ) : (
-          `Pay €69`
+          `Pay €2`
         )}
       </Button>
     </form>
