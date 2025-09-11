@@ -65,19 +65,9 @@ export default function DumbbellWorkoutClientPage() {
     title: "Why choose our Push/Pull/Legs dumbbell program?",
     features: [
       {
-        title: "Push Day - Chest, Shoulders, Triceps",
+        title: "Perfect for Travel & Hotel Gyms",
         description:
-          "Chest press, incline fly, Arnold press, overhead tricep extension. 3 sets, 8-12 reps for maximum muscle activation",
-      },
-      {
-        title: "Pull Day - Back, Biceps",
-        description:
-          "Single arm row, bent-over row, reverse fly, upright row, bicep curl. Complete back development with dumbbell-only exercises",
-      },
-      {
-        title: "Legs Day - Quads, Hamstrings, Calves",
-        description:
-          "Goblet squat, lunge, single leg RDL, calf raise. Build powerful legs with just dumbbells and bodyweight",
+          "Ideal routine when you're traveling or at a hotel gym with limited equipment. Most hotel gyms have at least a bench and some dumbbells - that's all you need for effective workouts",
       },
       {
         title: "Simple & Effective",
