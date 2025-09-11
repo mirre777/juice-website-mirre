@@ -90,7 +90,19 @@ export default function DumbbellWorkoutClientPage() {
         muscleGroup: "Biceps",
       },
     ],
-    features: [], // Keep feature tiles removed as requested
+    features: [
+      {
+        icon: "💪",
+        title: "Perfect for Travel & Hotel Gyms",
+        description: "Ideal routine when you're traveling with limited equipment.",
+      },
+      {
+        icon: "⚡",
+        title: "Simple & Effective",
+        description:
+          "3-day split, 3 sets per exercise, clear rep ranges. No confusion, just results with minimal equipment",
+      },
+    ],
     ctaData: {
       title: "Or just download the app",
       subtitle: "Start your Push/Pull/Legs transformation",
