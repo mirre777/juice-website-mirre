@@ -82,7 +82,7 @@ export default function DumbbellWorkoutClientPage() {
     ctaData: {
       title: "Or just download the app without buying the program",
       subtitle: "Start your Push/Pull/Legs transformation",
-      bulletPoints: ["Push/Pull/Legs split", "Clear exercise progression", "Dumbbell-only workouts"],
+      bulletPoints: ["Track your workouts", "Exercise library & videos", "Progress tracking"],
       customCTA: (
         <PaymentModal
           triggerText="Get Program for €2"
