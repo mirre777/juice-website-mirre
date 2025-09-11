@@ -86,7 +86,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12,6 12,12 16,14" />
                     </svg>
-                    <span>{program.daysPerWeek} days/week</span>
+                    <span>3-6 days/week</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
