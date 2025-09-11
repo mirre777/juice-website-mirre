@@ -1,15 +1,14 @@
 import Link from "next/link"
-import Image from "next/image"
-import { Clock, Dumbbell } from "lucide-react"
+import { Clock, Dumbbell, User } from "lucide-react"
 
 interface WorkoutProgram {
   slug: string
   title: string
-  image: string
   isPaid: boolean
   price?: string
   duration: string
   equipment: string
+  icon: "dumbbell" | "fullbody"
 }
 
 interface RelatedWorkoutProgramsProps {
@@ -20,19 +19,19 @@ const workoutPrograms: WorkoutProgram[] = [
   {
     slug: "3-day-full-body",
     title: "3-Day Full Body Workout",
-    image: "/full-body-workout-dumbbells-gym.jpg",
     isPaid: false,
     duration: "3 days/week",
     equipment: "Dumbbells & Bodyweight",
+    icon: "fullbody",
   },
   {
     slug: "dumbbell-workout",
     title: "Push/Pull/Legs Dumbbell Program",
-    image: "/dumbbell-workout-push-pull-legs-gym.jpg",
     isPaid: true,
     price: "€2",
     duration: "6 days/week",
     equipment: "Dumbbells Only",
+    icon: "dumbbell",
   },
 ]
 
@@ -54,21 +53,15 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
             href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
             className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="relative h-48 overflow-hidden">
-              <Image
-                src={program.image || "/placeholder.svg"}
-                alt={program.title}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <div className="relative h-48 bg-white flex items-center justify-center">
+              {program.icon === "dumbbell" ? (
+                <Dumbbell className="w-16 h-16 text-black" />
+              ) : (
+                <User className="w-16 h-16 text-black" />
+              )}
 
               <div className="absolute top-4 left-4">
-                <span
-                  className={`px-3 py-1 text-xs font-bold rounded-full ${
-                    program.isPaid ? "bg-juice text-black" : "bg-green-500 text-white"
-                  }`}
-                >
+                <span className="px-3 py-1 text-xs font-bold rounded-full bg-juice text-white">
                   {program.isPaid ? "Paid" : "Free"}
                 </span>
               </div>
