@@ -103,7 +103,7 @@ export default function DumbbellWorkoutClientPage() {
       {
         question: "What equipment do I need?",
         answer:
-          "Just a set of dumbbells! The program is designed to be equipment-minimal while maximizing results. Adjustable dumbbells work best for progression.",
+          "Uhhh... a set of dumbbells? The program is designed to be equipment-minimal while maximizing results. Adjustable dumbbells work best for progression.",
       },
       {
         question: "How often should I do these workouts?",
