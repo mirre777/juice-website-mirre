@@ -48,10 +48,10 @@ export default function DumbbellWorkoutClientPage() {
     subtitle:
       "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training you can use with clients anywhere. Perfect for online or gym PTs.",
     rating: "4.8/5 by 250+ users",
-    ctaText: "Get Program for €2",
+    ctaText: "Get Program for €2", // Updated CTA text to include "Program"
     customCTA: (
       <PaymentModal
-        triggerText="Get Program for €2"
+        triggerText="Get Program for €2" // Updated CTA text to include "Program"
         amount="2.00"
         description="Push/Pull/Legs Dumbbell Program"
         onPaymentComplete={() => {
@@ -67,17 +67,17 @@ export default function DumbbellWorkoutClientPage() {
       {
         title: "Push Day - Chest, Shoulders, Triceps",
         description:
-          "Chest press, incline fly, Arnold press, overhead tricep extension, crunches. 3 sets, 8-12 reps for upper body, 15-20 for abs",
+          "Chest press, incline fly, Arnold press, overhead tricep extension. 3 sets, 8-12 reps for maximum muscle activation",
       },
       {
-        title: "Pull Day - Back, Biceps, Shoulders",
+        title: "Pull Day - Back, Biceps",
         description:
-          "Single arm row, bent-over row, reverse fly, upright row, bicep curl. 3 sets, 8-15 reps for complete back and bicep development",
+          "Single arm row, bent-over row, reverse fly, upright row, bicep curl. Complete back development with dumbbell-only exercises",
       },
       {
         title: "Legs Day - Quads, Hamstrings, Calves",
         description:
-          "Goblet squat, lunge, single leg RDL, calf raise, crunches. 3 sets, 8-20 reps depending on exercise for powerful leg development",
+          "Goblet squat, lunge, single leg RDL, calf raise. Build powerful legs with just dumbbells and bodyweight",
       },
       {
         title: "Simple & Effective",
@@ -89,10 +89,9 @@ export default function DumbbellWorkoutClientPage() {
       title: "Start your Push/Pull/Legs transformation",
       subtitle: "Get instant access to the complete 3-day program for just €2.",
       bulletPoints: ["Push/Pull/Legs split", "Clear exercise progression", "Dumbbell-only workouts"],
-      bulletPointsAlignment: "left",
       customCTA: (
         <PaymentModal
-          triggerText="Get Program for €2"
+          triggerText="Get Program for €2" // Updated CTA text to include "Program"
           amount="2.00"
           description="Push/Pull/Legs Dumbbell Program"
           onPaymentComplete={() => {
@@ -109,7 +108,7 @@ export default function DumbbellWorkoutClientPage() {
       {
         question: "What's included in the Push/Pull/Legs program?",
         answer:
-          "You get a complete 3-day workout split: Push day (chest, shoulders, triceps), Pull day (back, biceps, shoulders), and Legs day (quads, hamstrings, calves). Each workout includes specific exercises, sets, and rep ranges.",
+          "You get a complete 3-day workout split: Push day (chest, shoulders, triceps), Pull day (back, biceps), and Legs day (quads, hamstrings, calves). Each workout includes specific exercises, sets, and rep ranges.",
       },
       {
         question: "What equipment do I need?",
@@ -124,7 +123,7 @@ export default function DumbbellWorkoutClientPage() {
       {
         question: "Is this suitable for beginners?",
         answer:
-          "Yes! Start with lighter weights and focus on form. The rep ranges (8-12 for upper body, 15-20 for abs) allow for progression at any level.",
+          "Yes! Start with lighter weights and focus on form. The rep ranges (8-12 for upper body, 12-20 for abs/calves) allow for progression at any level.",
       },
       {
         question: "Why only €2?",
