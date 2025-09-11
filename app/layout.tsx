@@ -121,6 +121,14 @@ export default function RootLayout({
                     return;
                   }
                   
+                  const consentBanner = document.querySelector('[class*="fixed bottom-4"]');
+                  if (consentBanner && consentBanner.style.display !== 'none') {
+                    console.log("Skipping Calendly widget - consent banner is visible");
+                    // Retry after 1 second to check if banner was dismissed
+                    setTimeout(initCalendly, 1000);
+                    return;
+                  }
+                  
                   if (window.Calendly) {
                     window.Calendly.initBadgeWidget({
                       url: 'https://calendly.com/sofree-mirre/talk',
