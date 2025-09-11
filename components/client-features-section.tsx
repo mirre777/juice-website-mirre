@@ -5,6 +5,12 @@ import type React from "react"
 import Image from "next/image"
 import { Dumbbell, GraduationCap, Clock, FlaskConical } from "lucide-react"
 
+interface Exercise {
+  name: string
+  details: string
+  muscleGroup: string
+}
+
 interface Feature {
   title: string
   description: string
@@ -19,6 +25,7 @@ interface CTAData {
 
 interface ClientFeaturesSectionProps {
   title: string
+  exercises?: Exercise[] // Added exercises prop to support dynamic exercise content
   features: Feature[]
   ctaData: CTAData
 }
@@ -40,7 +47,7 @@ const getFeatureIcon = (title: string) => {
   return <Dumbbell className="h-6 w-6 text-white" />
 }
 
-export function ClientFeaturesSection({ title, features, ctaData }: ClientFeaturesSectionProps) {
+export function ClientFeaturesSection({ title, exercises, features, ctaData }: ClientFeaturesSectionProps) {
   return (
     <section className="bg-white py-8">
       <div className="container mx-auto px-4">
@@ -169,21 +176,39 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
         </div>
 
         {/* Features grid section */}
-        <div className="text-center mb-40">
-          <h2 className="text-4xl font-bold mb-6 text-black">{title}</h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
-            {features.map((feature, index) => (
-              <div key={index} className="bg-gray-50 p-8 rounded-2xl">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="bg-lime-500 rounded-full p-2">{getFeatureIcon(feature.title)}</div>
+        {exercises && exercises.length > 0 && (
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-8 text-black">{title}</h2>
+            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+              {exercises.map((exercise, index) => (
+                <div key={index} className="bg-gray-50 p-6 rounded-2xl text-left">
+                  <div className="font-semibold text-lg mb-2">{exercise.name}</div>
+                  <div className="text-gray-600 mb-1">{exercise.details}</div>
+                  <div className="text-gray-500 text-sm">{exercise.muscleGroup}</div>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-black">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Features grid section */}
+        {features && features.length > 0 && (
+          <div className="text-center mb-40">
+            <h2 className="text-4xl font-bold mb-6 text-black">{title}</h2>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
+              {features.map((feature, index) => (
+                <div key={index} className="bg-gray-50 p-8 rounded-2xl">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="bg-lime-500 rounded-full p-2">{getFeatureIcon(feature.title)}</div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-black">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* CTA section */}
         <div className="text-center">
