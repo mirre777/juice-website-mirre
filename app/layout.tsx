@@ -7,7 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script"
 import { AnalyticsProvider } from "@/components/analytics-provider"
 import { AnalyticsConsentBanner } from "@/components/analytics-consent-banner"
-import { Suspense } from "next/navigation"
+import { Suspense } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
