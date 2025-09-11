@@ -101,7 +101,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
               rel="noopener noreferrer"
               className="flex items-center gap-2"
             >
-              Get Free Program
+              Get Program for €2
               <ArrowRight className="w-5 h-5" />
             </a>
           </Button>
