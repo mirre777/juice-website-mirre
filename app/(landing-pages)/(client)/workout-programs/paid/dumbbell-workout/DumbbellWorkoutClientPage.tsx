@@ -56,13 +56,19 @@ export default function DumbbellWorkoutClientPage() {
     ctaText: "Get Program for €2",
     customCTA: (
       <PaymentModal
-        triggerText="Get Program for €2"
-        amount="2.00"
+        amount="2"
         description="Push/Pull/Legs Dumbbell Program"
         onPaymentComplete={() => {
           console.log("Dumbbell workout program purchased!")
         }}
-      />
+      >
+        <button className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
+          Get Program for €2
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </PaymentModal>
     ),
   }
 
@@ -109,13 +115,19 @@ export default function DumbbellWorkoutClientPage() {
       bulletPoints: ["Track your workouts", "Exercise library & videos", "Progress tracking"],
       customCTA: (
         <PaymentModal
-          triggerText="Get Program for €2"
-          amount="2.00"
+          amount="2"
           description="Push/Pull/Legs Dumbbell Program"
           onPaymentComplete={() => {
             console.log("Dumbbell workout program purchased!")
           }}
-        />
+        >
+          <button className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
+            Get Program for €2
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </PaymentModal>
       ),
     },
   }

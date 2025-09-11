@@ -25,12 +25,22 @@ const getApiUrl = () => {
 }
 
 interface StripePaymentProps {
+  tempId?: string
   onPaymentComplete: () => void
   onPaymentError: (error: string) => void
   resetCounter?: number // Add a reset counter prop to force re-render
+  amount?: string
+  description?: string
 }
 
-export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter = 0 }: StripePaymentProps) {
+export function StripePayment({
+  tempId,
+  onPaymentComplete,
+  onPaymentError,
+  resetCounter = 0,
+  amount = "69",
+  description = "Trainer Website Activation",
+}: StripePaymentProps) {
   const { isCoach } = useTheme()
   const [clientSecret, setClientSecret] = useState("")
   const [loading, setLoading] = useState(true)
@@ -60,14 +70,17 @@ export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter 
           const apiUrl = getApiUrl()
           console.log(`Attempting to create payment intent using API: ${apiUrl}/create-payment-intent`)
 
-          // Use relative URL to avoid CORS issues
+          const productType = amount === "2" ? "dumbbell-program" : "trainer-activation"
+
           const response = await fetch(`${apiUrl}/create-payment-intent`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              tempId: tempId,
               email: "", // Will be collected in the form
+              productType: productType,
             }),
           })
 
@@ -97,7 +110,6 @@ export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter 
 
           console.error("Error creating payment intent:", error)
 
-          // Set detailed error message
           const errorMessage =
             error instanceof Error ? error.message : "Failed to initialize payment. Please try again."
 
@@ -115,9 +127,8 @@ export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter 
     }, 200) // 200ms delay before creating payment intent
 
     return () => clearTimeout(timer)
-  }, [onPaymentError, elementsKey, resetCounter])
+  }, [tempId, onPaymentError, elementsKey, resetCounter, amount])
 
-  // Reset the payment intent creation flag when resetCounter changes
   useEffect(() => {
     paymentIntentCreated.current = false
   }, [resetCounter])
@@ -150,7 +161,6 @@ export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter 
             paymentIntentCreated.current = false
             setError(null)
             setLoading(true)
-            // Force re-creation of payment intent
             const createPaymentIntent = async () => {
               try {
                 const apiUrl = getApiUrl()
@@ -160,7 +170,9 @@ export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter 
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
+                    tempId: tempId,
                     email: "",
+                    productType: amount === "2" ? "dumbbell-program" : "trainer-activation",
                   }),
                 })
 
@@ -229,20 +241,25 @@ export function StripePayment({ onPaymentComplete, onPaymentError, resetCounter 
       }}
     >
       <CheckoutForm
+        tempId={tempId}
         onPaymentComplete={onPaymentComplete}
         onPaymentError={onPaymentError}
         paymentIntentId={paymentIntentId}
+        amount={amount}
+        description={description}
       />
     </Elements>
   )
 }
 
-// Separate the checkout form into its own component
 function CheckoutForm({
+  tempId,
   onPaymentComplete,
   onPaymentError,
   paymentIntentId,
-}: { onPaymentComplete: () => void; onPaymentError: (error: string) => void; paymentIntentId?: string | null }) {
+  amount = "69",
+  description = "Trainer Website Activation",
+}: StripePaymentProps & { paymentIntentId?: string | null }) {
   const stripe = useStripe()
   const elements = useElements()
   const { isCoach } = useTheme()
@@ -252,7 +269,6 @@ function CheckoutForm({
   const [elementsReady, setElementsReady] = useState(false)
   const [paymentElementOptions, setPaymentElementOptions] = useState(null)
 
-  // Stable payment element options to prevent re-rendering
   useEffect(() => {
     const options = {
       layout: "tabs" as const,
@@ -275,7 +291,6 @@ function CheckoutForm({
           },
         },
       },
-      // Enable promotion codes - this should be stable
       promotionCodes: {
         enabled: true,
       },
@@ -285,7 +300,7 @@ function CheckoutForm({
       },
     }
     setPaymentElementOptions(options)
-  }, []) // Only set once, don't depend on email changes
+  }, [])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -304,11 +319,15 @@ function CheckoutForm({
         throw new Error("Please provide an email address for your receipt")
       }
 
-      // Confirm the payment
+      const returnUrl =
+        amount === "2"
+          ? `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${paymentIntentId || ""}&payment_success=true`
+          : `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${paymentIntentId || ""}&payment_success=true`
+
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${paymentIntentId || ""}&payment_success=true`,
+          return_url: returnUrl,
           receipt_email: email,
         },
         redirect: "if_required",
@@ -323,7 +342,6 @@ function CheckoutForm({
         localStorage.setItem("juice_payment_reference", result.paymentIntent.id)
         localStorage.setItem("juice_user_email", email)
 
-        // Update payment metadata with email
         try {
           const apiUrl = getApiUrl()
           await fetch(`${apiUrl}/update-payment-metadata`, {
@@ -339,11 +357,14 @@ function CheckoutForm({
           console.log("Payment metadata updated with email")
         } catch (error) {
           console.error("Failed to update payment metadata:", error)
-          // Continue with payment flow even if this fails
         }
 
         onPaymentComplete()
-        window.location.href = `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${result.paymentIntent.id}&payment_success=true`
+        if (amount === "2") {
+          window.location.href = `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${result.paymentIntent.id}&payment_success=true`
+        } else {
+          window.location.href = `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${result.paymentIntent.id}&payment_success=true`
+        }
       } else {
         console.log("Payment requires additional action or is processing")
       }
@@ -357,7 +378,6 @@ function CheckoutForm({
     }
   }
 
-  // Render a simple message if Stripe or Elements is not available
   if (!stripe || !elements) {
     return (
       <div className="py-4 text-center">
@@ -412,14 +432,13 @@ function CheckoutForm({
             Processing...
           </>
         ) : (
-          `Pay €2`
+          `Pay €${amount}`
         )}
       </Button>
     </form>
   )
 }
 
-// Direct payment link component
 export function StripePaymentLink() {
   const { isCoach } = useTheme()
 
