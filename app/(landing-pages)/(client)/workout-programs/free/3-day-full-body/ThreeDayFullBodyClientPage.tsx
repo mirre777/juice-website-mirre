@@ -5,7 +5,7 @@ import { WorkoutProgramClientPage } from "@/components/workout-program-client-pa
 const workoutProgramData = {
   title: "Free 3-Day Full Body Workout Program - Build Strength & Muscle",
   subtitle:
-    "Transform your fitness with our scientifically-designed 3-day full body workout program. Perfect for beginners and intermediate lifters looking to build strength, muscle, and improve overall fitness.",
+    "Transform your fitness with our scientifically-designed 3-day full body workout program. Perfect for beginners and intermediate lifters.",
   rating: "5/5 by our users",
   ctaText: "Get Free 3-Day Program",
   features: [
