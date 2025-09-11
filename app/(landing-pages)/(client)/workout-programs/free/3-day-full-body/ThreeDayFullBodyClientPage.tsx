@@ -36,6 +36,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access your complete workout program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const, // Kept black styling for second CTA button
+    ctaButtonUrl: "https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc", // Added redirect URL for free 3-day program
     bulletPoints: [
       "Free full body workout program included",
       "Track your progress and see real results",
