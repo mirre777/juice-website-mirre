@@ -7,6 +7,7 @@ import { joinWaitlist } from "@/actions/waitlist-actions"
 import { Loader2, CheckCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { successAnimations } from "@/utils/animations"
+import { trackEvent } from "@/lib/analytics"
 
 interface ClientWaitlistFormProps {
   selectedPlan?: string | null
@@ -29,6 +30,11 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
+    trackEvent("waitlist_signup", {
+      user_type: "client",
+      plan: selectedPlan || "basic",
+    })
+
     // Set user type to client
     formData.append("user_type", "client")
     formData.append("city", city)
@@ -44,13 +50,29 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
       setFormStatus(result)
 
       if (result.success) {
+        trackEvent("waitlist_signup_success", {
+          user_type: "client",
+          plan: selectedPlan || "basic",
+        })
+
         // Clear form if successful
         setEmail("")
         setPhone("")
         setCity("")
+      } else {
+        trackEvent("waitlist_signup_error", {
+          user_type: "client",
+          error_message: result.message || "Unknown error",
+        })
       }
     } catch (error) {
       console.error("Client form submission error:", error)
+
+      trackEvent("waitlist_signup_error", {
+        user_type: "client",
+        error_message: error instanceof Error ? error.message : String(error),
+      })
+
       setFormStatus({
         success: false,
         message: "Something went wrong. Please try again.",
@@ -166,6 +188,7 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
           disabled={isSubmitting || buttonDisabled}
           id="waitlist_submit_client"
           data-plan={selectedPlan || "basic"}
+          data-user-type="client"
         >
           {isSubmitting ? (
             <>

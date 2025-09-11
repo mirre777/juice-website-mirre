@@ -9,6 +9,7 @@ import { UserToggle } from "@/components/user-toggle"
 import { useTheme } from "@/contexts/theme-context"
 import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
+import { trackEvent } from "@/lib/analytics"
 
 export function Navbar() {
   const pathname = usePathname()
@@ -55,6 +56,13 @@ export function Navbar() {
 
   const handlePricingClick = (e: React.MouseEvent) => {
     e.preventDefault()
+
+    trackEvent("navigation_click", {
+      section: "pricing",
+      user_type: isCoach ? "trainer" : "client",
+      location: "navbar",
+    })
+
     const pricingElement = document.getElementById("pricing")
     if (pricingElement) {
       pricingElement.scrollIntoView({ behavior: "smooth" })
@@ -65,6 +73,12 @@ export function Navbar() {
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
     e.preventDefault()
+
+    trackEvent("navigation_click", {
+      section: "how-it-works",
+      user_type: isCoach ? "trainer" : "client",
+      location: "navbar",
+    })
 
     const pagesWithHowItWorks = ["/", "/clients"]
     const currentPageHasSection = pagesWithHowItWorks.includes(pathname)
@@ -149,6 +163,13 @@ export function Navbar() {
               <Link
                 href="/download-juice-app"
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                onClick={() =>
+                  trackEvent("navigation_click", {
+                    section: "download-app",
+                    user_type: isCoach ? "trainer" : "client",
+                    location: "navbar",
+                  })
+                }
               >
                 Download Workout App
               </Link>
@@ -156,6 +177,13 @@ export function Navbar() {
                 <Link
                   href="/workout-planner"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("navigation_click", {
+                      section: "workout-planner",
+                      user_type: "trainer",
+                      location: "navbar",
+                    })
+                  }
                 >
                   Online Workout Planner
                 </Link>
@@ -164,6 +192,13 @@ export function Navbar() {
                 <Link
                   href="/findatrainer"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("navigation_click", {
+                      section: "find-trainer",
+                      user_type: "client",
+                      location: "navbar",
+                    })
+                  }
                 >
                   Find A Trainer
                 </Link>
@@ -171,6 +206,13 @@ export function Navbar() {
                 <Link
                   href="/getclients"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("navigation_click", {
+                      section: "get-clients",
+                      user_type: "trainer",
+                      location: "navbar",
+                    })
+                  }
                 >
                   Get Clients
                 </Link>
@@ -197,6 +239,13 @@ export function Navbar() {
                     backgroundColor: "#9acd32 !important",
                     border: "2px solid #d2ff28 !important",
                   }}
+                  onClick={() =>
+                    trackEvent("cta_click", {
+                      button_text: "Start now",
+                      user_type: "trainer",
+                      location: "navbar",
+                    })
+                  }
                 >
                   Start now
                 </Link>
@@ -211,6 +260,13 @@ export function Navbar() {
                     backgroundColor: "#9acd32 !important",
                     border: "2px solid #d2ff28 !important",
                   }}
+                  onClick={() =>
+                    trackEvent("cta_click", {
+                      button_text: "Download App",
+                      user_type: "client",
+                      location: "navbar",
+                    })
+                  }
                 >
                   Download App
                 </Link>
@@ -259,7 +315,14 @@ export function Navbar() {
             <Link
               href="/download-juice-app"
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={() => {
+                setIsMobileMenuOpen(false)
+                trackEvent("navigation_click", {
+                  section: "download-app",
+                  user_type: isCoach ? "trainer" : "client",
+                  location: "mobile-menu",
+                })
+              }}
             >
               Download Workout App
             </Link>
@@ -267,7 +330,15 @@ export function Navbar() {
               <Link
                 href="/workout-planner"
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  // Add click tracking for mobile menu workout planner link
+                  trackEvent("navigation_click", {
+                    section: "workout-planner",
+                    user_type: "trainer",
+                    location: "mobile-menu",
+                  })
+                }}
               >
                 Online Workout Planner
               </Link>
@@ -276,7 +347,15 @@ export function Navbar() {
               <Link
                 href="/findatrainer"
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  // Add click tracking for mobile menu find trainer link
+                  trackEvent("navigation_click", {
+                    section: "find-trainer",
+                    user_type: "client",
+                    location: "mobile-menu",
+                  })
+                }}
               >
                 Find A Trainer
               </Link>
@@ -284,7 +363,15 @@ export function Navbar() {
               <Link
                 href="/getclients"
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  // Add click tracking for mobile menu get clients link
+                  trackEvent("navigation_click", {
+                    section: "get-clients",
+                    user_type: "trainer",
+                    location: "mobile-menu",
+                  })
+                }}
               >
                 Get Clients
               </Link>
