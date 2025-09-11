@@ -108,7 +108,7 @@ export default function DumbbellWorkoutClientPage() {
       {
         question: "How often should I do these workouts?",
         answer:
-          "Follow the 3-day split: Push, Pull, Legs, then rest or repeat. You can do this 3-6 times per week depending on your recovery and goals.",
+          "Follow the 3-day split: Push, Pull, Legs, then rest or repeat. You can do this 3-6 times per week depending on your recovery and goals. Research shows 10-16 sets per muscle group per week is optimal for muscle growth, which this program delivers perfectly.",
       },
       {
         question: "Is this suitable for beginners?",
