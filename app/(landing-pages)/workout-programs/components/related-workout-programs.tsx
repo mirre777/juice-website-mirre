@@ -40,6 +40,12 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
 
   if (relatedPrograms.length === 0) return null
 
+  const handleProgramClick = () => {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }, 100)
+  }
+
   return (
     <div className="w-full">
       <h2 className="text-3xl font-bold text-gray-900 mb-8">Other Workout Programs</h2>
@@ -49,6 +55,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
             key={program.slug}
             href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
             className="group block"
+            onClick={handleProgramClick}
           >
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-gray-300">
               {/* Icon Section */}
