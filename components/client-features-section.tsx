@@ -160,17 +160,12 @@ export function ClientFeaturesSection({ title, exercises, features, ctaData }: C
             {ctaData.customCTA ? (
               ctaData.customCTA
             ) : (
-              <a
-                href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
-              >
+              <button className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
                 Get Program for €2
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </a>
+              </button>
             )}
           </div>
         </div>
@@ -194,7 +189,7 @@ export function ClientFeaturesSection({ title, exercises, features, ctaData }: C
         {/* Features grid section */}
         {features && features.length > 0 && (
           <div className="text-center mb-40">
-            <h2 className="text-4xl font-bold mb-6 text-black">{title}</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">{title}</h2>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
               {features.map((feature, index) => (
