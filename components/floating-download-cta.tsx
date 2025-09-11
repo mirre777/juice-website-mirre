@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { trackEvent } from "@/lib/analytics"
 
 export function FloatingDownloadCTA() {
   const [isVisible, setIsVisible] = useState(false)
@@ -22,6 +23,12 @@ export function FloatingDownloadCTA() {
       <a
         href="/download-juice-app"
         className="trainer-gradient-btn px-4 py-2 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity whitespace-nowrap shadow-lg"
+        onClick={() =>
+          trackEvent("cta_click", {
+            button_text: "Download App",
+            location: "floating-cta",
+          })
+        }
       >
         Download App
       </a>

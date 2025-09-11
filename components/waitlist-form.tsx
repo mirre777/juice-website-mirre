@@ -8,6 +8,7 @@ import { Loader2, CheckCircle } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { motion } from "framer-motion"
 import { successAnimations } from "@/utils/animations"
+import { trackEvent } from "@/lib/analytics"
 
 interface WaitlistFormProps {
   selectedPlan: string | null
@@ -36,6 +37,12 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
     // Determine user type - fix the undefined issue
     const userType = isCoach ? "trainer" : "client"
 
+    trackEvent("waitlist_signup", {
+      user_type: userType,
+      plan: selectedPlan || "basic",
+      client_count: showClientCounter ? clientCount : undefined,
+    })
+
     // Add all form data
     if (showClientCounter) {
       formData.append("numClients", clientCount.toString())
@@ -54,6 +61,11 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       setFormStatus(result)
 
       if (result.success) {
+        trackEvent("waitlist_signup_success", {
+          user_type: userType,
+          plan: selectedPlan || "basic",
+        })
+
         // Clear form if successful
         setEmail("")
         setPhone("")
@@ -61,9 +73,20 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
         if (showClientCounter) {
           setClientCount(1)
         }
+      } else {
+        trackEvent("waitlist_signup_error", {
+          user_type: userType,
+          error_message: result.message || "Unknown error",
+        })
       }
     } catch (error) {
       console.error("Form submission error:", error)
+
+      trackEvent("waitlist_signup_error", {
+        user_type: userType,
+        error_message: error instanceof Error ? error.message : String(error),
+      })
+
       setFormStatus({
         success: false,
         message: "Something went wrong. Please try again.",
@@ -221,6 +244,8 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           disabled={isSubmitting || buttonDisabled}
           id={isCoach ? "waitlist_submit_trainer" : "waitlist_submit_client"}
           data-plan={selectedPlan || ""}
+          data-user-type={isCoach ? "trainer" : "client"}
+          data-client-count={showClientCounter ? clientCount : undefined}
         >
           {isSubmitting ? (
             <>

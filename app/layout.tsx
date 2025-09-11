@@ -4,7 +4,10 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import Script from "next/script" // Ensure Script is imported
+import Script from "next/script"
+import { AnalyticsProvider } from "@/components/analytics-provider"
+import { AnalyticsConsentBanner } from "@/components/analytics-consent-banner"
+import { Suspense } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,6 +30,10 @@ export const metadata: Metadata = {
   },
 }
 
+// Get GA tracking ID from environment variables
+const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_TRACKING_ID || "G-2N948XX72T"
+const shouldLoadAnalytics = process.env.NODE_ENV === "production"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,18 +54,23 @@ export default function RootLayout({
         />
         {/* End Google Tag Manager */}
 
-        {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZVJGWP20NY"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-ZVJGWP20NY');
-            `,
-          }}
-        />
+        {shouldLoadAnalytics && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} strategy="afterInteractive" />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                
+                // Don't auto-initialize - wait for consent
+                gtag('config', '${GA_TRACKING_ID}', {
+                  send_page_view: false
+                });
+              `}
+            </Script>
+          </>
+        )}
         {/* End Google Analytics */}
 
         {/* Favicon */}
@@ -78,17 +90,23 @@ export default function RootLayout({
           }}
         />
         {/* End Google Tag Manager (noscript) */}
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          {children}
-          <SpeedInsights />
-        </ThemeProvider>
+
+        <Suspense fallback={null}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <AnalyticsProvider>
+              {children}
+              <SpeedInsights />
+              <AnalyticsConsentBanner />
+            </AnalyticsProvider>
+          </ThemeProvider>
+        </Suspense>
 
         {/* Calendly badge widget JS - Load the library */}
         <Script
           id="calendly-widget-script"
           src="https://assets.calendly.com/assets/external/widget.js"
           type="text/javascript"
-          strategy="afterInteractive" // Load after the page is interactive
+          strategy="afterInteractive"
         />
 
         {/* Calendly initialization script - Runs on client after library loads */}
@@ -96,11 +114,18 @@ export default function RootLayout({
           type="text/javascript"
           dangerouslySetInnerHTML={{
             __html: `
-              // Use a DOMContentLoaded listener or check for Calendly object
               document.addEventListener('DOMContentLoaded', function() {
                 function initCalendly() {
                   if (window.location.pathname === '/gratis-workout-app-met-trainer') {
                     console.log("Skipping Calendly widget on client landing page");
+                    return;
+                  }
+                  
+                  const consentBanner = document.querySelector('[class*="fixed bottom-4"]');
+                  if (consentBanner && consentBanner.style.display !== 'none') {
+                    console.log("Skipping Calendly widget - consent banner is visible");
+                    // Retry after 1 second to check if banner was dismissed
+                    setTimeout(initCalendly, 1000);
                     return;
                   }
                   
@@ -114,10 +139,10 @@ export default function RootLayout({
                     console.log("Calendly badge widget initialized successfully.");
                   } else {
                     console.log("Calendly object not found yet, retrying...");
-                    setTimeout(initCalendly, 200); // Retry after a short delay
+                    setTimeout(initCalendly, 200);
                   }
                 }
-                initCalendly(); // Initial call
+                initCalendly();
               });
             `,
           }}

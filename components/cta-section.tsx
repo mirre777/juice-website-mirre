@@ -1,6 +1,7 @@
 "use client"
 import { motion } from "framer-motion"
 import type React from "react"
+import { trackEvent } from "@/lib/analytics"
 
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,10 +15,24 @@ export function CTASection() {
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
     e.preventDefault()
+
+    trackEvent("cta_click", {
+      button_text: "See How It Works",
+      user_type: isCoach ? "trainer" : "client",
+      location: "cta-section",
+    })
+
     scrollToSection("how-it-works")
   }
 
   const handlePlanClick = (plan: string) => {
+    trackEvent("cta_click", {
+      button_text: "Get early access",
+      user_type: isCoach ? "trainer" : "client",
+      location: "cta-section",
+      plan: plan,
+    })
+
     // Placeholder function for handling plan clicks
     console.log(`Plan clicked: ${plan}`)
   }
@@ -60,6 +75,13 @@ export function CTASection() {
                     isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
                   } transition-colors`}
                   id={isCoach ? "CTA_Click_Create_Trainer_Bottom" : "CTA_Click_Start_Client_Bottom"}
+                  onClick={() =>
+                    trackEvent("cta_click", {
+                      button_text: isCoach ? "Create Dashboard - It's Free" : "Start Tracking",
+                      user_type: isCoach ? "trainer" : "client",
+                      location: "cta-section",
+                    })
+                  }
                 >
                   {isCoach ? "Create Dashboard - It's Free" : "Start Tracking"}
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -68,7 +90,7 @@ export function CTASection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-gray-300 hover:bg-gray-100 text-lg px-8 text-black"
+                className="border-gray-300 hover:bg-gray-100 text-lg px-8 text-black bg-transparent"
                 onClick={handleHowItWorksClick}
                 id={isCoach ? "CTA_Click_SeeWorks_Trainer_Bottom" : "CTA_Click_SeeWorks_Client_Bottom"}
               >
