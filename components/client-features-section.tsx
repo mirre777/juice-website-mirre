@@ -159,7 +159,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
                 rel="noopener noreferrer"
                 className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
               >
-                Get Free Program
+                Get Program for €2
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
