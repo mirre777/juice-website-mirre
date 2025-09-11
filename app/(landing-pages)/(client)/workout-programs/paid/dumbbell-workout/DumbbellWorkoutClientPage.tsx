@@ -71,8 +71,7 @@ export default function DumbbellWorkoutClientPage() {
     features: [
       {
         title: "Perfect for Travel & Hotel Gyms",
-        description:
-          "Ideal routine when you're traveling or at a hotel gym with limited equipment. Most hotel gyms have at least a bench and some dumbbells - that's all you need for effective workouts",
+        description: "Ideal routine when you're traveling or at a hotel gym with limited equipment.",
       },
       {
         title: "Simple & Effective",
