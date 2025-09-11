@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Dumbbell, User } from "lucide-react"
+import { Dumbbell, Activity } from "lucide-react"
 
 interface WorkoutProgram {
   title: string
@@ -59,7 +59,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
           >
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-gray-300">
               {/* Icon Section */}
-              <div className="relative bg-white h-48 flex items-center justify-center">
+              <div className="relative bg-white h-36 flex items-center justify-center">
                 <div className="absolute top-4 left-4">
                   <span className="bg-[#D2FF28] text-black text-sm font-medium px-3 py-1 rounded-full">
                     {program.isPaid ? "Paid" : "Free"}
@@ -69,7 +69,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
                   {program.icon === "dumbbell" ? (
                     <Dumbbell size={64} strokeWidth={1.5} />
                   ) : (
-                    <User size={64} strokeWidth={1.5} />
+                    <Activity size={64} strokeWidth={1.5} />
                   )}
                 </div>
               </div>
