@@ -326,7 +326,7 @@ function CheckoutForm({
 
       const returnUrl =
         amount === "2"
-          ? `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${paymentIntentId || ""}&payment_success=true`
+          ? "https://app.juice.fitness/programs/66238153-f757-4bcd-8d1d-042c79cc2a00"
           : `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${paymentIntentId || ""}&payment_success=true`
 
       const result = await stripe.confirmPayment({
@@ -366,7 +366,7 @@ function CheckoutForm({
 
         onPaymentComplete()
         if (amount === "2") {
-          window.location.href = `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${result.paymentIntent.id}&payment_success=true`
+          window.location.href = "https://app.juice.fitness/programs/66238153-f757-4bcd-8d1d-042c79cc2a00"
         } else {
           window.location.href = `${window.location.origin}/marketplace/trainer/temp/${tempId}?payment_intent=${result.paymentIntent.id}&payment_success=true`
         }
