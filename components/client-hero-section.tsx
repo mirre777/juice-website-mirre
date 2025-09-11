@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
@@ -9,9 +11,10 @@ interface ClientHeroSectionProps {
   subtitle: string
   rating: string
   ctaText: string
+  customCTA?: React.ReactNode
 }
 
-export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHeroSectionProps) {
+export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA }: ClientHeroSectionProps) {
   const titleParts = title.split(" - ")
   const mainTitle = titleParts[0] || title
   const titleSubtitle = titleParts[1] || ""
@@ -90,21 +93,25 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText }: ClientHe
         </div>
 
         <div className="mt-0 pt-0">
-          <Button
-            asChild
-            size="lg"
-            className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <a
-              href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
+          {customCTA ? (
+            customCTA
+          ) : (
+            <Button
+              asChild
+              size="lg"
+              className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              Get Program for €2
-              <ArrowRight className="w-5 h-5" />
-            </a>
-          </Button>
+              <a
+                href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                {ctaText}
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </Button>
+          )}
           <p className="text-sm text-gray-500 mt-3">Access your complete workout program instantly</p>
         </div>
       </div>
