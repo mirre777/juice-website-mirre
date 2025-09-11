@@ -80,7 +80,7 @@ export default function DumbbellWorkoutClientPage() {
       },
     ],
     ctaData: {
-      title: "Get instant access to the complete 3-day program for just €2.",
+      title: "Or just download the app without buying the program",
       subtitle: "Start your Push/Pull/Legs transformation",
       bulletPoints: ["Push/Pull/Legs split", "Clear exercise progression", "Dumbbell-only workouts"],
       customCTA: (
