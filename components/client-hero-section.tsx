@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
 interface ClientHeroSectionProps {
-  title: string
+  title: string | React.ReactNode
   subtitle: string
   rating: string
   ctaText: string
@@ -15,9 +15,38 @@ interface ClientHeroSectionProps {
 }
 
 export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA }: ClientHeroSectionProps) {
-  const titleParts = title.split(" - ")
-  const mainTitle = titleParts[0] || title
-  const titleSubtitle = titleParts[1] || ""
+  const renderTitle = () => {
+    if (typeof title === "string") {
+      const titleParts = title.split(" - ")
+      const mainTitle = titleParts[0] || title
+      const titleSubtitle = titleParts[1] || ""
+
+      return (
+        <>
+          <h1 className="text-5xl md:text-6xl font-bold mb-2 text-black">
+            {mainTitle
+              .replace("3-Day", "3 Day")
+              .split(" ")
+              .map((word, index) =>
+                word.toLowerCase().includes("fitness") || word.toLowerCase().includes("app") ? (
+                  <span key={index} className="juice-text-gradient">
+                    {word}{" "}
+                  </span>
+                ) : (
+                  <span key={index} className="text-black" style={{ color: "#000000" }}>
+                    {word}{" "}
+                  </span>
+                ),
+              )}
+          </h1>
+          {titleSubtitle && <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-600">{titleSubtitle}</h2>}
+        </>
+      )
+    } else {
+      // Handle JSX title
+      return <h1 className="text-5xl md:text-6xl font-bold mb-2 text-black">{title}</h1>
+    }
+  }
 
   return (
     <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 px-4 overflow-hidden">
@@ -26,24 +55,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA 
 
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto text-center">
-        <h1 className="text-5xl md:text-6xl font-bold mb-2 text-black">
-          {mainTitle
-            .replace("3-Day", "3 Day")
-            .split(" ")
-            .map((word, index) =>
-              word.toLowerCase().includes("fitness") || word.toLowerCase().includes("app") ? (
-                <span key={index} className="juice-text-gradient">
-                  {word}{" "}
-                </span>
-              ) : (
-                <span key={index} className="text-black" style={{ color: "#000000" }}>
-                  {word}{" "}
-                </span>
-              ),
-            )}
-        </h1>
-
-        {titleSubtitle && <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-600">{titleSubtitle}</h2>}
+        {renderTitle()}
 
         <p className="text-xl md:text-2xl text-gray-600 mb-8 mx-auto">{subtitle}</p>
 
