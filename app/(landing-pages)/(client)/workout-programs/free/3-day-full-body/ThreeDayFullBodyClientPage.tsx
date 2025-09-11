@@ -104,5 +104,5 @@ const workoutProgramData = {
 }
 
 export default function ThreeDayFullBodyClientPage() {
-  return <WorkoutProgramClientPage data={workoutProgramData} />
+  return <WorkoutProgramClientPage data={workoutProgramData} slug="3-day-full-body" />
 }

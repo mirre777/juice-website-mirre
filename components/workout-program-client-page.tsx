@@ -7,6 +7,7 @@ import { ClientHeroSection } from "@/components/client-hero-section"
 import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
+import { RelatedWorkoutPrograms } from "@/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 interface WorkoutProgramData {
@@ -32,9 +33,10 @@ interface WorkoutProgramData {
 
 interface WorkoutProgramClientPageProps {
   data: WorkoutProgramData
+  slug: string
 }
 
-export function WorkoutProgramClientPage({ data }: WorkoutProgramClientPageProps) {
+export function WorkoutProgramClientPage({ data, slug }: WorkoutProgramClientPageProps) {
   const { setIsCoach } = useTheme()
 
   const heroData = {
@@ -67,6 +69,11 @@ export function WorkoutProgramClientPage({ data }: WorkoutProgramClientPageProps
         <ClientHeroSection {...heroData} />
         <ClientFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
+
+        <section className="container mx-auto px-4 md:px-6 py-16">
+          <RelatedWorkoutPrograms currentSlug={slug} />
+        </section>
+
         <Footer />
         <FloatingDownloadCTA />
       </main>

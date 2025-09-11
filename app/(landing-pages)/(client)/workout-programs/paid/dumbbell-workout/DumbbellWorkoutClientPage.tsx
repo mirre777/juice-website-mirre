@@ -8,6 +8,7 @@ import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { PaymentModal } from "@/components/payment/payment-modal"
+import { RelatedWorkoutPrograms } from "@/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const structuredData = {
@@ -155,6 +156,11 @@ export default function DumbbellWorkoutClientPage() {
         <ClientHeroSection {...heroData} />
         <ClientFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
+
+        <section className="container mx-auto px-4 md:px-6 py-16">
+          <RelatedWorkoutPrograms currentSlug="dumbbell-workout" />
+        </section>
+
         <Footer />
         <FloatingDownloadCTA />
       </main>
