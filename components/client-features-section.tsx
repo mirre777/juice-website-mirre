@@ -21,6 +21,7 @@ interface CTAData {
   subtitle: string
   bulletPoints: string[]
   customCTA?: React.ReactNode
+  ctaButtonText?: string // Added optional CTA button text prop
 }
 
 interface ClientFeaturesSectionProps {
@@ -161,7 +162,7 @@ export function ClientFeaturesSection({ title, exercises, features, ctaData }: C
               ctaData.customCTA
             ) : (
               <button className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
-                Get Program for €2
+                {ctaData.ctaButtonText || "Get Program"}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

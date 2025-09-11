@@ -33,6 +33,7 @@ const workoutProgramData = {
   ctaData: {
     title: "Start Your Free 3-Day Full Body Program Today",
     subtitle: "Download the Juice app and access your complete workout program instantly.",
+    ctaButtonText: "Get Program",
     bulletPoints: [
       "Free full body workout program included",
       "Track your progress and see real results",
