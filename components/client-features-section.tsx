@@ -181,7 +181,7 @@ export function ClientFeaturesSection({ title, features, ctaData }: ClientFeatur
 
           <div className="space-y-4 mb-8">
             <p className="text-xl text-gray-700">{ctaData.subtitle}</p>
-            <div className="flex flex-col items-start justify-center max-w-md mx-auto space-y-2">
+            <div className="flex flex-col items-center justify-center max-w-md mx-auto space-y-2">
               {ctaData.bulletPoints.map((point, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <Dumbbell className="h-5 w-5 text-black flex-shrink-0" />
