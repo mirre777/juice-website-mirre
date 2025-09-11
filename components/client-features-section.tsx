@@ -22,6 +22,7 @@ interface CTAData {
   bulletPoints: string[]
   customCTA?: React.ReactNode
   ctaButtonText?: string // Added optional CTA button text prop
+  ctaButtonStyle?: "green" | "black" // Added button styling options
 }
 
 interface ClientFeaturesSectionProps {
@@ -49,6 +50,14 @@ const getFeatureIcon = (title: string) => {
 }
 
 export function ClientFeaturesSection({ title, exercises, features, ctaData }: ClientFeaturesSectionProps) {
+  const getButtonClasses = () => {
+    if (ctaData.ctaButtonStyle === "black") {
+      return "bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+    }
+    // Default to green
+    return "bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+  }
+
   return (
     <section className="bg-white py-8">
       <div className="container mx-auto px-4">
@@ -161,7 +170,7 @@ export function ClientFeaturesSection({ title, exercises, features, ctaData }: C
             {ctaData.customCTA ? (
               ctaData.customCTA
             ) : (
-              <button className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
+              <button className={getButtonClasses()}>
                 {ctaData.ctaButtonText || "Get Program"}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

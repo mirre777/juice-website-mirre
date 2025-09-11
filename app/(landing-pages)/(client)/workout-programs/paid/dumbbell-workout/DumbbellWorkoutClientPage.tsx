@@ -74,28 +74,6 @@ export default function DumbbellWorkoutClientPage() {
 
   const featuresData = {
     title: "Why choose our Push/Pull/Legs dumbbell program?",
-    exercises: [
-      {
-        name: "Dumbbell bench press",
-        details: "Dumbbells • 3 sets • 8-12 reps",
-        muscleGroup: "Chest",
-      },
-      {
-        name: "Overhead press",
-        details: "Dumbbells • 3 sets • 8-12 reps",
-        muscleGroup: "Shoulders",
-      },
-      {
-        name: "Single leg RDL 😢",
-        details: "Dumbbells • 3 sets • 8-12 reps",
-        muscleGroup: "Hamstrings",
-      },
-      {
-        name: "Biceps curl",
-        details: "Dumbbells • 3 sets • 8-12 reps",
-        muscleGroup: "Biceps",
-      },
-    ],
     features: [
       {
         icon: "💪",
@@ -113,6 +91,8 @@ export default function DumbbellWorkoutClientPage() {
       title: "Or just download the app",
       subtitle: "Start your Push/Pull/Legs transformation",
       bulletPoints: ["Track your workouts", "Exercise library & videos", "Progress tracking"],
+      ctaButtonText: "Get Program for €2",
+      ctaButtonStyle: "green" as const,
       customCTA: (
         <PaymentModal
           amount="2"

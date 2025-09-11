@@ -7,7 +7,7 @@ const workoutProgramData = {
   subtitle:
     "Transform your fitness with our scientifically-designed 3-day full body workout program. Perfect for beginners and intermediate lifters looking to build strength, muscle, and improve overall fitness.",
   rating: "5/5 by our users",
-  ctaText: "Get Free 3-Day Full Body Program",
+  ctaText: "Get Free 3-Day Program",
   features: [
     {
       title: "Complete Full Body Training",
@@ -34,6 +34,7 @@ const workoutProgramData = {
     title: "Start Your Free 3-Day Full Body Program Today",
     subtitle: "Download the Juice app and access your complete workout program instantly.",
     ctaButtonText: "Get Program",
+    ctaButtonStyle: "black" as const,
     bulletPoints: [
       "Free full body workout program included",
       "Track your progress and see real results",
