@@ -44,7 +44,7 @@ export default function DumbbellWorkoutClientPage() {
   const { setIsCoach } = useTheme()
 
   const heroData = {
-    title: "Dumbbell Workouts That Actually Work",
+    title: "Dumbbell Workouts With Push-Pull-Legs",
     subtitle:
       "Build strength with simple dumbbell workouts. No fluff. Just fast, effective training you can use with clients anywhere. Perfect for online or gym PTs.",
     rating: "4.8/5 by 250+ users",
