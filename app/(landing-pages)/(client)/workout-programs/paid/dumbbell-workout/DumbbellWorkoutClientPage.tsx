@@ -80,7 +80,7 @@ export default function DumbbellWorkoutClientPage() {
         muscleGroup: "Shoulders",
       },
       {
-        name: "Single leg RDL",
+        name: "Single leg RDL 😢",
         details: "Dumbbells • 3 sets • 8-12 reps",
         muscleGroup: "Hamstrings",
       },
