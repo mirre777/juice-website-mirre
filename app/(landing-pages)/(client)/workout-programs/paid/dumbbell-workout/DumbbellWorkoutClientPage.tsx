@@ -62,7 +62,7 @@ export default function DumbbellWorkoutClientPage() {
           console.log("Dumbbell workout program purchased!")
         }}
       >
-        <button className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
+        <button className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
           Get Program for €2
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -92,7 +92,7 @@ export default function DumbbellWorkoutClientPage() {
       subtitle: "Start your fitness transformation",
       bulletPoints: ["Track your workouts", "Exercise library & videos", "Progress tracking"],
       ctaButtonText: "Get Program for €2",
-      ctaButtonStyle: "green" as const,
+      ctaButtonStyle: "black" as const,
       customCTA: (
         <PaymentModal
           amount="2"
@@ -101,7 +101,7 @@ export default function DumbbellWorkoutClientPage() {
             console.log("Dumbbell workout program purchased!")
           }}
         >
-          <button className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
+          <button className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
             Get Program for €2
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

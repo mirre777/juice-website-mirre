@@ -8,6 +8,7 @@ const workoutProgramData = {
     "Transform your fitness with our scientifically-designed 3-day full body workout program. Perfect for beginners and intermediate lifters.",
   rating: "5/5 by our users",
   ctaText: "Get Free 3-Day Program",
+  ctaButtonStyle: "green" as const, // Added green styling for first CTA button
   features: [
     {
       title: "Complete Full Body Training",
@@ -34,7 +35,7 @@ const workoutProgramData = {
     title: "Start Your Free 3-Day Full Body Program Today",
     subtitle: "Download the Juice app and access your complete workout program instantly.",
     ctaButtonText: "Get Program",
-    ctaButtonStyle: "black" as const,
+    ctaButtonStyle: "black" as const, // Kept black styling for second CTA button
     bulletPoints: [
       "Free full body workout program included",
       "Track your progress and see real results",
