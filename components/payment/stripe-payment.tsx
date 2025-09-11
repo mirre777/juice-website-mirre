@@ -319,6 +319,11 @@ function CheckoutForm({
         throw new Error("Please provide an email address for your receipt")
       }
 
+      const { error: submitError } = await elements.submit()
+      if (submitError) {
+        throw new Error(submitError.message || "Please complete your payment information")
+      }
+
       const returnUrl =
         amount === "2"
           ? `${window.location.origin}/workout-programs/paid/dumbbell-workout/success?payment_intent=${paymentIntentId || ""}&payment_success=true`
@@ -400,6 +405,11 @@ function CheckoutForm({
             onReady={() => {
               console.log("PaymentElement is ready")
               setElementsReady(true)
+            }}
+            onChange={(event) => {
+              if (event.complete) {
+                setPaymentError(null)
+              }
             }}
             options={paymentElementOptions}
           />
