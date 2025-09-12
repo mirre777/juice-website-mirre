@@ -2,11 +2,11 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/client-hero-section"
-import { ClientFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/client-features-section"
+import { ClientHeroSection } from "@/components/client-hero-section"
+import { ClientFeaturesSection } from "@/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
-import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/related-workout-programs"
+import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const workoutProgramData = {
