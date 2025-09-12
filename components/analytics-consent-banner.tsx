@@ -27,7 +27,7 @@ export function AnalyticsConsentBanner() {
   if (!showBanner) return null
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-md">
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-md" data-consent-banner="true">
       <Card className="p-4 shadow-lg border-2">
         <div className="flex items-start justify-between mb-3">
           <h3 className="font-semibold text-sm">Cookie Preferences</h3>

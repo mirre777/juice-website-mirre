@@ -117,14 +117,12 @@ export default function RootLayout({
               document.addEventListener('DOMContentLoaded', function() {
                 function initCalendly() {
                   if (window.location.pathname === '/gratis-workout-app-met-trainer') {
-                    console.log("Skipping Calendly widget on client landing page");
                     return;
                   }
                   
-                  const consentBanner = document.querySelector('[class*="fixed bottom-4"]');
-                  if (consentBanner && consentBanner.style.display !== 'none') {
-                    console.log("Skipping Calendly widget - consent banner is visible");
-                    // Retry after 1 second to check if banner was dismissed
+                  const consentBanner = document.querySelector('[data-consent-banner="true"]');
+                  if (consentBanner) {
+                    // Banner still exists, retry after 1 second
                     setTimeout(initCalendly, 1000);
                     return;
                   }
@@ -136,9 +134,8 @@ export default function RootLayout({
                       color: '#9fc5fb',
                       textColor: '#ffffff'
                     });
-                    console.log("Calendly badge widget initialized successfully.");
                   } else {
-                    console.log("Calendly object not found yet, retrying...");
+                    // Retry if Calendly library not loaded yet
                     setTimeout(initCalendly, 200);
                   }
                 }
