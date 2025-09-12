@@ -80,18 +80,10 @@ export default function RootLayout({
 
         {/* Calendly badge widget CSS - Placed in head */}
         <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
+        {/* Additional targeting for the widget container */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
-            /* More specific targeting for Calendly widget size reduction */
-            .calendly-badge-widget,
-            .calendly-badge-content,
-            div[data-calendly-badge] {
-              transform: scale(0.8) !important;
-              transform-origin: bottom right !important;
-            }
-            
-            /* Additional targeting for the widget container */
             .calendly-badge-widget .calendly-badge-content {
               height: 80% !important;
               max-height: 48px !important;
