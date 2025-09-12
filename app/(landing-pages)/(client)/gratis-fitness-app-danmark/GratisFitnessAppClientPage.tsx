@@ -45,7 +45,8 @@ export default function GratisFitnessAppClientPage() {
     subtitle:
       "Vil du i form uden at betale abonnement? Vores gratis fitness app giver dig træningsprogrammer, tracking og mulighed for at dele din træning med venner. Perfekt til både hjemmetræning og fitnesscenter.",
     rating: "5/5 af vores brugere",
-    ctaText: "Download gratis fitness app",
+    ctaText: "Download App Gratis",
+    ctaUrl: "/gratis-fitness-app-danmark",
   }
 
   const featuresData = {
@@ -72,6 +73,8 @@ export default function GratisFitnessAppClientPage() {
       title: "Download gratis fitness app",
       subtitle: "Hent appen og træn hjemme, uden abonnement og uden grænser.",
       bulletPoints: ["Gratis at starte, kan altid udvides", "Transparent: ingen skjulte omkostninger"],
+      ctaButtonText: "Download App Gratis",
+      ctaButtonUrl: "/gratis-fitness-app-danmark",
     },
   }
 

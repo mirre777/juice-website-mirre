@@ -53,6 +53,8 @@ export default function GratisWorkoutAppClientPage() {
     description:
       "Gratis workout app voor training met personal trainer aan huis of zelfstandig trainen. Geen sportschool nodig.",
     rating: "5/5 door onze moeders",
+    ctaText: "Download App Gratis",
+    ctaUrl: "/gratis-workout-app-met-trainer",
   }
 
   const featuresProps = {
@@ -79,6 +81,8 @@ export default function GratisWorkoutAppClientPage() {
       title: "Download gratis workout app",
       subtitle: "Haal de app en train thuis, zonder abonnement en zonder grenzen.",
       bulletPoints: ["Gratis te starten, altijd uit te breiden", "Transparant: geen verborgen kosten"],
+      ctaButtonText: "Download App Gratis",
+      ctaButtonUrl: "/gratis-workout-app-met-trainer",
     },
   }
 

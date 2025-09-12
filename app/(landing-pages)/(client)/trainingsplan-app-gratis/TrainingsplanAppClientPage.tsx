@@ -52,6 +52,8 @@ export default function TrainingsplanAppClientPage() {
     subtitle: "Deine Workouts, dein Plan, kein Abo.",
     description: "Kostenlose Fitness App mit Übungen für jedes Level. Nutze die App online oder offline verfügbar.",
     rating: "5/5 von unseren Nutzern",
+    ctaText: "App Kostenlos Herunterladen",
+    ctaUrl: "/trainingsplan-app-gratis",
   }
 
   const featuresProps = {
@@ -78,6 +80,8 @@ export default function TrainingsplanAppClientPage() {
       title: "Kostenlose Fitness App herunterladen",
       subtitle: "Hol dir die App und trainiere zuhause, ohne Abo und ohne Grenzen.",
       bulletPoints: ["Kostenlos starten, jederzeit erweiterbar", "Transparent: keine versteckten Kosten"],
+      ctaButtonText: "App Kostenlos Herunterladen",
+      ctaButtonUrl: "/trainingsplan-app-gratis",
     },
   }
 

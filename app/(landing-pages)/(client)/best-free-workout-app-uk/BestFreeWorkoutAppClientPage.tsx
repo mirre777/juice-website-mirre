@@ -46,7 +46,8 @@ export default function BestFreeWorkoutAppClientPage() {
     subtitle:
       "Looking for a way to train smarter without paying a subscription? Our free workout app helps you log your workouts, follow a personal workout planner, and stay motivated.",
     rating: "5/5 by our users",
-    ctaText: "Download best free workout app",
+    ctaText: "Download App for Free",
+    ctaUrl: "/best-free-workout-app-uk",
   }
 
   const featuresData = {
@@ -73,6 +74,8 @@ export default function BestFreeWorkoutAppClientPage() {
       title: "Download the best free workout app",
       subtitle: "Get the app and start training at home, no subscription, no limits.",
       bulletPoints: ["Free to start, always expandable", "Transparent: no hidden costs"],
+      ctaButtonText: "Download App for Free",
+      ctaButtonUrl: "/best-free-workout-app-uk",
     },
   }
 
