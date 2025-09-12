@@ -121,8 +121,8 @@ export default function RootLayout({
                   }
                   
                   const consentBanner = document.querySelector('[data-consent-banner="true"]');
-                  if (consentBanner && !consentBanner.hasAttribute('data-hidden')) {
-                    // Retry after 1 second to check if banner was dismissed
+                  if (consentBanner) {
+                    // Banner still exists, retry after 1 second
                     setTimeout(initCalendly, 1000);
                     return;
                   }
