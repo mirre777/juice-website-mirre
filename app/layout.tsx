@@ -80,6 +80,16 @@ export default function RootLayout({
 
         {/* Calendly badge widget CSS - Placed in head */}
         <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+            .calendly-badge-widget {
+              transform: scale(0.8) !important;
+              transform-origin: bottom right !important;
+            }
+          `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         {/* Google Tag Manager (noscript) */}
