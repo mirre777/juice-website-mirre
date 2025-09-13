@@ -135,7 +135,8 @@ export function Navbar() {
     pathname === "/legal" // Added legal page for dark navbar to match black background
 
   const isWorkoutProgramPage = pathname.includes("/workout-programs/")
-  const shouldUseWhiteNavbar = isWorkoutProgramPage || !isNavbarDark
+  const isWhiteThemedPage = pathname === "/marketplace/personal-trainer-website" || pathname === "/workout-planner"
+  const shouldUseWhiteNavbar = isWorkoutProgramPage || isWhiteThemedPage || !isNavbarDark
 
   const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"
 
