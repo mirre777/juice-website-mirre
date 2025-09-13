@@ -63,12 +63,20 @@ export function Navbar() {
       location: "navbar",
     })
 
-    const pricingElement = document.getElementById("pricing")
-    if (pricingElement) {
-      pricingElement.scrollIntoView({ behavior: "smooth" })
+    const pagesWithPricing = ["/", "/trainers", "/for-trainers", "/personal-trainer-app"]
+    const currentPageHasSection = pagesWithPricing.includes(pathname)
+
+    if (currentPageHasSection) {
+      // We're on a page that has the pricing section, scroll to it
+      const pricingElement = document.getElementById("pricing")
+      if (pricingElement) {
+        pricingElement.scrollIntoView({ behavior: "smooth" })
+      }
+      window.history.pushState(null, "", "/#pricing")
+    } else {
+      // We're on a different page, redirect to homepage with anchor
+      router.push("/#pricing")
     }
-    // Update URL after scrolling - use / for trainer homepage
-    window.history.pushState(null, "", "/#pricing")
   }
 
   const handleHowItWorksClick = (e: React.MouseEvent) => {
@@ -127,7 +135,8 @@ export function Navbar() {
     pathname === "/legal" // Added legal page for dark navbar to match black background
 
   const isWorkoutProgramPage = pathname.includes("/workout-programs/")
-  const shouldUseWhiteNavbar = isWorkoutProgramPage || !isNavbarDark
+  const isWhiteThemedPage = pathname === "/marketplace/personal-trainer-website" || pathname === "/workout-planner"
+  const shouldUseWhiteNavbar = isWorkoutProgramPage || isWhiteThemedPage || !isNavbarDark
 
   const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"
 

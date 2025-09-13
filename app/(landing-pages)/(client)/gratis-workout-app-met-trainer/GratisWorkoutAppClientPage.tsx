@@ -3,11 +3,12 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/components/client-hero-section"
-import { ClientFeaturesSection } from "@/components/client-features-section"
+import { LandingPageHeroSection } from "@/app/(landing-pages)/components/landing-page-hero-section"
+import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/landing-page-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
+import { trackPageView } from "@/lib/analytics"
 
 // Structured Data for the page
 const structuredData = {
@@ -45,6 +46,7 @@ export default function GratisWorkoutAppClientPage() {
 
   useEffect(() => {
     setIsCoach(false)
+    trackPageView(window.location.href, "Gratis Workout App met Trainer - Juice Fitness")
   }, [setIsCoach])
 
   const heroProps = {
@@ -53,6 +55,8 @@ export default function GratisWorkoutAppClientPage() {
     description:
       "Gratis workout app voor training met personal trainer aan huis of zelfstandig trainen. Geen sportschool nodig.",
     rating: "5/5 door onze moeders",
+    ctaText: "Download App Gratis",
+    ctaUrl: "/gratis-workout-app-met-trainer",
   }
 
   const featuresProps = {
@@ -79,6 +83,8 @@ export default function GratisWorkoutAppClientPage() {
       title: "Download gratis workout app",
       subtitle: "Haal de app en train thuis, zonder abonnement en zonder grenzen.",
       bulletPoints: ["Gratis te starten, altijd uit te breiden", "Transparant: geen verborgen kosten"],
+      ctaButtonText: "Download App Gratis",
+      ctaButtonUrl: "/gratis-workout-app-met-trainer",
     },
   }
 
@@ -119,8 +125,8 @@ export default function GratisWorkoutAppClientPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <main className="flex min-h-screen flex-col bg-white">
         <Navbar />
-        <ClientHeroSection {...heroProps} />
-        <ClientFeaturesSection {...featuresProps} />
+        <LandingPageHeroSection {...heroProps} />
+        <LandingPageFeaturesSection {...featuresProps} />
         <ClientFAQSection {...faqProps} />
         <Footer />
         <FloatingDownloadCTA />

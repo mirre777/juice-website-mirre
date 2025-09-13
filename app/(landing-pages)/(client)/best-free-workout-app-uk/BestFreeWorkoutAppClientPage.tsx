@@ -3,11 +3,12 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/components/client-hero-section"
-import { ClientFeaturesSection } from "@/components/client-features-section"
+import { LandingPageHeroSection } from "@/app/(landing-pages)/components/landing-page-hero-section"
+import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/landing-page-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
+import { trackPageView } from "@/lib/analytics"
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -46,7 +47,8 @@ export default function BestFreeWorkoutAppClientPage() {
     subtitle:
       "Looking for a way to train smarter without paying a subscription? Our free workout app helps you log your workouts, follow a personal workout planner, and stay motivated.",
     rating: "5/5 by our users",
-    ctaText: "Download best free workout app",
+    ctaText: "Download App for Free",
+    ctaUrl: "/best-free-workout-app-uk",
   }
 
   const featuresData = {
@@ -54,11 +56,13 @@ export default function BestFreeWorkoutAppClientPage() {
     features: [
       {
         title: "Track Progress",
-        description: "Best workout app for logging sets, reps, and weights with detailed progress analysis",
+        description:
+          "Monitor your fitness journey with detailed metrics and visualizations that show your improvement over time",
       },
       {
         title: "Personal Workout Planner",
-        description: "Gym workout planner with structured progression for strength training and fitness goals",
+        description:
+          "Access your personalized workout plans and schedule anytime, anywhere with clear instructions for each exercise",
       },
       {
         title: "Free & Accessible",
@@ -73,6 +77,8 @@ export default function BestFreeWorkoutAppClientPage() {
       title: "Download the best free workout app",
       subtitle: "Get the app and start training at home, no subscription, no limits.",
       bulletPoints: ["Free to start, always expandable", "Transparent: no hidden costs"],
+      ctaButtonText: "Download App for Free",
+      ctaButtonUrl: "/best-free-workout-app-uk",
     },
   }
 
@@ -109,6 +115,7 @@ export default function BestFreeWorkoutAppClientPage() {
 
   useEffect(() => {
     setIsCoach(false)
+    trackPageView(window.location.href, "Best Free Workout App UK - Juice Fitness")
   }, [setIsCoach])
 
   return (
@@ -116,8 +123,8 @@ export default function BestFreeWorkoutAppClientPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <main className="flex min-h-screen flex-col bg-white">
         <Navbar />
-        <ClientHeroSection {...heroData} />
-        <ClientFeaturesSection {...featuresData} />
+        <LandingPageHeroSection {...heroData} />
+        <LandingPageFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
         <Footer />
         <FloatingDownloadCTA />

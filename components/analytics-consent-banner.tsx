@@ -8,23 +8,33 @@ import { needsConsentBanner, setAnalyticsConsent } from "@/lib/analytics"
 
 export function AnalyticsConsentBanner() {
   const [showBanner, setShowBanner] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Check if we need to show the consent banner
-    setShowBanner(needsConsentBanner())
+    setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (mounted) {
+      const needsBanner = needsConsentBanner()
+      console.log("[ConsentBanner] Needs banner:", needsBanner)
+      setShowBanner(needsBanner)
+    }
+  }, [mounted])
+
   const handleAccept = () => {
+    console.log("[ConsentBanner] User accepted analytics")
     setAnalyticsConsent(true)
     setShowBanner(false)
   }
 
   const handleDecline = () => {
+    console.log("[ConsentBanner] User declined analytics")
     setAnalyticsConsent(false)
     setShowBanner(false)
   }
 
-  if (!showBanner) return null
+  if (!mounted || !showBanner) return null
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-md" data-consent-banner="true">

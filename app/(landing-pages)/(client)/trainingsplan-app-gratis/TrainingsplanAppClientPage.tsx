@@ -3,11 +3,12 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/components/client-hero-section"
-import { ClientFeaturesSection } from "@/components/client-features-section"
+import { LandingPageHeroSection } from "@/app/(landing-pages)/components/landing-page-hero-section"
+import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/landing-page-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
+import { trackPageView } from "@/lib/analytics"
 
 // Structured Data for the German page
 const structuredData = {
@@ -45,6 +46,7 @@ export default function TrainingsplanAppClientPage() {
   // Automatically set to client mode when page loads
   useEffect(() => {
     setIsCoach(false)
+    trackPageView(window.location.href, "Trainingsplan App Gratis - Juice Fitness")
   }, [setIsCoach])
 
   const heroProps = {
@@ -52,6 +54,8 @@ export default function TrainingsplanAppClientPage() {
     subtitle: "Deine Workouts, dein Plan, kein Abo.",
     description: "Kostenlose Fitness App mit Übungen für jedes Level. Nutze die App online oder offline verfügbar.",
     rating: "5/5 von unseren Nutzern",
+    ctaText: "App Kostenlos Herunterladen",
+    ctaUrl: "/trainingsplan-app-gratis",
   }
 
   const featuresProps = {
@@ -78,6 +82,8 @@ export default function TrainingsplanAppClientPage() {
       title: "Kostenlose Fitness App herunterladen",
       subtitle: "Hol dir die App und trainiere zuhause, ohne Abo und ohne Grenzen.",
       bulletPoints: ["Kostenlos starten, jederzeit erweiterbar", "Transparent: keine versteckten Kosten"],
+      ctaButtonText: "App Kostenlos Herunterladen",
+      ctaButtonUrl: "/trainingsplan-app-gratis",
     },
   }
 
@@ -122,8 +128,8 @@ export default function TrainingsplanAppClientPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <main className="flex min-h-screen flex-col bg-white">
         <Navbar />
-        <ClientHeroSection {...heroProps} />
-        <ClientFeaturesSection {...featuresProps} />
+        <LandingPageHeroSection {...heroProps} />
+        <LandingPageFeaturesSection {...featuresProps} />
         <ClientFAQSection {...faqProps} />
         <Footer />
         <FloatingDownloadCTA />

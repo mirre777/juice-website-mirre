@@ -12,9 +12,10 @@ interface ClientHeroSectionProps {
   rating: string
   ctaText: string
   customCTA?: React.ReactNode
+  ctaUrl?: string
 }
 
-export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA }: ClientHeroSectionProps) {
+export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA, ctaUrl }: ClientHeroSectionProps) {
   const renderTitle = () => {
     if (typeof title === "string") {
       const titleParts = title.split(" - ")
@@ -114,7 +115,7 @@ export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA 
               className="bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <a
-                href="https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"
+                href={ctaUrl || "https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"

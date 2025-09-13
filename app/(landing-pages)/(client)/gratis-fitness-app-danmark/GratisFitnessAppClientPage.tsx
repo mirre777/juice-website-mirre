@@ -3,11 +3,12 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/components/client-hero-section"
-import { ClientFeaturesSection } from "@/components/client-features-section"
+import { LandingPageHeroSection } from "@/app/(landing-pages)/components/landing-page-hero-section"
+import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/landing-page-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
+import { trackPageView } from "@/lib/analytics"
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -45,7 +46,8 @@ export default function GratisFitnessAppClientPage() {
     subtitle:
       "Vil du i form uden at betale abonnement? Vores gratis fitness app giver dig træningsprogrammer, tracking og mulighed for at dele din træning med venner. Perfekt til både hjemmetræning og fitnesscenter.",
     rating: "5/5 af vores brugere",
-    ctaText: "Download gratis fitness app",
+    ctaText: "Download App Gratis",
+    ctaUrl: "/gratis-fitness-app-danmark",
   }
 
   const featuresData = {
@@ -72,6 +74,8 @@ export default function GratisFitnessAppClientPage() {
       title: "Download gratis fitness app",
       subtitle: "Hent appen og træn hjemme, uden abonnement og uden grænser.",
       bulletPoints: ["Gratis at starte, kan altid udvides", "Transparent: ingen skjulte omkostninger"],
+      ctaButtonText: "Download App Gratis",
+      ctaButtonUrl: "/gratis-fitness-app-danmark",
     },
   }
 
@@ -108,6 +112,7 @@ export default function GratisFitnessAppClientPage() {
 
   useEffect(() => {
     setIsCoach(false)
+    trackPageView(window.location.href, "Gratis Fitness App Danmark - Juice Fitness")
   }, [setIsCoach])
 
   return (
@@ -115,8 +120,8 @@ export default function GratisFitnessAppClientPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <main className="flex min-h-screen flex-col bg-white">
         <Navbar />
-        <ClientHeroSection {...heroData} />
-        <ClientFeaturesSection {...featuresData} />
+        <LandingPageHeroSection {...heroData} />
+        <LandingPageFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
         <Footer />
         <FloatingDownloadCTA />

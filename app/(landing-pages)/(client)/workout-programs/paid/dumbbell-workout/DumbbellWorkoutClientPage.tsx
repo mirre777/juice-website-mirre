@@ -3,12 +3,12 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/components/client-hero-section"
-import { ClientFeaturesSection } from "@/components/client-features-section"
+import { ClientHeroSection } from "@/app/(landing-pages)/components/client-hero-section"
+import { ClientFeaturesSection } from "@/app/(landing-pages)/components/client-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { PaymentModal } from "@/components/payment/payment-modal"
-import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/workout-programs/components/related-workout-programs"
+import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const structuredData = {

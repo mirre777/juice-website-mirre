@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,7 @@ import { ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { trackPageView, formAnalytics, calculateLeadQualityScore, getUserProperties } from "@/lib/analytics"
 
 interface FormData {
   fullName: string
@@ -106,6 +107,9 @@ export default function PersonalTrainerWebsitePage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const [formStartTime, setFormStartTime] = useState<number>(Date.now())
+  const [fieldFocusTimes, setFieldFocusTimes] = useState<Record<string, number>>({})
+  const [hasTrackedFormStart, setHasTrackedFormStart] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -118,6 +122,155 @@ export default function PersonalTrainerWebsitePage() {
     services: [],
   })
   const [errors, setErrors] = useState<FormErrors>({})
+
+  useEffect(() => {
+    trackPageView(window.location.href, "Personal Trainer Website Builder")
+  }, [])
+
+  const trackFormStartOnce = () => {
+    if (!hasTrackedFormStart) {
+      formAnalytics.formStart("trainer_website_form", "personal_trainer_website", formSteps.length)
+      setHasTrackedFormStart(true)
+      setFormStartTime(Date.now())
+    }
+  }
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    trackFormStartOnce()
+
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    if ((errors as any)[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
+  }
+
+  const handleFieldFocus = (fieldName: string, fieldType = "text") => {
+    trackFormStartOnce()
+    formAnalytics.fieldFocus("trainer_website_form", fieldName, fieldType)
+    setFieldFocusTimes((prev) => ({ ...prev, [fieldName]: Date.now() }))
+  }
+
+  const handleFieldBlur = (fieldName: string, value: string) => {
+    const focusTime = fieldFocusTimes[fieldName]
+    const timeSpent = focusTime ? Math.round((Date.now() - focusTime) / 1000) : undefined
+    formAnalytics.fieldBlur("trainer_website_form", fieldName, !!value.trim(), timeSpent)
+  }
+
+  const validateCurrentStep = (): boolean => {
+    const currentFields = formSteps[currentStep].fields
+    const newErrors: FormErrors = {}
+
+    currentFields.forEach((field) => {
+      let errorMessage = ""
+
+      if (field === "fullName" && !formData.fullName.trim()) {
+        errorMessage = "Full name is required"
+        newErrors.fullName = errorMessage
+      }
+      if (field === "email") {
+        if (!formData.email.trim()) {
+          errorMessage = "Email is required"
+          newErrors.email = errorMessage
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          errorMessage = "Please enter a valid email address"
+          newErrors.email = errorMessage
+        }
+      }
+      if (field === "city" && !formData.city.trim()) {
+        errorMessage = "City is required"
+        newErrors.city = errorMessage
+      }
+      if (field === "district" && !formData.district.trim()) {
+        errorMessage = "District is required"
+        newErrors.district = errorMessage
+      }
+      if (field === "specialty" && !formData.specialty) {
+        errorMessage = "Please select your primary specialty"
+        newErrors.specialty = errorMessage
+      }
+      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length < 20) {
+        errorMessage = "Bio must be at least 20 characters if provided"
+        newErrors.bio = errorMessage
+      }
+      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length > 500) {
+        errorMessage = "Bio must be less than 500 characters"
+        newErrors.bio = errorMessage
+      }
+
+      if (errorMessage) {
+        formAnalytics.validationError("trainer_website_form", field, errorMessage, currentStep + 1)
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const nextStep = () => {
+    if (validateCurrentStep() && canProceedToNext() && currentStep < formSteps.length - 1) {
+      formAnalytics.stepComplete(
+        "trainer_website_form",
+        currentStep + 1,
+        formSteps[currentStep].title,
+        formSteps.length,
+      )
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (currentStep !== formSteps.length - 1) return
+    if (!validateCurrentStep()) return
+
+    formAnalytics.submitAttempt("trainer_website_form", currentStep + 1)
+    setIsSubmitting(true)
+
+    try {
+      const { ok, status, body } = await doSubmit()
+      const completionTime = Math.round((Date.now() - formStartTime) / 1000)
+
+      if (ok && body?.success) {
+        const userProperties = getUserProperties()
+        const leadQualityScore = calculateLeadQualityScore(formData, userProperties)
+
+        formAnalytics.submitSuccess("trainer_website_form", completionTime, leadQualityScore)
+        return router.push(body.redirectUrl)
+      }
+
+      const msg =
+        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
+      formAnalytics.submitError("trainer_website_form", msg, currentStep + 1)
+      console.error("Form submission failed:", { status, body })
+      alert(msg)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred"
+      formAnalytics.submitError("trainer_website_form", errorMessage, currentStep + 1)
+      console.error("Form submission error:", err)
+      alert("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (hasTrackedFormStart && currentStep < formSteps.length - 1) {
+        const completionTime = Math.round((Date.now() - formStartTime) / 1000)
+        formAnalytics.formAbandon("trainer_website_form", currentStep + 1, formSteps[currentStep].title, completionTime)
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [hasTrackedFormStart, currentStep, formStartTime])
 
   const scrollToForm = () => {
     const formElement = document.getElementById("trainer-form")
@@ -156,42 +309,6 @@ export default function PersonalTrainerWebsitePage() {
     return 6 // informational only
   }
 
-  const validateCurrentStep = (): boolean => {
-    const currentFields = formSteps[currentStep].fields
-    const newErrors: FormErrors = {}
-
-    currentFields.forEach((field) => {
-      if (field === "fullName" && !formData.fullName.trim()) {
-        newErrors.fullName = "Full name is required"
-      }
-      if (field === "email") {
-        if (!formData.email.trim()) {
-          newErrors.email = "Email is required"
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = "Please enter a valid email address"
-        }
-      }
-      if (field === "city" && !formData.city.trim()) {
-        newErrors.city = "City is required"
-      }
-      if (field === "district" && !formData.district.trim()) {
-        newErrors.district = "District is required"
-      }
-      if (field === "specialty" && !formData.specialty) {
-        newErrors.specialty = "Please select your primary specialty"
-      }
-      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length < 20) {
-        newErrors.bio = "Bio must be at least 20 characters if provided"
-      }
-      if (field === "bio" && formData.bio.trim() && formData.bio.trim().length > 500) {
-        newErrors.bio = "Bio must be less than 500 characters"
-      }
-    })
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const canProceedToNext = (): boolean => {
     if (currentStep === 0) {
       return (
@@ -209,13 +326,6 @@ export default function PersonalTrainerWebsitePage() {
     return true
   }
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if ((errors as any)[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
-    }
-  }
-
   const handleServiceToggle = (service: string, event?: React.MouseEvent) => {
     if (event) {
       event.preventDefault()
@@ -230,18 +340,6 @@ export default function PersonalTrainerWebsitePage() {
     }))
   }
 
-  const nextStep = () => {
-    if (validateCurrentStep() && canProceedToNext() && currentStep < formSteps.length - 1) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
   const doSubmit = async () => {
     const response = await fetch("/api/trainer/create", {
       method: "POST",
@@ -249,52 +347,6 @@ export default function PersonalTrainerWebsitePage() {
       body: JSON.stringify(formData),
     })
     return parseApiResponse(response)
-  }
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (currentStep !== formSteps.length - 1) return
-    if (!validateCurrentStep()) return
-    setIsSubmitting(true)
-    try {
-      const { ok, status, body } = await doSubmit()
-      if (ok && body?.success) {
-        return router.push(body.redirectUrl)
-      }
-      const msg =
-        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
-      console.error("Form submission failed:", { status, body })
-      alert(msg)
-    } catch (err) {
-      console.error("Form submission error:", err)
-      alert("An unexpected error occurred. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleExplicitSubmit = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (currentStep !== formSteps.length - 1) return
-    if (!validateCurrentStep()) return
-    setIsSubmitting(true)
-    try {
-      const { ok, status, body } = await doSubmit()
-      if (ok && body?.success) {
-        return router.push(body.redirectUrl)
-      }
-      const msg =
-        body?.error || body?.message || `Failed to create trainer profile. Server responded with status ${status}.`
-      console.error("Form submission failed:", { status, body })
-      alert(msg)
-    } catch (err) {
-      console.error("Form submission error:", err)
-      alert("An unexpected error occurred. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
   }
 
   const renderCurrentStepFields = () => {
@@ -311,6 +363,8 @@ export default function PersonalTrainerWebsitePage() {
                 id="fullName"
                 value={formData.fullName}
                 onChange={(e) => handleInputChange("fullName", e.target.value)}
+                onFocus={() => handleFieldFocus("fullName", "text")}
+                onBlur={(e) => handleFieldBlur("fullName", e.target.value)}
                 placeholder="John Smith"
                 className={`mt-2 h-12 ${errors.fullName ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
@@ -326,6 +380,8 @@ export default function PersonalTrainerWebsitePage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
+                onFocus={() => handleFieldFocus("email", "email")}
+                onBlur={(e) => handleFieldBlur("email", e.target.value)}
                 placeholder="john@example.com"
                 className={`mt-2 h-12 ${errors.email ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
@@ -345,6 +401,8 @@ export default function PersonalTrainerWebsitePage() {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
+                onFocus={() => handleFieldFocus("phone", "text")}
+                onBlur={(e) => handleFieldBlur("phone", e.target.value)}
                 placeholder="+1 (555) 123-4567"
                 className="mt-2 h-12"
                 disabled={isSubmitting}
@@ -385,6 +443,8 @@ export default function PersonalTrainerWebsitePage() {
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleInputChange("city", e.target.value)}
+                onFocus={() => handleFieldFocus("city", "text")}
+                onBlur={(e) => handleFieldBlur("city", e.target.value)}
                 placeholder="Vienna"
                 className={`mt-2 h-12 ${errors.city ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
@@ -399,6 +459,8 @@ export default function PersonalTrainerWebsitePage() {
                 id="district"
                 value={formData.district}
                 onChange={(e) => handleInputChange("district", e.target.value)}
+                onFocus={() => handleFieldFocus("district", "text")}
+                onBlur={(e) => handleFieldBlur("district", e.target.value)}
                 placeholder="Innere Stadt"
                 className={`mt-2 h-12 ${errors.district ? "border-red-500" : ""}`}
                 disabled={isSubmitting}
@@ -420,6 +482,8 @@ export default function PersonalTrainerWebsitePage() {
               id="bio"
               value={formData.bio}
               onChange={(e) => handleInputChange("bio", e.target.value)}
+              onFocus={() => handleFieldFocus("bio", "textarea")}
+              onBlur={(e) => handleFieldBlur("bio", e.target.value)}
               placeholder="I'm a certified personal trainer with experience helping clients achieve their fitness goals. My approach focuses on sustainable lifestyle changes and personalized workout plans..."
               className={`mt-2 min-h-32 ${errors.bio ? "border-red-500" : ""}`}
               disabled={isSubmitting}
@@ -449,6 +513,8 @@ export default function PersonalTrainerWebsitePage() {
               id="certifications"
               value={formData.certifications}
               onChange={(e) => handleInputChange("certifications", e.target.value)}
+              onFocus={() => handleFieldFocus("certifications", "text")}
+              onBlur={(e) => handleFieldBlur("certifications", e.target.value)}
               placeholder="NASM-CPT, ACE Personal Trainer, Nutrition Specialist"
               className="mt-2 h-12"
               disabled={isSubmitting}
@@ -631,7 +697,7 @@ export default function PersonalTrainerWebsitePage() {
                   ) : (
                     <Button
                       type="button"
-                      onClick={handleExplicitSubmit}
+                      onClick={handleFormSubmit}
                       disabled={isSubmitting}
                       className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-3"
                     >

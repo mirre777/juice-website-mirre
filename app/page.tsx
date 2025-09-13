@@ -10,6 +10,7 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ChevronRight } from "lucide-react"
+import { trackPageView } from "@/lib/analytics"
 
 export default function HomePage() {
   const { setIsCoach } = useTheme()
@@ -21,6 +22,10 @@ export default function HomePage() {
   useEffect(() => {
     setIsCoach(true)
   }, [setIsCoach])
+
+  useEffect(() => {
+    trackPageView(window.location.href, "Juice - All-in-One Platform for Personal Trainers")
+  }, [])
 
   const handleWaitlistClick = () => {
     setShowWaitlist(true)
