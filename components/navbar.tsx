@@ -57,7 +57,7 @@ export function Navbar() {
   const handlePricingClick = (e: React.MouseEvent) => {
     e.preventDefault()
 
-    trackEvent("navigation_click", {
+    trackEvent("nav_click", {
       section: "pricing",
       user_type: isCoach ? "trainer" : "client",
       location: "navbar",
@@ -82,7 +82,7 @@ export function Navbar() {
   const handleHowItWorksClick = (e: React.MouseEvent) => {
     e.preventDefault()
 
-    trackEvent("navigation_click", {
+    trackEvent("nav_click", {
       section: "how-it-works",
       user_type: isCoach ? "trainer" : "client",
       location: "navbar",
@@ -173,7 +173,7 @@ export function Navbar() {
                 href="/download-juice-app"
                 className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 onClick={() =>
-                  trackEvent("navigation_click", {
+                  trackEvent("nav_click", {
                     section: "download-app",
                     user_type: isCoach ? "trainer" : "client",
                     location: "navbar",
@@ -187,7 +187,7 @@ export function Navbar() {
                   href="/workout-planner"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                   onClick={() =>
-                    trackEvent("navigation_click", {
+                    trackEvent("nav_click", {
                       section: "workout-planner",
                       user_type: "trainer",
                       location: "navbar",
@@ -202,7 +202,7 @@ export function Navbar() {
                   href="/findatrainer"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                   onClick={() =>
-                    trackEvent("navigation_click", {
+                    trackEvent("nav_click", {
                       section: "find-trainer",
                       user_type: "client",
                       location: "navbar",
@@ -216,7 +216,7 @@ export function Navbar() {
                   href="/getclients"
                   className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                   onClick={() =>
-                    trackEvent("navigation_click", {
+                    trackEvent("nav_click", {
                       section: "get-clients",
                       user_type: "trainer",
                       location: "navbar",
@@ -326,7 +326,7 @@ export function Navbar() {
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => {
                 setIsMobileMenuOpen(false)
-                trackEvent("navigation_click", {
+                trackEvent("nav_click", {
                   section: "download-app",
                   user_type: isCoach ? "trainer" : "client",
                   location: "mobile-menu",
@@ -342,7 +342,7 @@ export function Navbar() {
                 onClick={() => {
                   setIsMobileMenuOpen(false)
                   // Add click tracking for mobile menu workout planner link
-                  trackEvent("navigation_click", {
+                  trackEvent("nav_click", {
                     section: "workout-planner",
                     user_type: "trainer",
                     location: "mobile-menu",
@@ -359,7 +359,7 @@ export function Navbar() {
                 onClick={() => {
                   setIsMobileMenuOpen(false)
                   // Add click tracking for mobile menu find trainer link
-                  trackEvent("navigation_click", {
+                  trackEvent("nav_click", {
                     section: "find-trainer",
                     user_type: "client",
                     location: "mobile-menu",
@@ -375,7 +375,7 @@ export function Navbar() {
                 onClick={() => {
                   setIsMobileMenuOpen(false)
                   // Add click tracking for mobile menu get clients link
-                  trackEvent("navigation_click", {
+                  trackEvent("nav_click", {
                     section: "get-clients",
                     user_type: "trainer",
                     location: "mobile-menu",
