@@ -1,15 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { TrainerGrid } from "@/components/trainer-grid"
 import { Users, Shield, Network } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { trackPageView } from "@/lib/analytics"
 
 export default function FindATrainerClientPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+
+  useEffect(() => {
+    trackPageView(window.location.href, "Find A Trainer - Get Matched with Personal Trainers")
+  }, [])
 
   return (
     <div className="min-h-screen bg-black text-white">

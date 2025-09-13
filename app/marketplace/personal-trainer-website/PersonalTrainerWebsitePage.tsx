@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,7 @@ import { ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { trackPageView } from "@/lib/analytics"
 
 interface FormData {
   fullName: string
@@ -118,6 +119,10 @@ export default function PersonalTrainerWebsitePage() {
     services: [],
   })
   const [errors, setErrors] = useState<FormErrors>({})
+
+  useEffect(() => {
+    trackPageView(window.location.href, "Personal Trainer Website Builder")
+  }, [])
 
   const scrollToForm = () => {
     const formElement = document.getElementById("trainer-form")

@@ -1,9 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { trackPageView } from "@/lib/analytics"
 
 export default function WorkoutPlannerHero() {
   const [videoError, setVideoError] = useState(false)
+
+  useEffect(() => {
+    trackPageView(window.location.href, "Workout Planner - Convert Google Sheets to Mobile Apps")
+  }, [])
 
   return (
     <section className="relative py-8 md:py-16 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">

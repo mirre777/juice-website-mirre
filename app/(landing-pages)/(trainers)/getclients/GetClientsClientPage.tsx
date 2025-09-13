@@ -1,10 +1,16 @@
 "use client"
+import { useEffect } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/navbar" // Corrected import
 import Footer from "@/components/footer"
 import { WaitlistForm } from "@/components/waitlist-form" // Corrected named import
+import { trackPageView } from "@/lib/analytics"
 
 export default function GetClientsClientPage() {
+  useEffect(() => {
+    trackPageView(window.location.href, "Get Clients - Personal Trainer Marketplace")
+  }, [])
+
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-black text-white flex flex-col">
