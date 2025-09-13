@@ -29,6 +29,16 @@ export type AnalyticsEvent =
   | "form_submit_error"
   | "scroll_depth"
   | "cta_click"
+  | "nav_click"
+  | "waitlist_submit"
+  | "get_early_access_click"
+  | "talk_to_founders_click"
+  | "early_access_valid_form_submission"
+  | "login_button_clicked"
+  | "login_button"
+  | "signup_button"
+  | "play_around_button"
+  | "tab_click"
 
 export interface AnalyticsEventParams {
   event_category?: string

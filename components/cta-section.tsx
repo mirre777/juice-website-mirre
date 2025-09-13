@@ -16,7 +16,7 @@ export function CTASection() {
   const handleHowItWorksClick = (e: React.MouseEvent) => {
     e.preventDefault()
 
-    trackEvent("cta_click", {
+    trackEvent("talk_to_founders_click", {
       button_text: "See How It Works",
       user_type: isCoach ? "trainer" : "client",
       location: "cta-section",
@@ -26,7 +26,14 @@ export function CTASection() {
   }
 
   const handlePlanClick = (plan: string) => {
-    trackEvent("cta_click", {
+    trackEvent("play_around_button", {
+      button_text: "Get early access",
+      user_type: isCoach ? "trainer" : "client",
+      location: "cta-section",
+      plan: plan,
+    })
+
+    trackEvent("get_early_access_click", {
       button_text: "Get early access",
       user_type: isCoach ? "trainer" : "client",
       location: "cta-section",
@@ -74,9 +81,9 @@ export function CTASection() {
                   className={`rounded-full px-6 py-3 font-medium flex items-center ${
                     isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
                   } transition-colors`}
-                  id={isCoach ? "CTA_Click_Create_Trainer_Bottom" : "CTA_Click_Start_Client_Bottom"}
+                  id={isCoach ? "login_button" : "signup_button"}
                   onClick={() =>
-                    trackEvent("cta_click", {
+                    trackEvent(isCoach ? "login_button_clicked" : "signup_button", {
                       button_text: isCoach ? "Create Dashboard - It's Free" : "Start Tracking",
                       user_type: isCoach ? "trainer" : "client",
                       location: "cta-section",
@@ -101,7 +108,7 @@ export function CTASection() {
               className={`w-full max-w-xs mx-auto sm:max-w-none ${
                 isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
               } text-black mt-4`}
-              id={isCoach ? "early_access_trainer_cta" : "early_access_client_cta"}
+              id="play_around_button"
               onClick={() => handlePlanClick("coach")}
             >
               Get early access

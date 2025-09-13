@@ -30,7 +30,7 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
-    trackEvent("waitlist_signup", {
+    trackEvent("waitlist_submit", {
       user_type: "client",
       plan: selectedPlan || "basic",
     })
@@ -50,7 +50,7 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
       setFormStatus(result)
 
       if (result.success) {
-        trackEvent("waitlist_signup_success", {
+        trackEvent("early_access_valid_form_submission", {
           user_type: "client",
           plan: selectedPlan || "basic",
         })
@@ -60,17 +60,19 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
         setPhone("")
         setCity("")
       } else {
-        trackEvent("waitlist_signup_error", {
+        trackEvent("early_access_valid_form_submission", {
           user_type: "client",
           error_message: result.message || "Unknown error",
+          success: false,
         })
       }
     } catch (error) {
       console.error("Client form submission error:", error)
 
-      trackEvent("waitlist_signup_error", {
+      trackEvent("early_access_valid_form_submission", {
         user_type: "client",
         error_message: error instanceof Error ? error.message : String(error),
+        success: false,
       })
 
       setFormStatus({
