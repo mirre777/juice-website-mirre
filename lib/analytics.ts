@@ -119,6 +119,7 @@ export const needsConsentBanner = (): boolean => {
   if (typeof window === "undefined") return false
 
   const consent = localStorage.getItem("analytics_consent")
+  console.log("[Analytics] Current consent value:", consent)
   return consent === null // Show banner if no preference set
 }
 
