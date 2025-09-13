@@ -19,7 +19,14 @@ export type AnalyticsEvent =
   | "complete_workout"
   | "app_store_click"
   | "form_start"
+  | "form_step_complete"
+  | "form_field_focus"
+  | "form_field_blur"
+  | "form_validation_error"
   | "form_abandon"
+  | "form_submit_attempt"
+  | "form_submit_success"
+  | "form_submit_error"
   | "scroll_depth"
   | "cta_click"
 
@@ -238,38 +245,6 @@ export const analytics = {
       click_location: location,
     }),
 
-  formStart: (formName: string, location?: string) =>
-    trackEvent("form_start", {
-      event_category: "form_interaction",
-      event_label: formName,
-      form_name: formName,
-      form_location: location,
-    }),
-
-  formAbandon: (formName: string, fieldName?: string) =>
-    trackEvent("form_abandon", {
-      event_category: "form_interaction",
-      event_label: formName,
-      form_name: formName,
-      abandoned_field: fieldName,
-    }),
-
-  ctaClick: (ctaText: string, location?: string) =>
-    trackEvent("cta_click", {
-      event_category: "engagement",
-      event_label: ctaText,
-      cta_text: ctaText,
-      cta_location: location,
-    }),
-
-  scrollDepth: (percentage: 25 | 50 | 75 | 100, page?: string) =>
-    trackEvent("scroll_depth", {
-      event_category: "engagement",
-      event_label: `${percentage}%`,
-      scroll_percentage: percentage,
-      page_path: page || window.location.pathname,
-    }),
-
   // Workout tracking
   startWorkout: (workoutType?: string) =>
     trackEvent("start_workout", { event_category: "fitness", event_label: workoutType }),
@@ -279,4 +254,150 @@ export const analytics = {
   // Purchase tracking
   purchase: (value: number, currency = "USD", itemId?: string) =>
     trackEvent("purchase", { event_category: "ecommerce", value, currency, event_label: itemId }),
+}
+
+export const formAnalytics = {
+  // Multi-step form tracking
+  formStart: (formName: string, location?: string, totalSteps?: number) =>
+    trackEvent("form_start", {
+      event_category: "form_interaction",
+      event_label: formName,
+      form_name: formName,
+      form_location: location,
+      total_steps: totalSteps,
+      form_progress: 0,
+    }),
+
+  stepComplete: (formName: string, stepNumber: number, stepName: string, totalSteps?: number) =>
+    trackEvent("form_step_complete", {
+      event_category: "form_interaction",
+      event_label: `${formName}_step_${stepNumber}`,
+      form_name: formName,
+      step_number: stepNumber,
+      step_name: stepName,
+      total_steps: totalSteps,
+      form_progress: totalSteps ? Math.round((stepNumber / totalSteps) * 100) : undefined,
+    }),
+
+  fieldFocus: (formName: string, fieldName: string, fieldType?: string) =>
+    trackEvent("form_field_focus", {
+      event_category: "form_interaction",
+      event_label: `${formName}_${fieldName}`,
+      form_name: formName,
+      field_name: fieldName,
+      field_type: fieldType,
+    }),
+
+  fieldBlur: (formName: string, fieldName: string, hasValue: boolean, timeSpent?: number) =>
+    trackEvent("form_field_blur", {
+      event_category: "form_interaction",
+      event_label: `${formName}_${fieldName}`,
+      form_name: formName,
+      field_name: fieldName,
+      field_completed: hasValue,
+      time_spent_seconds: timeSpent,
+    }),
+
+  validationError: (formName: string, fieldName: string, errorMessage: string, stepNumber?: number) =>
+    trackEvent("form_validation_error", {
+      event_category: "form_interaction",
+      event_label: `${formName}_${fieldName}_error`,
+      form_name: formName,
+      field_name: fieldName,
+      error_message: errorMessage,
+      step_number: stepNumber,
+    }),
+
+  formAbandon: (formName: string, stepNumber?: number, stepName?: string, completionTime?: number) =>
+    trackEvent("form_abandon", {
+      event_category: "form_interaction",
+      event_label: `${formName}_abandon_step_${stepNumber}`,
+      form_name: formName,
+      step_number: stepNumber,
+      step_name: stepName,
+      completion_time_seconds: completionTime,
+      form_progress: stepNumber && formName.includes("trainer") ? Math.round((stepNumber / 6) * 100) : undefined,
+    }),
+
+  submitAttempt: (formName: string, stepNumber?: number) =>
+    trackEvent("form_submit_attempt", {
+      event_category: "form_interaction",
+      event_label: formName,
+      form_name: formName,
+      step_number: stepNumber,
+    }),
+
+  submitSuccess: (formName: string, completionTime?: number, leadQualityScore?: number) =>
+    trackEvent("form_submit_success", {
+      event_category: "conversion",
+      event_label: formName,
+      form_name: formName,
+      completion_time_seconds: completionTime,
+      lead_quality_score: leadQualityScore,
+      value: leadQualityScore, // For GA4 conversion value
+    }),
+
+  submitError: (formName: string, errorMessage: string, stepNumber?: number) =>
+    trackEvent("form_submit_error", {
+      event_category: "form_interaction",
+      event_label: `${formName}_error`,
+      form_name: formName,
+      error_message: errorMessage,
+      step_number: stepNumber,
+    }),
+}
+
+export const calculateLeadQualityScore = (formData: any, userProperties: UserProperties): number => {
+  let score = 50 // Base score
+
+  // Landing page source scoring
+  if (userProperties.landing_page_source === "google" || userProperties.landing_page_source?.includes("google")) {
+    score += 20 // Organic search traffic is high quality
+  } else if (userProperties.landing_page_source === "direct") {
+    score += 15 // Direct traffic is good quality
+  } else if (
+    userProperties.landing_page_source?.includes("facebook") ||
+    userProperties.landing_page_source?.includes("instagram")
+  ) {
+    score += 10 // Social media traffic
+  }
+
+  // Device type scoring
+  if (userProperties.device_type === "desktop") {
+    score += 10 // Desktop users tend to be more engaged
+  } else if (userProperties.device_type === "tablet") {
+    score += 5
+  }
+
+  // Form completion scoring
+  if (formData.phone && formData.phone.length > 5) {
+    score += 15 // Phone number indicates serious interest
+  }
+  if (formData.message && formData.message.length > 20) {
+    score += 10 // Detailed message indicates engagement
+  }
+  if (formData.bio && formData.bio.length > 50) {
+    score += 15 // Detailed bio for trainers
+  }
+
+  // Geographic location scoring (European markets)
+  if (
+    userProperties.geographic_location?.includes("Europe") ||
+    userProperties.geographic_location?.includes("Amsterdam") ||
+    userProperties.geographic_location?.includes("Vienna")
+  ) {
+    score += 10 // Target markets
+  }
+
+  // Time-based scoring (session engagement)
+  const sessionDuration = Date.now() - Number.parseInt(userProperties.session_id?.split("_")[0] || "0")
+  if (sessionDuration > 120000) {
+    // More than 2 minutes
+    score += 10
+  } else if (sessionDuration > 60000) {
+    // More than 1 minute
+    score += 5
+  }
+
+  return Math.min(100, Math.max(0, score)) // Clamp between 0-100
 }
