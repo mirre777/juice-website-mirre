@@ -193,6 +193,49 @@ export async function POST(request: NextRequest) {
 
         break
 
+      case "payment_intent.succeeded":
+        const paymentIntent = event.data.object as any
+        console.log("✅ Processing payment_intent.succeeded", {
+          debugId,
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          metadata: paymentIntent.metadata,
+        })
+
+        // Handle trainer website activation
+        if (paymentIntent.metadata?.trainerId || paymentIntent.metadata?.tempId) {
+          try {
+            const trainerId = paymentIntent.metadata.trainerId || paymentIntent.metadata.tempId
+
+            const firebaseDb = await getFirebaseDb()
+            const trainerRef = firebaseDb.collection("trainers").doc(trainerId)
+            await trainerRef.set(
+              {
+                status: "active",
+                isActive: true,
+                isPaid: true,
+                paymentIntentId: paymentIntent.id,
+                activatedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true },
+            )
+
+            console.log("✅ Trainer profile activated via Payment Intent", {
+              debugId,
+              trainerId,
+              paymentIntentId: paymentIntent.id,
+            })
+          } catch (error: any) {
+            console.error("❌ Failed to activate trainer profile via Payment Intent", {
+              debugId,
+              error: error.message,
+              trainerId: paymentIntent.metadata?.trainerId || paymentIntent.metadata?.tempId,
+            })
+          }
+        }
+        break
+
       case "customer.subscription.created":
         const subscription = event.data.object as any // Using any type to avoid Stripe import issues
         console.log("✅ Processing customer.subscription.created", {

@@ -68,6 +68,12 @@ AI-powered trainer website creation system that allows trainers to submit forms,
 
 ## 🔧 RECENT FIXES (v216-v219)
 
+### **Payment Webhook Issue Resolution (v33)**
+- **Issue**: Payment events not reaching backend, trainers not being activated after payment
+- **Root Cause**: Webhook only handled `checkout.session.completed` but payment flow uses Payment Intents
+- **Solution**: Added `payment_intent.succeeded` webhook handler to properly activate trainers
+- **Result**: Database now properly updates `isActive: true`, `isPaid: true`, and `status: "active"` after payment
+
 ### **Version Conflicts Resolution**
 - **Issue**: Merge conflicts between different development branches
 - **Solution**: Reverted to working v216, then restored as v219
@@ -230,6 +236,7 @@ AI-powered trainer website creation system that allows trainers to submit forms,
 - Live profile content integration
 - API route stability
 - Content saving and retrieval
+- Payment webhook issue resolution
 
 ### **Minor Issues** ⚠️
 - Public view mode needs implementation
@@ -267,23 +274,27 @@ User Flow:
 - ✅ Ensured API routes work reliably
 - ✅ Restored full inline editing functionality
 - ✅ Verified content saving and retrieval works
+- ✅ Resolved Payment Webhook Issue
 
 ### **What Succeeded:**
 - Version management and conflict resolution
 - Content editor integration with live profiles
 - API stability and error handling
 - Real-time editing with save/cancel functionality
+- Payment webhook issue resolution
 
 ### **What Failed Initially:**
 - Merge conflicts between development branches
 - Content not displaying properly on live profiles
 - API inconsistencies causing save failures
+- Payment events not reaching backend
 
 ### **How We Solved It:**
 - Used v0's version restoration feature to revert to working state
 - Carefully integrated the working TrainerProfilePage component
 - Ensured proper Firebase integration and error handling
 - Maintained all existing functionality while fixing issues
+- Added `payment_intent.succeeded` webhook handler to properly activate trainers
 
 ### **What's Left:**
 - **"View Live" button**: Need to implement public view mode toggle
