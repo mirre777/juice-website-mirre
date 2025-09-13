@@ -26,6 +26,13 @@ export function CTASection() {
   }
 
   const handlePlanClick = (plan: string) => {
+    trackEvent("play_around_button", {
+      button_text: "Get early access",
+      user_type: isCoach ? "trainer" : "client",
+      location: "cta-section",
+      plan: plan,
+    })
+
     trackEvent("get_early_access_click", {
       button_text: "Get early access",
       user_type: isCoach ? "trainer" : "client",
