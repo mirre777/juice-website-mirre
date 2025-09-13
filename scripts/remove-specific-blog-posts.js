@@ -7,6 +7,8 @@ const postsToRemove = [
   "weightlifting-also-known-as-strength-or-resistanc-1755457007047-png",
   "weightlifting-also-known-as-strength-or-resistanc-1755457007047",
   "training-smarter-with-rpe-how-to-gauge-effort-in-1755691149845",
+  "training-smarter-with-rpe",
+  "u09dhcytykc-has-joined-the-channel-1756999522807",
   "man-squatting-with-barbell-with-wearable-bracelet",
 ]
 
