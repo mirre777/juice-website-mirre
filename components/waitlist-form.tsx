@@ -37,7 +37,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
     // Determine user type - fix the undefined issue
     const userType = isCoach ? "trainer" : "client"
 
-    trackEvent("waitlist_signup", {
+    trackEvent("waitlist_submit", {
       user_type: userType,
       plan: selectedPlan || "basic",
       client_count: showClientCounter ? clientCount : undefined,
@@ -61,7 +61,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
       setFormStatus(result)
 
       if (result.success) {
-        trackEvent("waitlist_signup_success", {
+        trackEvent("early_access_valid_form_submission", {
           user_type: userType,
           plan: selectedPlan || "basic",
         })
@@ -74,17 +74,19 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
           setClientCount(1)
         }
       } else {
-        trackEvent("waitlist_signup_error", {
+        trackEvent("early_access_valid_form_submission", {
           user_type: userType,
           error_message: result.message || "Unknown error",
+          success: false,
         })
       }
     } catch (error) {
       console.error("Form submission error:", error)
 
-      trackEvent("waitlist_signup_error", {
+      trackEvent("early_access_valid_form_submission", {
         user_type: userType,
         error_message: error instanceof Error ? error.message : String(error),
+        success: false,
       })
 
       setFormStatus({
