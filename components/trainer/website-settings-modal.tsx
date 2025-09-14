@@ -173,20 +173,18 @@ export function WebsiteSettingsModal({
             <Label htmlFor="customSlug" className="text-sm font-medium">
               Custom URL
             </Label>
-            <div className="mt-2 flex justify-center">
-              <div className="w-full max-w-md">
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-500 bg-gray-50 px-3 py-2 border border-r-0 rounded-l-md whitespace-nowrap">
-                    {window.location.origin}/marketplace/trainer/
-                  </span>
-                  <Input
-                    id="customSlug"
-                    value={customSlug}
-                    onChange={(e) => setCustomSlug(e.target.value.toLowerCase())}
-                    placeholder="your-name-fitness"
-                    className="rounded-l-none flex-1"
-                  />
+            <div className="mt-2">
+              <div className="flex items-stretch overflow-hidden rounded-md border">
+                <div className="bg-gray-50 px-3 py-2 border-r flex items-center min-w-0 flex-shrink">
+                  <span className="text-sm text-gray-500 truncate">{window.location.origin}/marketplace/trainer/</span>
                 </div>
+                <Input
+                  id="customSlug"
+                  value={customSlug}
+                  onChange={(e) => setCustomSlug(e.target.value.toLowerCase())}
+                  placeholder="your-name-fitness"
+                  className="border-0 rounded-none flex-1 min-w-0"
+                />
               </div>
             </div>
 
