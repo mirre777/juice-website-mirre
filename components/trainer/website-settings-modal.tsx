@@ -134,7 +134,7 @@ export function WebsiteSettingsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Website Settings</DialogTitle>
           <DialogDescription>Customize your website URL to make it more memorable and professional.</DialogDescription>
