@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/client-hero-section"
-import { ClientFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/client-features-section"
+import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
+import { WorkoutProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { PaymentModal } from "@/components/payment/payment-modal"
@@ -152,8 +152,8 @@ export default function DumbbellWorkoutClientPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <main className="flex min-h-screen flex-col bg-white">
         <Navbar />
-        <ClientHeroSection {...heroData} />
-        <ClientFeaturesSection {...featuresData} />
+        <WorkoutProgramsHeroSection {...heroData} />
+        <WorkoutProgramsFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
 
         <section className="container mx-auto px-4 md:px-6 py-16">

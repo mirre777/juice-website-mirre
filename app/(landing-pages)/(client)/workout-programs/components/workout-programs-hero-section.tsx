@@ -6,7 +6,7 @@ import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
-interface ClientHeroSectionProps {
+interface WorkoutProgramsHeroSectionProps {
   title: string | React.ReactNode
   subtitle: string
   rating: string
@@ -15,7 +15,14 @@ interface ClientHeroSectionProps {
   ctaUrl?: string
 }
 
-export function ClientHeroSection({ title, subtitle, rating, ctaText, customCTA, ctaUrl }: ClientHeroSectionProps) {
+export function WorkoutProgramsHeroSection({
+  title,
+  subtitle,
+  rating,
+  ctaText,
+  customCTA,
+  ctaUrl,
+}: WorkoutProgramsHeroSectionProps) {
   const renderTitle = () => {
     if (typeof title === "string") {
       const titleParts = title.split(" - ")

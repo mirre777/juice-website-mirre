@@ -2,8 +2,8 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ClientHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/client-hero-section"
-import { ClientFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/client-features-section"
+import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
+import { WorkoutProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
@@ -69,7 +69,7 @@ const workoutProgramData = {
     {
       question: "What equipment do I need?",
       answer:
-        "The program is designed for a standard gym with barbells, dumbbells, and basic equipment. We also provide alternative exercises for home workouts with minimal equipment.",
+        "The program is designed for a standard gym with barbells, dumbbells, and basic equipment. We also provide alternative exercises for home workouts with minimal equipment like dumbbells or resistance bands.",
     },
     {
       question: "How do I track my progress?",
@@ -143,8 +143,8 @@ export default function ThreeDayFullBodyClientPage() {
       />
       <main className="flex min-h-screen flex-col">
         <Navbar />
-        <ClientHeroSection {...heroData} />
-        <ClientFeaturesSection {...featuresData} />
+        <WorkoutProgramsHeroSection {...heroData} />
+        <WorkoutProgramsFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
 
         <section className="container mx-auto px-4 md:px-6 py-16">
