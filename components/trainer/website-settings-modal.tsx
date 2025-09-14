@@ -45,6 +45,7 @@ export function WebsiteSettingsModal({
 
   // Generate suggested slug from trainer name
   const generateSuggestedSlug = (name: string) => {
+    if (!name) return ""
     return name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, "")
@@ -53,7 +54,7 @@ export function WebsiteSettingsModal({
       .trim()
   }
 
-  const suggestedSlug = generateSuggestedSlug(trainerName)
+  const suggestedSlug = generateSuggestedSlug(trainerName || "")
 
   useEffect(() => {
     setHasChanges(customSlug !== (currentSlug || ""))

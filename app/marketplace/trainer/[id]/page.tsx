@@ -295,13 +295,11 @@ export default function TrainerPage({ params }: PageProps) {
 
       {showDashboardModal && trainer && (
         <WebsiteSettingsModal
-          trainer={trainer}
           isOpen={showDashboardModal}
           onClose={() => setShowDashboardModal(false)}
-          onUpdate={(updatedTrainer) => {
-            setTrainer(updatedTrainer)
-            setShowDashboardModal(false)
-          }}
+          trainerId={trainer.id}
+          currentSlug={trainer.customSlug}
+          trainerName={trainer.fullName || trainer.name || ""}
         />
       )}
     </div>
