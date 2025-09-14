@@ -134,7 +134,7 @@ export function WebsiteSettingsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] lg:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Website Settings</DialogTitle>
           <DialogDescription>Customize your website URL to make it more memorable and professional.</DialogDescription>
@@ -174,16 +174,18 @@ export function WebsiteSettingsModal({
               Custom URL
             </Label>
             <div className="mt-2">
-              <div className="flex items-stretch overflow-hidden rounded-md border max-w-full">
-                <div className="bg-gray-50 px-3 py-2 border-r flex items-center min-w-0 flex-shrink max-w-[60%]">
-                  <span className="text-sm text-gray-500 truncate">{window.location.origin}/marketplace/trainer/</span>
+              <div className="flex flex-col sm:flex-row items-stretch overflow-hidden rounded-md border max-w-full">
+                <div className="bg-gray-50 px-3 py-2 sm:border-r flex items-center min-w-0 flex-shrink">
+                  <span className="text-xs sm:text-sm text-gray-500 truncate">
+                    {window.location.origin}/marketplace/trainer/
+                  </span>
                 </div>
                 <Input
                   id="customSlug"
                   value={customSlug}
                   onChange={(e) => setCustomSlug(e.target.value.toLowerCase())}
                   placeholder="your-name-fitness"
-                  className="border-0 rounded-none flex-1 min-w-0 max-w-[40%]"
+                  className="border-0 sm:rounded-none flex-1 min-w-0"
                 />
               </div>
             </div>
