@@ -26,7 +26,7 @@ interface CTAData {
   ctaButtonUrl?: string // Added optional redirect URL for CTA button
 }
 
-interface ClientFeaturesSectionProps {
+interface WorkoutProgramsFeaturesSectionProps {
   title: string
   exercises?: Exercise[] // Added exercises prop to support dynamic exercise content
   features: Feature[]
@@ -50,7 +50,12 @@ const getFeatureIcon = (title: string) => {
   return <Dumbbell className="h-6 w-6 text-white" />
 }
 
-export function ClientFeaturesSection({ title, exercises, features, ctaData }: ClientFeaturesSectionProps) {
+export function WorkoutProgramsFeaturesSection({
+  title,
+  exercises,
+  features,
+  ctaData,
+}: WorkoutProgramsFeaturesSectionProps) {
   const getButtonClasses = () => {
     if (ctaData.ctaButtonStyle === "black") {
       return "bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
