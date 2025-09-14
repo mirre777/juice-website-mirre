@@ -56,7 +56,7 @@ export default function TempTrainerPage({ params }: TempTrainerPageProps) {
 
           setTrainer(data.trainer)
 
-          const trainerContent = data.content || generateDefaultContent(data.trainer)
+          const trainerContent = data.trainer.content || generateDefaultContent(data.trainer)
           setContent(trainerContent)
           setEditingContent(trainerContent)
 

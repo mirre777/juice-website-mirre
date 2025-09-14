@@ -29,6 +29,51 @@ function makeTempId() {
   return `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+function generateDefaultContent(trainerData: any) {
+  const location =
+    trainerData.city && trainerData.district ? `${trainerData.city}, ${trainerData.district}` : "Location not specified"
+
+  return {
+    hero: {
+      title: `Transform Your Fitness with ${trainerData.fullName}`,
+      subtitle: `Professional ${trainerData.specialty} trainer in ${location}`,
+      description:
+        trainerData.bio ||
+        "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+    },
+    about: {
+      title: `About ${trainerData.fullName}`,
+      bio:
+        trainerData.bio ||
+        "Experienced personal trainer dedicated to helping clients achieve their fitness goals through personalized workout plans and nutritional guidance.",
+    },
+    services: trainerData.services?.map((service: string, index: number) => ({
+      id: String(index + 1),
+      title: service,
+      description: `Professional ${service.toLowerCase()} sessions tailored to your goals`,
+      price: 60,
+      duration: "60 minutes",
+      featured: index === 0,
+    })) || [
+      {
+        id: "1",
+        title: "Personal Training",
+        description: "Personalized training sessions tailored to your goals",
+        price: 60,
+        duration: "60 minutes",
+        featured: true,
+      },
+    ],
+    contact: {
+      title: "Let's Start Your Fitness Journey",
+      description: "Ready to transform your fitness? Get in touch to schedule your first session or ask any questions.",
+      email: trainerData.email,
+      phone: trainerData.phone || "",
+      location: location,
+    },
+  }
+}
+
 export async function POST(request: NextRequest) {
   if (process.env.NEXT_PHASE === "phase-production-build") {
     console.log("Build time detected - completely skipping Firebase initialization in trainer create route")
@@ -73,8 +118,7 @@ export async function POST(request: NextRequest) {
   const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000) // +24h
   const tempId = makeTempId()
 
-  const doc = {
-    id: tempId,
+  const trainerData = {
     fullName: fullName.trim(),
     email: email.trim().toLowerCase(),
     phone: phone?.trim() || "",
@@ -84,6 +128,13 @@ export async function POST(request: NextRequest) {
     certifications: certifications?.trim() || "",
     bio: bio?.trim() || "",
     services: Array.isArray(services) ? services : [],
+  }
+
+  const defaultContent = generateDefaultContent(trainerData)
+
+  const doc = {
+    id: tempId,
+    ...trainerData,
     status: "temp" as const,
     isActive: false,
     isPaid: false,
@@ -95,6 +146,7 @@ export async function POST(request: NextRequest) {
       lastUpdated: now.toISOString(),
       version: 1,
     },
+    content: defaultContent,
   }
 
   // 4) Lazy-initialize Firebase Admin and write to Firestore
