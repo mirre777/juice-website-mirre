@@ -261,6 +261,7 @@ export default function TrainerPage({ params }: PageProps) {
         mode="live"
         onViewLive={handleViewLive}
         onEdit={handleEdit}
+        onDashboard={() => router.push(`/marketplace/trainer/${id}/dashboard`)}
         onSave={handleSave}
         onCancel={handleCancel}
         isEditing={isEditing}
