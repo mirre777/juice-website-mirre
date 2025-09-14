@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
+import WebsiteSettingsModal from "@/components/trainer/website-settings-modal"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ export default function TrainerPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
+  const [showDashboardModal, setShowDashboardModal] = useState(false)
   const router = useRouter()
 
   // Fetch live trainer data
@@ -190,6 +192,10 @@ export default function TrainerPage({ params }: PageProps) {
     alert("Consultation booking coming soon!")
   }
 
+  const handleDashboard = () => {
+    setShowDashboardModal(true)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -261,7 +267,7 @@ export default function TrainerPage({ params }: PageProps) {
         mode="live"
         onViewLive={handleViewLive}
         onEdit={handleEdit}
-        onDashboard={() => router.push(`/marketplace/trainer/${id}/dashboard`)}
+        onDashboard={handleDashboard}
         onSave={handleSave}
         onCancel={handleCancel}
         isEditing={isEditing}
@@ -286,6 +292,18 @@ export default function TrainerPage({ params }: PageProps) {
         onScheduleSession={handleScheduleSession}
         onSendMessage={handleSendMessage}
       />
+
+      {showDashboardModal && trainer && (
+        <WebsiteSettingsModal
+          trainer={trainer}
+          isOpen={showDashboardModal}
+          onClose={() => setShowDashboardModal(false)}
+          onUpdate={(updatedTrainer) => {
+            setTrainer(updatedTrainer)
+            setShowDashboardModal(false)
+          }}
+        />
+      )}
     </div>
   )
 }

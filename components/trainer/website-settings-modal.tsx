@@ -287,3 +287,5 @@ export function WebsiteSettingsModal({
     </Dialog>
   )
 }
+
+export default WebsiteSettingsModal
