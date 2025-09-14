@@ -31,14 +31,27 @@ export default function TrainerPage({ params }: PageProps) {
   useEffect(() => {
     const fetchTrainer = async () => {
       try {
-        const response = await fetch(`/api/trainer/content/${id}`)
-        const data = await response.json()
+        // Try to fetch by custom slug first, then by ID
+        let response = await fetch(`/api/trainer/by-slug/${id}`)
+        let data = await response.json()
+
+        if (!response.ok && response.status === 404) {
+          // Fallback to ID-based lookup
+          response = await fetch(`/api/trainer/content/${id}`)
+          data = await response.json()
+        }
 
         if (!response.ok) {
           throw new Error(data.error || "Failed to load trainer profile")
         }
 
         if (data.success && data.trainer) {
+          // SEO redirect: if accessed by ID but has custom slug, redirect
+          if (data.trainer.customSlug && id !== data.trainer.customSlug) {
+            window.location.replace(`/marketplace/trainer/${data.trainer.customSlug}`)
+            return
+          }
+
           setTrainer(data.trainer)
 
           // Use existing content or generate default
