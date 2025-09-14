@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import TrainerProfileDisplay from "@/components/trainer/TrainerProfileDisplay"
 import TrainerProfileHeader from "@/components/trainer/TrainerProfileHeader"
+import WebsiteSettingsModal from "@/components/trainer/website-settings-modal"
 import type { TrainerData, TrainerContent } from "@/components/trainer/TrainerProfileDisplay"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,20 +26,34 @@ export default function TrainerPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
+  const [showDashboardModal, setShowDashboardModal] = useState(false)
   const router = useRouter()
 
   // Fetch live trainer data
   useEffect(() => {
     const fetchTrainer = async () => {
       try {
-        const response = await fetch(`/api/trainer/content/${id}`)
-        const data = await response.json()
+        // Try to fetch by custom slug first, then by ID
+        let response = await fetch(`/api/trainer/by-slug/${id}`)
+        let data = await response.json()
+
+        if (!response.ok && response.status === 404) {
+          // Fallback to ID-based lookup
+          response = await fetch(`/api/trainer/content/${id}`)
+          data = await response.json()
+        }
 
         if (!response.ok) {
           throw new Error(data.error || "Failed to load trainer profile")
         }
 
         if (data.success && data.trainer) {
+          // SEO redirect: if accessed by ID but has custom slug, redirect
+          if (data.trainer.customSlug && id !== data.trainer.customSlug) {
+            window.location.replace(`/marketplace/trainer/${data.trainer.customSlug}`)
+            return
+          }
+
           setTrainer(data.trainer)
 
           // Use existing content or generate default
@@ -177,6 +192,18 @@ export default function TrainerPage({ params }: PageProps) {
     alert("Consultation booking coming soon!")
   }
 
+  const handleDashboard = () => {
+    setShowDashboardModal(true)
+  }
+
+  const handleSlugUpdated = (newSlug: string) => {
+    if (trainer) {
+      setTrainer({ ...trainer, customSlug: newSlug })
+      // Update URL without page reload
+      window.history.replaceState({}, "", `/marketplace/trainer/${newSlug}`)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -248,6 +275,7 @@ export default function TrainerPage({ params }: PageProps) {
         mode="live"
         onViewLive={handleViewLive}
         onEdit={handleEdit}
+        onDashboard={handleDashboard}
         onSave={handleSave}
         onCancel={handleCancel}
         isEditing={isEditing}
@@ -272,6 +300,17 @@ export default function TrainerPage({ params }: PageProps) {
         onScheduleSession={handleScheduleSession}
         onSendMessage={handleSendMessage}
       />
+
+      {showDashboardModal && trainer && (
+        <WebsiteSettingsModal
+          isOpen={showDashboardModal}
+          onClose={() => setShowDashboardModal(false)}
+          trainerId={trainer.id}
+          currentSlug={trainer.customSlug}
+          trainerName={trainer.fullName || trainer.name || ""}
+          onSlugUpdated={handleSlugUpdated}
+        />
+      )}
     </div>
   )
 }

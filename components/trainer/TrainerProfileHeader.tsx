@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Edit, ExternalLink, X, Clock, Save } from "lucide-react"
+import { Eye, Edit, X, Clock, Save, Settings } from "lucide-react"
 
 interface TrainerProfileHeaderProps {
   mode: "live" | "temp"
@@ -125,7 +125,7 @@ export default function TrainerProfileHeader({
                   <span>Edit Profile</span>
                 </Button>
                 <Button variant="outline" onClick={onDashboard} className="flex items-center space-x-2 bg-transparent">
-                  <ExternalLink className="h-4 w-4" />
+                  <Settings className="h-4 w-4" />
                   <span>Dashboard</span>
                 </Button>
               </>
