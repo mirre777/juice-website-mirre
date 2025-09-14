@@ -3,7 +3,7 @@
  * This file contains Firebase Admin SDK usage that MUST be properly guarded against build-time initialization.
  */
 
-import type { TrainerFormData, TrainerContent } from "@/types/trainer"
+import type { TrainerFormData, TrainerContent, CustomSlugValidationResult, UrlUpdateResponse } from "@/types/trainer"
 
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
@@ -206,6 +206,161 @@ export class TrainerService {
     } catch (error) {
       console.error("Error activating trainer:", error)
       throw new Error("Failed to activate trainer")
+    }
+  }
+
+  static async validateCustomSlug(slug: string, excludeTrainerId?: string): Promise<CustomSlugValidationResult> {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
+    try {
+      // Basic validation
+      const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+      if (!slugRegex.test(slug)) {
+        return {
+          isValid: false,
+          isAvailable: false,
+          error: "Slug must contain only lowercase letters, numbers, and hyphens",
+        }
+      }
+
+      if (slug.length < 3 || slug.length > 50) {
+        return {
+          isValid: false,
+          isAvailable: false,
+          error: "Slug must be between 3 and 50 characters",
+        }
+      }
+
+      // Reserved words
+      const reservedWords = [
+        "admin",
+        "api",
+        "www",
+        "app",
+        "dashboard",
+        "settings",
+        "help",
+        "support",
+        "about",
+        "contact",
+      ]
+      if (reservedWords.includes(slug)) {
+        return {
+          isValid: false,
+          isAvailable: false,
+          error: "This URL is reserved and cannot be used",
+        }
+      }
+
+      // Check availability
+      const firebaseDb = await getFirebaseDb()
+      const existingTrainer = await firebaseDb.collection("trainers").where("settings.customSlug", "==", slug).get()
+
+      const isAvailable =
+        existingTrainer.empty || (excludeTrainerId && existingTrainer.docs[0]?.id === excludeTrainerId)
+
+      return {
+        isValid: true,
+        isAvailable,
+        error: isAvailable ? undefined : "This URL is already taken",
+      }
+    } catch (error) {
+      console.error("Error validating custom slug:", error)
+      return {
+        isValid: false,
+        isAvailable: false,
+        error: "Failed to validate URL",
+      }
+    }
+  }
+
+  static async getTrainerByCustomSlug(slug: string) {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
+    try {
+      const firebaseDb = await getFirebaseDb()
+      const querySnapshot = await firebaseDb
+        .collection("trainers")
+        .where("settings.customSlug", "==", slug)
+        .where("status", "==", "active")
+        .limit(1)
+        .get()
+
+      if (querySnapshot.empty) {
+        return null
+      }
+
+      const doc = querySnapshot.docs[0]
+      return { id: doc.id, ...doc.data() }
+    } catch (error) {
+      console.error("Error getting trainer by custom slug:", error)
+      throw error
+    }
+  }
+
+  static async getTrainerById(trainerId: string) {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
+    try {
+      const firebaseDb = await getFirebaseDb()
+      const doc = await firebaseDb.collection("trainers").doc(trainerId).get()
+
+      if (!doc.exists) {
+        return null
+      }
+
+      const data = doc.data()
+
+      // Check if trainer is active
+      if (data?.status !== "active" && data?.status !== "temp") {
+        return null
+      }
+
+      return { id: doc.id, ...data }
+    } catch (error) {
+      console.error("Error getting trainer by ID:", error)
+      throw error
+    }
+  }
+
+  static async updateCustomSlug(trainerId: string, customSlug: string): Promise<UrlUpdateResponse> {
+    if (isBuildTime) {
+      throw new Error("TrainerService not available during build time")
+    }
+
+    try {
+      // Validate slug
+      const validation = await this.validateCustomSlug(customSlug, trainerId)
+      if (!validation.isValid || !validation.isAvailable) {
+        return {
+          success: false,
+          error: validation.error,
+        }
+      }
+
+      // Update trainer document
+      const firebaseDb = await getFirebaseDb()
+      await firebaseDb.collection("trainers").doc(trainerId).update({
+        "settings.customSlug": customSlug,
+        updatedAt: new Date().toISOString(),
+      })
+
+      return {
+        success: true,
+        newUrl: `/marketplace/trainer/${customSlug}`,
+      }
+    } catch (error) {
+      console.error("Error updating custom slug:", error)
+      return {
+        success: false,
+        error: "Failed to update URL",
+      }
     }
   }
 }

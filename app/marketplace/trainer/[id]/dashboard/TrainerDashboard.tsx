@@ -5,9 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Edit3, Eye, Settings, ExternalLink, Calendar, TrendingUp, CheckCircle, AlertCircle, Clock } from "lucide-react"
+import {
+  Edit3,
+  Eye,
+  Settings,
+  ExternalLink,
+  Calendar,
+  TrendingUp,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Globe,
+} from "lucide-react"
 import Link from "next/link"
 import type { TrainerDashboardData } from "@/types/trainer"
+import { WebsiteSettingsModal } from "@/components/trainer/website-settings-modal"
 
 interface TrainerDashboardProps {
   trainerId: string
@@ -17,6 +29,7 @@ export function TrainerDashboard({ trainerId }: TrainerDashboardProps) {
   const [dashboardData, setDashboardData] = useState<TrainerDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -179,15 +192,14 @@ export function TrainerDashboard({ trainerId }: TrainerDashboardProps) {
                     </Button>
                   </Link>
 
-                  <Link href={`/marketplace/trainer/${trainerId}/settings`}>
-                    <Button
-                      variant="outline"
-                      className="w-full h-20 flex flex-col items-center justify-center gap-2 bg-transparent"
-                    >
-                      <Settings className="h-6 w-6" />
-                      <span>Website Settings</span>
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex flex-col items-center justify-center gap-2 bg-transparent"
+                    onClick={() => setShowSettingsModal(true)}
+                  >
+                    <Globe className="h-6 w-6" />
+                    <span>Website Settings</span>
+                  </Button>
 
                   <Link href={dashboardData.websiteUrl} target="_blank">
                     <Button
@@ -231,14 +243,9 @@ export function TrainerDashboard({ trainerId }: TrainerDashboardProps) {
 
                 <div>
                   <h4 className="font-medium text-sm text-gray-700">Location</h4>
-                  <p className="text-sm">{dashboardData.location}</p>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <h4 className="font-medium text-sm text-gray-700">Experience</h4>
-                  <p className="text-sm">{dashboardData.experience}</p>
+                  <p className="text-sm">
+                    {dashboardData.city}, {dashboardData.district}
+                  </p>
                 </div>
 
                 <Separator />
@@ -268,8 +275,12 @@ export function TrainerDashboard({ trainerId }: TrainerDashboardProps) {
                     target="_blank"
                     className="text-sm text-blue-600 hover:underline break-all"
                   >
-                    {`${window.location.origin}${dashboardData.websiteUrl}`}
+                    {`${typeof window !== "undefined" ? window.location.origin : ""}${dashboardData.websiteUrl}`}
                   </Link>
+                  <Button variant="ghost" size="sm" onClick={() => setShowSettingsModal(true)} className="ml-2 text-xs">
+                    <Settings className="h-3 w-3 mr-1" />
+                    Change
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -301,6 +312,14 @@ export function TrainerDashboard({ trainerId }: TrainerDashboardProps) {
           </Card>
         )}
       </div>
+
+      <WebsiteSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        trainerId={trainerId}
+        currentSlug={dashboardData.settings?.customSlug}
+        trainerName={dashboardData.fullName}
+      />
     </div>
   )
 }

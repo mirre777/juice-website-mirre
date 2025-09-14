@@ -63,6 +63,7 @@ export interface EditableTrainerContent {
 export interface TrainerWebsiteSettings {
   isPublished: boolean
   customDomain?: string
+  customSlug?: string // Added customSlug field for SEO-friendly URLs
   seoTitle?: string
   seoDescription?: string
 }
@@ -201,4 +202,23 @@ export interface TempTrainerData {
   certifications: string[]
   createdAt: string
   expiresAt: string
+}
+
+// NEW: URL management interfaces
+export interface CustomSlugValidationResult {
+  isValid: boolean
+  isAvailable: boolean
+  error?: string
+  suggestions?: string[]
+}
+
+export interface UrlUpdateRequest {
+  trainerId: string
+  customSlug: string
+}
+
+export interface UrlUpdateResponse {
+  success: boolean
+  newUrl?: string
+  error?: string
 }
