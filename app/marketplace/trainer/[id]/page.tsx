@@ -196,6 +196,14 @@ export default function TrainerPage({ params }: PageProps) {
     setShowDashboardModal(true)
   }
 
+  const handleSlugUpdated = (newSlug: string) => {
+    if (trainer) {
+      setTrainer({ ...trainer, customSlug: newSlug })
+      // Update URL without page reload
+      window.history.replaceState({}, "", `/marketplace/trainer/${newSlug}`)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -300,6 +308,7 @@ export default function TrainerPage({ params }: PageProps) {
           trainerId={trainer.id}
           currentSlug={trainer.customSlug}
           trainerName={trainer.fullName || trainer.name || ""}
+          onSlugUpdated={handleSlugUpdated}
         />
       )}
     </div>

@@ -24,6 +24,7 @@ interface WebsiteSettingsModalProps {
   trainerId: string
   currentSlug?: string
   trainerName: string
+  onSlugUpdated?: (newSlug: string) => void
 }
 
 export function WebsiteSettingsModal({
@@ -32,6 +33,7 @@ export function WebsiteSettingsModal({
   trainerId,
   currentSlug,
   trainerName,
+  onSlugUpdated,
 }: WebsiteSettingsModalProps) {
   const [customSlug, setCustomSlug] = useState(currentSlug || "")
   const [isValidating, setIsValidating] = useState(false)
@@ -107,9 +109,10 @@ export function WebsiteSettingsModal({
 
       if (result.success) {
         toast.success("Website URL updated successfully!")
+        if (onSlugUpdated) {
+          onSlugUpdated(customSlug)
+        }
         onClose()
-        // Refresh the page to show new URL
-        window.location.reload()
       } else {
         toast.error(result.error || "Failed to update URL")
       }
@@ -170,44 +173,46 @@ export function WebsiteSettingsModal({
             <Label htmlFor="customSlug" className="text-sm font-medium">
               Custom URL
             </Label>
-            <div className="mt-1">
-              <div className="flex items-center">
-                <span className="text-sm text-gray-500 bg-gray-50 px-3 py-2 border border-r-0 rounded-l-md">
-                  {window.location.origin}/marketplace/trainer/
-                </span>
-                <Input
-                  id="customSlug"
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value.toLowerCase())}
-                  placeholder="your-name-fitness"
-                  className="rounded-l-none"
-                />
+            <div className="mt-2 flex justify-center">
+              <div className="w-full max-w-md">
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 bg-gray-50 px-3 py-2 border border-r-0 rounded-l-md whitespace-nowrap">
+                    {window.location.origin}/marketplace/trainer/
+                  </span>
+                  <Input
+                    id="customSlug"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value.toLowerCase())}
+                    placeholder="your-name-fitness"
+                    className="rounded-l-none flex-1"
+                  />
+                </div>
               </div>
-
-              {/* Validation Status */}
-              {isValidating && (
-                <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Checking availability...
-                </div>
-              )}
-
-              {validation && !isValidating && (
-                <div className="mt-2">
-                  {validation.isValid && validation.isAvailable ? (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      URL is available!
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-sm text-red-600">
-                      <AlertCircle className="h-4 w-4" />
-                      {validation.error}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* Validation Status */}
+            {isValidating && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Checking availability...
+              </div>
+            )}
+
+            {validation && !isValidating && (
+              <div className="mt-2">
+                {validation.isValid && validation.isAvailable ? (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    URL is available!
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-red-600">
+                    <AlertCircle className="h-4 w-4" />
+                    {validation.error}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Suggested URL */}
