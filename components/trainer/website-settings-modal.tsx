@@ -144,8 +144,8 @@ export function WebsiteSettingsModal({
           {/* Current URL */}
           <div>
             <Label className="text-sm font-medium">Current Website URL</Label>
-            <div className="flex items-center gap-2 mt-1 p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-600 flex-1 break-all">
+            <div className="flex items-center gap-2 mt-1 p-3 bg-gray-50 rounded-md max-w-full">
+              <span className="text-sm text-gray-600 flex-1 break-all min-w-0 overflow-hidden">
                 {window.location.origin}
                 {currentUrl}
               </span>
@@ -174,8 +174,8 @@ export function WebsiteSettingsModal({
               Custom URL
             </Label>
             <div className="mt-2">
-              <div className="flex items-stretch overflow-hidden rounded-md border">
-                <div className="bg-gray-50 px-3 py-2 border-r flex items-center min-w-0 flex-shrink">
+              <div className="flex items-stretch overflow-hidden rounded-md border max-w-full">
+                <div className="bg-gray-50 px-3 py-2 border-r flex items-center min-w-0 flex-shrink max-w-[60%]">
                   <span className="text-sm text-gray-500 truncate">{window.location.origin}/marketplace/trainer/</span>
                 </div>
                 <Input
@@ -183,7 +183,7 @@ export function WebsiteSettingsModal({
                   value={customSlug}
                   onChange={(e) => setCustomSlug(e.target.value.toLowerCase())}
                   placeholder="your-name-fitness"
-                  className="border-0 rounded-none flex-1 min-w-0"
+                  className="border-0 rounded-none flex-1 min-w-0 max-w-[40%]"
                 />
               </div>
             </div>
@@ -232,8 +232,8 @@ export function WebsiteSettingsModal({
           {hasChanges && customSlug && (
             <div>
               <Label className="text-sm font-medium">New Website URL</Label>
-              <div className="flex items-center gap-2 mt-1 p-3 bg-green-50 border border-green-200 rounded-md">
-                <span className="text-sm text-green-700 flex-1 break-all">
+              <div className="flex items-center gap-2 mt-1 p-3 bg-green-50 border border-green-200 rounded-md max-w-full">
+                <span className="text-sm text-green-700 flex-1 break-all min-w-0 overflow-hidden">
                   {window.location.origin}
                   {newUrl}
                 </span>
