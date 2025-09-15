@@ -1,11 +1,14 @@
 "use client"
 import { Button } from "@/components/ui/button"
+import type React from "react"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { useState, useRef } from "react"
 import {
   MapPin,
   Users,
@@ -18,6 +21,7 @@ import {
   MessageCircle,
   Plus,
   Trash2,
+  Camera,
 } from "lucide-react"
 
 // Unified interfaces
@@ -212,64 +216,152 @@ export default function TrainerProfileDisplay({
     onContentChange(updatedContent)
   }
 
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [tempProfileImage, setTempProfileImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setUploadingImage(true)
+    try {
+      // Upload image to Firebase Storage
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("trainerId", trainer.id)
+
+      const uploadResponse = await fetch("/api/trainer/upload-image", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image")
+      }
+
+      const { url } = await uploadResponse.json()
+
+      // Update trainer profile with new image URL
+      const updateResponse = await fetch("/api/trainer/update-profile-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trainerId: trainer.id,
+          profileImage: url,
+        }),
+      })
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update profile image")
+      }
+
+      // Update local state to show new image immediately
+      setTempProfileImage(url)
+    } catch (error) {
+      console.error("Image upload failed:", error)
+      alert("Failed to upload image. Please try again.")
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section - Shared Design with Purple Gradient */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 mb-8">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Profile Image */}
-          <div className="mb-6">
-            <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
-              <AvatarImage src={trainer.profileImage || "/placeholder.svg"} alt={trainer.fullName} />
-              <AvatarFallback className="text-2xl bg-white/20 text-white">
-                {getInitials(trainer.fullName)}
-              </AvatarFallback>
-            </Avatar>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6">
+            {/* Profile Image - Left aligned and bigger */}
+            <div className="relative">
+              <Avatar className="w-32 h-32 border-4 border-white/20">
+                <AvatarImage
+                  src={tempProfileImage || trainer.profileImage || "/placeholder.svg"}
+                  alt={trainer.fullName}
+                />
+                <AvatarFallback className="text-3xl bg-white/20 text-white">
+                  {getInitials(trainer.fullName)}
+                </AvatarFallback>
+              </Avatar>
+
+              {isEditing && (
+                <>
+                  <button
+                    onClick={triggerImageUpload}
+                    disabled={uploadingImage}
+                    className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Camera className="w-8 h-8 text-white" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  {uploadingImage && (
+                    <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Content - Right side */}
+            <div className="flex-1 text-center md:text-left">
+              {/* Hero Title */}
+              {isEditing ? (
+                <div className="mb-4">
+                  <Input
+                    value={heroContent.title}
+                    onChange={(e) => updateContent("hero", "title", e.target.value)}
+                    className="text-3xl md:text-4xl font-bold text-white bg-transparent border-white/30 placeholder:text-white/70 focus:border-white/60"
+                    placeholder="Enter hero title"
+                  />
+                </div>
+              ) : (
+                <h1 className="text-3xl md:text-4xl font-bold mb-4">{heroContent.title}</h1>
+              )}
+
+              {/* Hero Subtitle */}
+              {isEditing ? (
+                <div className="mb-6">
+                  <Input
+                    value={heroContent.subtitle}
+                    onChange={(e) => updateContent("hero", "subtitle", e.target.value)}
+                    className="text-lg bg-transparent border-white/30 placeholder:text-white/70 focus:border-white/60 text-white"
+                    placeholder="Enter subtitle"
+                  />
+                </div>
+              ) : (
+                <p className="text-lg mb-6 opacity-90">{heroContent.subtitle}</p>
+              )}
+
+              {/* Hero Description */}
+              {isEditing ? (
+                <div className="mb-6">
+                  <Textarea
+                    value={heroContent.description}
+                    onChange={(e) => updateContent("hero", "description", e.target.value)}
+                    className="text-base bg-transparent border-white/30 placeholder:text-white/70 focus:border-white/60 text-white min-h-[80px] resize-none"
+                    placeholder="Enter description"
+                  />
+                </div>
+              ) : (
+                <p className="text-base mb-6 opacity-80">{heroContent.description}</p>
+              )}
+            </div>
           </div>
 
-          {/* Hero Title */}
-          {isEditing ? (
-            <div className="mb-4">
-              <Input
-                value={heroContent.title}
-                onChange={(e) => updateContent("hero", "title", e.target.value)}
-                className="text-4xl md:text-5xl font-bold text-white bg-transparent border-white/30 text-center placeholder:text-white/70 focus:border-white/60"
-                placeholder="Enter hero title"
-              />
-            </div>
-          ) : (
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
-          )}
-
-          {/* Hero Subtitle */}
-          {isEditing ? (
-            <div className="mb-6">
-              <Input
-                value={heroContent.subtitle}
-                onChange={(e) => updateContent("hero", "subtitle", e.target.value)}
-                className="text-xl bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60"
-                placeholder="Enter subtitle"
-              />
-            </div>
-          ) : (
-            <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
-          )}
-
-          {/* Hero Description */}
-          {isEditing ? (
-            <div className="mb-6">
-              <Textarea
-                value={heroContent.description}
-                onChange={(e) => updateContent("hero", "description", e.target.value)}
-                className="text-lg bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60 min-h-[80px] resize-none"
-                placeholder="Enter description"
-              />
-            </div>
-          ) : (
-            <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
-          )}
-
-          <div className="flex flex-wrap justify-center gap-4 mb-6">
+          <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-6">
             <Badge variant="secondary" className="text-blue-600 bg-white/90">
               <Award className="h-4 w-4 mr-1" />
               {trainer.specialty}
@@ -287,15 +379,17 @@ export default function TrainerProfileDisplay({
           </div>
 
           {/* CTA Button */}
-          <Button
-            size="lg"
-            variant="secondary"
-            className="text-blue-600 bg-white hover:bg-gray-100"
-            onClick={onBookConsultation}
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Book Free Consultation
-          </Button>
+          <div className="text-center md:text-left">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="text-blue-600 bg-white hover:bg-gray-100"
+              onClick={onBookConsultation}
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Book Free Consultation
+            </Button>
+          </div>
         </div>
       </div>
 
