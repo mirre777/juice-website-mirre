@@ -12,6 +12,7 @@
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
 let db: any = undefined
+let storage: any = undefined
 
 if (!isBuildTime) {
   // Dynamic initialization only at runtime
@@ -20,6 +21,7 @@ if (!isBuildTime) {
       const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
       const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
       const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY
+      const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 
       const privateKey =
         privateKeyRaw && privateKeyRaw.includes("\\n") ? privateKeyRaw.replace(/\\n/g, "\n") : privateKeyRaw
@@ -27,6 +29,7 @@ if (!isBuildTime) {
       if (projectId && clientEmail && privateKey) {
         const { cert, getApps, initializeApp } = await import("firebase-admin/app")
         const { getFirestore } = await import("firebase-admin/firestore")
+        const { getStorage } = await import("firebase-admin/storage")
 
         if (getApps().length === 0) {
           initializeApp({
@@ -35,14 +38,17 @@ if (!isBuildTime) {
               clientEmail,
               privateKey,
             }),
+            storageBucket,
           })
         }
 
         db = getFirestore()
+        storage = getStorage()
       }
     } catch (error) {
       console.error("Firebase Admin initialization error:", error)
       db = undefined
+      storage = undefined
     }
   }
 
@@ -52,4 +58,4 @@ if (!isBuildTime) {
   console.log("Build time detected - skipping Firebase Admin initialization")
 }
 
-export { db }
+export { db, storage }
