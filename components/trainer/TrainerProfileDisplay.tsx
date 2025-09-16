@@ -227,7 +227,10 @@ export default function TrainerProfileDisplay({
 
     const now = Date.now()
     if (uploadingImage || now - lastUploadTime < 2000) {
-      console.log("[v0] Upload blocked - too frequent or already uploading")
+      console.log("[v0] Upload blocked - too frequent or already uploading", {
+        uploadingImage,
+        timeSinceLastUpload: now - lastUploadTime,
+      })
       return
     }
 
@@ -236,6 +239,11 @@ export default function TrainerProfileDisplay({
 
     try {
       console.log("[v0] Starting image upload", { fileName: file.name, size: file.size })
+      console.log("[v0] Current state before upload", {
+        tempProfileImage,
+        trainerProfileImage: trainer.profileImage,
+        uploadCount,
+      })
 
       const formData = new FormData()
       formData.append("file", file)
@@ -273,17 +281,39 @@ export default function TrainerProfileDisplay({
       console.log("[v0] Database updated successfully")
 
       const timestamp = Date.now()
-      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random()}&u=${uploadCount + 1}`
+      const newUploadCount = uploadCount + 1
+      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random()}&u=${newUploadCount}`
 
-      // Update states to force re-render
+      console.log("[v0] Setting new image state", {
+        cacheBustedUrl,
+        originalUrl: url,
+        newUploadCount,
+        timestamp,
+      })
+
       setTempProfileImage(cacheBustedUrl)
-      setUploadCount((prev) => prev + 1)
+      setUploadCount(newUploadCount)
       trainer.profileImage = url
+
+      console.log("[v0] State updated, checking DOM image src")
+
+      setTimeout(() => {
+        const imgElement = document.querySelector(`img[alt="${trainer.fullName}"]`) as HTMLImageElement
+        if (imgElement) {
+          console.log("[v0] DOM image element found", {
+            currentSrc: imgElement.src,
+            expectedSrc: cacheBustedUrl,
+            srcMatches: imgElement.src.includes(url),
+          })
+        } else {
+          console.log("[v0] DOM image element not found")
+        }
+      }, 100)
 
       console.log("[v0] Image upload complete - staying in edit mode", {
         cacheBustedUrl,
         originalUrl: url,
-        uploadCount: uploadCount + 1,
+        uploadCount: newUploadCount,
       })
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
@@ -319,8 +349,25 @@ export default function TrainerProfileDisplay({
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
                   key={`profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}`}
-                  onLoad={() => console.log("[v0] Image loaded successfully")}
-                  onError={() => console.log("[v0] Image failed to load")}
+                  onLoad={(event) => {
+                    const imgElement = event.target as HTMLImageElement
+                    console.log("[v0] Image loaded successfully", {
+                      src: imgElement.src,
+                      tempProfileImage,
+                      trainerProfileImage: trainer.profileImage,
+                      uploadCount,
+                      imageKey: `profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}`,
+                    })
+                  }}
+                  onError={(event) => {
+                    const imgElement = event.target as HTMLImageElement
+                    console.log("[v0] Image failed to load", {
+                      src: imgElement.src,
+                      tempProfileImage,
+                      trainerProfileImage: trainer.profileImage,
+                      uploadCount,
+                    })
+                  }}
                 />
                 {!tempProfileImage && !trainer.profileImage && (
                   <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
