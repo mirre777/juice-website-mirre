@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { put } from "@vercel/blob"
 
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
@@ -36,79 +37,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size too large. Maximum 5MB allowed." }, { status: 400 })
     }
 
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
-    const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY
-    const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-
-    console.log("[v0] Firebase config check", {
-      hasProjectId: !!projectId,
-      hasClientEmail: !!clientEmail,
-      hasPrivateKey: !!privateKeyRaw,
-      hasStorageBucket: !!storageBucket,
-      storageBucket: storageBucket,
-    })
-
-    if (!projectId || !clientEmail || !privateKeyRaw || !storageBucket) {
-      console.error("Missing Firebase configuration:", {
-        projectId: !!projectId,
-        clientEmail: !!clientEmail,
-        privateKey: !!privateKeyRaw,
-        storageBucket: !!storageBucket,
-      })
-      return NextResponse.json({ error: "Firebase configuration incomplete" }, { status: 500 })
-    }
-
-    const privateKey = privateKeyRaw.includes("\\n") ? privateKeyRaw.replace(/\\n/g, "\n") : privateKeyRaw
-
-    const { cert, getApps, initializeApp } = await import("firebase-admin/app")
-    const { getStorage } = await import("firebase-admin/storage")
-
-    // Initialize Firebase Admin if not already initialized
-    if (getApps().length === 0) {
-      console.log("[v0] Initializing Firebase Admin")
-      initializeApp({
-        credential: cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-        storageBucket,
-      })
-    }
-
-    const storage = getStorage()
-    const bucket = storage.bucket(storageBucket)
-
-    console.log("[v0] Firebase Storage initialized", { bucketName: bucket.name })
-
-    // Create file path and metadata
     const fileExtension = file.name.split(".").pop()
     const fileName = `trainers/${trainerId}/profile.${fileExtension}`
 
-    console.log("[v0] Uploading to Firebase Storage", { fileName, bucket: bucket.name })
+    console.log("[v0] Uploading to Vercel Blob", { fileName })
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // Upload to Firebase Storage
-    const fileRef = bucket.file(fileName)
-    await fileRef.save(buffer, {
-      metadata: {
-        contentType: file.type,
-      },
+    // Upload to Vercel Blob
+    const blob = await put(fileName, file, {
+      access: "public",
     })
 
-    // Make file publicly accessible
-    await fileRef.makePublic()
+    console.log("[v0] Upload successful", { url: blob.url })
 
-    // Get public URL
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`
-
-    console.log("[v0] Upload successful", { publicUrl })
-
-    return NextResponse.json({ url: publicUrl })
+    return NextResponse.json({ url: blob.url })
   } catch (error) {
     console.error("Image upload error:", error)
     return NextResponse.json({ error: "Failed to upload image" }, { status: 500 })
