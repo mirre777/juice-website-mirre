@@ -282,39 +282,47 @@ export default function TrainerProfileDisplay({
 
       const timestamp = Date.now()
       const newUploadCount = uploadCount + 1
-      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random()}&u=${newUploadCount}`
+      const randomId = Math.random().toString(36).substring(7)
 
-      console.log("[v0] Setting new image state", {
+      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}&_=${Date.now()}&bust=${Math.floor(Math.random() * 1000000)}`
+
+      console.log("[v0] Setting new image state with aggressive cache busting", {
         cacheBustedUrl,
         originalUrl: url,
         newUploadCount,
         timestamp,
+        randomId,
       })
 
-      setTempProfileImage(cacheBustedUrl)
-      setUploadCount(newUploadCount)
-      trainer.profileImage = url
-
-      console.log("[v0] State updated, checking DOM image src")
+      setTempProfileImage(null)
 
       setTimeout(() => {
-        const imgElement = document.querySelector(`img[alt="${trainer.fullName}"]`) as HTMLImageElement
-        if (imgElement) {
-          console.log("[v0] DOM image element found", {
-            currentSrc: imgElement.src,
-            expectedSrc: cacheBustedUrl,
-            srcMatches: imgElement.src.includes(url),
-          })
-        } else {
-          console.log("[v0] DOM image element not found")
-        }
-      }, 100)
+        setTempProfileImage(cacheBustedUrl)
+        setUploadCount(newUploadCount)
+        trainer.profileImage = url
 
-      console.log("[v0] Image upload complete - staying in edit mode", {
-        cacheBustedUrl,
-        originalUrl: url,
-        uploadCount: newUploadCount,
-      })
+        console.log("[v0] State updated, forcing image reload")
+
+        const imgElements = document.querySelectorAll(`img[alt="${trainer.fullName}"]`) as NodeListOf<HTMLImageElement>
+        imgElements.forEach((imgElement, index) => {
+          console.log(`[v0] Forcing reload of image element ${index}`, {
+            oldSrc: imgElement.src,
+            newSrc: cacheBustedUrl,
+          })
+
+          imgElement.src = ""
+          setTimeout(() => {
+            imgElement.src = cacheBustedUrl
+          }, 50)
+        })
+
+        console.log("[v0] Image upload complete - staying in edit mode", {
+          cacheBustedUrl,
+          originalUrl: url,
+          uploadCount: newUploadCount,
+          elementsUpdated: imgElements.length,
+        })
+      }, 100)
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
       alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -343,12 +351,12 @@ export default function TrainerProfileDisplay({
                   src={
                     tempProfileImage ||
                     (trainer.profileImage
-                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}&u=${uploadCount}`
+                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}&u=${uploadCount}&_=${Date.now()}`
                       : "/placeholder.svg")
                   }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
-                  key={`profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}`}
+                  key={`profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}-${Math.random()}`}
                   onLoad={(event) => {
                     const imgElement = event.target as HTMLImageElement
                     console.log("[v0] Image loaded successfully", {
@@ -356,7 +364,7 @@ export default function TrainerProfileDisplay({
                       tempProfileImage,
                       trainerProfileImage: trainer.profileImage,
                       uploadCount,
-                      imageKey: `profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}`,
+                      imageKey: `profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}-${Math.random()}`,
                     })
                   }}
                   onError={(event) => {
