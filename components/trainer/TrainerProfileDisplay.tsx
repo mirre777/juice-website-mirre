@@ -257,8 +257,9 @@ export default function TrainerProfileDisplay({
         throw new Error("Failed to update profile image")
       }
 
-      // Update local state to show new image immediately
-      setTempProfileImage(url)
+      // Add cache busting parameter to force image refresh
+      const cacheBustedUrl = `${url}?t=${Date.now()}`
+      setTempProfileImage(cacheBustedUrl)
     } catch (error) {
       console.error("Image upload failed:", error)
       alert("Failed to upload image. Please try again.")
@@ -281,7 +282,10 @@ export default function TrainerProfileDisplay({
             <div className="relative flex-shrink-0">
               <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/20 bg-white/10">
                 <img
-                  src={tempProfileImage || trainer.profileImage || "/placeholder.svg"}
+                  src={
+                    tempProfileImage ||
+                    (trainer.profileImage ? `${trainer.profileImage}?t=${Date.now()}` : "/placeholder.svg")
+                  }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
                 />
@@ -425,7 +429,10 @@ export default function TrainerProfileDisplay({
                   />
                 </div>
               ) : (
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+                // Added word wrapping and overflow handling for bio text
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line break-words overflow-wrap-anywhere">
+                  {aboutContent.bio}
+                </p>
               )}
 
               {trainer.certifications && (
