@@ -219,6 +219,7 @@ export default function TrainerProfileDisplay({
   const [tempProfileImage, setTempProfileImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [lastUploadTime, setLastUploadTime] = useState(0)
+  const [uploadCount, setUploadCount] = useState(0)
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -272,13 +273,18 @@ export default function TrainerProfileDisplay({
       console.log("[v0] Database updated successfully")
 
       const timestamp = Date.now()
-      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random()}`
+      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random()}&u=${uploadCount + 1}`
 
-      // Update both temp state and trainer object
+      // Update states to force re-render
       setTempProfileImage(cacheBustedUrl)
+      setUploadCount((prev) => prev + 1)
       trainer.profileImage = url
 
-      console.log("[v0] Image upload complete - staying in edit mode", { cacheBustedUrl, originalUrl: url })
+      console.log("[v0] Image upload complete - staying in edit mode", {
+        cacheBustedUrl,
+        originalUrl: url,
+        uploadCount: uploadCount + 1,
+      })
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
       alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -307,12 +313,12 @@ export default function TrainerProfileDisplay({
                   src={
                     tempProfileImage ||
                     (trainer.profileImage
-                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}`
+                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}&u=${uploadCount}`
                       : "/placeholder.svg")
                   }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
-                  key={`profile-${trainer.id}-${tempProfileImage || trainer.profileImage}-${Date.now()}`}
+                  key={`profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}`}
                   onLoad={() => console.log("[v0] Image loaded successfully")}
                   onError={() => console.log("[v0] Image failed to load")}
                 />
