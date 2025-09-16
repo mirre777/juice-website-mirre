@@ -5,7 +5,6 @@ import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useState, useRef } from "react"
@@ -277,18 +276,21 @@ export default function TrainerProfileDisplay({
       {/* Hero Section - Shared Design with Purple Gradient */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 mb-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6">
+          <div className="flex flex-col md:flex-row items-center md:items-center gap-6 mb-6">
             {/* Profile Image - Left aligned and bigger */}
-            <div className="relative">
-              <Avatar className="w-48 h-48 border-4 border-white/20">
-                <AvatarImage
+            <div className="relative flex-shrink-0">
+              <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/20 bg-white/10">
+                <img
                   src={tempProfileImage || trainer.profileImage || "/placeholder.svg"}
                   alt={trainer.fullName}
+                  className="w-full h-full object-cover"
                 />
-                <AvatarFallback className="text-4xl bg-white/20 text-white">
-                  {getInitials(trainer.fullName)}
-                </AvatarFallback>
-              </Avatar>
+                {!tempProfileImage && !trainer.profileImage && (
+                  <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
+                    {getInitials(trainer.fullName)}
+                  </div>
+                )}
+              </div>
 
               {isEditing && (
                 <>
@@ -358,37 +360,37 @@ export default function TrainerProfileDisplay({
               ) : (
                 <p className="text-base mb-6 opacity-80">{heroContent.description}</p>
               )}
+
+              <div className="flex flex-wrap gap-4 mb-6">
+                <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                  <Award className="h-4 w-4 mr-1" />
+                  {trainer.specialty}
+                </Badge>
+                <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {contactContent.location}
+                </Badge>
+                {trainer.certifications && (
+                  <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Certified
+                  </Badge>
+                )}
+              </div>
+
+              {/* CTA Button */}
+              <div>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="text-blue-600 bg-white hover:bg-gray-100"
+                  onClick={onBookConsultation}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Book Free Consultation
+                </Button>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-6">
-            <Badge variant="secondary" className="text-blue-600 bg-white/90">
-              <Award className="h-4 w-4 mr-1" />
-              {trainer.specialty}
-            </Badge>
-            <Badge variant="secondary" className="text-blue-600 bg-white/90">
-              <MapPin className="h-4 w-4 mr-1" />
-              {contactContent.location}
-            </Badge>
-            {trainer.certifications && (
-              <Badge variant="secondary" className="text-blue-600 bg-white/90">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Certified
-              </Badge>
-            )}
-          </div>
-
-          {/* CTA Button */}
-          <div className="text-center md:text-left">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="text-blue-600 bg-white hover:bg-gray-100"
-              onClick={onBookConsultation}
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Book Free Consultation
-            </Button>
           </div>
         </div>
       </div>
@@ -414,12 +416,14 @@ export default function TrainerProfileDisplay({
             </CardHeader>
             <CardContent>
               {isEditing ? (
-                <Textarea
-                  value={aboutContent.bio}
-                  onChange={(e) => updateContent("about", "bio", e.target.value)}
-                  className="bg-transparent border-gray-200 focus:border-blue-500 min-h-[120px] text-gray-600 leading-relaxed resize-none"
-                  placeholder="Tell your story..."
-                />
+                <div className="mb-4">
+                  <Textarea
+                    value={aboutContent.bio}
+                    onChange={(e) => updateContent("about", "bio", e.target.value)}
+                    className="bg-transparent border-gray-200 focus:border-blue-500 min-h-[120px] text-gray-600 leading-relaxed resize-none"
+                    placeholder="Tell your story..."
+                  />
+                </div>
               ) : (
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
               )}
