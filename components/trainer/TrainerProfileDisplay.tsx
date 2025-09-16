@@ -218,14 +218,24 @@ export default function TrainerProfileDisplay({
   const [uploadingImage, setUploadingImage] = useState(false)
   const [tempProfileImage, setTempProfileImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [lastUploadTime, setLastUploadTime] = useState(0)
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
+    const now = Date.now()
+    if (uploadingImage || now - lastUploadTime < 2000) {
+      console.log("[v0] Upload blocked - too frequent or already uploading")
+      return
+    }
+
     setUploadingImage(true)
+    setLastUploadTime(now)
+
     try {
-      // Upload image to Firebase Storage
+      console.log("[v0] Starting image upload", { fileName: file.name, size: file.size })
+
       const formData = new FormData()
       formData.append("file", file)
       formData.append("trainerId", trainer.id)
@@ -236,12 +246,13 @@ export default function TrainerProfileDisplay({
       })
 
       if (!uploadResponse.ok) {
-        throw new Error("Failed to upload image")
+        const errorData = await uploadResponse.json()
+        throw new Error(errorData.error || "Failed to upload image")
       }
 
       const { url } = await uploadResponse.json()
+      console.log("[v0] Upload successful, updating database", { url })
 
-      // Update trainer profile with new image URL
       const updateResponse = await fetch("/api/trainer/update-profile-image", {
         method: "POST",
         headers: {
@@ -254,25 +265,25 @@ export default function TrainerProfileDisplay({
       })
 
       if (!updateResponse.ok) {
-        throw new Error("Failed to update profile image")
+        const errorData = await updateResponse.json()
+        throw new Error(errorData.error || "Failed to update profile image")
       }
+
+      console.log("[v0] Database updated successfully")
 
       const timestamp = Date.now()
-      const cacheBustedUrl = `${url}?v=${timestamp}&cb=${Math.random().toString(36).substring(7)}&_=${timestamp}`
+      const cacheBustedUrl = `${url}?v=${timestamp}`
       setTempProfileImage(cacheBustedUrl)
 
-      // Force browser to clear any cached versions
-      const img = new Image()
-      img.onload = () => {
-        // Image preloaded, force re-render
-        setTempProfileImage(`${url}?v=${Date.now()}&cb=${Math.random().toString(36).substring(7)}`)
-      }
-      img.src = cacheBustedUrl
+      console.log("[v0] Image upload complete", { cacheBustedUrl })
     } catch (error) {
-      console.error("Image upload failed:", error)
-      alert("Failed to upload image. Please try again.")
+      console.error("[v0] Image upload failed:", error)
+      alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setUploadingImage(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
     }
   }
 
@@ -292,13 +303,11 @@ export default function TrainerProfileDisplay({
                 <img
                   src={
                     tempProfileImage ||
-                    (trainer.profileImage
-                      ? `${trainer.profileImage}?v=${Date.now()}&cb=${Math.random().toString(36).substring(7)}&_=${Date.now()}`
-                      : "/placeholder.svg")
+                    (trainer.profileImage ? `${trainer.profileImage}?v=${Date.now()}` : "/placeholder.svg")
                   }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
-                  key={tempProfileImage || trainer.profileImage || "placeholder"}
+                  key={tempProfileImage || `${trainer.profileImage}-${Date.now()}`}
                 />
                 {!tempProfileImage && !trainer.profileImage && (
                   <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
@@ -440,7 +449,6 @@ export default function TrainerProfileDisplay({
                   />
                 </div>
               ) : (
-                // Added word wrapping and overflow handling for bio text
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line break-words overflow-wrap-anywhere">
                   {aboutContent.bio}
                 </p>
