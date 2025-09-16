@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     const storage = getStorage()
-    const bucket = storage.bucket()
+    const bucket = storage.bucket(storageBucket)
 
     console.log("[v0] Firebase Storage initialized", { bucketName: bucket.name })
 
