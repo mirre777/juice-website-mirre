@@ -272,10 +272,17 @@ export default function TrainerProfileDisplay({
       console.log("[v0] Database updated successfully")
 
       const timestamp = Date.now()
-      const cacheBustedUrl = `${url}?v=${timestamp}`
+      const cacheBustedUrl = `${url}?cb=${timestamp}`
       setTempProfileImage(cacheBustedUrl)
 
-      console.log("[v0] Image upload complete", { cacheBustedUrl })
+      // Update the trainer object directly to persist the change
+      trainer.profileImage = url
+
+      console.log("[v0] Image upload complete", { cacheBustedUrl, originalUrl: url })
+
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
       alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -303,11 +310,15 @@ export default function TrainerProfileDisplay({
                 <img
                   src={
                     tempProfileImage ||
-                    (trainer.profileImage ? `${trainer.profileImage}?v=${Date.now()}` : "/placeholder.svg")
+                    (trainer.profileImage
+                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}`
+                      : "/placeholder.svg")
                   }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
-                  key={tempProfileImage || `${trainer.profileImage}-${Date.now()}`}
+                  key={`profile-${trainer.id}-${tempProfileImage || trainer.profileImage}-${Date.now()}`}
+                  onLoad={() => console.log("[v0] Image loaded successfully")}
+                  onError={() => console.log("[v0] Image failed to load")}
                 />
                 {!tempProfileImage && !trainer.profileImage && (
                   <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
