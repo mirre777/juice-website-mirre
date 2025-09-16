@@ -220,6 +220,7 @@ export default function TrainerProfileDisplay({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [lastUploadTime, setLastUploadTime] = useState(0)
   const [uploadCount, setUploadCount] = useState(0)
+  const [imageKey, setImageKey] = useState(0)
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -304,7 +305,7 @@ export default function TrainerProfileDisplay({
         const newUploadCount = uploadCount + 1
         const randomId = Math.random().toString(36).substring(7)
 
-        const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}&_=${Date.now()}`
+        const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}`
 
         console.log("[v0] Image is available, updating UI", {
           cacheBustedUrl,
@@ -312,25 +313,18 @@ export default function TrainerProfileDisplay({
           newUploadCount,
         })
 
-        // Clear temp image first
-        setTempProfileImage(null)
-
-        // Update trainer object
         trainer.profileImage = url
+        setTempProfileImage(cacheBustedUrl)
+        setUploadCount(newUploadCount)
+        setImageKey((prev) => prev + 1)
 
-        // Set new temp image with cache busting
-        setTimeout(() => {
-          setTempProfileImage(cacheBustedUrl)
-          setUploadCount(newUploadCount)
-
-          console.log("[v0] Image upload complete - UI updated", {
-            cacheBustedUrl,
-            uploadCount: newUploadCount,
-          })
-        }, 100)
+        console.log("[v0] Image upload complete - UI updated", {
+          cacheBustedUrl,
+          uploadCount: newUploadCount,
+          imageKey: imageKey + 1,
+        })
       } else {
         console.log("[v0] Image upload completed but image not yet available, using fallback")
-        // Still update the database reference but don't change UI immediately
         trainer.profileImage = url
         alert("Image uploaded successfully! It may take a moment to appear.")
       }
@@ -362,12 +356,12 @@ export default function TrainerProfileDisplay({
                   src={
                     tempProfileImage ||
                     (trainer.profileImage
-                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}&u=${uploadCount}&_=${Date.now()}`
+                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}&u=${uploadCount}`
                       : "/placeholder.svg")
                   }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
-                  key={`profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}-${Math.random()}`}
+                  key={`profile-image-${imageKey}-${uploadCount}-${tempProfileImage ? "temp" : "original"}`}
                   onLoad={(event) => {
                     const imgElement = event.target as HTMLImageElement
                     console.log("[v0] Image loaded successfully", {
@@ -375,7 +369,7 @@ export default function TrainerProfileDisplay({
                       tempProfileImage,
                       trainerProfileImage: trainer.profileImage,
                       uploadCount,
-                      imageKey: `profile-${trainer.id}-${uploadCount}-${tempProfileImage ? "temp" : "original"}-${Date.now()}-${Math.random()}`,
+                      imageKey,
                     })
                   }}
                   onError={(event) => {
@@ -385,6 +379,7 @@ export default function TrainerProfileDisplay({
                       tempProfileImage,
                       trainerProfileImage: trainer.profileImage,
                       uploadCount,
+                      imageKey,
                     })
                   }}
                 />
