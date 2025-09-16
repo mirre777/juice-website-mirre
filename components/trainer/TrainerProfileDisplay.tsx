@@ -280,12 +280,12 @@ export default function TrainerProfileDisplay({
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6">
             {/* Profile Image - Left aligned and bigger */}
             <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-white/20">
+              <Avatar className="w-48 h-48 border-4 border-white/20">
                 <AvatarImage
                   src={tempProfileImage || trainer.profileImage || "/placeholder.svg"}
                   alt={trainer.fullName}
                 />
-                <AvatarFallback className="text-3xl bg-white/20 text-white">
+                <AvatarFallback className="text-4xl bg-white/20 text-white">
                   {getInitials(trainer.fullName)}
                 </AvatarFallback>
               </Avatar>
@@ -316,7 +316,7 @@ export default function TrainerProfileDisplay({
             </div>
 
             {/* Content - Right side */}
-            <div className="flex-1 text-center md:text-left">
+            <div className="flex-1 md:text-left">
               {/* Hero Title */}
               {isEditing ? (
                 <div className="mb-4">
