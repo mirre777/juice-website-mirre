@@ -239,11 +239,6 @@ export default function TrainerProfileDisplay({
 
     try {
       console.log("[v0] Starting image upload", { fileName: file.name, size: file.size })
-      console.log("[v0] Current state before upload", {
-        tempProfileImage,
-        trainerProfileImage: trainer.profileImage,
-        uploadCount,
-      })
 
       const formData = new FormData()
       formData.append("file", file)
@@ -280,49 +275,65 @@ export default function TrainerProfileDisplay({
 
       console.log("[v0] Database updated successfully")
 
-      const timestamp = Date.now()
-      const newUploadCount = uploadCount + 1
-      const randomId = Math.random().toString(36).substring(7)
+      const waitForImageAvailability = async (imageUrl: string, maxAttempts = 10): Promise<boolean> => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            console.log(`[v0] Checking image availability - attempt ${attempt}/${maxAttempts}`)
 
-      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}&_=${Date.now()}&bust=${Math.floor(Math.random() * 1000000)}`
+            const response = await fetch(imageUrl, { method: "HEAD" })
+            if (response.ok) {
+              console.log(`[v0] Image is available after ${attempt} attempts`)
+              return true
+            }
+          } catch (error) {
+            console.log(`[v0] Image not yet available - attempt ${attempt}`, error)
+          }
 
-      console.log("[v0] Setting new image state with aggressive cache busting", {
-        cacheBustedUrl,
-        originalUrl: url,
-        newUploadCount,
-        timestamp,
-        randomId,
-      })
+          // Wait before next attempt (exponential backoff)
+          await new Promise((resolve) => setTimeout(resolve, attempt * 500))
+        }
 
-      setTempProfileImage(null)
+        console.log(`[v0] Image still not available after ${maxAttempts} attempts`)
+        return false
+      }
 
-      setTimeout(() => {
-        setTempProfileImage(cacheBustedUrl)
-        setUploadCount(newUploadCount)
-        trainer.profileImage = url
+      const isImageAvailable = await waitForImageAvailability(url)
 
-        console.log("[v0] State updated, forcing image reload")
+      if (isImageAvailable) {
+        const timestamp = Date.now()
+        const newUploadCount = uploadCount + 1
+        const randomId = Math.random().toString(36).substring(7)
 
-        const imgElements = document.querySelectorAll(`img[alt="${trainer.fullName}"]`) as NodeListOf<HTMLImageElement>
-        imgElements.forEach((imgElement, index) => {
-          console.log(`[v0] Forcing reload of image element ${index}`, {
-            oldSrc: imgElement.src,
-            newSrc: cacheBustedUrl,
-          })
+        const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}&_=${Date.now()}`
 
-          imgElement.src = ""
-          setTimeout(() => {
-            imgElement.src = cacheBustedUrl
-          }, 50)
-        })
-
-        console.log("[v0] Image upload complete - staying in edit mode", {
+        console.log("[v0] Image is available, updating UI", {
           cacheBustedUrl,
           originalUrl: url,
-          uploadCount: newUploadCount,
-          elementsUpdated: imgElements.length,
+          newUploadCount,
         })
-      }, 100)
+
+        // Clear temp image first
+        setTempProfileImage(null)
+
+        // Update trainer object
+        trainer.profileImage = url
+
+        // Set new temp image with cache busting
+        setTimeout(() => {
+          setTempProfileImage(cacheBustedUrl)
+          setUploadCount(newUploadCount)
+
+          console.log("[v0] Image upload complete - UI updated", {
+            cacheBustedUrl,
+            uploadCount: newUploadCount,
+          })
+        }, 100)
+      } else {
+        console.log("[v0] Image upload completed but image not yet available, using fallback")
+        // Still update the database reference but don't change UI immediately
+        trainer.profileImage = url
+        alert("Image uploaded successfully! It may take a moment to appear.")
+      }
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
       alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
