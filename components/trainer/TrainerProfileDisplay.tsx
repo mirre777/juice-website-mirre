@@ -272,17 +272,13 @@ export default function TrainerProfileDisplay({
       console.log("[v0] Database updated successfully")
 
       const timestamp = Date.now()
-      const cacheBustedUrl = `${url}?cb=${timestamp}`
-      setTempProfileImage(cacheBustedUrl)
+      const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random()}`
 
-      // Update the trainer object directly to persist the change
+      // Update both temp state and trainer object
+      setTempProfileImage(cacheBustedUrl)
       trainer.profileImage = url
 
-      console.log("[v0] Image upload complete", { cacheBustedUrl, originalUrl: url })
-
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
+      console.log("[v0] Image upload complete - staying in edit mode", { cacheBustedUrl, originalUrl: url })
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
       alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
