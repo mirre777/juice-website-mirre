@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/firebase"
+import { db } from "@/app/api/firebase-config"
 import { doc, updateDoc } from "firebase/firestore"
 
 export async function POST(request: NextRequest) {
@@ -8,6 +8,10 @@ export async function POST(request: NextRequest) {
 
     if (!trainerId || !profileImage) {
       return NextResponse.json({ error: "Trainer ID and profile image URL are required" }, { status: 400 })
+    }
+
+    if (!db) {
+      return NextResponse.json({ error: "Database not available" }, { status: 503 })
     }
 
     // Update trainer document with new profile image
