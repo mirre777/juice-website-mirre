@@ -257,9 +257,17 @@ export default function TrainerProfileDisplay({
         throw new Error("Failed to update profile image")
       }
 
-      // Add cache busting parameter to force image refresh
-      const cacheBustedUrl = `${url}?t=${Date.now()}`
+      const timestamp = Date.now()
+      const cacheBustedUrl = `${url}?v=${timestamp}&cb=${Math.random().toString(36).substring(7)}&_=${timestamp}`
       setTempProfileImage(cacheBustedUrl)
+
+      // Force browser to clear any cached versions
+      const img = new Image()
+      img.onload = () => {
+        // Image preloaded, force re-render
+        setTempProfileImage(`${url}?v=${Date.now()}&cb=${Math.random().toString(36).substring(7)}`)
+      }
+      img.src = cacheBustedUrl
     } catch (error) {
       console.error("Image upload failed:", error)
       alert("Failed to upload image. Please try again.")
@@ -284,10 +292,13 @@ export default function TrainerProfileDisplay({
                 <img
                   src={
                     tempProfileImage ||
-                    (trainer.profileImage ? `${trainer.profileImage}?t=${Date.now()}` : "/placeholder.svg")
+                    (trainer.profileImage
+                      ? `${trainer.profileImage}?v=${Date.now()}&cb=${Math.random().toString(36).substring(7)}&_=${Date.now()}`
+                      : "/placeholder.svg")
                   }
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
+                  key={tempProfileImage || trainer.profileImage || "placeholder"}
                 />
                 {!tempProfileImage && !trainer.profileImage && (
                   <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
