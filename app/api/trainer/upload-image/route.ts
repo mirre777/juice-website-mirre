@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { storage } from "@/lib/firebase-admin"
 
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
 
@@ -37,12 +36,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size too large. Maximum 5MB allowed." }, { status: 400 })
     }
 
-    if (!storage) {
-      console.error("Firebase Storage not initialized")
-      return NextResponse.json({ error: "Storage service unavailable" }, { status: 500 })
+    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
+    const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY
+    const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+
+    console.log("[v0] Firebase config check", {
+      hasProjectId: !!projectId,
+      hasClientEmail: !!clientEmail,
+      hasPrivateKey: !!privateKeyRaw,
+      hasStorageBucket: !!storageBucket,
+      storageBucket: storageBucket,
+    })
+
+    if (!projectId || !clientEmail || !privateKeyRaw || !storageBucket) {
+      console.error("Missing Firebase configuration:", {
+        projectId: !!projectId,
+        clientEmail: !!clientEmail,
+        privateKey: !!privateKeyRaw,
+        storageBucket: !!storageBucket,
+      })
+      return NextResponse.json({ error: "Firebase configuration incomplete" }, { status: 500 })
     }
 
+    const privateKey = privateKeyRaw.includes("\\n") ? privateKeyRaw.replace(/\\n/g, "\n") : privateKeyRaw
+
+    const { cert, getApps, initializeApp } = await import("firebase-admin/app")
+    const { getStorage } = await import("firebase-admin/storage")
+
+    // Initialize Firebase Admin if not already initialized
+    if (getApps().length === 0) {
+      console.log("[v0] Initializing Firebase Admin")
+      initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+        storageBucket,
+      })
+    }
+
+    const storage = getStorage()
     const bucket = storage.bucket()
+
+    console.log("[v0] Firebase Storage initialized", { bucketName: bucket.name })
 
     // Create file path and metadata
     const fileExtension = file.name.split(".").pop()
