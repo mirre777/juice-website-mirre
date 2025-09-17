@@ -274,40 +274,56 @@ export default function TrainerProfileDisplay({
         throw new Error(errorData.error || "Failed to update profile image")
       }
 
-      console.log("[v0] Database updated successfully")
+      const updateResult = await updateResponse.json()
+      console.log("[v0] Database updated successfully", updateResult.debug)
 
-      const waitForImageAvailability = async (imageUrl: string, maxAttempts = 10): Promise<boolean> => {
+      const verifyDatabaseUpdate = async (expectedUrl: string, maxAttempts = 5): Promise<boolean> => {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           try {
-            console.log(`[v0] Checking image availability - attempt ${attempt}/${maxAttempts}`)
+            console.log(`[v0] Verifying database update - attempt ${attempt}/${maxAttempts}`)
 
-            const response = await fetch(imageUrl, { method: "HEAD" })
-            if (response.ok) {
-              console.log(`[v0] Image is available after ${attempt} attempts`)
-              return true
+            // Fetch fresh data from the API to check if update persisted
+            const verifyResponse = await fetch(`/api/trainer/content/${trainer.id}?t=${Date.now()}`, {
+              cache: "no-cache",
+            })
+
+            if (verifyResponse.ok) {
+              const verifyData = await verifyResponse.json()
+              const currentDbImage = verifyData.trainer?.profileImage
+
+              console.log(`[v0] Database verification attempt ${attempt}`, {
+                expectedUrl: expectedUrl.substring(0, 50) + "...",
+                currentDbImage: currentDbImage?.substring(0, 50) + "...",
+                matches: currentDbImage === expectedUrl,
+              })
+
+              if (currentDbImage === expectedUrl) {
+                console.log(`[v0] Database update verified after ${attempt} attempts`)
+                return true
+              }
             }
           } catch (error) {
-            console.log(`[v0] Image not yet available - attempt ${attempt}`, error)
+            console.log(`[v0] Database verification failed - attempt ${attempt}`, error)
           }
 
-          // Wait before next attempt (exponential backoff)
-          await new Promise((resolve) => setTimeout(resolve, attempt * 500))
+          // Wait before next attempt
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000))
         }
 
-        console.log(`[v0] Image still not available after ${maxAttempts} attempts`)
+        console.log(`[v0] Database update not verified after ${maxAttempts} attempts`)
         return false
       }
 
-      const isImageAvailable = await waitForImageAvailability(url)
+      const isDatabaseUpdated = await verifyDatabaseUpdate(url)
 
-      if (isImageAvailable) {
+      if (isDatabaseUpdated) {
         const timestamp = Date.now()
         const newUploadCount = uploadCount + 1
         const randomId = Math.random().toString(36).substring(7)
 
         const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}`
 
-        console.log("[v0] Image is available, updating UI", {
+        console.log("[v0] Database verified, updating UI", {
           cacheBustedUrl,
           originalUrl: url,
           newUploadCount,
@@ -318,15 +334,24 @@ export default function TrainerProfileDisplay({
         setUploadCount(newUploadCount)
         setImageKey((prev) => prev + 1)
 
-        console.log("[v0] Image upload complete - UI updated", {
+        console.log("[v0] Image upload complete - UI updated with verified database state", {
           cacheBustedUrl,
           uploadCount: newUploadCount,
           imageKey: imageKey + 1,
         })
       } else {
-        console.log("[v0] Image upload completed but image not yet available, using fallback")
+        console.log("[v0] Database update could not be verified, but proceeding with UI update")
+        // Still update UI but warn user
+        const timestamp = Date.now()
+        const newUploadCount = uploadCount + 1
+        const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random().toString(36).substring(7)}&u=${newUploadCount}`
+
         trainer.profileImage = url
-        alert("Image uploaded successfully! It may take a moment to appear.")
+        setTempProfileImage(cacheBustedUrl)
+        setUploadCount(newUploadCount)
+        setImageKey((prev) => prev + 1)
+
+        alert("Image uploaded successfully! If it doesn't appear immediately, please refresh the page.")
       }
     } catch (error) {
       console.error("[v0] Image upload failed:", error)
