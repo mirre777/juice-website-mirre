@@ -217,6 +217,7 @@ export default function TrainerProfileDisplay({
 
   const [uploadingImage, setUploadingImage] = useState(false)
   const [tempProfileImage, setTempProfileImage] = useState<string | null>(null)
+  const [currentProfileImage, setCurrentProfileImage] = useState<string | null>(trainer.profileImage || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [lastUploadTime, setLastUploadTime] = useState(0)
   const [uploadCount, setUploadCount] = useState(0)
@@ -329,7 +330,7 @@ export default function TrainerProfileDisplay({
           newUploadCount,
         })
 
-        trainer.profileImage = url
+        setCurrentProfileImage(url)
         setTempProfileImage(cacheBustedUrl)
         setUploadCount(newUploadCount)
         setImageKey((prev) => prev + 1)
@@ -346,7 +347,7 @@ export default function TrainerProfileDisplay({
         const newUploadCount = uploadCount + 1
         const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random().toString(36).substring(7)}&u=${newUploadCount}`
 
-        trainer.profileImage = url
+        setCurrentProfileImage(url)
         setTempProfileImage(cacheBustedUrl)
         setUploadCount(newUploadCount)
         setImageKey((prev) => prev + 1)
@@ -368,6 +369,23 @@ export default function TrainerProfileDisplay({
     fileInputRef.current?.click()
   }
 
+  const getImageSource = () => {
+    if (tempProfileImage) {
+      console.log("[v0] Using tempProfileImage:", tempProfileImage)
+      return tempProfileImage
+    }
+
+    const baseImage = currentProfileImage || trainer.profileImage
+    if (baseImage) {
+      const cacheBustedImage = `${baseImage}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&u=${uploadCount}`
+      console.log("[v0] Using cache-busted image:", { baseImage, cacheBustedImage })
+      return cacheBustedImage
+    }
+
+    console.log("[v0] Using placeholder image")
+    return "/placeholder.svg"
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section - Shared Design with Purple Gradient */}
@@ -378,12 +396,7 @@ export default function TrainerProfileDisplay({
             <div className="relative flex-shrink-0">
               <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/20 bg-white/10">
                 <img
-                  src={
-                    tempProfileImage ||
-                    (trainer.profileImage
-                      ? `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random()}&u=${uploadCount}`
-                      : "/placeholder.svg")
-                  }
+                  src={getImageSource() || "/placeholder.svg"}
                   alt={trainer.fullName}
                   className="w-full h-full object-cover"
                   key={`profile-image-${imageKey}-${uploadCount}-${tempProfileImage ? "temp" : "original"}`}
@@ -392,6 +405,7 @@ export default function TrainerProfileDisplay({
                     console.log("[v0] Image loaded successfully", {
                       src: imgElement.src,
                       tempProfileImage,
+                      currentProfileImage,
                       trainerProfileImage: trainer.profileImage,
                       uploadCount,
                       imageKey,
@@ -402,13 +416,14 @@ export default function TrainerProfileDisplay({
                     console.log("[v0] Image failed to load", {
                       src: imgElement.src,
                       tempProfileImage,
+                      currentProfileImage,
                       trainerProfileImage: trainer.profileImage,
                       uploadCount,
                       imageKey,
                     })
                   }}
                 />
-                {!tempProfileImage && !trainer.profileImage && (
+                {!tempProfileImage && !currentProfileImage && !trainer.profileImage && (
                   <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
                     {getInitials(trainer.fullName)}
                   </div>
