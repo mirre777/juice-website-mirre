@@ -1,13 +1,62 @@
+import type { Metadata } from "next"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import WorkoutPlannerHero from "@/components/workout-planner-hero" // Import the new component
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Juice Workout Planner | Build Custom Fitness Programs for Clients",
   description:
-    "Design and deliver personalized workout programs with the Juice Workout Planner. Streamline program creation for personal trainers and fitness coaches.",
+    "Design and deliver personalized workout programs with the Juice Workout Planner. Streamline program creation for personal trainers and fitness coaches with our intuitive builder.",
+  keywords: [
+    "workout planner",
+    "fitness program builder",
+    "personal trainer software",
+    "workout program creator",
+    "exercise program design",
+    "fitness coaching tools",
+  ],
+  authors: [{ name: "Juice" }],
+  creator: "Juice",
+  publisher: "Juice",
+  metadataBase: new URL("https://juice.fitness"),
+  alternates: {
+    canonical: "/workout-planner",
+  },
   openGraph: {
-    images: "/images/og-feature-graphic.png",
+    type: "website",
+    locale: "en_US",
+    url: "/workout-planner",
+    title: "Juice Workout Planner | Build Custom Fitness Programs",
+    description:
+      "Design and deliver personalized workout programs with our intuitive workout planner. Perfect for personal trainers and fitness coaches.",
+    siteName: "Juice",
+    images: [
+      {
+        url: "/images/juice-logo-og.png",
+        width: 1200,
+        height: 630,
+        alt: "Juice Workout Planner - Build Custom Fitness Programs",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Juice Workout Planner | Build Custom Fitness Programs",
+    description:
+      "Design and deliver personalized workout programs with our intuitive workout planner for personal trainers.",
+    images: ["/images/juice-logo-og.png"],
+    creator: "@juice_app",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 }
 

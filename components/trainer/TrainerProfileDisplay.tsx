@@ -1,11 +1,13 @@
 "use client"
 import { Button } from "@/components/ui/button"
+import type React from "react"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { useState, useRef } from "react"
 import {
   MapPin,
   Users,
@@ -18,6 +20,7 @@ import {
   MessageCircle,
   Plus,
   Trash2,
+  Camera,
 } from "lucide-react"
 
 // Unified interfaces
@@ -212,90 +215,350 @@ export default function TrainerProfileDisplay({
     onContentChange(updatedContent)
   }
 
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [tempProfileImage, setTempProfileImage] = useState<string | null>(null)
+  const [currentProfileImage, setCurrentProfileImage] = useState<string | null>(trainer.profileImage || null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [lastUploadTime, setLastUploadTime] = useState(0)
+  const [uploadCount, setUploadCount] = useState(0)
+  const [imageKey, setImageKey] = useState(0)
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const now = Date.now()
+    if (uploadingImage || now - lastUploadTime < 2000) {
+      console.log("[v0] Upload blocked - too frequent or already uploading", {
+        uploadingImage,
+        timeSinceLastUpload: now - lastUploadTime,
+      })
+      return
+    }
+
+    setUploadingImage(true)
+    setLastUploadTime(now)
+
+    try {
+      console.log("[v0] Starting image upload", { fileName: file.name, size: file.size })
+
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("trainerId", trainer.id)
+
+      const uploadResponse = await fetch("/api/trainer/upload-image", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json()
+        throw new Error(errorData.error || "Failed to upload image")
+      }
+
+      const { url } = await uploadResponse.json()
+      console.log("[v0] Upload successful, updating database", { url })
+
+      const updateResponse = await fetch("/api/trainer/update-profile-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trainerId: trainer.id,
+          profileImage: url,
+        }),
+      })
+
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json()
+        throw new Error(errorData.error || "Failed to update profile image")
+      }
+
+      const updateResult = await updateResponse.json()
+      console.log("[v0] Database updated successfully", updateResult.debug)
+
+      const verifyDatabaseUpdate = async (expectedUrl: string, maxAttempts = 5): Promise<boolean> => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            console.log(`[v0] Verifying database update - attempt ${attempt}/${maxAttempts}`)
+
+            // Fetch fresh data from the API to check if update persisted
+            const verifyResponse = await fetch(`/api/trainer/content/${trainer.id}?t=${Date.now()}`, {
+              cache: "no-cache",
+            })
+
+            if (verifyResponse.ok) {
+              const verifyData = await verifyResponse.json()
+              const currentDbImage = verifyData.trainer?.profileImage
+
+              console.log(`[v0] Database verification attempt ${attempt}`, {
+                expectedUrl: expectedUrl.substring(0, 50) + "...",
+                currentDbImage: currentDbImage?.substring(0, 50) + "...",
+                matches: currentDbImage === expectedUrl,
+              })
+
+              if (currentDbImage === expectedUrl) {
+                console.log(`[v0] Database update verified after ${attempt} attempts`)
+                return true
+              }
+            }
+          } catch (error) {
+            console.log(`[v0] Database verification failed - attempt ${attempt}`, error)
+          }
+
+          // Wait before next attempt
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000))
+        }
+
+        console.log(`[v0] Database update not verified after ${maxAttempts} attempts`)
+        return false
+      }
+
+      const isDatabaseUpdated = await verifyDatabaseUpdate(url)
+
+      if (isDatabaseUpdated) {
+        const timestamp = Date.now()
+        const newUploadCount = uploadCount + 1
+        const randomId = Math.random().toString(36).substring(7)
+
+        const cacheBustedUrl = `${url}?cb=${timestamp}&v=${randomId}&u=${newUploadCount}`
+
+        console.log("[v0] Database verified, updating UI", {
+          cacheBustedUrl,
+          originalUrl: url,
+          newUploadCount,
+        })
+
+        trainer.profileImage = url
+        setCurrentProfileImage(url)
+        setTempProfileImage(cacheBustedUrl)
+        setUploadCount(newUploadCount)
+        setImageKey((prev) => prev + 1)
+
+        setTimeout(() => {
+          const imageElements = document.querySelectorAll(`img[alt="${trainer.fullName}"]`)
+          imageElements.forEach((img) => {
+            const imgElement = img as HTMLImageElement
+            const newSrc = `${url}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&force=true`
+            console.log("[v0] Force updating image element src:", newSrc)
+            imgElement.src = newSrc
+          })
+        }, 100)
+
+        console.log("[v0] Image upload complete - UI updated with verified database state", {
+          cacheBustedUrl,
+          uploadCount: newUploadCount,
+          imageKey: imageKey + 1,
+          updatedTrainerProfileImage: trainer.profileImage,
+        })
+      } else {
+        console.log("[v0] Database update could not be verified, but proceeding with UI update")
+        // Still update UI but warn user
+        const timestamp = Date.now()
+        const newUploadCount = uploadCount + 1
+        const cacheBustedUrl = `${url}?cb=${timestamp}&v=${Math.random().toString(36).substring(7)}&u=${newUploadCount}`
+
+        setCurrentProfileImage(url)
+        setTempProfileImage(cacheBustedUrl)
+        setUploadCount(newUploadCount)
+        setImageKey((prev) => prev + 1)
+
+        alert("Image uploaded successfully! If it doesn't appear immediately, please refresh the page.")
+      }
+    } catch (error) {
+      console.error("[v0] Image upload failed:", error)
+      alert(`Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`)
+    } finally {
+      setUploadingImage(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click()
+  }
+
+  const getImageSource = () => {
+    console.log("[v0] getImageSource called", {
+      tempProfileImage,
+      currentProfileImage,
+      trainerProfileImage: trainer.profileImage,
+      uploadCount,
+      imageKey,
+    })
+
+    // Priority 1: Use temp image if available (just uploaded)
+    if (tempProfileImage) {
+      console.log("[v0] Using tempProfileImage:", tempProfileImage)
+      return tempProfileImage
+    }
+
+    // Priority 2: Use current profile image (updated state)
+    if (currentProfileImage) {
+      const cacheBustedImage = `${currentProfileImage}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&u=${uploadCount}&k=${imageKey}`
+      console.log("[v0] Using currentProfileImage with cache busting:", cacheBustedImage)
+      return cacheBustedImage
+    }
+
+    // Priority 3: Use trainer profile image (from props/database)
+    if (trainer.profileImage) {
+      const cacheBustedImage = `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&u=${uploadCount}&k=${imageKey}`
+      console.log("[v0] Using trainer.profileImage with cache busting:", cacheBustedImage)
+      return cacheBustedImage
+    }
+
+    // Fallback: placeholder
+    console.log("[v0] Using placeholder image")
+    return "/placeholder.svg"
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section - Shared Design with Purple Gradient */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 mb-8">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Profile Image */}
-          <div className="mb-6">
-            <Avatar className="w-24 h-24 mx-auto border-4 border-white/20">
-              <AvatarImage src={trainer.profileImage || "/placeholder.svg"} alt={trainer.fullName} />
-              <AvatarFallback className="text-2xl bg-white/20 text-white">
-                {getInitials(trainer.fullName)}
-              </AvatarFallback>
-            </Avatar>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center md:items-center gap-6 mb-6">
+            {/* Profile Image - Left aligned and bigger */}
+            <div className="relative flex-shrink-0">
+              <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/20 bg-white/10">
+                <img
+                  src={getImageSource() || "/placeholder.svg"}
+                  alt={trainer.fullName}
+                  className="w-full h-full object-cover"
+                  key={`profile-image-${imageKey}-${uploadCount}-${tempProfileImage ? "temp" : "original"}`}
+                  onLoad={(event) => {
+                    const imgElement = event.target as HTMLImageElement
+                    console.log("[v0] Image loaded successfully", {
+                      src: imgElement.src,
+                      tempProfileImage,
+                      currentProfileImage,
+                      trainerProfileImage: trainer.profileImage,
+                      uploadCount,
+                      imageKey,
+                    })
+                  }}
+                  onError={(event) => {
+                    const imgElement = event.target as HTMLImageElement
+                    console.log("[v0] Image failed to load", {
+                      src: imgElement.src,
+                      tempProfileImage,
+                      currentProfileImage,
+                      trainerProfileImage: trainer.profileImage,
+                      uploadCount,
+                      imageKey,
+                    })
+                  }}
+                />
+                {!tempProfileImage && !currentProfileImage && !trainer.profileImage && (
+                  <div className="w-full h-full flex items-center justify-center text-4xl bg-white/20 text-white">
+                    {getInitials(trainer.fullName)}
+                  </div>
+                )}
+              </div>
+
+              {isEditing && (
+                <>
+                  <button
+                    onClick={triggerImageUpload}
+                    disabled={uploadingImage}
+                    className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Camera className="w-8 h-8 text-white" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  {uploadingImage && (
+                    <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Content - Right side */}
+            <div className="flex-1 md:text-left">
+              {/* Hero Title */}
+              {isEditing ? (
+                <div className="mb-4">
+                  <Input
+                    value={heroContent.title}
+                    onChange={(e) => updateContent("hero", "title", e.target.value)}
+                    className="text-3xl md:text-4xl font-bold text-white bg-transparent border-white/30 placeholder:text-white/70 focus:border-white/60"
+                    placeholder="Enter hero title"
+                  />
+                </div>
+              ) : (
+                <h1 className="text-3xl md:text-4xl font-bold mb-4">{heroContent.title}</h1>
+              )}
+
+              {/* Hero Subtitle */}
+              {isEditing ? (
+                <div className="mb-6">
+                  <Input
+                    value={heroContent.subtitle}
+                    onChange={(e) => updateContent("hero", "subtitle", e.target.value)}
+                    className="text-lg bg-transparent border-white/30 placeholder:text-white/70 focus:border-white/60 text-white"
+                    placeholder="Enter subtitle"
+                  />
+                </div>
+              ) : (
+                <p className="text-lg mb-6 opacity-90">{heroContent.subtitle}</p>
+              )}
+
+              {/* Hero Description */}
+              {isEditing ? (
+                <div className="mb-6">
+                  <Textarea
+                    value={heroContent.description}
+                    onChange={(e) => updateContent("hero", "description", e.target.value)}
+                    className="text-base bg-transparent border-white/30 placeholder:text-white/70 focus:border-white/60 text-white min-h-[80px] resize-none"
+                    placeholder="Enter description"
+                  />
+                </div>
+              ) : (
+                <p className="text-base mb-6 opacity-80">{heroContent.description}</p>
+              )}
+
+              <div className="flex flex-wrap gap-4 mb-6">
+                <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                  <Award className="h-4 w-4 mr-1" />
+                  {trainer.specialty}
+                </Badge>
+                <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {contactContent.location}
+                </Badge>
+                {trainer.certifications && (
+                  <Badge variant="secondary" className="text-blue-600 bg-white/90">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Certified
+                  </Badge>
+                )}
+              </div>
+
+              {/* CTA Button */}
+              <div>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="text-blue-600 bg-white hover:bg-gray-100"
+                  onClick={onBookConsultation}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Book Free Consultation
+                </Button>
+              </div>
+            </div>
           </div>
-
-          {/* Hero Title */}
-          {isEditing ? (
-            <div className="mb-4">
-              <Input
-                value={heroContent.title}
-                onChange={(e) => updateContent("hero", "title", e.target.value)}
-                className="text-4xl md:text-5xl font-bold text-white bg-transparent border-white/30 text-center placeholder:text-white/70 focus:border-white/60"
-                placeholder="Enter hero title"
-              />
-            </div>
-          ) : (
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{heroContent.title}</h1>
-          )}
-
-          {/* Hero Subtitle */}
-          {isEditing ? (
-            <div className="mb-6">
-              <Input
-                value={heroContent.subtitle}
-                onChange={(e) => updateContent("hero", "subtitle", e.target.value)}
-                className="text-xl bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60"
-                placeholder="Enter subtitle"
-              />
-            </div>
-          ) : (
-            <p className="text-xl mb-6 opacity-90">{heroContent.subtitle}</p>
-          )}
-
-          {/* Hero Description */}
-          {isEditing ? (
-            <div className="mb-6">
-              <Textarea
-                value={heroContent.description}
-                onChange={(e) => updateContent("hero", "description", e.target.value)}
-                className="text-lg bg-transparent border-white/30 text-center text-white placeholder:text-white/70 focus:border-white/60 min-h-[80px] resize-none"
-                placeholder="Enter description"
-              />
-            </div>
-          ) : (
-            <p className="text-lg mb-6 opacity-80 max-w-3xl mx-auto">{heroContent.description}</p>
-          )}
-
-          <div className="flex flex-wrap justify-center gap-4 mb-6">
-            <Badge variant="secondary" className="text-blue-600 bg-white/90">
-              <Award className="h-4 w-4 mr-1" />
-              {trainer.specialty}
-            </Badge>
-            <Badge variant="secondary" className="text-blue-600 bg-white/90">
-              <MapPin className="h-4 w-4 mr-1" />
-              {contactContent.location}
-            </Badge>
-            {trainer.certifications && (
-              <Badge variant="secondary" className="text-blue-600 bg-white/90">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Certified
-              </Badge>
-            )}
-          </div>
-
-          {/* CTA Button */}
-          <Button
-            size="lg"
-            variant="secondary"
-            className="text-blue-600 bg-white hover:bg-gray-100"
-            onClick={onBookConsultation}
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Book Free Consultation
-          </Button>
         </div>
       </div>
 
@@ -320,14 +583,18 @@ export default function TrainerProfileDisplay({
             </CardHeader>
             <CardContent>
               {isEditing ? (
-                <Textarea
-                  value={aboutContent.bio}
-                  onChange={(e) => updateContent("about", "bio", e.target.value)}
-                  className="bg-transparent border-gray-200 focus:border-blue-500 min-h-[120px] text-gray-600 leading-relaxed resize-none"
-                  placeholder="Tell your story..."
-                />
+                <div className="mb-4">
+                  <Textarea
+                    value={aboutContent.bio}
+                    onChange={(e) => updateContent("about", "bio", e.target.value)}
+                    className="bg-transparent border-gray-200 focus:border-blue-500 min-h-[120px] text-gray-600 leading-relaxed resize-none"
+                    placeholder="Tell your story..."
+                  />
+                </div>
               ) : (
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{aboutContent.bio}</p>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line break-words overflow-wrap-anywhere">
+                  {aboutContent.bio}
+                </p>
               )}
 
               {trainer.certifications && (

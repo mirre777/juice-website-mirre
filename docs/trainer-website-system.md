@@ -339,5 +339,5 @@ The trainer website generation system is **95% complete** and **production-ready
 The system demonstrates modern web development best practices with a focus on user experience, security, and scalability, making it ready for production deployment and real user traffic.
 \`\`\`
 
-```typescriptreact file="docs/trainer-content-editor-system.md" isDeleted="true"
+\`\`\`typescriptreact file="docs/trainer-content-editor-system.md" isDeleted="true"
 ...deleted...
