@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-feature-graphic.png",
+        url: "/images/juice-logo-og.png",
         width: 1200,
         height: 630,
         alt: "Personal Trainer Marketplace - Juice",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: "Personal Trainer Marketplace | Find Clients Online",
     description:
       "Join our curated trainer marketplace and connect with motivated clients looking for personal trainers.",
-    images: ["/images/og-feature-graphic.png"],
+    images: ["/images/juice-logo-og.png"],
     creator: "@juice_app",
   },
   robots: {

@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-feature-graphic.png",
+        url: "/images/juice-logo-og.png",
         width: 1200,
         height: 630,
         alt: "Juice Workout Planner - Build Custom Fitness Programs",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     title: "Juice Workout Planner | Build Custom Fitness Programs",
     description:
       "Design and deliver personalized workout programs with our intuitive workout planner for personal trainers.",
-    images: ["/images/og-feature-graphic.png"],
+    images: ["/images/juice-logo-og.png"],
     creator: "@juice_app",
   },
   robots: {

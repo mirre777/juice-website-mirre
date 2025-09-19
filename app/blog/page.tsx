@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-feature-graphic.png",
+        url: "/images/juice-logo-og.png",
         width: 1200,
         height: 630,
         alt: "Juice Blog - Fitness Coaching Tips",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     title: "Juice Blog - Fitness Coaching Tips & Personal Training Insights",
     description:
       "Expert insights and tips for fitness coaches and personal trainers. Grow your business and help clients succeed.",
-    images: ["/images/og-feature-graphic.png"],
+    images: ["/images/juice-logo-og.png"],
     creator: "@juice_app",
   },
   robots: {
