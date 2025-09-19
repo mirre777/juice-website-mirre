@@ -330,15 +330,27 @@ export default function TrainerProfileDisplay({
           newUploadCount,
         })
 
+        trainer.profileImage = url
         setCurrentProfileImage(url)
         setTempProfileImage(cacheBustedUrl)
         setUploadCount(newUploadCount)
         setImageKey((prev) => prev + 1)
 
+        setTimeout(() => {
+          const imageElements = document.querySelectorAll(`img[alt="${trainer.fullName}"]`)
+          imageElements.forEach((img) => {
+            const imgElement = img as HTMLImageElement
+            const newSrc = `${url}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&force=true`
+            console.log("[v0] Force updating image element src:", newSrc)
+            imgElement.src = newSrc
+          })
+        }, 100)
+
         console.log("[v0] Image upload complete - UI updated with verified database state", {
           cacheBustedUrl,
           uploadCount: newUploadCount,
           imageKey: imageKey + 1,
+          updatedTrainerProfileImage: trainer.profileImage,
         })
       } else {
         console.log("[v0] Database update could not be verified, but proceeding with UI update")
@@ -370,18 +382,35 @@ export default function TrainerProfileDisplay({
   }
 
   const getImageSource = () => {
+    console.log("[v0] getImageSource called", {
+      tempProfileImage,
+      currentProfileImage,
+      trainerProfileImage: trainer.profileImage,
+      uploadCount,
+      imageKey,
+    })
+
+    // Priority 1: Use temp image if available (just uploaded)
     if (tempProfileImage) {
       console.log("[v0] Using tempProfileImage:", tempProfileImage)
       return tempProfileImage
     }
 
-    const baseImage = currentProfileImage || trainer.profileImage
-    if (baseImage) {
-      const cacheBustedImage = `${baseImage}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&u=${uploadCount}`
-      console.log("[v0] Using cache-busted image:", { baseImage, cacheBustedImage })
+    // Priority 2: Use current profile image (updated state)
+    if (currentProfileImage) {
+      const cacheBustedImage = `${currentProfileImage}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&u=${uploadCount}&k=${imageKey}`
+      console.log("[v0] Using currentProfileImage with cache busting:", cacheBustedImage)
       return cacheBustedImage
     }
 
+    // Priority 3: Use trainer profile image (from props/database)
+    if (trainer.profileImage) {
+      const cacheBustedImage = `${trainer.profileImage}?cb=${Date.now()}&v=${Math.random().toString(36).substring(7)}&u=${uploadCount}&k=${imageKey}`
+      console.log("[v0] Using trainer.profileImage with cache busting:", cacheBustedImage)
+      return cacheBustedImage
+    }
+
+    // Fallback: placeholder
     console.log("[v0] Using placeholder image")
     return "/placeholder.svg"
   }
