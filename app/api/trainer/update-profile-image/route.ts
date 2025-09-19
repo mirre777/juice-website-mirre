@@ -1,8 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { db } from "@/app/api/firebase-config"
-import { doc, updateDoc, getDoc } from "firebase/firestore"
+import { getFirebaseAdminDb, isBuildTime } from "@/lib/firebase-global-guard"
 
 export async function POST(request: NextRequest) {
+  if (isBuildTime()) {
+    return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
+  }
+
   try {
     const { trainerId, profileImage } = await request.json()
 
@@ -15,12 +18,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Trainer ID and profile image URL are required" }, { status: 400 })
     }
 
-    if (!db) {
-      return NextResponse.json({ error: "Database not available" }, { status: 503 })
-    }
-
-    const trainerRef = doc(db, "trainers", trainerId)
-    const currentDoc = await getDoc(trainerRef)
+    const db = await getFirebaseAdminDb()
+    const trainerRef = db.collection("trainers").doc(trainerId)
+    const currentDoc = await trainerRef.get()
     const currentData = currentDoc.data()
 
     console.log("[v0] Current profile image in database", {
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     }
 
-    await updateDoc(trainerRef, updateData)
+    await trainerRef.update(updateData)
 
     console.log("[v0] Database update completed successfully")
 
-    const updatedDoc = await getDoc(trainerRef)
+    const updatedDoc = await trainerRef.get()
     const updatedData = updatedDoc.data()
 
     console.log("[v0] Verification read after update", {
