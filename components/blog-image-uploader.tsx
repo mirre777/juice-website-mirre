@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Upload, ImageIcon, Copy, Check } from "lucide-react"
 import Image from "next/image"
 
@@ -27,6 +28,7 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
   const [uploading, setUploading] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
+  const [preserveOriginalName, setPreserveOriginalName] = useState(false) // Added option to preserve original filename
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +47,7 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
       if (blogSlug) {
         formData.append("blogSlug", blogSlug)
       }
+      formData.append("preserveOriginalName", preserveOriginalName.toString())
 
       const response = await fetch("/api/admin/blog-images", {
         method: "POST",
@@ -125,6 +128,18 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
               )}
             </Button>
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="preserve-name"
+              checked={preserveOriginalName}
+              onCheckedChange={(checked) => setPreserveOriginalName(checked as boolean)}
+            />
+            <Label htmlFor="preserve-name" className="text-sm">
+              Preserve original filename (adds timestamp for uniqueness)
+            </Label>
+          </div>
+
           <p className="text-xs text-muted-foreground">Supported formats: JPG, PNG, WebP. Maximum size: 10MB</p>
         </div>
 

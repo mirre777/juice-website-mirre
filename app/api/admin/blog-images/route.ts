@@ -13,10 +13,12 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get("file") as File
     const blogSlug = formData.get("blogSlug") as string
+    const preserveOriginalName = formData.get("preserveOriginalName") === "true" // Added preserve original name option
 
     console.log("[v0] Blog image upload request received", {
       hasFile: !!file,
       blogSlug,
+      preserveOriginalName, // Log the preserve option
       fileType: file?.type,
       fileSize: file?.size,
     })
@@ -40,10 +42,20 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split(".").pop()
     const timestamp = Date.now()
 
-    // Create filename: blog-images/slug-timestamp.ext or blog-images/general-timestamp.ext
-    const fileName = blogSlug
-      ? `blog-images/${blogSlug}-${timestamp}.${fileExtension}`
-      : `blog-images/general-${timestamp}.${fileExtension}`
+    let fileName: string
+
+    if (preserveOriginalName) {
+      // Keep original name but add timestamp for uniqueness
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "")
+      fileName = blogSlug
+        ? `blog-images/${blogSlug}-${nameWithoutExt}-${timestamp}.${fileExtension}`
+        : `blog-images/${nameWithoutExt}-${timestamp}.${fileExtension}`
+    } else {
+      // Use the existing naming convention
+      fileName = blogSlug
+        ? `blog-images/${blogSlug}-${timestamp}.${fileExtension}`
+        : `blog-images/general-${timestamp}.${fileExtension}`
+    }
 
     console.log("[v0] Uploading blog image to Vercel Blob", { fileName })
 

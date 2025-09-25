@@ -11,6 +11,7 @@ import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2 } from "lucide-rea
 import Link from "next/link"
 import Image from "next/image"
 import { BlogImageUploader } from "@/components/blog-image-uploader"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface BlogPost {
   title: string
@@ -38,6 +39,7 @@ export default function BlogAdminPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deletingPosts, setDeletingPosts] = useState<Set<string>>(new Set())
+  const [selectedPostForImage, setSelectedPostForImage] = useState<string>("") // Added state for image linking
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,6 +110,33 @@ export default function BlogAdminPage() {
     }
   }
 
+  const handleImageAssigned = async (imageUrl: string, postSlug: string) => {
+    try {
+      // Update the blog post's frontmatter to include the new image
+      const response = await fetch("/api/admin/blog-posts", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug: postSlug,
+          image: imageUrl,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update blog post image")
+      }
+
+      // Refresh blog data to show updated image
+      await fetchBlogData()
+      alert("Image successfully linked to blog post!")
+    } catch (error) {
+      console.error("Error linking image to post:", error)
+      alert("Failed to link image to blog post")
+    }
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -170,158 +199,183 @@ export default function BlogAdminPage() {
         </Card>
       )}
 
-      <BlogImageUploader />
-
-      {blogData && (
-        <>
-          {/* Stats Overview */}
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{blogData.totalPosts}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Hardcoded Posts</CardTitle>
-                <Database className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{blogData.hardcodedPosts}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Blob Posts</CardTitle>
-                <Database className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{blogData.blobPosts}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">System Status</CardTitle>
-                <Database className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <Badge variant={blogData.isWorkingCorrectly ? "default" : "destructive"}>
-                  {blogData.isWorkingCorrectly ? "Working" : "Issues"}
-                </Badge>
-              </CardContent>
-            </Card>
-          </div>
-
-          {blogData.errors && blogData.errors.length > 0 && (
-            <Card className="border-destructive">
-              <CardHeader>
-                <CardTitle className="text-destructive">Processing Errors ({blogData.errors.length})</CardTitle>
-                <CardDescription>Errors encountered while processing blog posts from Blob storage</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {blogData.errors.map((error, index) => (
-                    <div key={index} className="p-3 bg-red-50 border border-red-200 rounded text-sm">
-                      <code className="text-red-800">{error}</code>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload & Link Images</CardTitle>
+          <CardDescription>Upload images and optionally link them to specific blog posts</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {blogData && blogData.posts.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Link to Blog Post (Optional)</label>
+              <Select value={selectedPostForImage} onValueChange={setSelectedPostForImage}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a blog post to link image to..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No specific post (general upload)</SelectItem>
+                  {blogData.posts
+                    .filter((post) => post.source === "blob") // Only show editable posts
+                    .map((post) => (
+                      <SelectItem key={post.slug} value={post.slug}>
+                        {post.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
-          {/* Blog Posts List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>All Blog Posts</CardTitle>
-              <CardDescription>
-                Complete list of blog posts from both hardcoded samples and Blob storage
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {blogData.posts.map((post, index) => (
-                  <div
-                    key={`${post.slug}-${index}`}
-                    className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50"
-                  >
-                    {/* Post Image */}
+          <BlogImageUploader
+            blogSlug={selectedPostForImage || undefined}
+            onImageUploaded={(imageUrl) => {
+              if (selectedPostForImage) {
+                handleImageAssigned(imageUrl, selectedPostForImage)
+              }
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Stats Overview */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{blogData.totalPosts}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Hardcoded Posts</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{blogData.hardcodedPosts}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Blob Posts</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{blogData.blobPosts}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">System Status</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <Badge variant={blogData.isWorkingCorrectly ? "default" : "destructive"}>
+              {blogData.isWorkingCorrectly ? "Working" : "Issues"}
+            </Badge>
+          </CardContent>
+        </Card>
+      </div>
+
+      {blogData.errors && blogData.errors.length > 0 && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Processing Errors ({blogData.errors.length})</CardTitle>
+            <CardDescription>Errors encountered while processing blog posts from Blob storage</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {blogData.errors.map((error, index) => (
+                <div key={index} className="p-3 bg-red-50 border border-red-200 rounded text-sm">
+                  <code className="text-red-800">{error}</code>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Blog Posts List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Blog Posts</CardTitle>
+          <CardDescription>Complete list of blog posts from both hardcoded samples and Blob storage</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {blogData.posts.map((post, index) => (
+              <div
+                key={`${post.slug}-${index}`}
+                className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50"
+              >
+                {/* Post Image */}
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
+                    {post.image && (
+                      <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Post Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg line-clamp-2 mb-2">{post.title}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{post.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Tag className="w-4 h-4" />
+                          <Badge variant="outline" className="text-xs">
+                            {post.category}
+                          </Badge>
+                        </div>
+                        <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
+                          {post.source === "hardcoded" ? "Sample" : "Dynamic"}
+                        </Badge>
+                      </div>
+                    </div>
+
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
-                        {post.image && (
-                          <Image
-                            src={post.image || "/placeholder.svg"}
-                            alt={post.title}
-                            fill
-                            className="object-cover"
-                          />
+                      <div className="flex gap-2">
+                        <Link href={`/blog/${post.slug}`} target="_blank">
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+                        </Link>
+                        {post.source === "blob" && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeletePost(post.slug, post.source)}
+                            disabled={deletingPosts.has(post.slug)}
+                          >
+                            {deletingPosts.has(post.slug) ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
                         )}
                       </div>
                     </div>
-
-                    {/* Post Details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg line-clamp-2 mb-2">{post.title}</h3>
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{post.date}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Tag className="w-4 h-4" />
-                              <Badge variant="outline" className="text-xs">
-                                {post.category}
-                              </Badge>
-                            </div>
-                            <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
-                              {post.source === "hardcoded" ? "Sample" : "Dynamic"}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="flex-shrink-0">
-                          <div className="flex gap-2">
-                            <Link href={`/blog/${post.slug}`} target="_blank">
-                              <Button variant="outline" size="sm">
-                                <Eye className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                            {post.source === "blob" && (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeletePost(post.slug, post.source)}
-                                disabled={deletingPosts.has(post.slug)}
-                              >
-                                {deletingPosts.has(post.slug) ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                                ) : (
-                                  <Trash2 className="w-4 h-4" />
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

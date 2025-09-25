@@ -1,6 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAllPosts } from "@/lib/blog"
-import { del, list } from "@vercel/blob"
+import { del, list, put } from "@vercel/blob" // Added put import for updating blog posts
+
+function isHardcodedPost(slug: string): boolean {
+  const hardcodedSlugs = [
+    "fundamentals-of-weightlifting-guide-to-building-real-strength",
+    "are-wearables-accurate-enough-to-track-complex-lifting-movements",
+    "tracking-biometrics-what-actually-moves-the-needle",
+    "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
+    "how-to-get-more-clients-with-booking-page",
+    "top-5-free-personal-trainer-website-builders-2025",
+    "seo-tips-for-fitness-coaches-in-europe",
+    "strength-training-revolution-berlin-gyms",
+  ]
+
+  return hardcodedSlugs.includes(slug)
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,6 +53,74 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to fetch blog posts",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { slug, image } = await request.json()
+
+    if (!slug) {
+      return NextResponse.json({ error: "Slug is required" }, { status: 400 })
+    }
+
+    if (!image) {
+      return NextResponse.json({ error: "Image URL is required" }, { status: 400 })
+    }
+
+    // Prevent updating hardcoded posts
+    if (isHardcodedPost(slug)) {
+      return NextResponse.json({ error: "Cannot update hardcoded sample posts" }, { status: 403 })
+    }
+
+    console.log(`[v0] Blog admin API: Updating image for post with slug: ${slug}`)
+
+    // Find the existing blog post file
+    const { blobs } = await list({ prefix: "blog/" })
+    const blogFile = blobs.find((blob) => blob.pathname.includes(slug) && blob.pathname.endsWith(".md"))
+
+    if (!blogFile) {
+      return NextResponse.json({ error: "Blog post not found" }, { status: 404 })
+    }
+
+    // Fetch the current content
+    const response = await fetch(blogFile.url)
+    const currentContent = await response.text()
+
+    // Update the frontmatter image field
+    const updatedContent = updateFrontmatterImage(currentContent, image)
+
+    // Upload the updated content back to blob storage
+    await put(blogFile.pathname, updatedContent, {
+      access: "public",
+      allowOverwrite: true,
+    })
+
+    console.log(`[v0] Blog admin API: Successfully updated image for post: ${slug}`)
+
+    // Revalidate cache
+    try {
+      const { revalidatePath } = await import("next/cache")
+      revalidatePath("/blog")
+      revalidatePath(`/blog/${slug}`)
+      console.log("[v0] Blog admin API: Cache revalidated for updated post")
+    } catch (revalidateError) {
+      console.error("[v0] Blog admin API: Failed to revalidate cache:", revalidateError)
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully updated image for post: ${slug}`,
+    })
+  } catch (error) {
+    console.error("[v0] Blog admin API patch error:", error)
+    return NextResponse.json(
+      {
+        error: "Failed to update blog post",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
@@ -103,17 +186,29 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-function isHardcodedPost(slug: string): boolean {
-  const hardcodedSlugs = [
-    "fundamentals-of-weightlifting-guide-to-building-real-strength",
-    "are-wearables-accurate-enough-to-track-complex-lifting-movements",
-    "tracking-biometrics-what-actually-moves-the-needle",
-    "google-sheets-for-coaching-trainers-secret-weapon-or-trap",
-    "how-to-get-more-clients-with-booking-page",
-    "top-5-free-personal-trainer-website-builders-2025",
-    "seo-tips-for-fitness-coaches-in-europe",
-    "strength-training-revolution-berlin-gyms",
-  ]
+function updateFrontmatterImage(content: string, newImageUrl: string): string {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/
+  const match = content.match(frontmatterRegex)
 
-  return hardcodedSlugs.includes(slug)
+  if (!match) {
+    // If no frontmatter exists, add it
+    return `---\nimage: "${newImageUrl}"\n---\n\n${content}`
+  }
+
+  const frontmatter = match[1]
+  const restOfContent = content.substring(match[0].length)
+
+  // Check if image field already exists
+  const imageRegex = /^image:\s*"?([^"\n]*)"?$/m
+
+  let updatedFrontmatter: string
+  if (imageRegex.test(frontmatter)) {
+    // Replace existing image
+    updatedFrontmatter = frontmatter.replace(imageRegex, `image: "${newImageUrl}"`)
+  } else {
+    // Add new image field
+    updatedFrontmatter = frontmatter + `\nimage: "${newImageUrl}"`
+  }
+
+  return `---\n${updatedFrontmatter}\n---${restOfContent}`
 }
