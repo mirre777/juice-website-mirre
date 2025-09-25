@@ -230,6 +230,7 @@ export default function BlogAdminPage() {
 
           <BlogImageUploader
             blogSlug={selectedPostForImage || undefined}
+            availablePosts={blogData?.posts || []}
             onImageUploaded={(imageUrl) => {
               if (selectedPostForImage) {
                 handleImageAssigned(imageUrl, selectedPostForImage)

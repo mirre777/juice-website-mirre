@@ -8,12 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, ImageIcon, Copy, Check, X } from "lucide-react"
 import Image from "next/image"
 
 interface BlogImageUploaderProps {
   blogSlug?: string
   onImageUploaded?: (imageUrl: string) => void
+  availablePosts?: Array<{ slug: string; title: string; source: string }>
 }
 
 interface UploadedImage {
@@ -24,13 +26,17 @@ interface UploadedImage {
   type: string
 }
 
-export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUploaderProps) {
+export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = [] }: BlogImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
   const [preserveOriginalName, setPreserveOriginalName] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedBlogPost, setSelectedBlogPost] = useState<string>(blogSlug || "")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Filter out hardcoded posts - only show editable blob posts
+  const editablePosts = availablePosts.filter((post) => post.source === "blob")
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -54,25 +60,46 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
 
       const formData = new FormData()
       formData.append("file", selectedFile)
-      if (blogSlug) {
-        formData.append("blogSlug", blogSlug)
+      if (selectedBlogPost) {
+        formData.append("blogSlug", selectedBlogPost)
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
 
-      const response = await fetch("/api/admin/blog-images", {
+      // Step 1: Upload the image
+      const uploadResponse = await fetch("/api/admin/blog-images", {
         method: "POST",
         body: formData,
       })
 
-      if (!response.ok) {
-        const error = await response.json()
+      if (!uploadResponse.ok) {
+        const error = await uploadResponse.json()
         throw new Error(error.error || "Upload failed")
       }
 
-      const result = await response.json()
+      const uploadResult = await uploadResponse.json()
 
-      setUploadedImages((prev) => [result, ...prev])
-      onImageUploaded?.(result.url)
+      if (selectedBlogPost) {
+        const linkResponse = await fetch("/api/admin/blog-posts", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            slug: selectedBlogPost,
+            image: uploadResult.url,
+          }),
+        })
+
+        if (!linkResponse.ok) {
+          const linkError = await linkResponse.json()
+          throw new Error(linkError.error || "Failed to link image to blog post")
+        }
+
+        alert("Image successfully linked to blog post!")
+      }
+
+      setUploadedImages((prev) => [uploadResult, ...prev])
+      onImageUploaded?.(uploadResult.url)
 
       clearSelectedFile()
     } catch (error) {
@@ -110,10 +137,29 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
         </CardTitle>
         <CardDescription>
           Upload images for blog posts. Images will be stored in the blog-images folder.
-          {blogSlug && ` Linked to: ${blogSlug}`}
+          {selectedBlogPost && ` Linked to: ${selectedBlogPost}`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {editablePosts.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="blog-post-select">Link to Blog Post (Optional)</Label>
+            <Select value={selectedBlogPost} onValueChange={setSelectedBlogPost}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a blog post to link this image to" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No blog post (general upload)</SelectItem>
+                {editablePosts.map((post) => (
+                  <SelectItem key={post.slug} value={post.slug}>
+                    {post.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Upload Section */}
         <div className="space-y-2">
           <Label htmlFor="image-upload">Select Image</Label>
