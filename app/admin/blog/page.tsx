@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { BlogImageUploader } from "@/components/blog-image-uploader"
 
 interface BlogPost {
   title: string
@@ -168,6 +169,8 @@ export default function BlogAdminPage() {
           </CardContent>
         </Card>
       )}
+
+      <BlogImageUploader />
 
       {blogData && (
         <>
