@@ -79,13 +79,36 @@ export async function PATCH(request: NextRequest) {
 
     console.log(`[v0] Blog admin API: Updating image for post with slug: ${slug}`)
 
-    // Find the existing blog post file
+    // Find the existing blog post file with improved matching
     const { blobs } = await list({ prefix: "blog/" })
-    const blogFile = blobs.find((blob) => blob.pathname.includes(slug) && blob.pathname.endsWith(".md"))
+
+    const blogFile = blobs.find((blob) => {
+      if (!blob.pathname.endsWith(".md")) return false
+
+      const rawSlug = blob.pathname.replace("blog/", "").replace(/\.md$/, "")
+      const cleanedSlug = cleanSlugFromFilename(rawSlug)
+
+      // Try multiple matching strategies
+      return (
+        cleanedSlug === slug || // Exact match after cleaning
+        rawSlug === slug || // Exact raw match
+        blob.pathname.includes(slug) || // Contains slug
+        rawSlug.includes(slug) || // Raw slug contains target
+        slug.includes(cleanedSlug) || // Target contains cleaned slug
+        slug.includes(rawSlug) // Target contains raw slug
+      )
+    })
 
     if (!blogFile) {
+      console.log(`[v0] Blog admin API: No matching file found for slug: ${slug}`)
+      console.log(
+        `[v0] Available files:`,
+        blobs.map((b) => b.pathname),
+      )
       return NextResponse.json({ error: "Blog post not found" }, { status: 404 })
     }
+
+    console.log(`[v0] Blog admin API: Found matching file: ${blogFile.pathname}`)
 
     // Fetch the current content
     const response = await fetch(blogFile.url)
@@ -211,4 +234,15 @@ function updateFrontmatterImage(content: string, newImageUrl: string): string {
   }
 
   return `---\n${updatedFrontmatter}\n---${restOfContent}`
+}
+
+function cleanSlugFromFilename(filename: string): string {
+  return filename
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
+    .replace(/\s*$$[^)]*$$\s*/g, "")
+    .replace(/-\d{10,}/g, "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase()
 }
