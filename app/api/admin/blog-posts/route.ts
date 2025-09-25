@@ -76,6 +76,16 @@ export async function DELETE(request: NextRequest) {
 
     console.log(`[v0] Blog admin API: Successfully deleted ${filesToDelete.length} files for post: ${slug}`)
 
+    try {
+      const { revalidatePath } = await import("next/cache")
+      revalidatePath("/blog")
+      revalidatePath("/blog/[slug]", "page")
+      console.log("[v0] Blog admin API: Cache revalidated for /blog and /blog/[slug]")
+    } catch (revalidateError) {
+      console.error("[v0] Blog admin API: Failed to revalidate cache:", revalidateError)
+      // Don't fail the deletion if revalidation fails
+    }
+
     return NextResponse.json({
       success: true,
       message: `Successfully deleted post: ${slug}`,
