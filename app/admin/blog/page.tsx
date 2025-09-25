@@ -56,7 +56,9 @@ export default function BlogAdminPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch("/api/admin/blog-posts")
+      const response = await fetch(`/api/admin/blog-posts?t=${Date.now()}`, {
+        cache: "no-store",
+      })
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

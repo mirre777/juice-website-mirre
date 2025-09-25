@@ -157,10 +157,7 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
                       Uploading...
                     </>
                   ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload
-                    </>
+                    "Confirm"
                   )}
                 </Button>
               </div>
