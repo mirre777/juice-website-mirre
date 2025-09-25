@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   keywords:
     "best online personal trainer, personal trainer website, coaching app for personal trainers, workout builder app, personal training software, fitness app for trainers, workout planner, online personal trainer app, personal trainer business tips, fitness coaching app",
   generator: "v0.dev",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     images: [
       {
@@ -27,6 +34,9 @@ export const metadata: Metadata = {
         alt: "Juice Fitness App - Simple Workout Logging",
       },
     ],
+  },
+  other: {
+    "calendly-css": "https://assets.calendly.com/assets/external/widget.css",
   },
 }
 
@@ -41,9 +51,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
+      <body className={inter.className}>
+        {/* Google Tag Manager (noscript) */}
+        <noscript
+          dangerouslySetInnerHTML={{
+            __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5375W2FZ"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+          }}
+        />
+        {/* End Google Tag Manager (noscript) */}
+
         {/* Google Tag Manager */}
-        <script
+        <Script
+          id="google-tag-manager"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -52,7 +73,6 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','GTM-5375W2FZ');`,
           }}
         />
-        {/* End Google Tag Manager */}
 
         {shouldLoadAnalytics && (
           <>
@@ -71,25 +91,6 @@ export default function RootLayout({
             </Script>
           </>
         )}
-        {/* End Google Analytics */}
-
-        {/* Favicon */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-        {/* Calendly badge widget CSS - Placed in head */}
-        <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
-      </head>
-      <body className={inter.className}>
-        {/* Google Tag Manager (noscript) */}
-        <noscript
-          dangerouslySetInnerHTML={{
-            __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5375W2FZ"
-            height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
-          }}
-        />
-        {/* End Google Tag Manager (noscript) */}
 
         <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
@@ -110,8 +111,9 @@ export default function RootLayout({
         />
 
         {/* Calendly initialization script - Runs on client after library loads */}
-        <script
-          type="text/javascript"
+        <Script
+          id="calendly-init"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               document.addEventListener('DOMContentLoaded', function() {
