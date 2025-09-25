@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Upload, ImageIcon, Copy, Check } from "lucide-react"
+import { Upload, ImageIcon, Copy, Check, X } from "lucide-react"
 import Image from "next/image"
 
 interface BlogImageUploaderProps {
@@ -28,22 +28,32 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
   const [uploading, setUploading] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
-  const [preserveOriginalName, setPreserveOriginalName] = useState(false) // Added option to preserve original filename
+  const [preserveOriginalName, setPreserveOriginalName] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
-
-    await uploadImage(file)
+    if (file) {
+      setSelectedFile(file)
+    }
   }
 
-  const uploadImage = async (file: File) => {
+  const clearSelectedFile = () => {
+    setSelectedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const uploadImage = async () => {
+    if (!selectedFile) return
+
     try {
       setUploading(true)
 
       const formData = new FormData()
-      formData.append("file", file)
+      formData.append("file", selectedFile)
       if (blogSlug) {
         formData.append("blogSlug", blogSlug)
       }
@@ -64,10 +74,7 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
       setUploadedImages((prev) => [result, ...prev])
       onImageUploaded?.(result.url)
 
-      // Clear the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
+      clearSelectedFile()
     } catch (error) {
       console.error("Upload error:", error)
       alert(error instanceof Error ? error.message : "Failed to upload image")
@@ -121,13 +128,44 @@ export function BlogImageUploader({ blogSlug, onImageUploaded }: BlogImageUpload
               className="flex-1"
             />
             <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} variant="outline">
-              {uploading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-              ) : (
-                <Upload className="w-4 h-4" />
-              )}
+              <Upload className="w-4 h-4" />
             </Button>
           </div>
+
+          {selectedFile && (
+            <div className="p-3 border rounded-lg bg-muted/50">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">Selected file:</p>
+                <Button size="sm" variant="ghost" onClick={clearSelectedFile} disabled={uploading}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 relative rounded bg-gray-100 flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-gray-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{selectedFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFileSize(selectedFile.size)} • {selectedFile.type}
+                  </p>
+                </div>
+                <Button onClick={uploadImage} disabled={uploading} className="ml-auto">
+                  {uploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center space-x-2">
             <Checkbox
