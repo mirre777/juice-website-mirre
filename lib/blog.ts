@@ -523,6 +523,7 @@ function cleanSlugFromFilename(filename: string): string {
     .replace(/^-+/, "")
     .replace(/-+$/, "")
     .replace(/\s*$$[^)]*$$\s*/g, "")
+    .replace(/-\d{10,}/g, "")
     .replace(/[^a-z0-9-]/gi, "-")
     .replace(/-+/g, "-")
     .toLowerCase()
@@ -707,6 +708,7 @@ function cleanTitle(title: string): string {
     .trim()
     .replace(/\bai\b/gi, "AI")
     .replace(/\bbffs?\b/gi, (match) => (match.toLowerCase() === "bff" ? "BFF" : "BFFs"))
+    .replace(/\s+\d{10,}\s*$/g, "")
 }
 
 export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
