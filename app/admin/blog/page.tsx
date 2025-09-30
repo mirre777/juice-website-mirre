@@ -12,6 +12,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { BlogImageUploader } from "@/components/blog-image-uploader"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { InlineEditTitle } from "@/components/inline-edit-title"
 
 interface BlogPost {
   title: string
@@ -136,6 +137,39 @@ export default function BlogAdminPage() {
     } catch (error) {
       console.error("Error linking image to post:", error)
       alert("Failed to link image to blog post")
+    }
+  }
+
+  const handleTitleUpdate = async (slug: string, newTitle: string) => {
+    try {
+      console.log("[v0] Starting title update for slug:", slug, "new title:", newTitle)
+
+      const response = await fetch("/api/admin/blog-posts", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug,
+          title: newTitle,
+        }),
+      })
+
+      console.log("[v0] Title update response status:", response.status)
+
+      if (!response.ok) {
+        throw new Error("Failed to update title")
+      }
+
+      const result = await response.json()
+      console.log("[v0] Title update result:", result)
+
+      // Refresh blog data to show updated title
+      await fetchBlogData()
+      console.log("[v0] Blog data refreshed after title update")
+    } catch (error) {
+      console.error("[v0] Error updating title:", error)
+      throw error // Re-throw to let the component handle the error
     }
   }
 
@@ -329,7 +363,11 @@ export default function BlogAdminPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg line-clamp-2 mb-2">{post.title}</h3>
+                      <InlineEditTitle
+                        initialTitle={post.title}
+                        onSave={(newTitle) => handleTitleUpdate(post.slug, newTitle)}
+                        disabled={post.source === "hardcoded"}
+                      />
                       <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1">

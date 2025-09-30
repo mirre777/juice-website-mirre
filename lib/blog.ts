@@ -730,13 +730,13 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
     return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  console.log("[v0] Attempting to fetch from blob storage with token available")
+  console.log(`[v0] getAllPosts: Starting blob fetch at ${new Date().toISOString()}`)
 
   try {
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
 
-    console.log("[v0] Found", blobs.blobs.length, "blobs in storage")
+    console.log(`[v0] getAllPosts: Found ${blobs.blobs.length} blobs in storage at ${new Date().toISOString()}`)
 
     for (const blob of blobs.blobs) {
       try {
@@ -758,7 +758,15 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           }
 
           posts.push(post)
-          console.log("[v0] Added blob post:", extractedTitle)
+          console.log(
+            `[v0] getAllPosts: Added blob post "${extractedTitle}" with slug "${cleanSlug}" from file "${blob.pathname}"`,
+          )
+
+          if (extractedTitle.toLowerCase().includes("strength training") || cleanSlug.includes("strength-training")) {
+            console.log(
+              `[v0] getAllPosts: *** STRENGTH TRAINING POST *** Title: "${extractedTitle}" | Slug: "${cleanSlug}" | File: "${blob.pathname}"`,
+            )
+          }
         }
       } catch (error) {
         const errorMessage = `Error processing blob ${blob.pathname}: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -774,7 +782,21 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
   }
   ;(getAllPosts as any).lastErrors = errors
 
-  console.log("[v0] Total posts found:", posts.length, "(8 sample +", posts.length - 8, "from blob)")
+  const finalPostCount = posts.length
+  const blobPostCount = finalPostCount - 8 // 8 sample posts
+  console.log(
+    `[v0] getAllPosts: Completed at ${new Date().toISOString()} - Total posts: ${finalPostCount} (8 sample + ${blobPostCount} from blob)`,
+  )
+
+  const finalStrengthPost = posts.find(
+    (p) => p.title.toLowerCase().includes("strength training") || p.slug.includes("strength-training"),
+  )
+  if (finalStrengthPost) {
+    console.log(
+      `[v0] getAllPosts: Final strength training post in results - Title: "${finalStrengthPost.title}" | Slug: "${finalStrengthPost.slug}"`,
+    )
+  }
+
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 

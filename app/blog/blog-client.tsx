@@ -8,6 +8,32 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowRight, X } from "lucide-react"
 import { useState } from "react"
 
+const TITLE_OVERRIDES: Record<string, string> = {
+  "ai-and-personal-training-bffs-or-frenemies": "AI And Personal Training BFFs Or Frenemies",
+  "stop-the-clock-why-grannies-should-pump-iron-and-you-should-too":
+    "Stop The Clock Why Grannies Should Pump Iron And You Should Too",
+  "top-fitness-software-in-berlin-2025-because-spreadsheets-are-so-last-year":
+    "Top Fitness Software In Berlin 2025 Because Spreadsheets Are So Last Year",
+  "heavy-vs-light-what-lifters-should-aim-for": "Heavy Vs Light - What Lifters Should Aim For",
+  "resistance-training-is-medicine": "Resistance Training Is Medicine",
+  "strength-training-works-at-any-age": "Strength Training Works At Any Age",
+  "the-best-tools-for-personal-trainers-in-berlin-2025": "The Best Tools For Personal Trainers In Berlin 2025",
+  "why-strength-training-is-really-just-fighting-gra": "Why Strength Training Is Really Just Fighting Gravity",
+  "you-dont-build-muscle-at-the-gym": "You Dont Build Muscle At The Gym",
+  "are-wearables-accurate-enough-to-track-complex-lifting-movements":
+    "Are Wearables Accurate Enough to Track Complex Lifting Movements?",
+  "tracking-biometrics-what-actually-moves-the-needle": "Tracking Biometrics: What Actually Moves the Needle",
+  "google-sheets-for-coaching-a-trainers-secret-weapon-or-trap":
+    "Google Sheets for Coaching: A Trainer's Secret Weapon (or Trap?)",
+  "how-to-get-more-clients-with-a-booking-page": "How to Get More Clients with a Booking Page",
+  "top-5-free-personal-trainer-website-builders-2025": "Top 5 Free Personal Trainer Website Builders (2025)",
+  "seo-tips-for-fitness-coaches-in-europe": "SEO Tips for Fitness Coaches in Europe",
+  "fundamentals-of-weightlifting-a-grown-ups-guide-to-building-real-strength":
+    "Fundamentals of Weightlifting: A Grown-Up's Guide to Building Real Strength",
+  "strength-training-myths-busted": "Strength Training Myths Busted",
+  "strength-training-revolution-whats-new-in-berlin-gyms": "Strength Training Revolution: What's New in Berlin Gyms",
+}
+
 // Fitness-related placeholder images for blog posts
 const getPlaceholderImage = (category: string) => {
   const placeholders = {
@@ -107,44 +133,48 @@ export function BlogClient({ posts }: BlogClientProps) {
       {/* Blog Posts */}
       {filteredPosts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPosts.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
-              <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
-                <div className="relative overflow-hidden rounded-t-lg">
-                  <Image
-                    src={post.image || getPlaceholderImage(post.category)}
-                    alt={post.title}
-                    width={400}
-                    height={240}
-                    className="w-full h-48 object-cover object-[center_30%] group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>
+          {filteredPosts.map((post) => {
+            const displayTitle = TITLE_OVERRIDES[post.slug] || post.title
+
+            return (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
+                <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
+                  <div className="relative overflow-hidden rounded-t-lg">
+                    <Image
+                      src={post.image || getPlaceholderImage(post.category)}
+                      alt={displayTitle}
+                      width={400}
+                      height={240}
+                      className="w-full h-48 object-cover object-[center_30%] group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>
+                    </div>
                   </div>
-                </div>
 
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
-                    {post.title}
-                  </CardTitle>
-                </CardHeader>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
+                      {displayTitle}
+                    </CardTitle>
+                  </CardHeader>
 
-                <CardContent className="pt-0 flex-1 flex flex-col justify-between">
-                  <CardDescription className="text-gray-600 mb-4 line-clamp-3 flex-1">{post.excerpt}</CardDescription>
+                  <CardContent className="pt-0 flex-1 flex flex-col justify-between">
+                    <CardDescription className="text-gray-600 mb-4 line-clamp-3 flex-1">{post.excerpt}</CardDescription>
 
-                  <div className="flex items-center justify-end">
-                    <Button
-                      variant="ghost"
-                      className="group/btn p-0 h-auto font-semibold text-black hover:text-juice hover:bg-transparent"
-                    >
-                      Read More
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                    <div className="flex items-center justify-end">
+                      <Button
+                        variant="ghost"
+                        className="group/btn p-0 h-auto font-semibold text-black hover:text-juice hover:bg-transparent"
+                      >
+                        Read More
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       ) : (
         <div className="text-center py-16">

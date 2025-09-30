@@ -62,14 +62,14 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { slug, image } = await request.json()
+    const { slug, image, title } = await request.json()
 
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
-    if (!image) {
-      return NextResponse.json({ error: "Image URL is required" }, { status: 400 })
+    if (!image && !title) {
+      return NextResponse.json({ error: "Either image URL or title is required" }, { status: 400 })
     }
 
     // Prevent updating hardcoded posts
@@ -77,7 +77,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Cannot update hardcoded sample posts" }, { status: 403 })
     }
 
-    console.log(`[v0] Blog admin API: Updating image for post with slug: ${slug}`)
+    console.log(`[v0] Blog admin API: Starting ${title ? "TITLE" : "IMAGE"} update for slug: ${slug}`)
+    if (title) {
+      console.log(`[v0] Blog admin API: New title will be: "${title}"`)
+    }
 
     // Find the existing blog post file with improved matching
     const { blobs } = await list({ prefix: "blog/" })
@@ -114,8 +117,22 @@ export async function PATCH(request: NextRequest) {
     const response = await fetch(blogFile.url)
     const currentContent = await response.text()
 
-    // Update the frontmatter image field
-    const updatedContent = updateFrontmatterImage(currentContent, image)
+    if (title) {
+      const currentTitleMatch = currentContent.match(/^title:\s*"?([^"\n]*)"?$/m)
+      console.log(
+        `[v0] Blog admin API: Current title in file: "${currentTitleMatch ? currentTitleMatch[1] : "NOT FOUND"}"`,
+      )
+    }
+
+    let updatedContent = currentContent
+    if (image) {
+      updatedContent = updateFrontmatterImage(updatedContent, image)
+    }
+    if (title) {
+      updatedContent = updateFrontmatterTitle(updatedContent, title)
+      const newTitleMatch = updatedContent.match(/^title:\s*"?([^"\n]*)"?$/m)
+      console.log(`[v0] Blog admin API: Updated title in content: "${newTitleMatch ? newTitleMatch[1] : "NOT FOUND"}"`)
+    }
 
     // Upload the updated content back to blob storage
     await put(blogFile.pathname, updatedContent, {
@@ -123,21 +140,22 @@ export async function PATCH(request: NextRequest) {
       allowOverwrite: true,
     })
 
-    console.log(`[v0] Blog admin API: Successfully updated image for post: ${slug}`)
+    console.log(`[v0] Blog admin API: Successfully uploaded updated content to blob storage`)
 
     // Revalidate cache
     try {
       const { revalidatePath } = await import("next/cache")
+      console.log(`[v0] Blog admin API: About to revalidate paths: /blog and /blog/${slug}`)
       revalidatePath("/blog")
       revalidatePath(`/blog/${slug}`)
-      console.log("[v0] Blog admin API: Cache revalidated for updated post")
+      console.log(`[v0] Blog admin API: Cache revalidation completed successfully`)
     } catch (revalidateError) {
       console.error("[v0] Blog admin API: Failed to revalidate cache:", revalidateError)
     }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully updated image for post: ${slug}`,
+      message: `Successfully updated ${title ? "title" : "image"} for post: ${slug}`,
     })
   } catch (error) {
     console.error("[v0] Blog admin API patch error:", error)
@@ -231,6 +249,33 @@ function updateFrontmatterImage(content: string, newImageUrl: string): string {
   } else {
     // Add new image field
     updatedFrontmatter = frontmatter + `\nimage: "${newImageUrl}"`
+  }
+
+  return `---\n${updatedFrontmatter}\n---${restOfContent}`
+}
+
+function updateFrontmatterTitle(content: string, newTitle: string): string {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/
+  const match = content.match(frontmatterRegex)
+
+  if (!match) {
+    // If no frontmatter exists, add it
+    return `---\ntitle: "${newTitle}"\n---\n\n${content}`
+  }
+
+  const frontmatter = match[1]
+  const restOfContent = content.substring(match[0].length)
+
+  // Check if title field already exists
+  const titleRegex = /^title:\s*"?([^"\n]*)"?$/m
+
+  let updatedFrontmatter: string
+  if (titleRegex.test(frontmatter)) {
+    // Replace existing title
+    updatedFrontmatter = frontmatter.replace(titleRegex, `title: "${newTitle}"`)
+  } else {
+    // Add new title field at the beginning
+    updatedFrontmatter = `title: "${newTitle}"\n${frontmatter}`
   }
 
   return `---\n${updatedFrontmatter}\n---${restOfContent}`
