@@ -62,8 +62,28 @@ export const metadata: Metadata = {
   },
 }
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function BlogPage() {
+  console.log(`[v0] Blog page: Starting to fetch posts at ${new Date().toISOString()}`)
   const posts = await getAllPosts()
+  console.log(`[v0] Blog page: Fetched ${posts.length} posts at ${new Date().toISOString()}`)
+
+  posts.slice(0, 5).forEach((post, index) => {
+    console.log(
+      `[v0] Blog page: Post ${index + 1} - Title: "${post.title}" | Slug: "${post.slug}" | Category: "${post.category}"`,
+    )
+  })
+
+  const strengthPost = posts.find((p) => p.slug.includes("strength-training") || p.title.includes("Strength Training"))
+  if (strengthPost) {
+    console.log(
+      `[v0] Blog page: Found strength training post - Title: "${strengthPost.title}" | Slug: "${strengthPost.slug}"`,
+    )
+  } else {
+    console.log(`[v0] Blog page: No strength training post found in ${posts.length} posts`)
+  }
 
   return (
     <main className="min-h-screen bg-white text-black">
