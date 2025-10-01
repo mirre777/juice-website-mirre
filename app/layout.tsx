@@ -110,39 +110,56 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
 
-        {/* Calendly initialization script - Runs on client after library loads */}
         <Script
           id="calendly-init"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
-              document.addEventListener('DOMContentLoaded', function() {
-                function initCalendly() {
-                  if (window.location.pathname === '/gratis-workout-app-met-trainer') {
-                    return;
-                  }
-                  
-                  const consentBanner = document.querySelector('[data-consent-banner="true"]');
-                  if (consentBanner) {
-                    // Banner still exists, retry after 1 second
-                    setTimeout(initCalendly, 1000);
-                    return;
-                  }
-                  
-                  if (window.Calendly) {
-                    window.Calendly.initBadgeWidget({
-                      url: 'https://calendly.com/sofree-mirre/talk',
-                      text: 'Are you a Trainer? Let\\'s talk.',
-                      color: '#9fc5fb',
-                      textColor: '#ffffff'
-                    });
-                  } else {
-                    // Retry if Calendly library not loaded yet
-                    setTimeout(initCalendly, 200);
-                  }
+              console.log('[v0] Calendly init script loaded');
+              
+              function initCalendly() {
+                console.log('[v0] Attempting to initialize Calendly');
+                console.log('[v0] Current pathname:', window.location.pathname);
+                
+                if (window.location.pathname === '/gratis-workout-app-met-trainer') {
+                  console.log('[v0] Skipping Calendly on this page');
+                  return;
                 }
-                initCalendly();
-              });
+                
+                const consentBanner = document.querySelector('[data-consent-banner="true"]');
+                console.log('[v0] Consent banner exists:', !!consentBanner);
+                
+                if (consentBanner) {
+                  console.log('[v0] Consent banner still visible, retrying in 1s');
+                  setTimeout(initCalendly, 1000);
+                  return;
+                }
+                
+                if (window.Calendly) {
+                  console.log('[v0] Initializing Calendly badge widget');
+                  window.Calendly.initBadgeWidget({
+                    url: 'https://calendly.com/sofree-mirre/talk',
+                    text: 'Are you a Trainer? Let\\'s talk.',
+                    color: '#9fc5fb',
+                    textColor: '#ffffff'
+                  });
+                  console.log('[v0] Calendly badge widget initialized');
+                } else {
+                  console.log('[v0] Calendly library not loaded yet, retrying in 200ms');
+                  setTimeout(initCalendly, 200);
+                }
+              }
+              
+              // Start initialization after a short delay to ensure DOM is ready
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                  console.log('[v0] DOM loaded, starting Calendly init');
+                  setTimeout(initCalendly, 500);
+                });
+              } else {
+                console.log('[v0] DOM already loaded, starting Calendly init');
+                setTimeout(initCalendly, 500);
+              }
             `,
           }}
         />
