@@ -62,14 +62,14 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { slug, image, title } = await request.json()
+    const { slug, image, title, category } = await request.json()
 
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
-    if (!image && !title) {
-      return NextResponse.json({ error: "Either image URL or title is required" }, { status: 400 })
+    if (!image && !title && !category) {
+      return NextResponse.json({ error: "Either image URL, title, or category is required" }, { status: 400 })
     }
 
     // Prevent updating hardcoded posts
@@ -77,9 +77,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Cannot update hardcoded sample posts" }, { status: 403 })
     }
 
-    console.log(`[v0] Blog admin API: Starting ${title ? "TITLE" : "IMAGE"} update for slug: ${slug}`)
+    console.log(
+      `[v0] Blog admin API: Starting ${title ? "TITLE" : image ? "IMAGE" : "CATEGORY"} update for slug: ${slug}`,
+    )
     if (title) {
       console.log(`[v0] Blog admin API: New title will be: "${title}"`)
+    }
+    if (category) {
+      console.log(`[v0] Blog admin API: New category will be: "${category}"`)
     }
 
     // Find the existing blog post file with improved matching
@@ -133,6 +138,13 @@ export async function PATCH(request: NextRequest) {
       const newTitleMatch = updatedContent.match(/^title:\s*"?([^"\n]*)"?$/m)
       console.log(`[v0] Blog admin API: Updated title in content: "${newTitleMatch ? newTitleMatch[1] : "NOT FOUND"}"`)
     }
+    if (category) {
+      updatedContent = updateFrontmatterCategory(updatedContent, category)
+      const newCategoryMatch = updatedContent.match(/^category:\s*"?([^"\n]*)"?$/m)
+      console.log(
+        `[v0] Blog admin API: Updated category in content: "${newCategoryMatch ? newCategoryMatch[1] : "NOT FOUND"}"`,
+      )
+    }
 
     // Upload the updated content back to blob storage
     await put(blogFile.pathname, updatedContent, {
@@ -155,7 +167,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully updated ${title ? "title" : "image"} for post: ${slug}`,
+      message: `Successfully updated ${title ? "title" : image ? "image" : "category"} for post: ${slug}`,
     })
   } catch (error) {
     console.error("[v0] Blog admin API patch error:", error)
@@ -276,6 +288,33 @@ function updateFrontmatterTitle(content: string, newTitle: string): string {
   } else {
     // Add new title field at the beginning
     updatedFrontmatter = `title: "${newTitle}"\n${frontmatter}`
+  }
+
+  return `---\n${updatedFrontmatter}\n---${restOfContent}`
+}
+
+function updateFrontmatterCategory(content: string, newCategory: string): string {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/
+  const match = content.match(frontmatterRegex)
+
+  if (!match) {
+    // If no frontmatter exists, add it
+    return `---\ncategory: "${newCategory}"\n---\n\n${content}`
+  }
+
+  const frontmatter = match[1]
+  const restOfContent = content.substring(match[0].length)
+
+  // Check if category field already exists
+  const categoryRegex = /^category:\s*"?([^"\n]*)"?$/m
+
+  let updatedFrontmatter: string
+  if (categoryRegex.test(frontmatter)) {
+    // Replace existing category
+    updatedFrontmatter = frontmatter.replace(categoryRegex, `category: "${newCategory}"`)
+  } else {
+    // Add new category field
+    updatedFrontmatter = frontmatter + `\ncategory: "${newCategory}"`
   }
 
   return `---\n${updatedFrontmatter}\n---${restOfContent}`

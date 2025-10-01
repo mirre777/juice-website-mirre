@@ -12,6 +12,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { BlogImageUploader } from "@/components/blog-image-uploader"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { InlineEditTitle } from "@/components/inline-edit-title"
 
 interface BlogPost {
@@ -41,6 +42,7 @@ export default function BlogAdminPage() {
   const [error, setError] = useState<string | null>(null)
   const [deletingPosts, setDeletingPosts] = useState<Set<string>>(new Set())
   const [selectedPostForImage, setSelectedPostForImage] = useState<string>("") // Added state for image linking
+  const [updatingCategories, setUpdatingCategories] = useState<Set<string>>(new Set()) // Added state for tracking category updates
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -170,6 +172,44 @@ export default function BlogAdminPage() {
     } catch (error) {
       console.error("[v0] Error updating title:", error)
       throw error // Re-throw to let the component handle the error
+    }
+  }
+
+  const handleCategoryUpdate = async (slug: string, newCategory: string, source: "hardcoded" | "blob") => {
+    if (source === "hardcoded") {
+      alert("Cannot update hardcoded sample posts")
+      return
+    }
+
+    try {
+      setUpdatingCategories((prev) => new Set(prev).add(slug))
+
+      const response = await fetch("/api/admin/blog-posts", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug,
+          category: newCategory,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update category")
+      }
+
+      // Refresh blog data to show updated category
+      await fetchBlogData()
+    } catch (error) {
+      console.error("Error updating category:", error)
+      alert("Failed to update category")
+    } finally {
+      setUpdatingCategories((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(slug)
+        return newSet
+      })
     }
   }
 
@@ -345,75 +385,103 @@ export default function BlogAdminPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {blogData.posts.map((post, index) => (
-              <div
-                key={`${post.slug}-${index}`}
-                className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50"
-              >
-                {/* Post Image */}
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
-                    {post.image && (
-                      <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
-                    )}
-                  </div>
-                </div>
+            {blogData.posts.map((post, index) => {
+              const allCategories = [...new Set(blogData.posts.map((p) => p.category))].sort()
 
-                {/* Post Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <InlineEditTitle
-                        initialTitle={post.title}
-                        onSave={(newTitle) => handleTitleUpdate(post.slug, newTitle)}
-                        disabled={post.source === "hardcoded"}
-                      />
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{post.date}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Tag className="w-4 h-4" />
-                          <Badge variant="outline" className="text-xs">
-                            {post.category}
+              return (
+                <div
+                  key={`${post.slug}-${index}`}
+                  className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50"
+                >
+                  {/* Post Image */}
+                  <div className="flex-shrink-0">
+                    <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
+                      {post.image && (
+                        <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Post Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <InlineEditTitle
+                          initialTitle={post.title}
+                          onSave={(newTitle) => handleTitleUpdate(post.slug, newTitle)}
+                          disabled={post.source === "hardcoded"}
+                        />
+                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{post.date}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Tag className="w-4 h-4" />
+                            {post.source === "blob" ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs cursor-pointer hover:bg-gray-100 transition-colors"
+                                  >
+                                    {updatingCategories.has(post.slug) ? "Updating..." : post.category}
+                                  </Badge>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                  {allCategories.map((category) => (
+                                    <DropdownMenuItem
+                                      key={category}
+                                      onClick={() => handleCategoryUpdate(post.slug, category, post.source)}
+                                      className={post.category === category ? "bg-gray-100 font-medium" : ""}
+                                    >
+                                      {category}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                {post.category}
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
+                            {post.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
                           </Badge>
                         </div>
-                        <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
-                          {post.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
-                        </Badge>
                       </div>
-                    </div>
 
-                    <div className="flex-shrink-0">
-                      <div className="flex gap-2">
-                        <Link href={`/blog/${post.slug}`} target="_blank">
-                          <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                        </Link>
-                        {post.source === "blob" && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeletePost(post.slug, post.source)}
-                            disabled={deletingPosts.has(post.slug)}
-                          >
-                            {deletingPosts.has(post.slug) ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </Button>
-                        )}
+                      <div className="flex-shrink-0">
+                        <div className="flex gap-2">
+                          <Link href={`/blog/${post.slug}`} target="_blank">
+                            <Button variant="outline" size="sm">
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </Link>
+                          {post.source === "blob" && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeletePost(post.slug, post.source)}
+                              disabled={deletingPosts.has(post.slug)}
+                            >
+                              {deletingPosts.has(post.slug) ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </CardContent>
       </Card>
