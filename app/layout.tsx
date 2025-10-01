@@ -116,7 +116,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               function initCalendly() {
-                if (window.location.pathname === '/gratis-workout-app-met-trainer') {
+                if (window.location.pathname === '/gratis-workout-app-met-trainer' || 
+                    window.location.pathname.startsWith('/admin')) {
                   return;
                 }
                 
