@@ -428,7 +428,9 @@ export default function BlogAdminPage() {
         <CardContent>
           <div className="space-y-4">
             {blogData.posts.map((post, index) => {
-              const allCategories = [...new Set(blogData.posts.map((p) => p.category))].sort()
+              const allCategories = [...new Set([...blogData.posts.map((p) => p.category), "Science"])]
+                .filter((cat) => cat !== "myths")
+                .sort()
 
               return (
                 <div
