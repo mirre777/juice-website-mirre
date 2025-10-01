@@ -24,6 +24,9 @@ export function HomePageFeaturesSection() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
 
+  const BLUR_DATA_URL =
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
+
   const clientFeatures: Feature[] = [
     {
       icon: <Activity className="h-6 w-6 text-juice" />,
@@ -156,6 +159,9 @@ export function HomePageFeaturesSection() {
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    sizes="(max-width: 1024px) 100vw, 400px"
                     className="w-full h-auto"
                   />
                 </div>

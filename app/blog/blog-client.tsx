@@ -32,6 +32,8 @@ const TITLE_OVERRIDES: Record<string, string> = {
     "Fundamentals of Weightlifting: A Grown-Up's Guide to Building Real Strength",
   "strength-training-myths-busted": "Strength Training Myths Busted",
   "strength-training-revolution-whats-new-in-berlin-gyms": "Strength Training Revolution: What's New in Berlin Gyms",
+  "what-makes-a-good-weightlifting-exercise-the-science-based-checklist":
+    "What Makes A Good Weightlifting Exercise: The Science-based Checklist",
 }
 
 // Fitness-related placeholder images for blog posts
@@ -54,6 +56,9 @@ const getPlaceholderImage = (category: string) => {
 interface BlogClientProps {
   posts: any[]
 }
+
+const BLUR_DATA_URL =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
 
 export function BlogClient({ posts }: BlogClientProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -133,7 +138,7 @@ export function BlogClient({ posts }: BlogClientProps) {
       {/* Blog Posts */}
       {filteredPosts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPosts.map((post) => {
+          {filteredPosts.map((post, index) => {
             const displayTitle = TITLE_OVERRIDES[post.slug] || post.title
 
             return (
@@ -145,7 +150,11 @@ export function BlogClient({ posts }: BlogClientProps) {
                       alt={displayTitle}
                       width={400}
                       height={240}
-                      className="w-full h-48 object-cover object-[center_30%] group-hover:scale-105 transition-transform duration-300"
+                      priority={true}
+                      placeholder="blur"
+                      blurDataURL={BLUR_DATA_URL}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-juice text-juice-foreground">{post.category}</Badge>

@@ -24,6 +24,8 @@ interface UploadedImage {
   originalName: string
   size: number
   type: string
+  originalSize?: number // Added to show compression stats
+  compressionRatio?: string // Added to show compression stats
 }
 
 export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = [] }: BlogImageUploaderProps) {
@@ -78,6 +80,12 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
 
       const uploadResult = await uploadResponse.json()
 
+      if (uploadResult.compressionRatio) {
+        console.log(
+          `[v0] Image compressed: ${uploadResult.originalSize} → ${uploadResult.size} bytes (${uploadResult.compressionRatio} reduction)`,
+        )
+      }
+
       if (selectedBlogPost) {
         const linkResponse = await fetch("/api/admin/blog-posts", {
           method: "PATCH",
@@ -95,7 +103,9 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
           throw new Error(linkError.error || "Failed to link image to blog post")
         }
 
-        alert("Image successfully linked to blog post!")
+        alert(
+          `Image successfully linked to blog post!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
+        )
       }
 
       setUploadedImages((prev) => [uploadResult, ...prev])
@@ -248,6 +258,9 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
                     <p className="font-medium text-sm truncate">{image.originalName}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatFileSize(image.size)} • {image.type}
+                      {image.compressionRatio && (
+                        <span className="text-green-600 ml-1">• {image.compressionRatio} smaller</span>
+                      )}
                     </p>
                     <div className="flex items-center gap-1 mt-2">
                       <Input value={image.url} readOnly className="text-xs h-8 font-mono" />

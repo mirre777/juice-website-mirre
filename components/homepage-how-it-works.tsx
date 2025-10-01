@@ -11,6 +11,9 @@ export function HomePageHowItWorks() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
 
+  const BLUR_DATA_URL =
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
+
   const clientSteps = [
     {
       title: "Get a program from your trainer",
@@ -102,7 +105,9 @@ export function HomePageHowItWorks() {
       }
     }, [])
 
-    return <video ref={videoRef} src={src} className={className} muted loop playsInline controls={false} />
+    return (
+      <video ref={videoRef} src={src} className={className} muted loop playsInline controls={false} preload="none" />
+    )
   }
 
   return (
@@ -164,6 +169,9 @@ export function HomePageHowItWorks() {
                                 src={step.image || "/placeholder.svg"}
                                 alt={step.title}
                                 fill
+                                placeholder="blur"
+                                blurDataURL={BLUR_DATA_URL}
+                                sizes="(max-width: 768px) 280px, 320px"
                                 className="object-contain object-center rounded-2xl"
                                 style={{ objectFit: "contain", objectPosition: "center" }}
                               />
@@ -178,6 +186,7 @@ export function HomePageHowItWorks() {
                             src={step.image || "/placeholder.svg"}
                             alt={step.title}
                             className="w-full h-auto object-contain"
+                            loading="lazy"
                           />
                         )}
                       </div>
@@ -218,6 +227,9 @@ export function HomePageHowItWorks() {
                                   alt={image.alt}
                                   width={500}
                                   height={350}
+                                  placeholder="blur"
+                                  blurDataURL={BLUR_DATA_URL}
+                                  sizes="(max-width: 768px) 100vw, 500px"
                                   className="w-full h-auto object-contain rounded-lg"
                                 />
                               </div>
@@ -231,6 +243,9 @@ export function HomePageHowItWorks() {
                                 alt={step.title}
                                 width={index === 3 ? 300 : 600}
                                 height={index === 3 ? 400 : 800}
+                                placeholder="blur"
+                                blurDataURL={BLUR_DATA_URL}
+                                sizes={index === 3 ? "300px" : "(max-width: 768px) 100vw, 600px"}
                                 className="w-full h-auto object-contain rounded-xl"
                               />
                             </div>
@@ -240,6 +255,7 @@ export function HomePageHowItWorks() {
                             src={step.image || "/placeholder.svg"}
                             alt={step.title}
                             className="w-full h-auto object-contain"
+                            loading="lazy"
                           />
                         )}
                       </div>

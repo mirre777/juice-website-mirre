@@ -12,6 +12,9 @@ import { Footer } from "@/components/footer"
 import { ChevronRight } from "lucide-react"
 import { trackPageView } from "@/lib/analytics"
 
+const BLUR_DATA_URL =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
+
 export function HomePageClient() {
   const { setIsCoach } = useTheme()
   const [showWaitlist, setShowWaitlist] = useState(false)
@@ -87,6 +90,10 @@ export function HomePageClient() {
                     alt="Personal trainer website builder"
                     width={400}
                     height={300}
+                    priority
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 400px"
                     className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                   />
                 </div>
@@ -114,6 +121,7 @@ export function HomePageClient() {
                     loop
                     muted
                     playsInline
+                    preload="none"
                     className="w-full max-w-lg h-auto rounded-xl shadow-lg"
                     width={400}
                     height={300}
@@ -144,6 +152,10 @@ export function HomePageClient() {
                     alt="Mobile workout tracking app"
                     width={240}
                     height={520}
+                    priority
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                    sizes="(max-width: 768px) 160px, 240px"
                     className="w-40 h-auto"
                   />
                 </div>
