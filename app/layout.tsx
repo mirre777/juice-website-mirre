@@ -35,9 +35,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: {
-    "calendly-css": "https://assets.calendly.com/assets/external/widget.css",
-  },
 }
 
 // Get GA tracking ID from environment variables
@@ -51,6 +48,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
+      </head>
       <body className={inter.className}>
         {/* Google Tag Manager (noscript) */}
         <noscript
@@ -110,39 +110,42 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
 
-        {/* Calendly initialization script - Runs on client after library loads */}
         <Script
           id="calendly-init"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
-              document.addEventListener('DOMContentLoaded', function() {
-                function initCalendly() {
-                  if (window.location.pathname === '/gratis-workout-app-met-trainer') {
-                    return;
-                  }
-                  
-                  const consentBanner = document.querySelector('[data-consent-banner="true"]');
-                  if (consentBanner) {
-                    // Banner still exists, retry after 1 second
-                    setTimeout(initCalendly, 1000);
-                    return;
-                  }
-                  
-                  if (window.Calendly) {
-                    window.Calendly.initBadgeWidget({
-                      url: 'https://calendly.com/sofree-mirre/talk',
-                      text: 'Are you a Trainer? Let\\'s talk.',
-                      color: '#9fc5fb',
-                      textColor: '#ffffff'
-                    });
-                  } else {
-                    // Retry if Calendly library not loaded yet
-                    setTimeout(initCalendly, 200);
-                  }
+              function initCalendly() {
+                if (window.location.pathname === '/gratis-workout-app-met-trainer') {
+                  return;
                 }
-                initCalendly();
-              });
+                
+                const consentBanner = document.querySelector('[data-consent-banner="true"]');
+                
+                if (consentBanner) {
+                  setTimeout(initCalendly, 1000);
+                  return;
+                }
+                
+                if (window.Calendly) {
+                  window.Calendly.initBadgeWidget({
+                    url: 'https://calendly.com/sofree-mirre/talk',
+                    text: 'Are you a Trainer? Let\\'s talk.',
+                    color: '#9fc5fb',
+                    textColor: '#ffffff'
+                  });
+                } else {
+                  setTimeout(initCalendly, 200);
+                }
+              }
+              
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                  setTimeout(initCalendly, 500);
+                });
+              } else {
+                setTimeout(initCalendly, 500);
+              }
             `,
           }}
         />
