@@ -381,7 +381,7 @@ export default function BlogAdminPage() {
                           </Badge>
                         </div>
                         <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
-                          {post.source === "hardcoded" ? "Sample" : "Dynamic"}
+                          {post.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
                         </Badge>
                       </div>
                     </div>
