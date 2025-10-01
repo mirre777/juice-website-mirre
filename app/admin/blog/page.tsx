@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2 } from "lucide-react"
+import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2, Edit3, X, Save } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { BlogImageUploader } from "@/components/blog-image-uploader"
@@ -47,6 +47,9 @@ export default function BlogAdminPage() {
   const [selectedPostForImage, setSelectedPostForImage] = useState<string>("") // Added state for image linking
   const [updatingCategories, setUpdatingCategories] = useState<Set<string>>(new Set()) // Added state for tracking category updates
   const [updatingDates, setUpdatingDates] = useState<Set<string>>(new Set()) // Added state for tracking date updates
+  const [editingContent, setEditingContent] = useState<string | null>(null) // Added state for tracking content editing
+  const [contentBeingEdited, setContentBeingEdited] = useState<string>("")
+  const [savingContent, setSavingContent] = useState(false)
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -255,6 +258,66 @@ export default function BlogAdminPage() {
     }
   }
 
+  const handleEditContent = async (slug: string, source: "hardcoded" | "blob") => {
+    if (source === "hardcoded") {
+      alert("Cannot edit hardcoded sample posts")
+      return
+    }
+
+    try {
+      // Fetch the full markdown content
+      const response = await fetch(`/api/admin/blog-posts/content?slug=${slug}`)
+      if (!response.ok) {
+        throw new Error("Failed to fetch post content")
+      }
+
+      const data = await response.json()
+      setContentBeingEdited(data.content)
+      setEditingContent(slug)
+    } catch (error) {
+      console.error("Error fetching content:", error)
+      alert("Failed to load post content for editing")
+    }
+  }
+
+  const handleSaveContent = async (slug: string) => {
+    try {
+      setSavingContent(true)
+
+      const response = await fetch("/api/admin/blog-posts/content", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug,
+          content: contentBeingEdited,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save content")
+      }
+
+      await fetchBlogData()
+      setEditingContent(null)
+      setContentBeingEdited("")
+      alert("Content saved successfully!")
+    } catch (error) {
+      console.error("Error saving content:", error)
+      alert("Failed to save content")
+    } finally {
+      setSavingContent(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    if (confirm("Discard changes?")) {
+      setEditingContent(null)
+      setContentBeingEdited("")
+    }
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -432,118 +495,172 @@ export default function BlogAdminPage() {
                 .filter((cat) => cat !== "myths")
                 .sort()
 
+              const isEditing = editingContent === post.slug
+
               return (
                 <div
                   key={`${post.slug}-${index}`}
-                  className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50"
+                  className={`border rounded-lg ${isEditing ? "ring-2 ring-primary" : ""}`}
                 >
-                  {/* Post Image */}
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
-                      {post.image && (
-                        <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Post Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <InlineEditTitle
-                          initialTitle={post.title}
-                          onSave={(newTitle) => handleTitleUpdate(post.slug, newTitle)}
-                          disabled={post.source === "hardcoded"}
-                        />
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {post.source === "blob" ? (
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <button className="hover:text-gray-900 hover:underline transition-colors">
-                                    {updatingDates.has(post.slug) ? "Updating..." : post.date}
-                                  </button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <CalendarComponent
-                                    mode="single"
-                                    selected={new Date(post.date)}
-                                    onSelect={(date) => {
-                                      if (date) {
-                                        handleDateUpdate(post.slug, date, post.source)
-                                      }
-                                    }}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            ) : (
-                              <span>{post.date}</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Tag className="w-4 h-4" />
-                            {post.source === "blob" ? (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs cursor-pointer hover:bg-gray-100 transition-colors"
-                                  >
-                                    {updatingCategories.has(post.slug) ? "Updating..." : post.category}
-                                  </Badge>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                  {allCategories.map((category) => (
-                                    <DropdownMenuItem
-                                      key={category}
-                                      onClick={() => handleCategoryUpdate(post.slug, category, post.source)}
-                                      className={post.category === category ? "bg-gray-100 font-medium" : ""}
-                                    >
-                                      {category}
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            ) : (
-                              <Badge variant="outline" className="text-xs">
-                                {post.category}
-                              </Badge>
-                            )}
-                          </div>
-                          <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
-                            {post.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
-                          </Badge>
-                        </div>
+                  <div className="flex items-start gap-4 p-4 hover:bg-gray-50">
+                    {/* Post Image */}
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
+                        {post.image && (
+                          <Image
+                            src={post.image || "/placeholder.svg"}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                          />
+                        )}
                       </div>
+                    </div>
 
-                      <div className="flex-shrink-0">
-                        <div className="flex gap-2">
-                          <Link href={`/blog/${post.slug}`} target="_blank">
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
-                            </Button>
-                          </Link>
-                          {post.source === "blob" && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeletePost(post.slug, post.source)}
-                              disabled={deletingPosts.has(post.slug)}
-                            >
-                              {deletingPosts.has(post.slug) ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    {/* Post Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <InlineEditTitle
+                            initialTitle={post.title}
+                            onSave={(newTitle) => handleTitleUpdate(post.slug, newTitle)}
+                            disabled={post.source === "hardcoded"}
+                          />
+                          <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {post.source === "blob" ? (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <button className="hover:text-gray-900 hover:underline transition-colors">
+                                      {updatingDates.has(post.slug) ? "Updating..." : post.date}
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <CalendarComponent
+                                      mode="single"
+                                      selected={new Date(post.date)}
+                                      onSelect={(date) => {
+                                        if (date) {
+                                          handleDateUpdate(post.slug, date, post.source)
+                                        }
+                                      }}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                               ) : (
-                                <Trash2 className="w-4 h-4" />
+                                <span>{post.date}</span>
                               )}
-                            </Button>
-                          )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Tag className="w-4 h-4" />
+                              {post.source === "blob" ? (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs cursor-pointer hover:bg-gray-100 transition-colors"
+                                    >
+                                      {updatingCategories.has(post.slug) ? "Updating..." : post.category}
+                                    </Badge>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start">
+                                    {allCategories.map((category) => (
+                                      <DropdownMenuItem
+                                        key={category}
+                                        onClick={() => handleCategoryUpdate(post.slug, category, post.source)}
+                                        className={post.category === category ? "bg-gray-100 font-medium" : ""}
+                                      >
+                                        {category}
+                                      </DropdownMenuItem>
+                                    ))}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">
+                                  {post.category}
+                                </Badge>
+                              )}
+                            </div>
+                            <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
+                              {post.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="flex-shrink-0">
+                          <div className="flex gap-2">
+                            {post.source === "blob" && !isEditing && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditContent(post.slug, post.source)}
+                              >
+                                <Edit3 className="w-4 h-4 mr-1" />
+                                Edit
+                              </Button>
+                            )}
+                            <Link href={`/blog/${post.slug}`} target="_blank">
+                              <Button variant="outline" size="sm">
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Button>
+                            </Link>
+                            {post.source === "blob" && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeletePost(post.slug, post.source)}
+                                disabled={deletingPosts.has(post.slug)}
+                              >
+                                {deletingPosts.has(post.slug) ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Content Editor Section */}
+                    {isEditing && (
+                      <div className="border-t p-4 bg-gray-50">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium">Edit Markdown Content</label>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => handleSaveContent(post.slug)} disabled={savingContent}>
+                                {savingContent ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                                ) : (
+                                  <Save className="w-4 h-4 mr-1" />
+                                )}
+                                Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={savingContent}>
+                                <X className="w-4 h-4 mr-1" />
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                          <textarea
+                            value={contentBeingEdited}
+                            onChange={(e) => setContentBeingEdited(e.target.value)}
+                            className="w-full h-96 p-3 border rounded-lg font-mono text-sm resize-y"
+                            placeholder="Edit your markdown content here..."
+                          />
+                          <p className="text-xs text-gray-500">
+                            Tip: You can edit the entire markdown file including frontmatter. Changes will be reflected
+                            on the live blog post.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
