@@ -62,23 +62,22 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { slug, image, title, category } = await request.json()
+    const { slug, image, title, category, date } = await request.json()
 
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
-    if (!image && !title && !category) {
-      return NextResponse.json({ error: "Either image URL, title, or category is required" }, { status: 400 })
+    if (!image && !title && !category && !date) {
+      return NextResponse.json({ error: "Either image URL, title, category, or date is required" }, { status: 400 })
     }
 
-    // Prevent updating hardcoded posts
     if (isHardcodedPost(slug)) {
       return NextResponse.json({ error: "Cannot update hardcoded sample posts" }, { status: 403 })
     }
 
     console.log(
-      `[v0] Blog admin API: Starting ${title ? "TITLE" : image ? "IMAGE" : "CATEGORY"} update for slug: ${slug}`,
+      `[v0] Blog admin API: Starting ${title ? "TITLE" : image ? "IMAGE" : category ? "CATEGORY" : "DATE"} update for slug: ${slug}`,
     )
     if (title) {
       console.log(`[v0] Blog admin API: New title will be: "${title}"`)
@@ -86,8 +85,10 @@ export async function PATCH(request: NextRequest) {
     if (category) {
       console.log(`[v0] Blog admin API: New category will be: "${category}"`)
     }
+    if (date) {
+      console.log(`[v0] Blog admin API: New date will be: "${date}"`)
+    }
 
-    // Find the existing blog post file with improved matching
     const { blobs } = await list({ prefix: "blog/" })
 
     const blogFile = blobs.find((blob) => {
@@ -96,14 +97,13 @@ export async function PATCH(request: NextRequest) {
       const rawSlug = blob.pathname.replace("blog/", "").replace(/\.md$/, "")
       const cleanedSlug = cleanSlugFromFilename(rawSlug)
 
-      // Try multiple matching strategies
       return (
-        cleanedSlug === slug || // Exact match after cleaning
-        rawSlug === slug || // Exact raw match
-        blob.pathname.includes(slug) || // Contains slug
-        rawSlug.includes(slug) || // Raw slug contains target
-        slug.includes(cleanedSlug) || // Target contains cleaned slug
-        slug.includes(rawSlug) // Target contains raw slug
+        cleanedSlug === slug ||
+        rawSlug === slug ||
+        blob.pathname.includes(slug) ||
+        rawSlug.includes(slug) ||
+        slug.includes(cleanedSlug) ||
+        slug.includes(rawSlug)
       )
     })
 
@@ -118,7 +118,6 @@ export async function PATCH(request: NextRequest) {
 
     console.log(`[v0] Blog admin API: Found matching file: ${blogFile.pathname}`)
 
-    // Fetch the current content
     const response = await fetch(blogFile.url)
     const currentContent = await response.text()
 
@@ -145,8 +144,12 @@ export async function PATCH(request: NextRequest) {
         `[v0] Blog admin API: Updated category in content: "${newCategoryMatch ? newCategoryMatch[1] : "NOT FOUND"}"`,
       )
     }
+    if (date) {
+      updatedContent = updateFrontmatterDate(updatedContent, date)
+      const newDateMatch = updatedContent.match(/^date:\s*"?([^"\n]*)"?$/m)
+      console.log(`[v0] Blog admin API: Updated date in content: "${newDateMatch ? newDateMatch[1] : "NOT FOUND"}"`)
+    }
 
-    // Upload the updated content back to blob storage
     await put(blogFile.pathname, updatedContent, {
       access: "public",
       allowOverwrite: true,
@@ -154,7 +157,6 @@ export async function PATCH(request: NextRequest) {
 
     console.log(`[v0] Blog admin API: Successfully uploaded updated content to blob storage`)
 
-    // Revalidate cache
     try {
       const { revalidatePath } = await import("next/cache")
       console.log(`[v0] Blog admin API: About to revalidate paths: /blog and /blog/${slug}`)
@@ -167,7 +169,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully updated ${title ? "title" : image ? "image" : "category"} for post: ${slug}`,
+      message: `Successfully updated ${title ? "title" : image ? "image" : category ? "category" : "date"} for post: ${slug}`,
     })
   } catch (error) {
     console.error("[v0] Blog admin API patch error:", error)
@@ -189,20 +191,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
-    // Prevent deletion of hardcoded posts
     if (isHardcodedPost(slug)) {
       return NextResponse.json({ error: "Cannot delete hardcoded sample posts" }, { status: 403 })
     }
 
     console.log(`[v0] Blog admin API: Deleting post with slug: ${slug}`)
 
-    // List all blob files to find files related to this slug
     const { blobs } = await list({ prefix: "blog/" })
     const filesToDelete = blobs.filter((blob) => blob.pathname.includes(slug))
 
     console.log(`[v0] Blog admin API: Found ${filesToDelete.length} files to delete for slug: ${slug}`)
 
-    // Delete all related files (markdown content and images)
     const deletePromises = filesToDelete.map((blob) => {
       console.log(`[v0] Blog admin API: Deleting file: ${blob.pathname}`)
       return del(blob.url)
@@ -244,22 +243,18 @@ function updateFrontmatterImage(content: string, newImageUrl: string): string {
   const match = content.match(frontmatterRegex)
 
   if (!match) {
-    // If no frontmatter exists, add it
     return `---\nimage: "${newImageUrl}"\n---\n\n${content}`
   }
 
   const frontmatter = match[1]
   const restOfContent = content.substring(match[0].length)
 
-  // Check if image field already exists
   const imageRegex = /^image:\s*"?([^"\n]*)"?$/m
 
   let updatedFrontmatter: string
   if (imageRegex.test(frontmatter)) {
-    // Replace existing image
     updatedFrontmatter = frontmatter.replace(imageRegex, `image: "${newImageUrl}"`)
   } else {
-    // Add new image field
     updatedFrontmatter = frontmatter + `\nimage: "${newImageUrl}"`
   }
 
@@ -271,22 +266,18 @@ function updateFrontmatterTitle(content: string, newTitle: string): string {
   const match = content.match(frontmatterRegex)
 
   if (!match) {
-    // If no frontmatter exists, add it
     return `---\ntitle: "${newTitle}"\n---\n\n${content}`
   }
 
   const frontmatter = match[1]
   const restOfContent = content.substring(match[0].length)
 
-  // Check if title field already exists
   const titleRegex = /^title:\s*"?([^"\n]*)"?$/m
 
   let updatedFrontmatter: string
   if (titleRegex.test(frontmatter)) {
-    // Replace existing title
     updatedFrontmatter = frontmatter.replace(titleRegex, `title: "${newTitle}"`)
   } else {
-    // Add new title field at the beginning
     updatedFrontmatter = `title: "${newTitle}"\n${frontmatter}`
   }
 
@@ -298,23 +289,42 @@ function updateFrontmatterCategory(content: string, newCategory: string): string
   const match = content.match(frontmatterRegex)
 
   if (!match) {
-    // If no frontmatter exists, add it
     return `---\ncategory: "${newCategory}"\n---\n\n${content}`
   }
 
   const frontmatter = match[1]
   const restOfContent = content.substring(match[0].length)
 
-  // Check if category field already exists
   const categoryRegex = /^category:\s*"?([^"\n]*)"?$/m
 
   let updatedFrontmatter: string
   if (categoryRegex.test(frontmatter)) {
-    // Replace existing category
     updatedFrontmatter = frontmatter.replace(categoryRegex, `category: "${newCategory}"`)
   } else {
-    // Add new category field
     updatedFrontmatter = frontmatter + `\ncategory: "${newCategory}"`
+  }
+
+  return `---\n${updatedFrontmatter}\n---${restOfContent}`
+}
+
+function updateFrontmatterDate(content: string, newDate: string): string {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/
+  const match = content.match(frontmatterRegex)
+
+  if (!match) {
+    return `---\ndate: "${newDate}"\n---\n\n${content}`
+  }
+
+  const frontmatter = match[1]
+  const restOfContent = content.substring(match[0].length)
+
+  const dateRegex = /^date:\s*"?([^"\n]*)"?$/m
+
+  let updatedFrontmatter: string
+  if (dateRegex.test(frontmatter)) {
+    updatedFrontmatter = frontmatter.replace(dateRegex, `date: "${newDate}"`)
+  } else {
+    updatedFrontmatter = frontmatter + `\ndate: "${newDate}"`
   }
 
   return `---\n${updatedFrontmatter}\n---${restOfContent}`

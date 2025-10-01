@@ -14,6 +14,9 @@ import { BlogImageUploader } from "@/components/blog-image-uploader"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { InlineEditTitle } from "@/components/inline-edit-title"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { format } from "date-fns"
 
 interface BlogPost {
   title: string
@@ -43,6 +46,7 @@ export default function BlogAdminPage() {
   const [deletingPosts, setDeletingPosts] = useState<Set<string>>(new Set())
   const [selectedPostForImage, setSelectedPostForImage] = useState<string>("") // Added state for image linking
   const [updatingCategories, setUpdatingCategories] = useState<Set<string>>(new Set()) // Added state for tracking category updates
+  const [updatingDates, setUpdatingDates] = useState<Set<string>>(new Set()) // Added state for tracking date updates
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -138,7 +142,7 @@ export default function BlogAdminPage() {
       alert("Image successfully linked to blog post!")
     } catch (error) {
       console.error("Error linking image to post:", error)
-      alert("Failed to link image to blog post")
+      alert("Failed to link image to post")
     }
   }
 
@@ -199,13 +203,51 @@ export default function BlogAdminPage() {
         throw new Error("Failed to update category")
       }
 
-      // Refresh blog data to show updated category
       await fetchBlogData()
     } catch (error) {
       console.error("Error updating category:", error)
       alert("Failed to update category")
     } finally {
       setUpdatingCategories((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(slug)
+        return newSet
+      })
+    }
+  }
+
+  const handleDateUpdate = async (slug: string, newDate: Date, source: "hardcoded" | "blob") => {
+    if (source === "hardcoded") {
+      alert("Cannot update hardcoded sample posts")
+      return
+    }
+
+    try {
+      setUpdatingDates((prev) => new Set(prev).add(slug))
+
+      const formattedDate = format(newDate, "yyyy-MM-dd")
+
+      const response = await fetch("/api/admin/blog-posts", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug,
+          date: formattedDate,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update date")
+      }
+
+      await fetchBlogData()
+    } catch (error) {
+      console.error("Error updating date:", error)
+      alert("Failed to update date")
+    } finally {
+      setUpdatingDates((prev) => {
         const newSet = new Set(prev)
         newSet.delete(slug)
         return newSet
@@ -415,7 +457,29 @@ export default function BlogAdminPage() {
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            <span>{post.date}</span>
+                            {post.source === "blob" ? (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button className="hover:text-gray-900 hover:underline transition-colors">
+                                    {updatingDates.has(post.slug) ? "Updating..." : post.date}
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={new Date(post.date)}
+                                    onSelect={(date) => {
+                                      if (date) {
+                                        handleDateUpdate(post.slug, date, post.source)
+                                      }
+                                    }}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <span>{post.date}</span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1">
                             <Tag className="w-4 h-4" />
