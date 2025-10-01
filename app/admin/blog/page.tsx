@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2, Edit3, X, Save } from "lucide-react"
+import { Eye, Calendar, Tag, Database, FileText, Lock, Trash2, Edit3, X, Save, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { BlogImageUploader } from "@/components/blog-image-uploader"
@@ -50,6 +50,7 @@ export default function BlogAdminPage() {
   const [editingContent, setEditingContent] = useState<string | null>(null) // Added state for tracking content editing
   const [contentBeingEdited, setContentBeingEdited] = useState<string>("")
   const [savingContent, setSavingContent] = useState(false)
+  const [showMarkdownHelp, setShowMarkdownHelp] = useState(false) // Added state for markdown shortcuts panel
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -668,6 +669,66 @@ export default function BlogAdminPage() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => setShowMarkdownHelp(!showMarkdownHelp)}
+          size="lg"
+          className="rounded-full shadow-lg h-14 w-14 p-0"
+          title="Markdown Shortcuts"
+        >
+          <HelpCircle className="w-6 h-6" />
+        </Button>
+
+        {showMarkdownHelp && (
+          <Card className="absolute bottom-16 right-0 w-80 shadow-xl">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Markdown Shortcuts</CardTitle>
+              <CardDescription className="text-xs">Common formatting syntax</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="space-y-1">
+                <div className="font-mono text-xs bg-gray-100 p-2 rounded">
+                  <div># Heading 1</div>
+                  <div>## Heading 2</div>
+                  <div>### Heading 3</div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-mono text-xs bg-gray-100 p-2 rounded">
+                  <div>**bold text**</div>
+                  <div>*italic text*</div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-mono text-xs bg-gray-100 p-2 rounded">
+                  <div>[link text](url)</div>
+                  <div>![alt text](image-url)</div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-mono text-xs bg-gray-100 p-2 rounded">
+                  <div>- bullet item</div>
+                  <div>1. numbered item</div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-mono text-xs bg-gray-100 p-2 rounded">
+                  <div>`inline code`</div>
+                  <div>\`\`\`language</div>
+                  <div>code block</div>
+                  <div>\`\`\`</div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-mono text-xs bg-gray-100 p-2 rounded">
+                  <div>&gt; blockquote</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }
