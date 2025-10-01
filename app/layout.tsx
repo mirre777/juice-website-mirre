@@ -35,9 +35,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: {
-    "calendly-css": "https://assets.calendly.com/assets/external/widget.css",
-  },
 }
 
 // Get GA tracking ID from environment variables
@@ -51,6 +48,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
+      </head>
       <body className={inter.className}>
         {/* Google Tag Manager (noscript) */}
         <noscript
