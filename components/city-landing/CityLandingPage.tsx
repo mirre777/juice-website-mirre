@@ -16,7 +16,6 @@ import { useTheme } from "@/components/theme-provider"
 import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 import type { CityContent } from "@/lib/city-content"
-import { trackPageView } from "@/lib/analytics"
 
 const featureCardClass =
   "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
@@ -53,10 +52,6 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
   useEffect(() => {
     setIsCoach(false)
   }, [setIsCoach])
-
-  useEffect(() => {
-    trackPageView(window.location.href, `Personal Training ${content.cityName}`)
-  }, [content.cityName])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

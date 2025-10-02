@@ -13,7 +13,7 @@ import { ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { trackPageView, formAnalytics, calculateLeadQualityScore, getUserProperties } from "@/lib/analytics"
+import { formAnalytics, calculateLeadQualityScore, getUserProperties } from "@/lib/analytics"
 
 interface FormData {
   fullName: string
@@ -122,10 +122,6 @@ export default function PersonalTrainerWebsitePage() {
     services: [],
   })
   const [errors, setErrors] = useState<FormErrors>({})
-
-  useEffect(() => {
-    trackPageView(window.location.href, "Personal Trainer Website Builder")
-  }, [])
 
   const trackFormStartOnce = () => {
     if (!hasTrackedFormStart) {

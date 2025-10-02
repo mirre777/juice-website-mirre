@@ -10,7 +10,7 @@ import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ChevronRight } from "lucide-react"
-import { trackPageView } from "@/lib/analytics"
+// import { trackPageView } from "@/lib/analytics"
 
 const BLUR_DATA_URL =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
@@ -25,10 +25,6 @@ export function HomePageClient() {
   useEffect(() => {
     setIsCoach(true)
   }, [setIsCoach])
-
-  useEffect(() => {
-    trackPageView(window.location.href, "Juice - All-in-One Platform for Personal Trainers")
-  }, [])
 
   const handleWaitlistClick = () => {
     setShowWaitlist(true)

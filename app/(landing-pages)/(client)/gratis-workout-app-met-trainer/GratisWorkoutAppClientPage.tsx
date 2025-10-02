@@ -8,7 +8,6 @@ import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/lan
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
-import { trackPageView } from "@/lib/analytics"
 
 // Structured Data for the page
 const structuredData = {
@@ -46,7 +45,7 @@ export default function GratisWorkoutAppClientPage() {
 
   useEffect(() => {
     setIsCoach(false)
-    trackPageView(window.location.href, "Gratis Workout App met Trainer - Juice Fitness")
+    // trackPageView(window.location.href, "Gratis Workout App met Trainer - Juice Fitness")
   }, [setIsCoach])
 
   const heroProps = {

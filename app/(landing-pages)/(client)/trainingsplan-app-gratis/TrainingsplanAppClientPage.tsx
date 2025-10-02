@@ -8,7 +8,6 @@ import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/lan
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
-import { trackPageView } from "@/lib/analytics"
 
 // Structured Data for the German page
 const structuredData = {
@@ -46,7 +45,6 @@ export default function TrainingsplanAppClientPage() {
   // Automatically set to client mode when page loads
   useEffect(() => {
     setIsCoach(false)
-    trackPageView(window.location.href, "Trainingsplan App Gratis - Juice Fitness")
   }, [setIsCoach])
 
   const heroProps = {
