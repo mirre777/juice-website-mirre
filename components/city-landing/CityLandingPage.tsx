@@ -13,11 +13,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useTheme } from "@/components/theme-provider"
-import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react'
+import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
 import type { CityContent } from "@/lib/city-content"
+import { trackPageView } from "@/lib/analytics"
 
-const featureCardClass = "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
+const featureCardClass =
+  "bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow h-full"
 
 // Define form steps
 const formSteps = [
@@ -52,12 +54,9 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
     setIsCoach(false)
   }, [setIsCoach])
 
-  // Reset submission state when step changes
   useEffect(() => {
-    if (isSubmitting) {
-      setIsSubmitting(false)
-    }
-  }, [currentStep])
+    trackPageView(window.location.href, `Personal Training ${content.cityName}`)
+  }, [content.cityName])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -340,7 +339,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <Navbar isHomePage={false} />
-      
+
       {/* Floating App Download Button */}
       <Button
         size="lg"
@@ -381,9 +380,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                 {content.hero.title.prefix} <span className="juice-text-gradient">{content.cityName}</span>
               </h1>
               <p className="mx-auto max-w-[700px] text-lg md:text-xl text-gray-900">{content.hero.subtitle}</p>
-              <p className="mx-auto max-w-[600px] text-gray-600">
-                {content.hero.description}
-              </p>
+              <p className="mx-auto max-w-[600px] text-gray-600">{content.hero.description}</p>
             </div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -415,24 +412,17 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
           <div className="flex flex-col items-center text-center mb-12">
             <span className="text-gray-900 font-medium mb-3">{content.features.sectionTitle}</span>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">{content.features.title}</h2>
-            <p className="text-gray-600 max-w-2xl">
-              {content.features.subtitle}
-            </p>
+            <p className="text-gray-600 max-w-2xl">{content.features.subtitle}</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
             {/* Beginners Card */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div className={featureCardClass}>
                 <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1">
-                  </div>
+                  <div className="mr-4 mt-1"></div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      {content.features.beginners.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      {content.features.beginners.description}
-                    </p>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">{content.features.beginners.title}</h3>
+                    <p className="text-gray-600 mb-4">{content.features.beginners.description}</p>
                     <div className="space-y-2 mb-4">
                       {content.features.beginners.benefits.map((benefit, index) => (
                         <div key={index} className="flex items-center text-sm text-gray-700">
@@ -445,7 +435,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                 </div>
               </div>
             </motion.div>
-            
+
             {/* Advanced Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -454,15 +444,10 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             >
               <div className={featureCardClass}>
                 <div className="flex flex-col md:flex-row items-start">
-                  <div className="mr-4 mt-1">
-                  </div>
+                  <div className="mr-4 mt-1"></div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                      {content.features.advanced.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      {content.features.advanced.description}
-                    </p>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">{content.features.advanced.title}</h3>
+                    <p className="text-gray-600 mb-4">{content.features.advanced.description}</p>
                     <div className="space-y-2 mb-4">
                       {content.features.advanced.benefits.map((benefit, index) => (
                         <div key={index} className="flex items-center text-sm text-gray-700">
@@ -501,12 +486,8 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
               <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-juice/10 blur-3xl" />
             </div>
             <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
-                {content.form.title}
-              </h2>
-              <p className="text-gray-600 mb-8">
-                {content.form.subtitle}
-              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">{content.form.title}</h2>
+              <p className="text-gray-600 mb-8">{content.form.subtitle}</p>
               {submitResult?.success ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
@@ -521,10 +502,12 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                     <div className="mt-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-600">
-                          {content.form.stepIndicator.step} {currentStep + 1} {content.form.stepIndicator.of} {formSteps.length}
+                          {content.form.stepIndicator.step} {currentStep + 1} {content.form.stepIndicator.of}{" "}
+                          {formSteps.length}
                         </span>
                         <span className="text-sm text-gray-600">
-                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}% {content.form.stepIndicator.completed}
+                          {Math.round(((currentStep + 1) / formSteps.length) * 100)}%{" "}
+                          {content.form.stepIndicator.completed}
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -591,9 +574,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
                         <p className="text-red-800 text-sm">{submitResult.message}</p>
                       </div>
                     )}
-                    <p className="text-center text-sm text-gray-600 mt-4">
-                      {content.form.disclaimer}
-                    </p>
+                    <p className="text-center text-sm text-gray-600 mt-4">{content.form.disclaimer}</p>
                   </CardContent>
                 </Card>
               )}

@@ -17,9 +17,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    // Track page views on route changes
     if (getAnalyticsConsent()) {
-      trackPageView(window.location.href)
+      trackPageView(window.location.href, document.title)
     }
   }, [pathname])
 
