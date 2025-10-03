@@ -8,7 +8,6 @@ import { LandingPageFeaturesSection } from "@/app/(landing-pages)/components/lan
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/contexts/theme-context"
-import { trackPageView } from "@/lib/analytics"
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -115,7 +114,6 @@ export default function BestFreeWorkoutAppClientPage() {
 
   useEffect(() => {
     setIsCoach(false)
-    trackPageView(window.location.href, "Best Free Workout App UK - Juice Fitness")
   }, [setIsCoach])
 
   return (

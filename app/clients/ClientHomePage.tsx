@@ -18,9 +18,20 @@ export default function ClientHomePage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
   const waitlistRef = useRef<HTMLDivElement>(null)
 
-  // Set to client mode
   useEffect(() => {
     setIsCoach(false)
+
+    // Apply dark background to body immediately
+    const originalBgColor = document.body.style.backgroundColor
+    const originalColor = document.body.style.color
+    document.body.style.backgroundColor = "#000000"
+    document.body.style.color = "#ffffff"
+
+    // Cleanup function to restore original styles when leaving the page
+    return () => {
+      document.body.style.backgroundColor = originalBgColor
+      document.body.style.color = originalColor
+    }
   }, [setIsCoach])
 
   // Handle hash links on page load

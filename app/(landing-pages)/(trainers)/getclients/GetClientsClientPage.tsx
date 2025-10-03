@@ -1,9 +1,9 @@
 "use client"
 import { useEffect } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/navbar" // Corrected import
+import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { WaitlistForm } from "@/components/waitlist-form" // Corrected named import
+import { WaitlistForm } from "@/components/waitlist-form"
 import { trackPageView } from "@/lib/analytics"
 
 export default function GetClientsClientPage() {

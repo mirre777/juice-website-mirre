@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://juice.fitness/for-clients",
   },
+  themeColor: "#000000",
 }
 
 export default function ClientsPage() {
