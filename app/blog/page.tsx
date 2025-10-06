@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { getAllPosts } from "@/lib/blog"
+import { getAllInterviews } from "@/lib/interview"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { BlogClient } from "./blog-client"
@@ -68,21 +69,28 @@ export const revalidate = 0
 export default async function BlogPage() {
   console.log(`[v0] Blog page: Starting to fetch posts at ${new Date().toISOString()}`)
   const posts = await getAllPosts()
-  console.log(`[v0] Blog page: Fetched ${posts.length} posts at ${new Date().toISOString()}`)
+  const interviews = await getAllInterviews()
+  const allContent = [...posts, ...interviews]
 
-  posts.slice(0, 5).forEach((post, index) => {
+  console.log(
+    `[v0] Blog page: Fetched ${posts.length} posts and ${interviews.length} interviews at ${new Date().toISOString()}`,
+  )
+
+  allContent.slice(0, 5).forEach((content, index) => {
     console.log(
-      `[v0] Blog page: Post ${index + 1} - Title: "${post.title}" | Slug: "${post.slug}" | Category: "${post.category}"`,
+      `[v0] Blog page: Content ${index + 1} - Title: "${content.title}" | Slug: "${content.slug}" | Category: "${content.category}"`,
     )
   })
 
-  const strengthPost = posts.find((p) => p.slug.includes("strength-training") || p.title.includes("Strength Training"))
-  if (strengthPost) {
+  const strengthContent = allContent.find(
+    (c) => c.slug.includes("strength-training") || c.title.includes("Strength Training"),
+  )
+  if (strengthContent) {
     console.log(
-      `[v0] Blog page: Found strength training post - Title: "${strengthPost.title}" | Slug: "${strengthPost.slug}"`,
+      `[v0] Blog page: Found strength training content - Title: "${strengthContent.title}" | Slug: "${strengthContent.slug}"`,
     )
   } else {
-    console.log(`[v0] Blog page: No strength training post found in ${posts.length} posts`)
+    console.log(`[v0] Blog page: No strength training content found in ${allContent.length} contents`)
   }
 
   return (
@@ -98,7 +106,7 @@ export default async function BlogPage() {
           </p>
         </div>
 
-        <BlogClient posts={posts} />
+        <BlogClient posts={allContent} />
       </div>
 
       <Footer />

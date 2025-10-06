@@ -57,11 +57,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/workout-programs",
   },
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
 }
 
 export const dynamic = "force-dynamic"
