@@ -63,7 +63,11 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
       const formData = new FormData()
       formData.append("file", selectedFile)
       if (selectedBlogPost) {
-        formData.append("blogSlug", selectedBlogPost)
+        const slug =
+          selectedBlogPost.startsWith("blog-") || selectedBlogPost.startsWith("interview-")
+            ? selectedBlogPost.split("-").slice(1).join("-")
+            : selectedBlogPost
+        formData.append("blogSlug", slug)
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
 
@@ -87,24 +91,28 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
       }
 
       if (selectedBlogPost) {
-        const linkResponse = await fetch("/api/admin/blog-posts", {
+        const [type, ...slugParts] = selectedBlogPost.split("-")
+        const slug = slugParts.join("-")
+        const endpoint = type === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
+
+        const linkResponse = await fetch(endpoint, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            slug: selectedBlogPost,
+            slug: slug,
             image: uploadResult.url,
           }),
         })
 
         if (!linkResponse.ok) {
           const linkError = await linkResponse.json()
-          throw new Error(linkError.error || "Failed to link image to blog post")
+          throw new Error(linkError.error || `Failed to link image to ${type}`)
         }
 
         alert(
-          `Image successfully linked to blog post!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
+          `Image successfully linked to ${type}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
         )
       }
 
