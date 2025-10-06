@@ -232,7 +232,7 @@ function getImageForInterview(title: string, frontmatter: any): string {
 }
 
 export async function getAllInterviews(): Promise<InterviewFrontmatter[]> {
-  const interviews: InterviewFrontmatter[] = [...SAMPLE_INTERVIEWS]
+  const interviews: InterviewFrontmatter[] = []
   const errors: string[] = []
 
   const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
@@ -240,12 +240,12 @@ export async function getAllInterviews(): Promise<InterviewFrontmatter[]> {
 
   if (isBuildTime && !hasBlobToken) {
     console.log("Build time detected without blob token - returning sample interviews only")
-    return interviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return [...SAMPLE_INTERVIEWS].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
   if (!hasBlobToken) {
     console.log("No BLOB_READ_WRITE_TOKEN available - returning sample interviews only")
-    return interviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return [...SAMPLE_INTERVIEWS].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
   console.log(`[v0] getAllInterviews: Starting blob fetch at ${new Date().toISOString()}`)
@@ -289,6 +289,11 @@ export async function getAllInterviews(): Promise<InterviewFrontmatter[]> {
     const errorMessage = `Error fetching interviews from blob storage: ${error instanceof Error ? error.message : "Unknown error"}`
     console.error(errorMessage)
     errors.push(errorMessage)
+  }
+
+  if (interviews.length === 0) {
+    console.log("[v0] getAllInterviews: No interviews found in Blob storage, using sample interviews")
+    return [...SAMPLE_INTERVIEWS].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
   return interviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
