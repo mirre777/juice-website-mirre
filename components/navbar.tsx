@@ -29,8 +29,7 @@ export function Navbar() {
     pathname === "/findatrainer" ||
     pathname === "/getclients" ||
     pathname === "/clients" ||
-    pathname === "/legal" ||
-    pathname.startsWith("/workout-programs")
+    pathname === "/legal"
 
   const isWorkoutProgramPage = pathname.includes("/workout-programs/")
   const isWhiteThemedPage = pathname === "/marketplace/personal-trainer-website" || pathname === "/workout-planner"

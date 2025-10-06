@@ -54,7 +54,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
             className={
               showAllPrograms
                 ? "bg-juice text-juice-foreground hover:bg-juice/90"
-                : "border-gray-700 hover:bg-gray-800 text-gray-300 bg-transparent"
+                : "border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
             }
             onClick={selectAllPrograms}
           >
@@ -68,7 +68,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
               className={
                 !showAllPrograms && selectedTypes.includes(type)
                   ? "bg-juice text-juice-foreground hover:bg-juice/90"
-                  : "border-gray-700 hover:bg-gray-800 text-gray-300 bg-transparent"
+                  : "border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
               }
               onClick={() => toggleType(type)}
             >
@@ -80,7 +80,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
         {/* Clear all filters button */}
         {!showAllPrograms && selectedTypes.length > 0 && (
           <div className="flex justify-center">
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-200" onClick={clearAllFilters}>
+            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" onClick={clearAllFilters}>
               <X className="w-4 h-4 mr-1" />
               Clear all filters
             </Button>
@@ -97,7 +97,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
               href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
               className="block"
             >
-              <Card className="group hover:shadow-lg transition-all duration-300 border-gray-800 bg-gray-900 h-full cursor-pointer">
+              <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
                 <div className="relative overflow-hidden rounded-t-lg">
                   <Image
                     src={program.image || "/images/workout-program.png"}
@@ -117,21 +117,21 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
                 </div>
 
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-xl font-bold text-white group-hover:text-juice transition-colors line-clamp-2">
+                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-juice transition-colors line-clamp-2">
                     {program.title}
                   </CardTitle>
-                  <div className="text-sm text-gray-400">{program.duration}</div>
+                  <div className="text-sm text-gray-500">{program.duration}</div>
                 </CardHeader>
 
                 <CardContent className="pt-0 flex-1 flex flex-col justify-between">
-                  <CardDescription className="text-gray-400 mb-4 line-clamp-3 flex-1">
+                  <CardDescription className="text-gray-600 mb-4 line-clamp-3 flex-1">
                     {program.excerpt}
                   </CardDescription>
 
                   <div className="flex items-center justify-end">
                     <Button
                       variant="ghost"
-                      className="group/btn p-0 h-auto font-semibold text-white hover:text-juice hover:bg-transparent"
+                      className="group/btn p-0 h-auto font-semibold text-black hover:text-juice hover:bg-transparent"
                     >
                       View Program
                       <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
@@ -145,11 +145,11 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
       ) : (
         <div className="text-center py-16">
           <div className="max-w-md mx-auto">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gray-800 rounded-full flex items-center justify-center">
-              <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
+            <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">No programs found</h3>
-            <p className="text-lg text-gray-400 mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">No programs found</h3>
+            <p className="text-lg text-gray-700 mb-8">
               {!showAllPrograms && selectedTypes.length === 0
                 ? "Select a program type to see programs."
                 : "No programs match the selected filters. Try selecting different program types."}
@@ -163,9 +163,9 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
 
       {/* CTA Section */}
       {filteredPrograms.length > 0 && (
-        <div className="mt-20 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 md:p-12 text-center border border-gray-800">
-          <h3 className="text-3xl font-bold mb-4 text-white">Ready to Start Training?</h3>
-          <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
+        <div className="mt-20 bg-gradient-to-r from-juice/10 to-juice/5 rounded-2xl p-8 md:p-12 text-center">
+          <h3 className="text-3xl font-bold mb-4 text-gray-900">Ready to Start Training?</h3>
+          <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
             Download the Juice app and get instant access to all our workout programs. Track your progress, log your
             workouts, and achieve your fitness goals.
           </p>

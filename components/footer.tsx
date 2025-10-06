@@ -22,7 +22,6 @@ export function Footer() {
       pathname === "/getclients" ||
       pathname === "/legal" ||
       pathname.startsWith("/client") ||
-      pathname.startsWith("/workout-programs") || // Updated to make footer dark for workout-programs routes
       (pathname !== "/download-juice-app" &&
         pathname !== "/gratis-workout-app-met-trainer" &&
         pathname !== "/trainingsplan-app-gratis" &&
