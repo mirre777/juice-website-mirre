@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
 
   const ogImage =
     interview.image === "/lena-gym-photo.png"
-      ? `${baseUrl}/lena-gym-photo-og.jpg`
+      ? "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png"
       : interview.image
         ? `${baseUrl}${interview.image}`
         : `${baseUrl}${getPlaceholderImage()}`
