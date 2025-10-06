@@ -21,27 +21,16 @@ export default function ClientHomePage() {
   useEffect(() => {
     setIsCoach(false)
 
-    const html = document.documentElement
-    const body = document.body
-
-    // Store original styles
-    const originalHtmlBgColor = html.style.backgroundColor
-    const originalHtmlColor = html.style.color
-    const originalBodyBgColor = body.style.backgroundColor
-    const originalBodyColor = body.style.color
-
-    // Apply dark styles immediately
-    html.style.backgroundColor = "#000000"
-    html.style.color = "#ffffff"
-    body.style.backgroundColor = "#000000"
-    body.style.color = "#ffffff"
+    // Apply dark background to body immediately
+    const originalBgColor = document.body.style.backgroundColor
+    const originalColor = document.body.style.color
+    document.body.style.backgroundColor = "#000000"
+    document.body.style.color = "#ffffff"
 
     // Cleanup function to restore original styles when leaving the page
     return () => {
-      html.style.backgroundColor = originalHtmlBgColor
-      html.style.color = originalHtmlColor
-      body.style.backgroundColor = originalBodyBgColor
-      body.style.color = originalBodyColor
+      document.body.style.backgroundColor = originalBgColor
+      document.body.style.color = originalColor
     }
   }, [setIsCoach])
 

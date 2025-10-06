@@ -46,6 +46,7 @@ const getPlaceholderImage = (category: string) => {
     marketing: "/personal-trainer-booking-page-mobile.png",
     general: "/fitness-equipment.png",
     myths: "/fitness-equipment.png",
+    interview: "/fitness-interview.png", // Included "Interview" in the placeholders
     default: "/fitness-equipment.png",
   }
 

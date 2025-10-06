@@ -18,8 +18,6 @@ export const metadata: Metadata = {
   keywords:
     "best online personal trainer, personal trainer website, coaching app for personal trainers, workout builder app, personal training software, fitness app for trainers, workout planner, online personal trainer app, personal trainer business tips, fitness coaching app",
   generator: "v0.dev",
-  themeColor: "#ffffff",
-  robots: "index, follow",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -28,7 +26,6 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    type: "website",
     images: [
       {
         url: "/images/og-feature-graphic.png",
@@ -37,12 +34,6 @@ export const metadata: Metadata = {
         alt: "Juice Fitness App - Simple Workout Logging",
       },
     ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Juice - Fitness Tracking & Coaching Platform",
-    description: "Connect with coaches, share workouts, and transform your fitness journey with Juice.",
-    images: ["/images/og-feature-graphic.png"],
   },
 }
 
