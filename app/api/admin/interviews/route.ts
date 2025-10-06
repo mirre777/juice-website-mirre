@@ -134,6 +134,8 @@ export async function PATCH(request: NextRequest) {
     await put(interviewBlob.pathname, updatedContent, {
       access: "public",
       addRandomSuffix: false,
+      contentType: "text/markdown",
+      allowOverwrite: true,
     })
 
     console.log("[v0] Interview updated successfully")
