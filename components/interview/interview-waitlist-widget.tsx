@@ -121,9 +121,7 @@ export function InterviewWaitlistWidget({ trainerName, articleTitle }: Interview
   return (
     <div className="bg-gradient-to-r from-juice/10 to-juice/5 rounded-2xl p-8 my-12">
       <div className="max-w-2xl mx-auto">
-        <h3 className="text-2xl font-bold mb-2 text-gray-900 text-center">
-          Interested in Training with {trainerName}?
-        </h3>
+        <h3 className="text-2xl font-bold mb-2 text-gray-900 text-center">Want to book a free call?</h3>
         <p className="text-gray-600 mb-6 text-center">
           Book a free intro call to discuss your fitness goals and see if we're a good fit.
         </p>
