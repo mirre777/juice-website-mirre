@@ -22,12 +22,12 @@ export function Footer() {
       pathname === "/getclients" ||
       pathname === "/legal" ||
       pathname.startsWith("/client") ||
+      pathname.startsWith("/workout-programs") || // Updated to make footer dark for workout-programs routes
       (pathname !== "/download-juice-app" &&
         pathname !== "/gratis-workout-app-met-trainer" &&
         pathname !== "/trainingsplan-app-gratis" &&
         pathname !== "/gratis-fitness-app-danmark" &&
         pathname !== "/best-free-workout-app-uk" &&
-        !pathname.startsWith("/workout-programs") &&
         !isCoach))
 
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
