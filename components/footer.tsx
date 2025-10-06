@@ -27,8 +27,10 @@ export function Footer() {
         pathname !== "/trainingsplan-app-gratis" &&
         pathname !== "/gratis-fitness-app-danmark" &&
         pathname !== "/best-free-workout-app-uk" &&
-        !pathname.startsWith("/workout-programs") &&
         !isCoach))
+
+  console.log("[v0] Footer pathname:", pathname)
+  console.log("[v0] Footer isFooterDark:", isFooterDark)
 
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
 
