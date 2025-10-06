@@ -17,6 +17,26 @@ export function Navbar() {
   const { isCoach, setIsCoach } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  const isNavbarDark =
+    (!isCoach &&
+      pathname !== "/download-juice-app" &&
+      pathname !== "/gratis-workout-app-met-trainer" &&
+      pathname !== "/trainingsplan-app-gratis" &&
+      pathname !== "/gratis-fitness-app-danmark" &&
+      pathname !== "/best-free-workout-app-uk") ||
+    pathname === "/marketplace" ||
+    pathname === "/100trainers" ||
+    pathname === "/findatrainer" ||
+    pathname === "/getclients" ||
+    pathname === "/clients" ||
+    pathname === "/legal"
+
+  const isWorkoutProgramPage = pathname.includes("/workout-programs/")
+  const isWhiteThemedPage = pathname === "/marketplace/personal-trainer-website" || pathname === "/workout-planner"
+  const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
+
+  const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"
+
   useEffect(() => {
     if (
       pathname === "/" ||
@@ -119,6 +139,7 @@ export function Navbar() {
   }
 
   console.log("[v0] Navbar isCoach state:", isCoach)
+
 
   const isNavbarDark =
     (!isCoach &&
