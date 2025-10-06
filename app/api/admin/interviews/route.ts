@@ -49,20 +49,39 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
     const { slug, title, date, category, excerpt, image, trainerName } = body
 
+    console.log("[v0] PATCH /api/admin/interviews - Request body:", {
+      slug,
+      title,
+      date,
+      category,
+      excerpt,
+      image,
+      trainerName,
+    })
+
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
     // Find the interview blob
     const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
+    console.log(
+      "[v0] Found blobs:",
+      blobs.blobs.map((b) => b.pathname),
+    )
+
     const interviewBlob = blobs.blobs.find((blob) => {
       const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      console.log("[v0] Comparing blob slug:", blobSlug, "with requested slug:", slug)
       return blobSlug === slug
     })
 
     if (!interviewBlob) {
+      console.log("[v0] Interview not found for slug:", slug)
       return NextResponse.json({ error: "Interview not found" }, { status: 404 })
     }
+
+    console.log("[v0] Found interview blob:", interviewBlob.pathname)
 
     // Fetch current content
     const response = await fetch(interviewBlob.downloadUrl)
@@ -80,19 +99,26 @@ export async function PATCH(request: NextRequest) {
       ...(trainerName && { trainerName }),
     }
 
+    console.log("[v0] Updated frontmatter:", updatedFrontmatter)
+
     // Reconstruct the markdown file
     const updatedContent = matter.stringify(markdownContent, updatedFrontmatter)
 
     // Upload updated content
+    console.log("[v0] Uploading to pathname:", interviewBlob.pathname)
     await put(interviewBlob.pathname, updatedContent, {
       access: "public",
       addRandomSuffix: false,
     })
 
+    console.log("[v0] Interview updated successfully")
     return NextResponse.json({ success: true, message: "Interview updated successfully" })
   } catch (error) {
-    console.error("Error updating interview:", error)
-    return NextResponse.json({ error: "Failed to update interview" }, { status: 500 })
+    console.error("[v0] Error updating interview:", error)
+    return NextResponse.json(
+      { error: "Failed to update interview", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }
 
@@ -108,21 +134,35 @@ export async function DELETE(request: NextRequest) {
 
     // Find the interview blob
     const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
+    console.log(
+      "[v0] Found blobs:",
+      blobs.blobs.map((b) => b.pathname),
+    )
+
     const interviewBlob = blobs.blobs.find((blob) => {
       const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      console.log("[v0] Comparing blob slug:", blobSlug, "with requested slug:", slug)
       return blobSlug === slug
     })
 
     if (!interviewBlob) {
+      console.log("[v0] Interview not found for slug:", slug)
       return NextResponse.json({ error: "Interview not found" }, { status: 404 })
     }
 
+    console.log("[v0] Found interview blob:", interviewBlob.pathname)
+
     // Delete the blob
+    console.log("[v0] Deleting blob at url:", interviewBlob.url)
     await del(interviewBlob.url)
 
+    console.log("[v0] Interview deleted successfully")
     return NextResponse.json({ success: true, message: "Interview deleted successfully" })
   } catch (error) {
-    console.error("Error deleting interview:", error)
-    return NextResponse.json({ error: "Failed to delete interview" }, { status: 500 })
+    console.error("[v0] Error deleting interview:", error)
+    return NextResponse.json(
+      { error: "Failed to delete interview", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }

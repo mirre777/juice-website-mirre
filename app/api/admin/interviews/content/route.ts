@@ -39,29 +39,48 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
     const { slug, content } = body
 
+    console.log("[v0] PATCH /api/admin/interviews/content - slug:", slug, "content length:", content?.length)
+
     if (!slug || !content) {
       return NextResponse.json({ error: "Slug and content are required" }, { status: 400 })
     }
 
     const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
+    console.log(
+      "[v0] Found blobs:",
+      blobs.blobs.map((b) => b.pathname),
+    )
+
     const interviewBlob = blobs.blobs.find((blob) => {
       const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      console.log("[v0] Compare blob slug:", blobSlug, "with requested slug:", slug)
       return blobSlug === slug
     })
 
     if (!interviewBlob) {
+      console.log("[v0] Interview not found for slug:", slug)
       return NextResponse.json({ error: "Interview not found" }, { status: 404 })
     }
 
+    console.log("[v0] Found interview blob:", interviewBlob.pathname)
+
     // Upload updated content
+    console.log("[v0] Uploading to pathname:", interviewBlob.pathname)
     await put(interviewBlob.pathname, content, {
       access: "public",
       addRandomSuffix: false,
     })
 
+    console.log("[v0] Interview content updated successfully")
     return NextResponse.json({ success: true, message: "Interview content updated successfully" })
   } catch (error) {
-    console.error("Error updating interview content:", error)
-    return NextResponse.json({ error: "Failed to update interview content" }, { status: 500 })
+    console.error("[v0] Error updating interview content:", error)
+    return NextResponse.json(
+      {
+        error: "Failed to update interview content",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
