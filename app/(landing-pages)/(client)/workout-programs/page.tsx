@@ -71,14 +71,14 @@ export default async function WorkoutProgramsPage() {
   const programs = getAllWorkoutPrograms()
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <div className="container mx-auto px-4 md:px-6 py-20 pt-32">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">Workout Programs</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">Workout Programs</h1>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
             Scientifically-designed workout programs for all fitness levels. Build strength, muscle, and transform your
             fitness journey.
           </p>
