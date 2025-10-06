@@ -141,9 +141,11 @@ export function BlogClient({ posts }: BlogClientProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.map((post, index) => {
             const displayTitle = TITLE_OVERRIDES[post.slug] || post.title
+            const isInterview = post.category === "Interview"
+            const postUrl = isInterview ? `/interview/${post.slug}` : `/blog/${post.slug}`
 
             return (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
+              <Link key={post.slug} href={postUrl} className="block">
                 <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
                   <div className="relative overflow-hidden rounded-t-lg">
                     <Image

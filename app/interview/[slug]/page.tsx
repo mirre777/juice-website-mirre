@@ -201,7 +201,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
                 src={interview.image || "/placeholder.svg"}
                 alt={interview.title}
                 fill
-                className="object-cover"
+                className="object-cover object-[center_30%]"
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
