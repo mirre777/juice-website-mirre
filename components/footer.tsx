@@ -30,9 +30,6 @@ export function Footer() {
         pathname !== "/best-free-workout-app-uk" &&
         !isCoach))
 
-  console.log("[v0] Footer pathname:", pathname)
-  console.log("[v0] Footer isFooterDark:", isFooterDark)
-
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
 
   const getTextColorClass = (isHeading = false) => {
