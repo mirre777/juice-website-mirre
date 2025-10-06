@@ -17,29 +17,30 @@ const BLUR_DATA_URL =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
 
 export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) {
-  const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([])
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [showAllPrograms, setShowAllPrograms] = useState(true)
 
-  const allDifficulties = [...new Set(programs.map((program) => program.difficulty))].sort()
+  const programTypes = ["Free", "Paid"]
 
   const filteredPrograms = showAllPrograms
     ? programs
-    : programs.filter((program) => selectedDifficulties.includes(program.difficulty))
+    : programs.filter((program) => {
+        const programType = program.isPaid ? "Paid" : "Free"
+        return selectedTypes.includes(programType)
+      })
 
-  const toggleDifficulty = (difficulty: string) => {
+  const toggleType = (type: string) => {
     setShowAllPrograms(false)
-    setSelectedDifficulties((prev) =>
-      prev.includes(difficulty) ? prev.filter((d) => d !== difficulty) : [...prev, difficulty],
-    )
+    setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
   }
 
   const selectAllPrograms = () => {
     setShowAllPrograms(true)
-    setSelectedDifficulties([])
+    setSelectedTypes([])
   }
 
   const clearAllFilters = () => {
-    setSelectedDifficulties([])
+    setSelectedTypes([])
     setShowAllPrograms(true)
   }
 
@@ -60,25 +61,24 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
             All Programs
           </Button>
 
-          {/* Individual difficulty buttons */}
-          {allDifficulties.map((difficulty) => (
+          {programTypes.map((type) => (
             <Button
-              key={difficulty}
-              variant={!showAllPrograms && selectedDifficulties.includes(difficulty) ? "default" : "outline"}
+              key={type}
+              variant={!showAllPrograms && selectedTypes.includes(type) ? "default" : "outline"}
               className={
-                !showAllPrograms && selectedDifficulties.includes(difficulty)
+                !showAllPrograms && selectedTypes.includes(type)
                   ? "bg-juice text-juice-foreground hover:bg-juice/90"
                   : "border-gray-300 hover:bg-gray-100 text-gray-700 bg-transparent"
               }
-              onClick={() => toggleDifficulty(difficulty)}
+              onClick={() => toggleType(type)}
             >
-              {difficulty}
+              {type}
             </Button>
           ))}
         </div>
 
         {/* Clear all filters button */}
-        {!showAllPrograms && selectedDifficulties.length > 0 && (
+        {!showAllPrograms && selectedTypes.length > 0 && (
           <div className="flex justify-center">
             <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" onClick={clearAllFilters}>
               <X className="w-4 h-4 mr-1" />
@@ -150,9 +150,9 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">No programs found</h3>
             <p className="text-lg text-gray-700 mb-8">
-              {!showAllPrograms && selectedDifficulties.length === 0
-                ? "Select some difficulty levels to see programs."
-                : "No programs match the selected filters. Try selecting different difficulty levels."}
+              {!showAllPrograms && selectedTypes.length === 0
+                ? "Select a program type to see programs."
+                : "No programs match the selected filters. Try selecting different program types."}
             </p>
             <Button onClick={selectAllPrograms} className="bg-juice text-juice-foreground hover:bg-juice/90">
               Show All Programs
