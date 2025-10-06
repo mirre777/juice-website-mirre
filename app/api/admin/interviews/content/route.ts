@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
     const interviewBlob = blobs.blobs.find((blob) => {
       const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
       const blobSlug = cleanSlugFromFilename(rawSlug)
-      return blobSlug === slug
+      const requestSlug = cleanSlugFromFilename(slug)
+      // Match if either slug contains the other (handles partial slug matches)
+      return blobSlug === requestSlug || blobSlug.includes(requestSlug) || requestSlug.includes(blobSlug)
     })
 
     if (!interviewBlob) {
@@ -67,8 +69,10 @@ export async function PATCH(request: NextRequest) {
     const interviewBlob = blobs.blobs.find((blob) => {
       const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
       const blobSlug = cleanSlugFromFilename(rawSlug)
-      console.log("[v0] Compare blob slug:", blobSlug, "with requested slug:", slug)
-      return blobSlug === slug
+      const requestSlug = cleanSlugFromFilename(slug)
+      console.log("[v0] Compare blob slug:", blobSlug, "with requested slug:", requestSlug)
+      // Match if either slug contains the other (handles partial slug matches)
+      return blobSlug === requestSlug || blobSlug.includes(requestSlug) || requestSlug.includes(blobSlug)
     })
 
     if (!interviewBlob) {
