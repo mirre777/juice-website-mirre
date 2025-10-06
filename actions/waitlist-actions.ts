@@ -238,7 +238,10 @@ export async function joinWaitlist(formData: FormData) {
 
     // Determine source based on form data
     let source = "website_waitlist"
-    if (city === "München" && goal) {
+    const formSource = formData.get("source")?.toString()
+    if (formSource) {
+      source = formSource
+    } else if (city === "München" && goal) {
       source = "munich-landing-page"
     } else if (userType === "trainer") {
       source = "trainer-signup"

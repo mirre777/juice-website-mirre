@@ -232,7 +232,11 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             </div>
           </div>
 
-          <InterviewWaitlistWidget trainerName={interview.trainerName} articleTitle={interview.title} />
+          <InterviewWaitlistWidget
+            trainerName={interview.trainerName}
+            articleTitle={interview.title}
+            slug={params.slug}
+          />
 
           {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t border-gray-200">

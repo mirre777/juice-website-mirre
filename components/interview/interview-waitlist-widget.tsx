@@ -12,9 +12,10 @@ import { trackEvent } from "@/lib/analytics"
 interface InterviewWaitlistWidgetProps {
   trainerName: string
   articleTitle: string
+  slug: string
 }
 
-export function InterviewWaitlistWidget({ trainerName, articleTitle }: InterviewWaitlistWidgetProps) {
+export function InterviewWaitlistWidget({ trainerName, articleTitle, slug }: InterviewWaitlistWidgetProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStatus, setFormStatus] = useState<{
     success?: boolean
@@ -27,16 +28,16 @@ export function InterviewWaitlistWidget({ trainerName, articleTitle }: Interview
   const [phone, setPhone] = useState("")
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(e.currentTarget as HTMLFormElement)
 
     trackEvent("interview_waitlist_submit", {
       trainer: trainerName,
       article: articleTitle,
     })
 
-    formData.append("source", "Interview")
+    formData.append("source", `interview/${slug}`)
     formData.append("trainer", trainerName)
     formData.append("user_type", "client")
     formData.append("city", city)
