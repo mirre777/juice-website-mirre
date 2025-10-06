@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { getAllWorkoutPrograms } from "@/lib/workout-programs"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { WorkoutProgramsClient } from "@/app/(landing-pages)/(client)/components/workout-programs-collection"
+import { WorkoutProgramsClient } from "@/app/(landing-pages)/components/workout-programs-collection"
 
 export const metadata: Metadata = {
   title: "Free Workout Programs - Build Strength & Muscle | Juice",
