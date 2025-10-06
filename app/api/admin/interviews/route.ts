@@ -4,6 +4,17 @@ import matter from "gray-matter"
 
 const INTERVIEW_CONTENT_PATH = "interviews/"
 
+function cleanSlugFromFilename(filename: string): string {
+  return filename
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
+    .replace(/\s*$$[^)]*$$\s*/g, "")
+    .replace(/-\d{10,}/g, "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase()
+}
+
 // GET - Fetch all interviews
 export async function GET() {
   try {
@@ -17,10 +28,11 @@ export async function GET() {
         const { data: frontmatter } = matter(content)
 
         const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+        const slug = cleanSlugFromFilename(rawSlug)
 
         interviews.push({
           title: frontmatter.title || "Untitled Interview",
-          slug: rawSlug,
+          slug: slug,
           date: frontmatter.date || new Date().toISOString().split("T")[0],
           category: "Interview",
           excerpt: frontmatter.excerpt || "",
@@ -71,7 +83,8 @@ export async function PATCH(request: NextRequest) {
     )
 
     const interviewBlob = blobs.blobs.find((blob) => {
-      const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const blobSlug = cleanSlugFromFilename(rawSlug)
       console.log("[v0] Comparing blob slug:", blobSlug, "with requested slug:", slug)
       return blobSlug === slug
     })
@@ -140,7 +153,8 @@ export async function DELETE(request: NextRequest) {
     )
 
     const interviewBlob = blobs.blobs.find((blob) => {
-      const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const blobSlug = cleanSlugFromFilename(rawSlug)
       console.log("[v0] Comparing blob slug:", blobSlug, "with requested slug:", slug)
       return blobSlug === slug
     })

@@ -3,6 +3,18 @@ import { put, list } from "@vercel/blob"
 
 const INTERVIEW_CONTENT_PATH = "interviews/"
 
+// Function to clean slug from filename
+function cleanSlugFromFilename(filename: string): string {
+  return filename
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
+    .replace(/\s*$$[^)]*$$\s*/g, "")
+    .replace(/-\d{10,}/g, "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase()
+}
+
 // GET - Fetch interview content for editing
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +27,8 @@ export async function GET(request: NextRequest) {
 
     const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
     const interviewBlob = blobs.blobs.find((blob) => {
-      const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const blobSlug = cleanSlugFromFilename(rawSlug)
       return blobSlug === slug
     })
 
@@ -52,7 +65,8 @@ export async function PATCH(request: NextRequest) {
     )
 
     const interviewBlob = blobs.blobs.find((blob) => {
-      const blobSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
+      const blobSlug = cleanSlugFromFilename(rawSlug)
       console.log("[v0] Compare blob slug:", blobSlug, "with requested slug:", slug)
       return blobSlug === slug
     })
