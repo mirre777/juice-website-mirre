@@ -49,7 +49,13 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/interview/${params.slug}`
-  const imageUrl = interview.image ? `${baseUrl}${interview.image}` : `${baseUrl}${getPlaceholderImage()}`
+
+  const ogImage =
+    interview.image === "/lena-gym-photo.png"
+      ? `${baseUrl}/lena-gym-photo-og.png`
+      : interview.image
+        ? `${baseUrl}${interview.image}`
+        : `${baseUrl}${getPlaceholderImage()}`
 
   return {
     title: `${interview.title} | Juice Fitness Interviews`,
@@ -76,7 +82,7 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
       siteName: "Juice Fitness",
       images: [
         {
-          url: imageUrl,
+          url: ogImage,
           width: 1200,
           height: 630,
           alt: interview.title,
@@ -91,8 +97,19 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
       card: "summary_large_image",
       title: interview.title,
       description: interview.excerpt,
-      images: [imageUrl],
+      images: [ogImage],
       creator: "@JuiceFitness",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   }
 }
