@@ -68,14 +68,18 @@ export function BlogImageUploader({
 
       const formData = new FormData()
       formData.append("file", selectedFile)
-      if (selectedBlogPost) {
-        const slug =
-          selectedBlogPost.startsWith("blog-") || selectedBlogPost.startsWith("interview-")
-            ? selectedBlogPost.split("-").slice(1).join("-")
-            : selectedBlogPost
-        formData.append("blogSlug", slug)
+
+      let actualSlug = blogSlug
+      if (blogSlug && (blogSlug.startsWith("blog-") || blogSlug.startsWith("interview-"))) {
+        actualSlug = blogSlug.split("-").slice(1).join("-")
+      }
+
+      if (actualSlug) {
+        formData.append("blogSlug", actualSlug)
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
+
+      console.log("[v0] Uploading image with slug:", actualSlug)
 
       // Step 1: Upload the image
       const uploadResponse = await fetch("/api/admin/blog-images", {
@@ -96,15 +100,16 @@ export function BlogImageUploader({
         )
       }
 
-      if (selectedBlogPost && selectedBlogPost !== "none") {
-        const type = contentType || "blog"
-        const slug = blogSlug || selectedBlogPost.split("-").slice(1).join("-")
+      if (selectedBlogPost && selectedBlogPost !== "none" && contentType) {
+        const slug = actualSlug || selectedBlogPost.split("-").slice(1).join("-")
 
-        console.log("[v0] Linking image to content:", { contentType: type, slug })
+        console.log("[v0] Linking image to content:", {
+          contentType,
+          slug,
+          endpoint: contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts",
+        })
 
-        const endpoint = type === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
-
-        console.log("[v0] Using endpoint:", endpoint)
+        const endpoint = contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
 
         const linkResponse = await fetch(endpoint, {
           method: "PATCH",
@@ -119,11 +124,11 @@ export function BlogImageUploader({
 
         if (!linkResponse.ok) {
           const linkError = await linkResponse.json()
-          throw new Error(linkError.error || `Failed to link image to ${type}`)
+          throw new Error(linkError.error || `Failed to link image to ${contentType}`)
         }
 
         alert(
-          `Image successfully linked to ${type}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
+          `Image successfully linked to ${contentType}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
         )
       }
 
