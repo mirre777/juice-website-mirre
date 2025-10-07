@@ -85,6 +85,11 @@ export function Footer() {
                 Blog
               </Link>
             </li>
+            <li>
+              <Link href="/marketplace" className={cn("text-sm", getTextColorClass())}>
+                Marketplace
+              </Link>
+            </li>
           </ul>
         </div>
 
