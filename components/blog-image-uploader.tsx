@@ -90,10 +90,15 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
         )
       }
 
-      if (selectedBlogPost) {
+      if (selectedBlogPost && selectedBlogPost !== "none") {
         const [type, ...slugParts] = selectedBlogPost.split("-")
         const slug = slugParts.join("-")
+
+        console.log("[v0] Linking image to content:", { selectedBlogPost, type, slug })
+
         const endpoint = type === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
+
+        console.log("[v0] Using endpoint:", endpoint)
 
         const linkResponse = await fetch(endpoint, {
           method: "PATCH",
