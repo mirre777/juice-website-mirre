@@ -127,7 +127,6 @@ export function Navbar() {
       pathname !== "/trainingsplan-app-gratis" &&
       pathname !== "/gratis-fitness-app-danmark" &&
       pathname !== "/best-free-workout-app-uk") ||
-    pathname === "/marketplace" ||
     pathname === "/100trainers" ||
     pathname === "/findatrainer" ||
     pathname === "/getclients" ||
@@ -136,7 +135,10 @@ export function Navbar() {
     pathname.startsWith("/workout-programs")
 
   const isWorkoutProgramPage = pathname.includes("/workout-programs/")
-  const isWhiteThemedPage = pathname === "/marketplace/personal-trainer-website" || pathname === "/workout-planner"
+  const isWhiteThemedPage =
+    pathname === "/marketplace/personal-trainer-website" ||
+    pathname === "/workout-planner" ||
+    pathname === "/marketplace"
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
 
   const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"
