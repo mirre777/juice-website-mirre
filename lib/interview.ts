@@ -23,7 +23,7 @@ const SAMPLE_INTERVIEWS: InterviewFrontmatter[] = [
     excerpt:
       "In our latest Juice PT Spotlight, we talk to Lena from Strength Lab Vienna about how she went from brain-focused to body-strong, why resistance training is non-negotiable, and what most trainers underestimate about their clients.",
     category: "Interview",
-    image: "/lena-gym-photo.png",
+    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png",
     slug: "lena-strength-lab-vienna",
     trainerName: "Lena from Strength Lab Vienna",
   },
@@ -56,7 +56,7 @@ Because I'm quite research-driven, I dove deep into the science behind training.
 
 If my origin story were a headline, it would be something like: **"From brain in a vat to embodied thinker."**
 
-![Lena training at Strength Lab Vienna](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-HjKol7kTNQx9l5U9rBRa4HCGL3e1g2.png)
+![Lena training at Strength Lab Vienna](https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png)
 
 ## What's something you believed early on about training that now makes you laugh?
 
@@ -222,7 +222,7 @@ function extractExcerptFromContent(content: string, frontmatter: any): string {
 
 function getImageForInterview(title: string, frontmatter: any): string {
   if (title.includes("Lena") && title.includes("Strength Lab Vienna")) {
-    return "/lena-gym-photo.png"
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png"
   }
 
   if (frontmatter.image) {

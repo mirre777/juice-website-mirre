@@ -365,6 +365,17 @@ export default function UserManagementPage() {
 
   const getSourceBadge = (source: string) => {
     console.log("🏷️ Creating source badge for:", source)
+
+    if (source.startsWith("interview/")) {
+      const slug = source.replace("interview/", "")
+      return (
+        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+          <Globe className="h-3 w-3 mr-1" />
+          {slug}
+        </Badge>
+      )
+    }
+
     switch (source) {
       case "munich-landing-page":
         return (

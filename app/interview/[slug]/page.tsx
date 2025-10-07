@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
 
   const ogImage =
     interview.image === "/lena-gym-photo.png"
-      ? `${baseUrl}/lena-gym-photo-og.png`
+      ? "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png"
       : interview.image
         ? `${baseUrl}${interview.image}`
         : `${baseUrl}${getPlaceholderImage()}`
@@ -232,7 +232,11 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             </div>
           </div>
 
-          <InterviewWaitlistWidget trainerName={interview.trainerName} articleTitle={interview.title} />
+          <InterviewWaitlistWidget
+            trainerName={interview.trainerName}
+            articleTitle={interview.title}
+            slug={params.slug}
+          />
 
           {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t border-gray-200">

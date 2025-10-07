@@ -17,8 +17,9 @@ import { InlineEditTitle } from "@/components/inline-edit-title"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-interface BlogPost {
+interface ContentItem {
   title: string
   slug: string
   date: string
@@ -26,78 +27,103 @@ interface BlogPost {
   excerpt: string
   image?: string
   source: "hardcoded" | "blob"
+  trainerName?: string // Only for interviews
+  type: "blog" | "interview"
 }
 
 interface BlogDebugData {
   totalPosts: number
   hardcodedPosts: number
   blobPosts: number
-  posts: BlogPost[]
-  errors: string[] // Added errors array to interface
+  posts: ContentItem[]
+  errors: string[]
   isWorkingCorrectly: boolean
+}
+
+interface InterviewData {
+  totalInterviews: number
+  interviews: ContentItem[]
 }
 
 export default function BlogAdminPage() {
   const [password, setPassword] = useState("")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [blogData, setBlogData] = useState<BlogDebugData | null>(null)
+  const [interviewData, setInterviewData] = useState<InterviewData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deletingPosts, setDeletingPosts] = useState<Set<string>>(new Set())
-  const [selectedPostForImage, setSelectedPostForImage] = useState<string>("") // Added state for image linking
-  const [updatingCategories, setUpdatingCategories] = useState<Set<string>>(new Set()) // Added state for tracking category updates
-  const [updatingDates, setUpdatingDates] = useState<Set<string>>(new Set()) // Added state for tracking date updates
-  const [editingContent, setEditingContent] = useState<string | null>(null) // Added state for tracking content editing
+  const [selectedPostForImage, setSelectedPostForImage] = useState<string>("")
+  const [updatingCategories, setUpdatingCategories] = useState<Set<string>>(new Set())
+  const [updatingDates, setUpdatingDates] = useState<Set<string>>(new Set())
+  const [editingContent, setEditingContent] = useState<string | null>(null)
   const [contentBeingEdited, setContentBeingEdited] = useState<string>("")
   const [savingContent, setSavingContent] = useState(false)
-  const [showMarkdownHelp, setShowMarkdownHelp] = useState(false) // Added state for markdown shortcuts panel
+  const [showMarkdownHelp, setShowMarkdownHelp] = useState(false)
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (password === "Arnold") {
       setIsAuthenticated(true)
-      fetchBlogData()
+      fetchAllData()
     } else {
       setError("Incorrect password")
     }
   }
 
-  const fetchBlogData = async () => {
+  const fetchAllData = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/admin/blog-posts?t=${Date.now()}`, {
+      // Fetch blog posts
+      const blogResponse = await fetch(`/api/admin/blog-posts?t=${Date.now()}`, {
         cache: "no-store",
       })
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!blogResponse.ok) {
+        throw new Error(`HTTP error! status: ${blogResponse.status}`)
       }
+      const blogDataResult = await blogResponse.json()
+      setBlogData({
+        ...blogDataResult,
+        posts: blogDataResult.posts.map((post: any) => ({ ...post, type: "blog" })),
+      })
 
-      const data = await response.json()
-      setBlogData(data)
+      // Fetch interviews
+      const interviewResponse = await fetch(`/api/admin/interviews?t=${Date.now()}`, {
+        cache: "no-store",
+      })
+      if (!interviewResponse.ok) {
+        throw new Error(`HTTP error! status: ${interviewResponse.status}`)
+      }
+      const interviewDataResult = await interviewResponse.json()
+      setInterviewData({
+        ...interviewDataResult,
+        interviews: interviewDataResult.interviews.map((interview: any) => ({ ...interview, type: "interview" })),
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred")
-      console.error("Blog admin fetch error:", err)
+      console.error("Admin fetch error:", err)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDeletePost = async (slug: string, source: "hardcoded" | "blob") => {
+  const handleDeletePost = async (slug: string, source: "hardcoded" | "blob", type: "blog" | "interview") => {
     if (source === "hardcoded") {
       alert("Cannot delete hardcoded sample posts")
       return
     }
 
-    if (!confirm(`Are you sure you want to delete the post "${slug}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete this ${type}? This action cannot be undone.`)) {
       return
     }
 
     try {
       setDeletingPosts((prev) => new Set(prev).add(slug))
 
-      const response = await fetch("/api/admin/blog-posts", {
+      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const response = await fetch(endpoint, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -106,14 +132,13 @@ export default function BlogAdminPage() {
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to delete post: ${response.status}`)
+        throw new Error(`Failed to delete ${type}: ${response.status}`)
       }
 
-      // Refresh the blog data after successful deletion
-      await fetchBlogData()
+      await fetchAllData()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete post")
-      console.error("Delete post error:", err)
+      setError(err instanceof Error ? err.message : `Failed to delete ${type}`)
+      console.error(`Delete ${type} error:`, err)
     } finally {
       setDeletingPosts((prev) => {
         const newSet = new Set(prev)
@@ -123,10 +148,10 @@ export default function BlogAdminPage() {
     }
   }
 
-  const handleImageAssigned = async (imageUrl: string, postSlug: string) => {
+  const handleImageAssigned = async (imageUrl: string, postSlug: string, type: "blog" | "interview") => {
     try {
-      // Update the blog post's frontmatter to include the new image
-      const response = await fetch("/api/admin/blog-posts", {
+      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -138,23 +163,21 @@ export default function BlogAdminPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to update blog post image")
+        throw new Error(`Failed to update ${type} image`)
       }
 
-      // Refresh blog data to show updated image
-      await fetchBlogData()
-      alert("Image successfully linked to blog post!")
+      await fetchAllData()
+      alert("Image successfully linked!")
     } catch (error) {
-      console.error("Error linking image to post:", error)
-      alert("Failed to link image to post")
+      console.error("Error linking image:", error)
+      alert("Failed to link image")
     }
   }
 
-  const handleTitleUpdate = async (slug: string, newTitle: string) => {
+  const handleTitleUpdate = async (slug: string, newTitle: string, type: "blog" | "interview") => {
     try {
-      console.log("[v0] Starting title update for slug:", slug, "new title:", newTitle)
-
-      const response = await fetch("/api/admin/blog-posts", {
+      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -165,25 +188,23 @@ export default function BlogAdminPage() {
         }),
       })
 
-      console.log("[v0] Title update response status:", response.status)
-
       if (!response.ok) {
         throw new Error("Failed to update title")
       }
 
-      const result = await response.json()
-      console.log("[v0] Title update result:", result)
-
-      // Refresh blog data to show updated title
-      await fetchBlogData()
-      console.log("[v0] Blog data refreshed after title update")
+      await fetchAllData()
     } catch (error) {
-      console.error("[v0] Error updating title:", error)
-      throw error // Re-throw to let the component handle the error
+      console.error("Error updating title:", error)
+      throw error
     }
   }
 
-  const handleCategoryUpdate = async (slug: string, newCategory: string, source: "hardcoded" | "blob") => {
+  const handleCategoryUpdate = async (
+    slug: string,
+    newCategory: string,
+    source: "hardcoded" | "blob",
+    type: "blog" | "interview",
+  ) => {
     if (source === "hardcoded") {
       alert("Cannot update hardcoded sample posts")
       return
@@ -192,7 +213,8 @@ export default function BlogAdminPage() {
     try {
       setUpdatingCategories((prev) => new Set(prev).add(slug))
 
-      const response = await fetch("/api/admin/blog-posts", {
+      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +229,7 @@ export default function BlogAdminPage() {
         throw new Error("Failed to update category")
       }
 
-      await fetchBlogData()
+      await fetchAllData()
     } catch (error) {
       console.error("Error updating category:", error)
       alert("Failed to update category")
@@ -220,7 +242,12 @@ export default function BlogAdminPage() {
     }
   }
 
-  const handleDateUpdate = async (slug: string, newDate: Date, source: "hardcoded" | "blob") => {
+  const handleDateUpdate = async (
+    slug: string,
+    newDate: Date,
+    source: "hardcoded" | "blob",
+    type: "blog" | "interview",
+  ) => {
     if (source === "hardcoded") {
       alert("Cannot update hardcoded sample posts")
       return
@@ -231,7 +258,8 @@ export default function BlogAdminPage() {
 
       const formattedDate = format(newDate, "yyyy-MM-dd")
 
-      const response = await fetch("/api/admin/blog-posts", {
+      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -246,7 +274,7 @@ export default function BlogAdminPage() {
         throw new Error("Failed to update date")
       }
 
-      await fetchBlogData()
+      await fetchAllData()
     } catch (error) {
       console.error("Error updating date:", error)
       alert("Failed to update date")
@@ -259,17 +287,18 @@ export default function BlogAdminPage() {
     }
   }
 
-  const handleEditContent = async (slug: string, source: "hardcoded" | "blob") => {
+  const handleEditContent = async (slug: string, source: "hardcoded" | "blob", type: "blog" | "interview") => {
     if (source === "hardcoded") {
       alert("Cannot edit hardcoded sample posts")
       return
     }
 
     try {
-      // Fetch the full markdown content
-      const response = await fetch(`/api/admin/blog-posts/content?slug=${slug}`)
+      const endpoint =
+        type === "blog" ? `/api/admin/blog-posts/content?slug=${slug}` : `/api/admin/interviews/content?slug=${slug}`
+      const response = await fetch(endpoint)
       if (!response.ok) {
-        throw new Error("Failed to fetch post content")
+        throw new Error("Failed to fetch content")
       }
 
       const data = await response.json()
@@ -277,15 +306,16 @@ export default function BlogAdminPage() {
       setEditingContent(slug)
     } catch (error) {
       console.error("Error fetching content:", error)
-      alert("Failed to load post content for editing")
+      alert("Failed to load content for editing")
     }
   }
 
-  const handleSaveContent = async (slug: string) => {
+  const handleSaveContent = async (slug: string, type: "blog" | "interview") => {
     try {
       setSavingContent(true)
 
-      const response = await fetch("/api/admin/blog-posts/content", {
+      const endpoint = type === "blog" ? "/api/admin/blog-posts/content" : "/api/admin/interviews/content"
+      const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -300,7 +330,7 @@ export default function BlogAdminPage() {
         throw new Error("Failed to save content")
       }
 
-      await fetchBlogData()
+      await fetchAllData()
       setEditingContent(null)
       setContentBeingEdited("")
       alert("Content saved successfully!")
@@ -317,6 +347,177 @@ export default function BlogAdminPage() {
       setEditingContent(null)
       setContentBeingEdited("")
     }
+  }
+
+  const renderContentItem = (item: ContentItem) => {
+    const allCategories = ["Interview", "Science", "Training", "Nutrition"]
+    const isEditing = editingContent === item.slug
+    const viewUrl = item.type === "blog" ? `/blog/${item.slug}` : `/interview/${item.slug}`
+
+    return (
+      <div key={`${item.slug}-${item.type}`} className={`border rounded-lg ${isEditing ? "ring-2 ring-primary" : ""}`}>
+        <div className="p-4">
+          <div className="flex items-start gap-4 hover:bg-gray-50">
+            {/* Item Image */}
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
+                {item.image && (
+                  <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
+                )}
+              </div>
+            </div>
+
+            {/* Item Details */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <InlineEditTitle
+                    initialTitle={item.title}
+                    onSave={(newTitle) => handleTitleUpdate(item.slug, newTitle, item.type)}
+                    disabled={item.source === "hardcoded"}
+                  />
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">{item.excerpt}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {item.source === "blob" ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="hover:text-gray-900 hover:underline transition-colors">
+                              {updatingDates.has(item.slug) ? "Updating..." : item.date}
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={new Date(item.date)}
+                              onSelect={(date) => {
+                                if (date) {
+                                  handleDateUpdate(item.slug, date, item.source, item.type)
+                                }
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <span>{item.date}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Tag className="w-4 h-4" />
+                      {item.source === "blob" ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Badge
+                              variant="outline"
+                              className="text-xs cursor-pointer hover:bg-gray-100 transition-colors"
+                            >
+                              {updatingCategories.has(item.slug) ? "Updating..." : item.category}
+                            </Badge>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            {allCategories.map((category) => (
+                              <DropdownMenuItem
+                                key={category}
+                                onClick={() => handleCategoryUpdate(item.slug, category, item.source, item.type)}
+                                className={item.category === category ? "bg-gray-100 font-medium" : ""}
+                              >
+                                {category}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          {item.category}
+                        </Badge>
+                      )}
+                    </div>
+                    <Badge variant={item.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
+                      {item.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {item.type === "blog" ? "Blog Post" : "Interview"}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex-shrink-0">
+                  <div className="flex gap-2">
+                    {item.source === "blob" && !isEditing && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditContent(item.slug, item.source, item.type)}
+                      >
+                        <Edit3 className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                    <Link href={viewUrl} target="_blank">
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                    </Link>
+                    {item.source === "blob" && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeletePost(item.slug, item.source, item.type)}
+                        disabled={deletingPosts.has(item.slug)}
+                      >
+                        {deletingPosts.has(item.slug) ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Editor Section */}
+          {isEditing && (
+            <div className="border-t mt-4 pt-4 bg-gray-50">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Edit Markdown Content</label>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleSaveContent(item.slug, item.type)} disabled={savingContent}>
+                      {savingContent ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-1" />
+                      )}
+                      Save
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={savingContent}>
+                      <X className="w-4 h-4 mr-1" />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+                <textarea
+                  value={contentBeingEdited}
+                  onChange={(e) => setContentBeingEdited(e.target.value)}
+                  className="w-full h-96 p-3 border rounded-lg font-mono text-sm resize-y"
+                  placeholder="Edit your markdown content here..."
+                />
+                <p className="text-xs text-gray-500">
+                  Tip: You can edit the entire markdown file including frontmatter. Changes will be reflected on the
+                  live site.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -355,20 +556,23 @@ export default function BlogAdminPage() {
       <div className="container mx-auto p-6">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading blog data...</p>
+          <p>Loading data...</p>
         </div>
       </div>
     )
   }
 
+  const totalContent = (blogData?.totalPosts || 0) + (interviewData?.totalInterviews || 0)
+  const totalBlobContent = (blogData?.blobPosts || 0) + (interviewData?.totalInterviews || 0)
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Blog Administration</h1>
-          <p className="text-muted-foreground">Manage all blog posts from hardcoded and Blob storage</p>
+          <h1 className="text-3xl font-bold">Content Administration</h1>
+          <p className="text-muted-foreground">Manage blog posts and interviews</p>
         </div>
-        <Button onClick={fetchBlogData} variant="outline">
+        <Button onClick={fetchAllData} variant="outline">
           Refresh Data
         </Button>
       </div>
@@ -384,36 +588,43 @@ export default function BlogAdminPage() {
       <Card>
         <CardHeader>
           <CardTitle>Upload & Link Images</CardTitle>
-          <CardDescription>Upload images and optionally link them to specific blog posts</CardDescription>
+          <CardDescription>Upload images and link them to blog posts or interviews</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {blogData && blogData.posts.length > 0 && (
+          {blogData && interviewData && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Link to Blog Post (Optional)</label>
+              <label className="text-sm font-medium">Link to Content (Optional)</label>
               <Select value={selectedPostForImage} onValueChange={setSelectedPostForImage}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a blog post to link image to..." />
+                  <SelectValue placeholder="Select content to link image to..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No specific post (general upload)</SelectItem>
+                  <SelectItem value="none">No specific content (general upload)</SelectItem>
                   {blogData.posts
-                    .filter((post) => post.source === "blob") // Only show editable posts
+                    .filter((post) => post.source === "blob")
                     .map((post) => (
-                      <SelectItem key={post.slug} value={post.slug}>
-                        {post.title}
+                      <SelectItem key={`blog-${post.slug}`} value={`blog-${post.slug}`}>
+                        [Blog] {post.title}
                       </SelectItem>
                     ))}
+                  {interviewData.interviews.map((interview) => (
+                    <SelectItem key={`interview-${interview.slug}`} value={`interview-${interview.slug}`}>
+                      [Interview] {interview.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           )}
 
           <BlogImageUploader
-            blogSlug={selectedPostForImage || undefined}
-            availablePosts={blogData?.posts || []}
+            blogSlug={selectedPostForImage ? selectedPostForImage.split("-").slice(1).join("-") : undefined}
+            availablePosts={[...(blogData?.posts || []), ...(interviewData?.interviews || [])]}
             onImageUploaded={(imageUrl) => {
-              if (selectedPostForImage) {
-                handleImageAssigned(imageUrl, selectedPostForImage)
+              if (selectedPostForImage && selectedPostForImage !== "none") {
+                const [type, ...slugParts] = selectedPostForImage.split("-")
+                const slug = slugParts.join("-")
+                handleImageAssigned(imageUrl, slug, type as "blog" | "interview")
               }
             }}
           />
@@ -424,249 +635,69 @@ export default function BlogAdminPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Content</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{blogData.totalPosts}</div>
+            <div className="text-2xl font-bold">{totalContent}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hardcoded Posts</CardTitle>
+            <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{blogData.hardcodedPosts}</div>
+            <div className="text-2xl font-bold">{blogData?.totalPosts || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Blob Posts</CardTitle>
+            <CardTitle className="text-sm font-medium">Interviews</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{blogData.blobPosts}</div>
+            <div className="text-2xl font-bold">{interviewData?.totalInterviews || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Status</CardTitle>
+            <CardTitle className="text-sm font-medium">Dynamic Content</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Badge variant={blogData.isWorkingCorrectly ? "default" : "destructive"}>
-              {blogData.isWorkingCorrectly ? "Working" : "Issues"}
-            </Badge>
+            <div className="text-2xl font-bold">{totalBlobContent}</div>
           </CardContent>
         </Card>
       </div>
 
-      {blogData.errors && blogData.errors.length > 0 && (
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Processing Errors ({blogData.errors.length})</CardTitle>
-            <CardDescription>Errors encountered while processing blog posts from Blob storage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {blogData.errors.map((error, index) => (
-                <div key={index} className="p-3 bg-red-50 border border-red-200 rounded text-sm">
-                  <code className="text-red-800">{error}</code>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Blog Posts List */}
       <Card>
         <CardHeader>
-          <CardTitle>All Blog Posts</CardTitle>
-          <CardDescription>Complete list of blog posts from both hardcoded samples and Blob storage</CardDescription>
+          <CardTitle>All Content</CardTitle>
+          <CardDescription>Manage blog posts and interviews</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {blogData.posts.map((post, index) => {
-              const allCategories = [...new Set([...blogData.posts.map((p) => p.category), "Science"])]
-                .filter((cat) => cat !== "myths")
-                .sort()
-
-              const isEditing = editingContent === post.slug
-
-              return (
-                <div
-                  key={`${post.slug}-${index}`}
-                  className={`border rounded-lg ${isEditing ? "ring-2 ring-primary" : ""}`}
-                >
-                  <div className="flex items-start gap-4 p-4 hover:bg-gray-50">
-                    {/* Post Image */}
-                    <div className="flex-shrink-0">
-                      <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-200">
-                        {post.image && (
-                          <Image
-                            src={post.image || "/placeholder.svg"}
-                            alt={post.title}
-                            fill
-                            className="object-cover"
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Post Details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <InlineEditTitle
-                            initialTitle={post.title}
-                            onSave={(newTitle) => handleTitleUpdate(post.slug, newTitle)}
-                            disabled={post.source === "hardcoded"}
-                          />
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-3">{post.excerpt}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {post.source === "blob" ? (
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <button className="hover:text-gray-900 hover:underline transition-colors">
-                                      {updatingDates.has(post.slug) ? "Updating..." : post.date}
-                                    </button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <CalendarComponent
-                                      mode="single"
-                                      selected={new Date(post.date)}
-                                      onSelect={(date) => {
-                                        if (date) {
-                                          handleDateUpdate(post.slug, date, post.source)
-                                        }
-                                      }}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                              ) : (
-                                <span>{post.date}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Tag className="w-4 h-4" />
-                              {post.source === "blob" ? (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs cursor-pointer hover:bg-gray-100 transition-colors"
-                                    >
-                                      {updatingCategories.has(post.slug) ? "Updating..." : post.category}
-                                    </Badge>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start">
-                                    {allCategories.map((category) => (
-                                      <DropdownMenuItem
-                                        key={category}
-                                        onClick={() => handleCategoryUpdate(post.slug, category, post.source)}
-                                        className={post.category === category ? "bg-gray-100 font-medium" : ""}
-                                      >
-                                        {category}
-                                      </DropdownMenuItem>
-                                    ))}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              ) : (
-                                <Badge variant="outline" className="text-xs">
-                                  {post.category}
-                                </Badge>
-                              )}
-                            </div>
-                            <Badge variant={post.source === "hardcoded" ? "default" : "secondary"} className="text-xs">
-                              {post.source === "hardcoded" ? "Hardcoded" : "Dynamic"}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="flex-shrink-0">
-                          <div className="flex gap-2">
-                            {post.source === "blob" && !isEditing && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditContent(post.slug, post.source)}
-                              >
-                                <Edit3 className="w-4 h-4 mr-1" />
-                                Edit
-                              </Button>
-                            )}
-                            <Link href={`/blog/${post.slug}`} target="_blank">
-                              <Button variant="outline" size="sm">
-                                <Eye className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
-                            </Link>
-                            {post.source === "blob" && (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeletePost(post.slug, post.source)}
-                                disabled={deletingPosts.has(post.slug)}
-                              >
-                                {deletingPosts.has(post.slug) ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                                ) : (
-                                  <Trash2 className="w-4 h-4" />
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Content Editor Section */}
-                    {isEditing && (
-                      <div className="border-t p-4 bg-gray-50">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Edit Markdown Content</label>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleSaveContent(post.slug)} disabled={savingContent}>
-                                {savingContent ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
-                                ) : (
-                                  <Save className="w-4 h-4 mr-1" />
-                                )}
-                                Save
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={savingContent}>
-                                <X className="w-4 h-4 mr-1" />
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                          <textarea
-                            value={contentBeingEdited}
-                            onChange={(e) => setContentBeingEdited(e.target.value)}
-                            className="w-full h-96 p-3 border rounded-lg font-mono text-sm resize-y"
-                            placeholder="Edit your markdown content here..."
-                          />
-                          <p className="text-xs text-gray-500">
-                            Tip: You can edit the entire markdown file including frontmatter. Changes will be reflected
-                            on the live blog post.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="all">All Content ({totalContent})</TabsTrigger>
+              <TabsTrigger value="blog">Blog Posts ({blogData?.totalPosts || 0})</TabsTrigger>
+              <TabsTrigger value="interviews">Interviews ({interviewData?.totalInterviews || 0})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all" className="space-y-4 mt-4">
+              {[...(blogData?.posts || []), ...(interviewData?.interviews || [])]
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((item) => renderContentItem(item))}
+            </TabsContent>
+            <TabsContent value="blog" className="space-y-4 mt-4">
+              {(blogData?.posts || []).map((item) => renderContentItem(item))}
+            </TabsContent>
+            <TabsContent value="interviews" className="space-y-4 mt-4">
+              {(interviewData?.interviews || []).map((item) => renderContentItem(item))}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

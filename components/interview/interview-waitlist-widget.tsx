@@ -12,9 +12,10 @@ import { trackEvent } from "@/lib/analytics"
 interface InterviewWaitlistWidgetProps {
   trainerName: string
   articleTitle: string
+  slug: string
 }
 
-export function InterviewWaitlistWidget({ trainerName, articleTitle }: InterviewWaitlistWidgetProps) {
+export function InterviewWaitlistWidget({ trainerName, articleTitle, slug }: InterviewWaitlistWidgetProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStatus, setFormStatus] = useState<{
     success?: boolean
@@ -27,16 +28,16 @@ export function InterviewWaitlistWidget({ trainerName, articleTitle }: Interview
   const [phone, setPhone] = useState("")
   const [buttonDisabled, setButtonDisabled] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(e.currentTarget as HTMLFormElement)
 
     trackEvent("interview_waitlist_submit", {
       trainer: trainerName,
       article: articleTitle,
     })
 
-    formData.append("source", "Interview")
+    formData.append("source", `interview/${slug}`)
     formData.append("trainer", trainerName)
     formData.append("user_type", "client")
     formData.append("city", city)
@@ -121,9 +122,7 @@ export function InterviewWaitlistWidget({ trainerName, articleTitle }: Interview
   return (
     <div className="bg-gradient-to-r from-juice/10 to-juice/5 rounded-2xl p-8 my-12">
       <div className="max-w-2xl mx-auto">
-        <h3 className="text-2xl font-bold mb-2 text-gray-900 text-center">
-          Interested in Training with {trainerName}?
-        </h3>
+        <h3 className="text-2xl font-bold mb-2 text-gray-900 text-center">Want to book a free call?</h3>
         <p className="text-gray-600 mb-6 text-center">
           Book a free intro call to discuss your fitness goals and see if we're a good fit.
         </p>
