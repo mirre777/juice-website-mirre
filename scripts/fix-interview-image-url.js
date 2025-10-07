@@ -1,4 +1,4 @@
-import { list, put } from "@vercel/blob"
+import { list, put, del } from "@vercel/blob"
 
 console.log("[v0] Looking for interview markdown file...")
 
@@ -66,6 +66,10 @@ updatedContent = updatedContent.replace(/tags:\s*\[(.*?)\]/s, (match, tagsList) 
 
 console.log("[v0] Updated content (first 500 chars):")
 console.log(updatedContent.substring(0, 500))
+
+console.log("[v0] Deleting old interview blob...")
+await del(interviewBlob.url)
+console.log("[v0] Old blob deleted successfully")
 
 // Upload the updated content back to Blob storage
 console.log("[v0] Uploading updated interview...")
