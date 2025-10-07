@@ -6,6 +6,7 @@ excerpt: "In our latest Juice PT Spotlight, we talk to Lena from Strength Lab Vi
 author: "Juice Team"
 date: "2025-01-06"
 category: "Interview"
+tags: ["Dynamic"]
 trainer: "Lena from Strength Lab Vienna"
 image: "/personal-trainer-coaching-client-in-modern-gym.jpg"
 readTime: 8
