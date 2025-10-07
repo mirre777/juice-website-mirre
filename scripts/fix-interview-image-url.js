@@ -67,18 +67,21 @@ updatedContent = updatedContent.replace(/tags:\s*\[(.*?)\]/s, (match, tagsList) 
 console.log("[v0] Updated content (first 500 chars):")
 console.log(updatedContent.substring(0, 500))
 
-console.log("[v0] Deleting old interview blob...")
-await del(interviewBlob.url)
-console.log("[v0] Old blob deleted successfully")
+const timestamp = Date.now()
+const newPathname = `interviews/lena-strength-lab-vienna-${timestamp}.md`
 
-// Upload the updated content back to Blob storage
-console.log("[v0] Uploading updated interview...")
-const uploadResult = await put(interviewBlob.pathname, updatedContent, {
+// Upload the updated content with a new pathname
+console.log("[v0] Uploading updated interview to:", newPathname)
+const uploadResult = await put(newPathname, updatedContent, {
   access: "public",
   contentType: "text/markdown",
-  addRandomSuffix: false,
 })
 
 console.log("[v0] Upload successful!")
 console.log("[v0] New URL:", uploadResult.url)
+
+console.log("[v0] Deleting old interview blob...")
+await del(interviewBlob.url)
+console.log("[v0] Old blob deleted successfully")
+
 console.log("[v0] Interview image has been updated and duplicate tags removed!")
