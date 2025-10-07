@@ -258,6 +258,20 @@ export default function BlogAdminPage() {
 
       const formattedDate = format(newDate, "yyyy-MM-dd")
 
+      if (type === "blog" && blogData) {
+        setBlogData({
+          ...blogData,
+          posts: blogData.posts.map((post) => (post.slug === slug ? { ...post, date: formattedDate } : post)),
+        })
+      } else if (type === "interview" && interviewData) {
+        setInterviewData({
+          ...interviewData,
+          interviews: interviewData.interviews.map((interview) =>
+            interview.slug === slug ? { ...interview, date: formattedDate } : interview,
+          ),
+        })
+      }
+
       const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
       const response = await fetch(endpoint, {
         method: "PATCH",
