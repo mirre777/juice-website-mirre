@@ -14,6 +14,7 @@ import Image from "next/image"
 
 interface BlogImageUploaderProps {
   blogSlug?: string
+  contentType?: "blog" | "interview"
   onImageUploaded?: (imageUrl: string) => void
   availablePosts?: Array<{ slug: string; title: string; source: string }>
 }
@@ -28,7 +29,12 @@ interface UploadedImage {
   compressionRatio?: string // Added to show compression stats
 }
 
-export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = [] }: BlogImageUploaderProps) {
+export function BlogImageUploader({
+  blogSlug,
+  contentType,
+  onImageUploaded,
+  availablePosts = [],
+}: BlogImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
@@ -91,10 +97,10 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
       }
 
       if (selectedBlogPost && selectedBlogPost !== "none") {
-        const [type, ...slugParts] = selectedBlogPost.split("-")
-        const slug = slugParts.join("-")
+        const type = contentType || "blog"
+        const slug = blogSlug || selectedBlogPost.split("-").slice(1).join("-")
 
-        console.log("[v0] Linking image to content:", { selectedBlogPost, type, slug })
+        console.log("[v0] Linking image to content:", { contentType: type, slug })
 
         const endpoint = type === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
 
