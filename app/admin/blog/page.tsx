@@ -618,7 +618,16 @@ export default function BlogAdminPage() {
           )}
 
           <BlogImageUploader
-            blogSlug={selectedPostForImage ? selectedPostForImage.split("-").slice(1).join("-") : undefined}
+            blogSlug={
+              selectedPostForImage && selectedPostForImage !== "none"
+                ? selectedPostForImage.split("-").slice(1).join("-")
+                : undefined
+            }
+            contentType={
+              selectedPostForImage && selectedPostForImage !== "none"
+                ? (selectedPostForImage.split("-")[0] as "blog" | "interview")
+                : undefined
+            }
             availablePosts={[...(blogData?.posts || []), ...(interviewData?.interviews || [])]}
             onImageUploaded={(imageUrl) => {
               if (selectedPostForImage && selectedPostForImage !== "none") {

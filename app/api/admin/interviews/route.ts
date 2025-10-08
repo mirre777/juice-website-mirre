@@ -63,10 +63,9 @@ export async function PATCH(request: NextRequest) {
 
     console.log("[v0] ===== PATCH /api/admin/interviews =====")
     console.log("[v0] Request body:", JSON.stringify(body, null, 2))
-
-    if (!slug) {
-      return NextResponse.json({ error: "Slug is required" }, { status: 400 })
-    }
+    console.log("[v0] Image field received:", image)
+    console.log("[v0] Image field type:", typeof image)
+    console.log("[v0] Image !== undefined:", image !== undefined)
 
     // Find the interview blob
     const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
@@ -125,6 +124,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     console.log("[v0] Updated frontmatter:", updatedFrontmatter)
+    console.log("[v0] Old image:", frontmatter.image)
+    console.log("[v0] New image:", updatedFrontmatter.image)
 
     // Reconstruct the markdown file
     const updatedContent = matter.stringify(markdownContent, updatedFrontmatter)

@@ -14,6 +14,7 @@ import Image from "next/image"
 
 interface BlogImageUploaderProps {
   blogSlug?: string
+  contentType?: "blog" | "interview"
   onImageUploaded?: (imageUrl: string) => void
   availablePosts?: Array<{ slug: string; title: string; source: string }>
 }
@@ -28,7 +29,12 @@ interface UploadedImage {
   compressionRatio?: string // Added to show compression stats
 }
 
-export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = [] }: BlogImageUploaderProps) {
+export function BlogImageUploader({
+  blogSlug,
+  contentType,
+  onImageUploaded,
+  availablePosts = [],
+}: BlogImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
@@ -62,14 +68,18 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
 
       const formData = new FormData()
       formData.append("file", selectedFile)
-      if (selectedBlogPost) {
-        const slug =
-          selectedBlogPost.startsWith("blog-") || selectedBlogPost.startsWith("interview-")
-            ? selectedBlogPost.split("-").slice(1).join("-")
-            : selectedBlogPost
-        formData.append("blogSlug", slug)
+
+      let actualSlug = blogSlug
+      if (blogSlug && (blogSlug.startsWith("blog-") || blogSlug.startsWith("interview-"))) {
+        actualSlug = blogSlug.split("-").slice(1).join("-")
+      }
+
+      if (actualSlug) {
+        formData.append("blogSlug", actualSlug)
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
+
+      console.log("[v0] Uploading image with slug:", actualSlug)
 
       // Step 1: Upload the image
       const uploadResponse = await fetch("/api/admin/blog-images", {
@@ -90,10 +100,16 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
         )
       }
 
-      if (selectedBlogPost) {
-        const [type, ...slugParts] = selectedBlogPost.split("-")
-        const slug = slugParts.join("-")
-        const endpoint = type === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
+      if (selectedBlogPost && selectedBlogPost !== "none" && contentType) {
+        const slug = actualSlug || selectedBlogPost.split("-").slice(1).join("-")
+
+        console.log("[v0] Linking image to content:", {
+          contentType,
+          slug,
+          endpoint: contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts",
+        })
+
+        const endpoint = contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
 
         const linkResponse = await fetch(endpoint, {
           method: "PATCH",
@@ -108,11 +124,11 @@ export function BlogImageUploader({ blogSlug, onImageUploaded, availablePosts = 
 
         if (!linkResponse.ok) {
           const linkError = await linkResponse.json()
-          throw new Error(linkError.error || `Failed to link image to ${type}`)
+          throw new Error(linkError.error || `Failed to link image to ${contentType}`)
         }
 
         alert(
-          `Image successfully linked to ${type}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
+          `Image successfully linked to ${contentType}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
         )
       }
 

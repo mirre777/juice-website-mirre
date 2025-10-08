@@ -37,6 +37,7 @@ async function fixLenaInterviewTags() {
       access: "public",
       addRandomSuffix: false,
       contentType: "text/markdown",
+      allowOverwrite: true,
     })
 
     console.log("\n✅ Successfully updated Lena interview - removed duplicate 'Interview' tag")
