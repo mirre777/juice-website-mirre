@@ -121,6 +121,12 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
     notFound()
   }
 
+  console.log(`[v0] Rendering interview: ${interview.slug}`)
+  console.log(`[v0] Interview title: ${interview.title}`)
+  console.log(`[v0] Content length: ${interview.content?.length || 0}`)
+  console.log(`[v0] Content type: ${typeof interview.content}`)
+  console.log(`[v0] Content preview:`, interview.content?.substring(0, 200))
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/interview/${params.slug}`
   const relatedInterviews = await getRelatedInterviews(params.slug, 2)
@@ -211,7 +217,13 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
 
           <div className="relative">
             <div className="prose prose-lg max-w-none">
-              <MdxRenderer source={interview.content} />
+              {interview.content ? (
+                <MdxRenderer source={interview.content} />
+              ) : (
+                <p className="text-red-600">
+                  Content format is invalid. Please contact support if this issue persists.
+                </p>
+              )}
             </div>
           </div>
 

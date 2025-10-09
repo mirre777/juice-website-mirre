@@ -80,9 +80,13 @@ export async function getAllInterviews(): Promise<InterviewFrontmatter[]> {
 
 export async function getInterviewBySlug(slug: string): Promise<Interview | null> {
   try {
+    console.log(`[v0] Fetching interview: ${slug}`)
+
     const { blobs } = await list({
       prefix: `interviews/${slug}.md`,
     })
+
+    console.log(`[v0] Found ${blobs.length} blobs for ${slug}`)
 
     if (blobs.length === 0) {
       console.log(`[v0] Interview not found in Blob: ${slug}, checking sample data`)
@@ -91,9 +95,19 @@ export async function getInterviewBySlug(slug: string): Promise<Interview | null
     }
 
     const blob = blobs[0]
+    console.log(`[v0] Fetching blob from URL: ${blob.url}`)
+
     const response = await fetch(blob.url)
     const text = await response.text()
+
+    console.log(`[v0] Fetched text length: ${text.length}`)
+    console.log(`[v0] First 200 chars:`, text.substring(0, 200))
+
     const { data, content } = matter(text)
+
+    console.log(`[v0] Parsed frontmatter:`, data)
+    console.log(`[v0] Content length: ${content.length}`)
+    console.log(`[v0] Content preview:`, content.substring(0, 200))
 
     return {
       slug,
