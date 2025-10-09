@@ -105,6 +105,7 @@ async function uploadInterview() {
     const blob = await put("interviews/stephen-neider-mobility-training.md", interviewContent, {
       access: "public",
       addRandomSuffix: false,
+      allowOverwrite: true, // Added allowOverwrite: true to overwrite existing blob
     })
 
     console.log("[v0] Interview uploaded successfully!")
