@@ -1,5 +1,6 @@
 import { list } from "@vercel/blob"
 import matter from "gray-matter"
+import { serialize } from "next-mdx-remote/serialize"
 
 export interface InterviewFrontmatter {
   title: string
@@ -15,7 +16,7 @@ export interface InterviewFrontmatter {
 }
 
 export interface Interview extends InterviewFrontmatter {
-  content: string
+  content: any // Changed from string to any to hold serialized MDX source
   rawContent: string
 }
 
@@ -91,7 +92,14 @@ export async function getInterviewBySlug(slug: string): Promise<Interview | null
     if (blobs.length === 0) {
       console.log(`[v0] Interview not found in Blob: ${slug}, checking sample data`)
       const sampleInterview = sampleInterviews.find((i) => i.slug === slug)
-      return sampleInterview || null
+      if (sampleInterview) {
+        const mdxSource = await serialize(sampleInterview.rawContent)
+        return {
+          ...sampleInterview,
+          content: mdxSource,
+        }
+      }
+      return null
     }
 
     const blob = blobs[0]
@@ -109,6 +117,9 @@ export async function getInterviewBySlug(slug: string): Promise<Interview | null
     console.log(`[v0] Content length: ${content.length}`)
     console.log(`[v0] Content preview:`, content.substring(0, 200))
 
+    const mdxSource = await serialize(content)
+    console.log(`[v0] Serialized MDX source successfully`)
+
     return {
       slug,
       title: data.title || "Untitled Interview",
@@ -120,13 +131,20 @@ export async function getInterviewBySlug(slug: string): Promise<Interview | null
       readTime: data.readTime,
       featured: data.featured,
       tags: data.tags,
-      content,
+      content: mdxSource, // Now passing serialized MDX source instead of raw string
       rawContent: content,
     }
   } catch (error) {
     console.error(`[v0] Error fetching interview ${slug}:`, error)
     const sampleInterview = sampleInterviews.find((i) => i.slug === slug)
-    return sampleInterview || null
+    if (sampleInterview) {
+      const mdxSource = await serialize(sampleInterview.rawContent)
+      return {
+        ...sampleInterview,
+        content: mdxSource,
+      }
+    }
+    return null
   }
 }
 
