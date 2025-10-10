@@ -69,12 +69,12 @@ export function BlogImageUploader({
       const formData = new FormData()
       formData.append("file", selectedFile)
 
-      let actualSlug = blogSlug || selectedBlogPost
-      if (actualSlug && (actualSlug.startsWith("blog-") || actualSlug.startsWith("interview-"))) {
-        actualSlug = actualSlug.split("-").slice(1).join("-")
+      let actualSlug = blogSlug
+      if (blogSlug && (blogSlug.startsWith("blog-") || blogSlug.startsWith("interview-"))) {
+        actualSlug = blogSlug.split("-").slice(1).join("-")
       }
 
-      if (actualSlug && actualSlug !== "none") {
+      if (actualSlug) {
         formData.append("blogSlug", actualSlug)
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
