@@ -1,14 +1,12 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, ImageIcon, Copy, Check, X } from "lucide-react"
 import Image from "next/image"
 
@@ -16,7 +14,7 @@ interface BlogImageUploaderProps {
   blogSlug?: string
   contentType?: "blog" | "interview"
   onImageUploaded?: (imageUrl: string) => void
-  availablePosts?: Array<{ slug: string; title: string; source: string }>
+  availablePosts?: Array<{ slug: string; title: string; source: string; type?: "blog" | "interview" }>
 }
 
 interface UploadedImage {
@@ -25,8 +23,8 @@ interface UploadedImage {
   originalName: string
   size: number
   type: string
-  originalSize?: number // Added to show compression stats
-  compressionRatio?: string // Added to show compression stats
+  originalSize?: number
+  compressionRatio?: string
 }
 
 export function BlogImageUploader({
@@ -40,11 +38,11 @@ export function BlogImageUploader({
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
   const [preserveOriginalName, setPreserveOriginalName] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [selectedBlogPost, setSelectedBlogPost] = useState<string>(blogSlug || "")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Filter out hardcoded posts - only show editable blob posts
-  const editablePosts = availablePosts.filter((post) => post.source === "blob")
+  useEffect(() => {
+    console.log("[v0] BlogImageUploader props received:", { blogSlug, contentType })
+  }, [blogSlug, contentType])
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -69,27 +67,31 @@ export function BlogImageUploader({
       const formData = new FormData()
       formData.append("file", selectedFile)
 
-      let actualSlug = blogSlug
-      if (blogSlug && (blogSlug.startsWith("blog-") || blogSlug.startsWith("interview-"))) {
-        actualSlug = blogSlug.split("-").slice(1).join("-")
-      }
-
-      if (actualSlug) {
-        formData.append("blogSlug", actualSlug)
+      if (blogSlug && blogSlug !== "none") {
+        formData.append("blogSlug", blogSlug)
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
 
-      console.log("[v0] Uploading image with slug:", actualSlug)
+      console.log("[v0] Upload starting with:", {
+        blogSlug,
+        contentType,
+      })
 
-      // Step 1: Upload the image
       const uploadResponse = await fetch("/api/admin/blog-images", {
         method: "POST",
         body: formData,
       })
 
       if (!uploadResponse.ok) {
-        const error = await uploadResponse.json()
-        throw new Error(error.error || "Upload failed")
+        const responseText = await uploadResponse.text()
+        let errorMessage = "Upload failed"
+        try {
+          const error = JSON.parse(responseText)
+          errorMessage = error.error || errorMessage
+        } catch {
+          errorMessage = responseText || `Upload failed with status ${uploadResponse.status}`
+        }
+        throw new Error(errorMessage)
       }
 
       const uploadResult = await uploadResponse.json()
@@ -100,12 +102,10 @@ export function BlogImageUploader({
         )
       }
 
-      if (selectedBlogPost && selectedBlogPost !== "none" && contentType) {
-        const slug = actualSlug || selectedBlogPost.split("-").slice(1).join("-")
-
+      if (blogSlug && blogSlug !== "none" && contentType) {
         console.log("[v0] Linking image to content:", {
           contentType,
-          slug,
+          slug: blogSlug,
           endpoint: contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts",
         })
 
@@ -117,18 +117,32 @@ export function BlogImageUploader({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            slug: slug,
+            slug: blogSlug,
             image: uploadResult.url,
           }),
         })
 
         if (!linkResponse.ok) {
-          const linkError = await linkResponse.json()
-          throw new Error(linkError.error || `Failed to link image to ${contentType}`)
+          const responseText = await linkResponse.text()
+          let linkErrorMessage = `Failed to link image to ${contentType}`
+          try {
+            const linkError = JSON.parse(responseText)
+            linkErrorMessage = linkError.error || linkError.details || linkErrorMessage
+          } catch {
+            linkErrorMessage = responseText || `Linking failed with status ${linkResponse.status}`
+          }
+          console.error("[v0] Linking error:", linkErrorMessage)
+          throw new Error(linkErrorMessage)
         }
 
+        console.log("[v0] Successfully linked image to", contentType)
         alert(
           `Image successfully linked to ${contentType}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
+        )
+      } else if (blogSlug && blogSlug !== "none" && !contentType) {
+        console.warn("[v0] Cannot link image: contentType is undefined but slug exists:", blogSlug)
+        alert(
+          "Image uploaded but could not be linked: content type is missing. Please try selecting the content again.",
         )
       }
 
@@ -171,30 +185,11 @@ export function BlogImageUploader({
         </CardTitle>
         <CardDescription>
           Upload images for blog posts. Images will be stored in the blog-images folder.
-          {selectedBlogPost && ` Linked to: ${selectedBlogPost}`}
+          {blogSlug && ` Linked to: ${blogSlug}`}
+          {contentType && ` (${contentType})`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {editablePosts.length > 0 && (
-          <div className="space-y-2">
-            <Label htmlFor="blog-post-select">Link to Blog Post (Optional)</Label>
-            <Select value={selectedBlogPost} onValueChange={setSelectedBlogPost}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a blog post to link this image to" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No blog post (general upload)</SelectItem>
-                {editablePosts.map((post) => (
-                  <SelectItem key={post.slug} value={post.slug}>
-                    {post.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* Upload Section */}
         <div className="space-y-2">
           <Label htmlFor="image-upload">Select Image</Label>
           <div className="flex gap-2">
@@ -258,14 +253,12 @@ export function BlogImageUploader({
           <p className="text-xs text-muted-foreground">Supported formats: JPG, PNG, WebP. Maximum size: 10MB</p>
         </div>
 
-        {/* Uploaded Images */}
         {uploadedImages.length > 0 && (
           <div className="space-y-3">
             <Label>Recently Uploaded Images</Label>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {uploadedImages.map((image, index) => (
                 <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                  {/* Image Preview */}
                   <div className="flex-shrink-0">
                     <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-100">
                       <Image
@@ -277,7 +270,6 @@ export function BlogImageUploader({
                     </div>
                   </div>
 
-                  {/* Image Details */}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{image.originalName}</p>
                     <p className="text-xs text-muted-foreground">

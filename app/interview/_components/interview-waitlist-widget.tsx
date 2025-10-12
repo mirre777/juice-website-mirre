@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, CheckCircle2, Loader2 } from "lucide-react"
+import { joinWaitlist } from "@/actions/waitlist-actions"
 
 interface InterviewWaitlistWidgetProps {
   trainerName: string
@@ -32,22 +33,20 @@ export function InterviewWaitlistWidget({ trainerName, articleTitle, slug }: Int
     setError(null)
 
     try {
-      const response = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          source: `Interview: ${articleTitle}`,
-          trainerName,
-          interviewSlug: slug,
-          type: "trainer_intro_call",
-        }),
-      })
+      const formDataObj = new FormData()
+      formDataObj.append("name", formData.name)
+      formDataObj.append("email", formData.email)
+      formDataObj.append("phone", formData.phone)
+      formDataObj.append("message", formData.message)
+      formDataObj.append("source", slug) // Use slug instead of full article title for easier tracking
+      formDataObj.append("city", "Unknown") // Required field
+      formDataObj.append("user_type", "client") // Default to client
+      formDataObj.append("plan", "basic") // Default plan
 
-      if (!response.ok) {
-        throw new Error("Failed to submit form")
+      const result = await joinWaitlist(formDataObj)
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to submit form")
       }
 
       setIsSuccess(true)
