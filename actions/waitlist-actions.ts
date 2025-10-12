@@ -288,7 +288,8 @@ export async function joinWaitlist(formData: FormData) {
       const relayWebhookUrl = process.env.RELAY_WEBHOOK_URL
       if (relayWebhookUrl) {
         console.log("Sending notification to Relay webhook...")
-        const webhookResponse = await fetch(relayWebhookUrl, {
+        const webhookUrlWithId = `${relayWebhookUrl}?documentId=${docRef.id}`
+        const webhookResponse = await fetch(webhookUrlWithId, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
