@@ -1,19 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getFirebaseClientDb, isBuildTime } from "@/lib/firebase-global-guard"
 
-export async function GET(request: NextRequest, { params }: { params: { documentId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ documentId: string }> }) {
   if (isBuildTime()) {
     return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
   }
 
+  const { documentId } = await params
+
   console.log("[v0] 📥 RELAY POTENTIAL USER FETCH API CALLED")
   console.log("[v0] 🕐 Timestamp:", new Date().toISOString())
-  console.log("[v0] 📊 Document ID:", params.documentId)
+  console.log("[v0] 📊 Document ID:", documentId)
 
   try {
     const db = await getFirebaseClientDb()
 
-    if (!params.documentId) {
+    if (!documentId) {
       console.error("[v0] ❌ Document ID is required")
       return NextResponse.json(
         {
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: { document
     console.log("[v0] 🔄 Fetching user from potential_users collection...")
 
     const { doc, getDoc } = await import("firebase/firestore")
-    const userRef = doc(db, "potential_users", params.documentId)
+    const userRef = doc(db, "potential_users", documentId)
     const userSnap = await getDoc(userRef)
 
     if (!userSnap.exists()) {
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: { document
     return NextResponse.json({
       success: true,
       data: {
-        documentId: params.documentId,
+        documentId: documentId,
         email: userData.email || "",
         city: userData.city || "",
         userType: userData.user_type || "",
