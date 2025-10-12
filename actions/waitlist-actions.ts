@@ -284,6 +284,33 @@ export async function joinWaitlist(formData: FormData) {
 
     console.log("Document written with ID:", docRef.id)
 
+    try {
+      const relayWebhookUrl = process.env.RELAY_WEBHOOK_URL
+      if (relayWebhookUrl) {
+        console.log("Sending notification to Relay webhook...")
+        const webhookResponse = await fetch(relayWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            documentId: docRef.id,
+          }),
+        })
+
+        if (webhookResponse.ok) {
+          console.log("Relay webhook notification sent successfully")
+        } else {
+          console.error("Relay webhook failed:", await webhookResponse.text())
+        }
+      } else {
+        console.log("No Relay webhook URL configured")
+      }
+    } catch (webhookError) {
+      // Don't fail the whole operation if webhook fails
+      console.error("Error sending Relay webhook:", webhookError)
+    }
+
     // Return success with appropriate message
     const successMessage =
       userType === "client" && city === "München"
