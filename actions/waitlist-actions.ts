@@ -290,24 +290,10 @@ export async function joinWaitlist(formData: FormData) {
         console.log("Sending notification to Relay webhook...")
         const webhookUrlWithId = `${relayWebhookUrl}?documentId=${docRef.id}`
         const webhookResponse = await fetch(webhookUrlWithId, {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            documentId: docRef.id,
-            email: waitlistData.email,
-            city: waitlistData.city,
-            userType: waitlistData.user_type,
-            plan: waitlistData.plan,
-            phone: waitlistData.phone,
-            name: waitlistData.name,
-            goal: waitlistData.goal,
-            district: waitlistData.district,
-            startTime: waitlistData.startTime,
-            source: waitlistData.source,
-            createdAt: new Date().toISOString(),
-          }),
         })
 
         if (webhookResponse.ok) {
