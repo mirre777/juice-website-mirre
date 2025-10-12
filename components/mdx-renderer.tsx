@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { MDXRemote } from "next-mdx-remote"
+import ReactMarkdown from "react-markdown"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -112,11 +111,11 @@ const components = {
 }
 
 interface MdxRendererProps {
-  source: any
+  source: string // Changed to accept string instead of serialized MDX
 }
 
 export function MdxRenderer({ source }: MdxRendererProps) {
-  if (!source) {
+  if (!source || typeof source !== "string") {
     return (
       <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-gray-600">Content is currently unavailable. Please try refreshing the page.</p>
@@ -124,23 +123,14 @@ export function MdxRenderer({ source }: MdxRendererProps) {
     )
   }
 
-  // Check if source has the expected structure for MDXRemote
-  if (!source.compiledSource && !source.frontmatter && !source.scope) {
-    return (
-      <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-600">Content format is invalid. Please contact support if this issue persists.</p>
-      </div>
-    )
-  }
-
   try {
     return (
       <div className="mdx-content">
-        <MDXRemote {...source} components={components} />
+        <ReactMarkdown components={components}>{source}</ReactMarkdown>
       </div>
     )
   } catch (error) {
-    console.error("Error rendering MDX content:", error)
+    console.error("[v0] Error rendering markdown content:", error)
     return (
       <div className="p-6 bg-red-50 rounded-lg border border-red-200">
         <p className="text-red-600">There was an error rendering this content. Please try refreshing the page.</p>

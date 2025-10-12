@@ -1,4 +1,4 @@
-import { getInterviewBySlug, getInterviewSlugs, getAllInterviews } from "@/lib/interview"
+import { getInterviewBySlug, getInterviewSlugs, getAllInterviews } from "@/app/interview/_lib/interview-data"
 import { notFound } from "next/navigation"
 import { MdxRenderer } from "@/components/mdx-renderer"
 import { Navbar } from "@/components/navbar"
@@ -7,13 +7,13 @@ import { ReadingProgress } from "@/components/blog/reading-progress"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { SocialShare } from "@/components/blog/social-share"
 import { ReadingTime } from "@/components/blog/reading-time"
-import { InterviewWaitlistWidget } from "@/components/interview/interview-waitlist-widget"
+import { InterviewWaitlistWidget } from "@/app/interview/_components/interview-waitlist-widget"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, Tag } from "lucide-react"
 import type { Metadata } from "next"
-import type { InterviewFrontmatter } from "@/lib/interview"
+import type { InterviewFrontmatter } from "@/app/interview/_lib/interview-data"
 
 export const dynamic = "force-dynamic"
 
@@ -115,24 +115,17 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
 }
 
 export default async function InterviewPage({ params }: InterviewPageProps) {
-  console.log(`[v0] ========== INTERVIEW PAGE RENDER START ==========`)
-  console.log(`[v0] InterviewPage: Slug from params: "${params.slug}"`)
-  console.log(`[v0] InterviewPage: Current time: ${new Date().toISOString()}`)
-
   const interview = await getInterviewBySlug(params.slug)
 
   if (!interview) {
-    console.log(`[v0] InterviewPage: Interview not found for slug: "${params.slug}"`)
-    console.log(`[v0] ========== INTERVIEW PAGE RENDER END (NOT FOUND) ==========`)
     notFound()
   }
 
-  console.log(`[v0] InterviewPage: Successfully loaded interview`)
-  console.log(`[v0] InterviewPage: Title: "${interview.title}"`)
-  console.log(`[v0] InterviewPage: Image path: "${interview.image}"`)
-  console.log(`[v0] InterviewPage: Trainer: "${interview.trainerName}"`)
-  console.log(`[v0] InterviewPage: Has content: ${!!interview.content}`)
-  console.log(`[v0] ========== INTERVIEW PAGE RENDER END (SUCCESS) ==========`)
+  console.log(`[v0] Rendering interview: ${interview.slug}`)
+  console.log(`[v0] Interview title: ${interview.title}`)
+  console.log(`[v0] Content length: ${interview.content?.length || 0}`)
+  console.log(`[v0] Content type: ${typeof interview.content}`)
+  console.log(`[v0] Content preview:`, interview.content?.substring(0, 200))
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/interview/${params.slug}`
@@ -177,7 +170,6 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
         <Navbar isCoach={true} className="bg-white" />
 
         <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
-          {/* Back to Blog */}
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-juice transition-colors mb-8"
@@ -186,7 +178,6 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             Back to Blog
           </Link>
 
-          {/* Article Header */}
           <header className="mb-8">
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -211,7 +202,6 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             <SocialShare title={interview.title} url={fullUrl} excerpt={interview.excerpt} />
           </header>
 
-          {/* Hero Image */}
           {interview.image && (
             <div className="relative w-full h-96 mb-12 rounded-xl overflow-hidden shadow-lg">
               <Image
@@ -225,10 +215,15 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             </div>
           )}
 
-          {/* Article Content */}
           <div className="relative">
             <div className="prose prose-lg max-w-none">
-              <MdxRenderer source={interview.content} />
+              {interview.content ? (
+                <MdxRenderer source={interview.content} />
+              ) : (
+                <p className="text-red-600">
+                  Content format is invalid. Please contact support if this issue persists.
+                </p>
+              )}
             </div>
           </div>
 
@@ -238,13 +233,11 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             slug={params.slug}
           />
 
-          {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t border-gray-200">
             <div className="mb-8">
               <SocialShare title={interview.title} url={fullUrl} excerpt={interview.excerpt} />
             </div>
 
-            {/* Related Interviews */}
             {relatedInterviews.length > 0 && (
               <div className="mb-12">
                 <h3 className="text-2xl font-bold mb-6 text-gray-900">More Interviews</h3>
@@ -281,7 +274,6 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
               </div>
             )}
 
-            {/* Call to Action */}
             <div className="bg-gradient-to-r from-juice/10 to-juice/5 p-8 rounded-2xl text-center">
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Ready to start your fitness journey?</h3>
               <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { getAllPosts } from "@/lib/blog"
-import { getAllInterviews } from "@/lib/interview"
+import { getAllInterviews } from "@/app/interview/_lib/interview-data"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { BlogClient } from "./blog-client"
@@ -67,38 +67,15 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function BlogPage() {
-  console.log(`[v0] Blog page: Starting to fetch posts at ${new Date().toISOString()}`)
   const posts = await getAllPosts()
   const interviews = await getAllInterviews()
   const allContent = [...posts, ...interviews]
-
-  console.log(
-    `[v0] Blog page: Fetched ${posts.length} posts and ${interviews.length} interviews at ${new Date().toISOString()}`,
-  )
-
-  allContent.slice(0, 5).forEach((content, index) => {
-    console.log(
-      `[v0] Blog page: Content ${index + 1} - Title: "${content.title}" | Slug: "${content.slug}" | Category: "${content.category}"`,
-    )
-  })
-
-  const strengthContent = allContent.find(
-    (c) => c.slug.includes("strength-training") || c.title.includes("Strength Training"),
-  )
-  if (strengthContent) {
-    console.log(
-      `[v0] Blog page: Found strength training content - Title: "${strengthContent.title}" | Slug: "${strengthContent.slug}"`,
-    )
-  } else {
-    console.log(`[v0] Blog page: No strength training content found in ${allContent.length} contents`)
-  }
 
   return (
     <main className="min-h-screen bg-white text-black">
       <Navbar isCoach={true} className="bg-white" />
 
       <div className="container mx-auto px-4 md:px-6 py-20 pt-32">
-        {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">Juice Blog</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">

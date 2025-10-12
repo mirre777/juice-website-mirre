@@ -565,6 +565,26 @@ export default function BlogAdminPage() {
   const totalContent = (blogData?.totalPosts || 0) + (interviewData?.totalInterviews || 0)
   const totalBlobContent = (blogData?.blobPosts || 0) + (interviewData?.totalInterviews || 0)
 
+  const getContentTypeAndSlug = () => {
+    if (!selectedPostForImage || selectedPostForImage === "none") {
+      return { contentType: undefined, slug: undefined }
+    }
+
+    const parts = selectedPostForImage.split("-")
+    const contentType = parts[0] as "blog" | "interview"
+    const slug = parts.slice(1).join("-")
+
+    console.log("[v0] Admin: Extracted values:", {
+      selectedPostForImage,
+      contentType,
+      slug,
+    })
+
+    return { contentType, slug }
+  }
+
+  const { contentType: extractedContentType, slug: extractedSlug } = getContentTypeAndSlug()
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -618,21 +638,14 @@ export default function BlogAdminPage() {
           )}
 
           <BlogImageUploader
-            blogSlug={
-              selectedPostForImage && selectedPostForImage !== "none"
-                ? selectedPostForImage.split("-").slice(1).join("-")
-                : undefined
-            }
-            contentType={
-              selectedPostForImage && selectedPostForImage !== "none"
-                ? (selectedPostForImage.split("-")[0] as "blog" | "interview")
-                : undefined
-            }
+            blogSlug={extractedSlug}
+            contentType={extractedContentType}
             availablePosts={[...(blogData?.posts || []), ...(interviewData?.interviews || [])]}
             onImageUploaded={(imageUrl) => {
               if (selectedPostForImage && selectedPostForImage !== "none") {
                 const [type, ...slugParts] = selectedPostForImage.split("-")
                 const slug = slugParts.join("-")
+                console.log("[v0] Admin: Uploading image for:", { type, slug, selectedPostForImage })
                 handleImageAssigned(imageUrl, slug, type as "blog" | "interview")
               }
             }}
