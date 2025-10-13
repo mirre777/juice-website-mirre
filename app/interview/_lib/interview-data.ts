@@ -50,7 +50,7 @@ export async function getAllInterviews(): Promise<InterviewFrontmatter[]> {
 
     const interviews = await Promise.all(
       blobs.map(async (blob) => {
-        const response = await fetch(blob.url)
+        const response = await fetch(`${blob.url}?t=${Date.now()}`, { cache: "no-store" })
         const text = await response.text()
         const { data } = matter(text)
 
@@ -97,7 +97,7 @@ export async function getInterviewBySlug(slug: string): Promise<Interview | null
     const blob = blobs[0]
     console.log(`[v0] Fetching blob from URL: ${blob.url}`)
 
-    const response = await fetch(blob.url)
+    const response = await fetch(`${blob.url}?t=${Date.now()}`, { cache: "no-store" })
     const text = await response.text()
 
     console.log(`[v0] Fetched text length: ${text.length}`)
