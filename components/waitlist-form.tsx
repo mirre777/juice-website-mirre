@@ -136,10 +136,10 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-3 max-w-2xl mx-auto">
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Email Input */}
-        <div className="space-y-1 flex-2">
+        <div className="space-y-1 flex-2 min-w-0">
           <label htmlFor="email" className="text-sm font-medium text-left block text-black">
             Email
           </label>
@@ -151,12 +151,12 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-4 h-11 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-base"
           />
         </div>
 
         {/* Phone Input */}
-        <div className="space-y-1 flex-2">
+        <div className="space-y-1 flex-1 min-w-0 max-w-[180px]">
           <label htmlFor="phone" className="text-sm font-medium text-left block text-black">
             Phone
           </label>
@@ -168,12 +168,12 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-4 h-11 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-base"
           />
         </div>
 
         {/* City Input */}
-        <div className="space-y-1 flex-2">
+        <div className="space-y-1 flex-1 min-w-0">
           <label htmlFor="city" className="text-sm font-medium text-left block text-black">
             City
           </label>
@@ -185,7 +185,7 @@ export function WaitlistForm({ selectedPlan, showClientCounter = true }: Waitlis
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-4 h-11 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-sm"
+            className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-juice text-base"
           />
         </div>
 

@@ -4,6 +4,7 @@ import type React from "react"
 
 import Image from "next/image"
 import { Dumbbell, GraduationCap, Clock, FlaskConical } from "lucide-react"
+import { GlobalProgram } from "@/components/global-program"
 
 interface Exercise {
   name: string
@@ -24,6 +25,7 @@ interface CTAData {
   ctaButtonText?: string // Added optional CTA button text prop
   ctaButtonStyle?: "green" | "black" // Added button styling options
   ctaButtonUrl?: string // Added optional redirect URL for CTA button
+  programId?: string
 }
 
 interface WorkoutProgramsFeaturesSectionProps {
@@ -31,6 +33,7 @@ interface WorkoutProgramsFeaturesSectionProps {
   exercises?: Exercise[] // Added exercises prop to support dynamic exercise content
   features: Feature[]
   ctaData: CTAData
+  programId?: string
 }
 
 const getFeatureIcon = (title: string) => {
@@ -55,6 +58,7 @@ export function WorkoutProgramsFeaturesSection({
   exercises,
   features,
   ctaData,
+  programId,
 }: WorkoutProgramsFeaturesSectionProps) {
   const getButtonClasses = () => {
     if (ctaData.ctaButtonStyle === "black") {
@@ -73,6 +77,7 @@ export function WorkoutProgramsFeaturesSection({
   return (
     <section className="bg-white py-8">
       <div className="container mx-auto px-4">
+        <GlobalProgram programId={programId} ctaData={ctaData as any} />
         {/* Program content overview section */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-8 text-black">What's Inside the Program</h2>
