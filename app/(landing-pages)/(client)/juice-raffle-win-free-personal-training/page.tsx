@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import JuiceRaffleWeeklyGoalClientPage from "./JuiceRaffleWeeklyGoalClientPage"
 
 export const metadata: Metadata = {
-  title: "Juice Raffle – Hit Your Weekly Goal | Juice",
+  title: "Juice Raffle – Win a Free Form Check | Juice",
   description:
-    "Join the Juice raffle by hitting your weekly goal. Track workouts, stay consistent, and enter to win once you complete your weekly target.",
+    "Join the Juice raffle by hitting your weekly goal. Track workouts, stay consistent, and enter to win a free form check once you complete your weekly target.",
   keywords: [
     "juice raffle",
     "weekly goal",
@@ -16,28 +16,28 @@ export const metadata: Metadata = {
     "fitness rewards",
   ],
   openGraph: {
-    title: "Juice Raffle – Hit Your Weekly Goal",
+    title: "Juice Raffle – Win a Free Form Check",
     description:
-      "Hit your weekly goal in the Juice app to enter the raffle. Stay consistent, track progress, and win.",
-    url: "/juice-raffle-hit-weekly-goal",
+      "Hit your weekly goal in the Juice app to enter the raffle. Stay consistent, track progress, and win a free form check.",
+    url: "/juice-raffle-win-free-personal-training",
     siteName: "Juice",
     locale: "en_GB",
     type: "website",
     images: [
       {
-        url: "/images/og-feature-graphic.png",
+        url: "/images/juice-raffle-form-check.png",
         width: 1200,
         height: 630,
-        alt: "Juice raffle weekly goal",
+        alt: "Juice Raffle – Win a Free Form Check",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Juice Raffle – Hit Your Weekly Goal",
+    title: "Juice Raffle – Win a Free Form Check",
     description:
       "Track your training, hit the weekly goal, and enter the raffle in the Juice app.",
-    images: ["/images/og-feature-graphic.png"],
+    images: ["/images/juice-raffle-form-check.png"],
   },
   robots: {
     index: true,
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "/juice-raffle-hit-weekly-goal",
+    canonical: "/juice-raffle-win-free-personal-training",
   },
   formatDetection: {
     email: false,
