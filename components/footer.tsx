@@ -17,7 +17,8 @@ export function Footer() {
     pathname === "/marketplace/personal-trainer-website" ||
     pathname === "/workout-planner" ||
     pathname === "/juice-raffle-hit-weekly-goal" ||
-    pathname === "/workout-programs"
+    pathname === "/workout-programs" ||
+    pathname.startsWith("/workout-programs/")
   const isFooterDark =
     !isWhiteThemedPage &&
     ((pathname.startsWith("/marketplace") && pathname !== "/marketplace/personal-trainer-website") || // Added exception for personal trainer website page to use light footer

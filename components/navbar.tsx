@@ -140,7 +140,8 @@ export function Navbar() {
     pathname === "/marketplace/personal-trainer-website" ||
     pathname === "/workout-planner" ||
     pathname === "/juice-raffle-hit-weekly-goal" ||
-    pathname === "/workout-programs"
+    pathname === "/workout-programs" ||
+    pathname.startsWith("/workout-programs/")
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
 
   const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"
