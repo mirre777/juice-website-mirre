@@ -140,6 +140,7 @@ export function Navbar() {
     pathname === "/marketplace/personal-trainer-website" ||
     pathname === "/workout-planner" ||
     pathname === "/juice-raffle-hit-weekly-goal" ||
+    pathname === "/juice-raffle-win-free-personal-training" ||
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/")
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
