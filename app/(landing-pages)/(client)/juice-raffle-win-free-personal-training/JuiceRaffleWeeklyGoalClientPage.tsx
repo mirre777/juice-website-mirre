@@ -52,7 +52,7 @@ export default function JuiceRaffleWeeklyGoalClientPage() {
         description: "Hit the goal (min. 3) and you're automatically entered in the raffle.",
       },
       {
-        title: "1000. Fair & simple",
+        title: "100% Fair & simple",
         description: "No fees. Just train, log it, and stay consistent.",
       },
     ],
