@@ -14,7 +14,7 @@ const structuredData = {
   "@type": "WebPage",
   name: "Juice Raffle – Win a Free Form Check",
   description: "Hit your weekly goal in the Juice app and enter our raffle. Stay consistent and win.",
-  url: "https://juice.fitness/juice-raffle-hit-weekly-goal",
+  url: "https://juice.fitness/juice-raffle-win-free-personal-training",
   publisher: {
     "@type": "Organization",
     name: "Juice",
@@ -28,9 +28,9 @@ const structuredData = {
 export default function JuiceRaffleWeeklyGoalClientPage() {
   const { setIsCoach } = useTheme()
   const heroData = {
-    title: "Hit your weekly goal — enter the Juice raffle",
+    title: "Juice Raffle – Win a Free Form Check",
     subtitle:
-      "Stay consistent with your workouts for one week in the Juice app. Complete your target and automatically enter our raffle.",
+      "Hit your weekly goal in the Juice app. Stay consistent and automatically enter to win a free form check.",
     rating: "5/5 by our moms",
     ctaText: "Open the Juice App",
     ctaUrl: "/download-juice-app",
@@ -71,7 +71,7 @@ export default function JuiceRaffleWeeklyGoalClientPage() {
       {
         question: "What is the Juice Weekly-Goal Challenge?",
         answer:
-          "We're giving away a raffle prize among anyone who has set their weekly workout goal and achieved it at the end of that week (min. 3 sessions required)ions) in the Juice app and complete it.",
+          "We're giving away a raffle prize among anyone who has set their weekly workout goal and achieved it at the end of that week (min. 3 sessions required) in the Juice app.",
       },
       {
         question: "How do I enter?",
