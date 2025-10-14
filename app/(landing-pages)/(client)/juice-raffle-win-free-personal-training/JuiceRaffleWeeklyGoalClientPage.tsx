@@ -12,7 +12,7 @@ import { useTheme } from "@/contexts/theme-context"
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  name: "Juice Raffle – Hit Weekly Goal",
+  name: "Juice Raffle – Win a Free Form Check",
   description: "Hit your weekly goal in the Juice app and enter our raffle. Stay consistent and win.",
   url: "https://juice.fitness/juice-raffle-hit-weekly-goal",
   publisher: {
