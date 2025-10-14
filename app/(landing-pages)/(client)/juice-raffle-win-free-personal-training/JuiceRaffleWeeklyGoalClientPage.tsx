@@ -31,7 +31,7 @@ export default function JuiceRaffleWeeklyGoalClientPage() {
     title: "Juice Raffle – Win a Free Form Check",
     subtitle:
       "Hit your weekly goal in the Juice app. Stay consistent and automatically enter to win a free form check.",
-    rating: "5/5 by our moms",
+    rating: "5/5 by our moms (they have great form)",
     ctaText: "Open the Juice App",
     ctaUrl: "/download-juice-app",
   }
