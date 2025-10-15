@@ -20,12 +20,12 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [showAllPrograms, setShowAllPrograms] = useState(true)
 
-  const programTypes = ["Free", "Paid"]
+  const programTypes = ["Free", "Paid", "Celebrity"]
 
   const filteredPrograms = showAllPrograms
     ? programs
     : programs.filter((program) => {
-        const programType = program.isPaid ? "Paid" : "Free"
+        const programType = program.isCelebrity ? "Celebrity" : program.isPaid ? "Paid" : "Free"
         return selectedTypes.includes(programType)
       })
 
@@ -94,7 +94,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
           {filteredPrograms.map((program) => (
             <Link
               key={program.slug}
-              href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
+              href={`/workout-programs/${program.isCelebrity ? "celebrity" : program.isPaid ? "paid" : "free"}/${program.slug}`}
               className="block"
             >
               <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
@@ -112,7 +112,8 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
                     <Badge className="bg-juice text-juice-foreground">{program.difficulty}</Badge>
-                    {program.isPaid && <Badge className="bg-black text-white">Premium</Badge>}
+                    {program.isCelebrity && <Badge className="bg-yellow-500 text-black">Celebrity</Badge>}
+                    {program.isPaid && !program.isCelebrity && <Badge className="bg-black text-white">Premium</Badge>}
                   </div>
                 </div>
 

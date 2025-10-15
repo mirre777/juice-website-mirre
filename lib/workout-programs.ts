@@ -6,6 +6,7 @@ export interface WorkoutProgram {
   difficulty: "Beginner" | "Intermediate" | "Advanced"
   duration: string
   isPaid: boolean
+  isCelebrity: boolean
   image?: string
   ctaUrl: string
 }
@@ -21,6 +22,7 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       difficulty: "Beginner",
       duration: "3 days/week",
       isPaid: false,
+      isCelebrity: false,
       image: "/images/workout-program.png",
       ctaUrl: "https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc",
     },
@@ -33,8 +35,22 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       difficulty: "Intermediate",
       duration: "4 days/week",
       isPaid: true,
+      isCelebrity: false,
       image: "/images/workout-logging.png",
       ctaUrl: "https://app.juice.fitness/programs/dumbbell-workout",
+    },
+    {
+      slug: "arnold-schwarzenegger-workout",
+      title: "Arnold Schwarzenegger's Classic Mass Building Program",
+      excerpt:
+        "Train like the legend himself with Arnold's proven mass-building routine. This program combines his classic training principles with modern exercise science.",
+      category: "Bodybuilding",
+      difficulty: "Advanced",
+      duration: "6 days/week",
+      isPaid: true,
+      isCelebrity: true,
+      image: "/images/workout-program.png",
+      ctaUrl: "https://app.juice.fitness/programs/arnold-schwarzenegger-workout",
     },
   ]
 }
