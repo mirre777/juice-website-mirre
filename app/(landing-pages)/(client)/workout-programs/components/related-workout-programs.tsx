@@ -1,15 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { Dumbbell, Activity } from "lucide-react"
+import { Dumbbell, Activity, Star } from "lucide-react"
 
 interface WorkoutProgram {
   title: string
   slug: string
   isPaid: boolean
+  isCelebrity: boolean
   daysPerWeek: number
   equipment: string
-  icon: "dumbbell" | "fullbody"
+  icon: "dumbbell" | "fullbody" | "celebrity"
 }
 
 interface RelatedWorkoutProgramsProps {
@@ -21,6 +22,7 @@ const workoutPrograms: WorkoutProgram[] = [
     title: "3-Day Full Body Workout Program",
     slug: "3-day-full-body",
     isPaid: false,
+    isCelebrity: false,
     daysPerWeek: 3,
     equipment: "Gym Equipment",
     icon: "fullbody",
@@ -29,9 +31,19 @@ const workoutPrograms: WorkoutProgram[] = [
     title: "Push/Pull/Legs Dumbbell Program",
     slug: "dumbbell-workout",
     isPaid: true,
+    isCelebrity: false,
     daysPerWeek: 6,
     equipment: "Dumbbells Only",
     icon: "dumbbell",
+  },
+  {
+    title: "Jeff Nippard's Free Minimalist Workout",
+    slug: "jeff-nippard-free-minimalist-workout",
+    isPaid: false,
+    isCelebrity: true,
+    daysPerWeek: 3,
+    equipment: "Gym Equipment",
+    icon: "celebrity",
   },
 ]
 
@@ -53,21 +65,35 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
         {relatedPrograms.map((program) => (
           <Link
             key={program.slug}
-            href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
+            href={`/workout-programs/${program.isCelebrity ? "celebrity" : program.isPaid ? "paid" : "free"}/${program.slug}`}
             className="group block"
             onClick={handleProgramClick}
           >
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-gray-300">
               {/* Icon Section */}
               <div className="relative bg-white h-36 flex items-center justify-center">
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#D2FF28] text-black text-sm font-medium px-3 py-1 rounded-full">
-                    {program.isPaid ? "Paid" : "Free"}
-                  </span>
+                <div className="absolute top-4 left-4 flex gap-1">
+                  {program.isCelebrity && (
+                    <span className="bg-yellow-500 text-black text-sm font-medium px-2 py-1 rounded-full">
+                      Celebrity
+                    </span>
+                  )}
+                  {program.isPaid && (
+                    <span className="bg-black text-white text-sm font-medium px-2 py-1 rounded-full">
+                      Paid
+                    </span>
+                  )}
+                  {!program.isPaid && (
+                    <span className="bg-green-500 text-white text-sm font-medium px-2 py-1 rounded-full">
+                      Free
+                    </span>
+                  )}
                 </div>
                 <div className="text-black">
                   {program.icon === "dumbbell" ? (
                     <Dumbbell size={64} strokeWidth={1.5} />
+                  ) : program.icon === "celebrity" ? (
+                    <Star size={64} strokeWidth={1.5} />
                   ) : (
                     <Activity size={64} strokeWidth={1.5} />
                   )}
