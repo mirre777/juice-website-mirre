@@ -40,17 +40,17 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       ctaUrl: "https://app.juice.fitness/programs/dumbbell-workout",
     },
     {
-      slug: "arnold-schwarzenegger-workout",
-      title: "Arnold Schwarzenegger's Classic Mass Building Program",
+      slug: "jeff-nippard-free-minimalist-workout",
+      title: "Jeff Nippard's Free Minimalist Workout",
       excerpt:
-        "Train like the legend himself with Arnold's proven mass-building routine. This program combines his classic training principles with modern exercise science.",
-      category: "Bodybuilding",
-      difficulty: "Advanced",
-      duration: "6 days/week",
-      isPaid: true,
+        "Train like a scientist with Jeff Nippard's evidence-based minimalist program. Maximum results with minimal time investment using proven training principles.",
+      category: "Minimalist",
+      difficulty: "Intermediate",
+      duration: "3 days/week",
+      isPaid: false,
       isCelebrity: true,
       image: "/images/workout-program.png",
-      ctaUrl: "https://app.juice.fitness/programs/arnold-schwarzenegger-workout",
+      ctaUrl: "https://app.juice.fitness/programs/jeff-nippard-free-minimalist-workout",
     },
   ]
 }
