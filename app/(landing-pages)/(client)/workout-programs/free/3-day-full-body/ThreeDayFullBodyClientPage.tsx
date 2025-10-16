@@ -2,12 +2,12 @@
 import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
-import { WorkoutProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
+import { WorkoutFreeProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-free-programs-features-section"
+import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
 
 const workoutProgramData = {
   title: "Free 3-Day Full Body Workout Program - Build Strength & Muscle",
@@ -146,7 +146,7 @@ export default function ThreeDayFullBodyClientPage() {
       <main className="flex min-h-screen flex-col">
         <Navbar />
         <WorkoutProgramsHeroSection {...heroData} />
-        <WorkoutProgramsFeaturesSection {...featuresData} />
+        <WorkoutFreeProgramsFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
 
         <section className="container mx-auto px-4 md:px-6 py-16">
