@@ -78,15 +78,57 @@ export async function getAllInterviews(): Promise<InterviewFrontmatter[]> {
   }
 }
 
+// Function to clean slug from filename (same as admin API)
+function cleanSlugFromFilename(filename: string): string {
+  return filename
+    .replace(/^-+/, "")
+    .replace(/-+$/, "")
+    .replace(/\s*$$[^)]*$$\s*/g, "")
+    .replace(/-\d{10,}/g, "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase()
+}
+
 export async function getInterviewBySlug(slug: string): Promise<Interview | null> {
   try {
     console.log(`[v0] Fetching interview: ${slug}`)
 
-    const { blobs } = await list({
+    // First try exact match (for backward compatibility)
+    let { blobs } = await list({
       prefix: `interviews/${slug}.md`,
     })
 
-    console.log(`[v0] Found ${blobs.length} blobs for ${slug}`)
+    console.log(`[v0] Found ${blobs.length} blobs for exact match: ${slug}`)
+
+    // If no exact match, try flexible matching like admin API
+    if (blobs.length === 0) {
+      const allBlobs = await list({ prefix: "interviews/" })
+      console.log(`[v0] Trying flexible matching for ${slug}`)
+      
+      const matchingBlob = allBlobs.blobs.find((blob) => {
+        if (!blob.pathname.endsWith(".md")) return false
+        
+        const rawSlug = blob.pathname.replace("interviews/", "").replace(/\.md$/, "")
+        const cleanedSlug = cleanSlugFromFilename(rawSlug)
+        
+        console.log(`[v0] Comparing "${cleanedSlug}" with "${slug}"`)
+        
+        return (
+          cleanedSlug === slug ||
+          rawSlug === slug ||
+          blob.pathname.includes(slug) ||
+          rawSlug.includes(slug) ||
+          slug.includes(cleanedSlug) ||
+          slug.includes(rawSlug)
+        )
+      })
+      
+      if (matchingBlob) {
+        blobs = [matchingBlob]
+        console.log(`[v0] Found matching blob: ${matchingBlob.pathname}`)
+      }
+    }
 
     if (blobs.length === 0) {
       console.log(`[v0] Interview not found in Blob: ${slug}, checking sample data`)
