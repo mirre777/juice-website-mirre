@@ -136,7 +136,13 @@ export function Navbar() {
     pathname.startsWith("/workout-programs")
 
   const isWorkoutProgramPage = pathname.includes("/workout-programs/")
-  const isWhiteThemedPage = pathname === "/marketplace/personal-trainer-website" || pathname === "/workout-planner"
+  const isWhiteThemedPage =
+    pathname === "/marketplace/personal-trainer-website" ||
+    pathname === "/workout-planner" ||
+    pathname === "/juice-raffle-hit-weekly-goal" ||
+    pathname === "/juice-raffle-win-free-personal-training" ||
+    pathname === "/workout-programs" ||
+    pathname.startsWith("/workout-programs/")
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
 
   const linkTextColorClass = shouldUseWhiteNavbar ? "text-black" : "text-white"

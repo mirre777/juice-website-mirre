@@ -199,6 +199,31 @@ export default function BlogAdminPage() {
     }
   }
 
+  const handleSlugUpdate = async (oldSlug: string, newSlug: string, type: "blog" | "interview") => {
+    try {
+      // Show confirmation dialog
+      const confirmed = confirm(
+        `⚠️ Warning: Changing the slug will break existing links!\n\n` +
+        `If you've already shared this ${type} or posted it publicly, those links will stop working.\n\n` +
+        `Current slug: ${oldSlug}\n` +
+        `New slug: ${newSlug}\n\n` +
+        `Are you sure you want to continue?`
+      )
+      
+      if (!confirmed) {
+        return // User cancelled
+      }
+      
+      // For now, we'll just show a message that slug updates require file renaming
+      // This is a complex operation that would require renaming the blob file
+      alert("Slug updates require file renaming and are not yet implemented. Please rename the .md file in blob storage manually.")
+      return
+    } catch (error) {
+      console.error("Error updating slug:", error)
+      throw error
+    }
+  }
+
   const handleCategoryUpdate = async (
     slug: string,
     newCategory: string,
@@ -376,6 +401,15 @@ export default function BlogAdminPage() {
                     onSave={(newTitle) => handleTitleUpdate(item.slug, newTitle, item.type)}
                     disabled={item.source === "hardcoded"}
                   />
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500">Slug:</span>
+                    <InlineEditTitle
+                      initialTitle={item.slug}
+                      onSave={(newSlug) => handleSlugUpdate(item.slug, newSlug, item.type)}
+                      disabled={item.source === "hardcoded"}
+                      className="text-xs text-gray-600 font-mono"
+                    />
+                  </div>
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">{item.excerpt}</p>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <div className="flex items-center gap-1">

@@ -152,7 +152,7 @@ export function LegalContent({ initialTab }: LegalContentProps) {
         <TabsContent value="privacy" className="mt-0">
           <div className="space-y-6">
             <h2 className="text-2xl font-bold">Privacy Policy for Juice Fitness App</h2>
-            <p className="text-zinc-300">Effective Date: [Insert Date]</p>
+            <p className="text-zinc-300">Effective Date: May 19, 2025</p>
 
             <div className="space-y-6 text-zinc-300">
               <p>

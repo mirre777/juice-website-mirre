@@ -6,6 +6,7 @@ export interface WorkoutProgram {
   difficulty: "Beginner" | "Intermediate" | "Advanced"
   duration: string
   isPaid: boolean
+  isCelebrity: boolean
   image?: string
   ctaUrl: string
 }
@@ -21,6 +22,7 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       difficulty: "Beginner",
       duration: "3 days/week",
       isPaid: false,
+      isCelebrity: false,
       image: "/images/workout-program.png",
       ctaUrl: "https://app.juice.fitness/programs/76d24001-bf04-40d1-8976-fa20c93a30cc",
     },
@@ -33,8 +35,22 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       difficulty: "Intermediate",
       duration: "4 days/week",
       isPaid: true,
+      isCelebrity: false,
       image: "/images/workout-logging.png",
       ctaUrl: "https://app.juice.fitness/programs/dumbbell-workout",
+    },
+    {
+      slug: "jeff-nippard-free-minimalist-workout",
+      title: "Jeff Nippard's Free Minimalist Workout",
+      excerpt:
+        "Train like a scientist with Jeff Nippard's evidence-based minimalist program. Maximum results with minimal time investment using proven training principles.",
+      category: "Minimalist",
+      difficulty: "Intermediate",
+      duration: "3 days/week",
+      isPaid: false,
+      isCelebrity: true,
+      image: "/images/workout-program.png",
+      ctaUrl: "https://app.juice.fitness/programs/jeff-nippard-free-minimalist-workout",
     },
   ]
 }

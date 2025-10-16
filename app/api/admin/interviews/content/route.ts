@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Interview not found" }, { status: 404 })
     }
 
-    const response = await fetch(interviewBlob.downloadUrl)
+    const response = await fetch(`${interviewBlob.downloadUrl}?t=${Date.now()}`, { cache: "no-store" })
     const content = await response.text()
 
     return NextResponse.json({ content })

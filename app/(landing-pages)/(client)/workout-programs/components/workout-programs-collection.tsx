@@ -20,13 +20,17 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [showAllPrograms, setShowAllPrograms] = useState(true)
 
-  const programTypes = ["Free", "Paid"]
+  const programTypes = ["Free", "Paid", "Celebrity"]
 
   const filteredPrograms = showAllPrograms
     ? programs
-    : programs.filter((program) => {
-        const programType = program.isPaid ? "Paid" : "Free"
-        return selectedTypes.includes(programType)
+      : programs.filter((program) => {
+        const programCategories: string[] = []
+        if (program.isCelebrity) programCategories.push("Celebrity")
+        if (program.isPaid) programCategories.push("Paid")
+        if (!program.isPaid) programCategories.push("Free")
+        
+        return selectedTypes.some(selectedType => programCategories.includes(selectedType))
       })
 
   const toggleType = (type: string) => {
@@ -94,7 +98,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
           {filteredPrograms.map((program) => (
             <Link
               key={program.slug}
-              href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
+              href={`/workout-programs/${program.isCelebrity ? "celebrity" : program.isPaid ? "paid" : "free"}/${program.slug}`}
               className="block"
             >
               <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 bg-white h-full cursor-pointer">
@@ -110,9 +114,22 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className="bg-juice text-juice-foreground">{program.difficulty}</Badge>
-                    {program.isPaid && <Badge className="bg-black text-white">Premium</Badge>}
+                  <div className="absolute top-4 left-4 flex gap-1">
+                    {program.isCelebrity && (
+                      <span className="bg-yellow-500 text-black text-sm font-medium px-2 py-1 rounded-full">
+                        Celebrity
+                      </span>
+                    )}
+                    {program.isPaid && (
+                      <span className="bg-black text-white text-sm font-medium px-2 py-1 rounded-full">
+                        Paid
+                      </span>
+                    )}
+                    {!program.isPaid && (
+                      <span className="bg-green-500 text-white text-sm font-medium px-2 py-1 rounded-full">
+                        Free
+                      </span>
+                    )}
                   </div>
                 </div>
 
