@@ -205,7 +205,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
           </header>
 
           {interview.image && (
-            <div className="relative w-full h-96 mb-12 rounded-xl overflow-hidden shadow-lg">
+            <div className="relative w-full h-48 md:h-96 mb-12 rounded-xl overflow-hidden shadow-lg">
               <Image
                 src={interview.image || "/placeholder.svg"}
                 alt={interview.title}
