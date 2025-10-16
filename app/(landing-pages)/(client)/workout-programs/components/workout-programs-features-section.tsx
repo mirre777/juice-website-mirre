@@ -25,7 +25,6 @@ interface CTAData {
   ctaButtonText?: string // Added optional CTA button text prop
   ctaButtonStyle?: "green" | "black" // Added button styling options
   ctaButtonUrl?: string // Added optional redirect URL for CTA button
-  programId?: string
 }
 
 interface WorkoutProgramsFeaturesSectionProps {
@@ -33,7 +32,7 @@ interface WorkoutProgramsFeaturesSectionProps {
   exercises?: Exercise[] // Added exercises prop to support dynamic exercise content
   features: Feature[]
   ctaData: CTAData
-  programId?: string
+  programId: string
 }
 
 const getFeatureIcon = (title: string) => {
@@ -60,145 +59,13 @@ export function WorkoutProgramsFeaturesSection({
   ctaData,
   programId,
 }: WorkoutProgramsFeaturesSectionProps) {
-  const getButtonClasses = () => {
-    if (ctaData.ctaButtonStyle === "black") {
-      return "bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
-    }
-    // Default to green
-    return "bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
-  }
-
-  const handleCtaClick = () => {
-    if (ctaData.ctaButtonUrl) {
-      window.open(ctaData.ctaButtonUrl, "_blank")
-    }
-  }
 
   return (
     <section className="bg-white py-8">
       <div className="container mx-auto px-4">
-        <GlobalProgram programId={programId} ctaData={ctaData as any} />
-        {/* Program content overview section */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-8 text-black">What's Inside the Program</h2>
-
-          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
-            {/* Day 1 - Push */}
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">Push</div>
-              <div className="space-y-3 text-left">
-                <div className="text-sm">
-                  <div className="font-semibold">Chest press</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Chest</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Incline fly</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Chest</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Arnold press</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Shoulders</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Overhead tricep</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Triceps</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Crunches</div>
-                  <div className="text-gray-600">Bodyweight • 3 sets • 15-20 reps</div>
-                  <div className="text-gray-500 text-xs">Abs</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Day 2 - Pull */}
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">Pull</div>
-              <div className="space-y-3 text-left">
-                <div className="text-sm">
-                  <div className="font-semibold">Single arm row</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Back</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Bent-over row</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Back</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Reverse fly</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 12-15 reps</div>
-                  <div className="text-gray-500 text-xs">Shoulders</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Upright row</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Shoulders</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Biceps curl</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Biceps</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Day 3 - Legs */}
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">Legs</div>
-              <div className="space-y-3 text-left">
-                <div className="text-sm">
-                  <div className="font-semibold">Goblet squat</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Quads</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Lunge</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 10-15 reps</div>
-                  <div className="text-gray-500 text-xs">Quads</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold flex items-center gap-2">
-                    Single leg RDL
-                    <span className="text-lg transform -rotate-12">😭</span>
-                  </div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-                  <div className="text-gray-500 text-xs">Hamstrings</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Calf raise</div>
-                  <div className="text-gray-600">Dumbbells • 3 sets • 10-20 reps</div>
-                  <div className="text-gray-500 text-xs">Calves</div>
-                </div>
-                <div className="text-sm">
-                  <div className="font-semibold">Crunches</div>
-                  <div className="text-gray-600">Bodyweight • 3 sets • 15-20 reps</div>
-                  <div className="text-gray-500 text-xs">Abs</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-center mt-8">
-            {ctaData.customCTA ? (
-              ctaData.customCTA
-            ) : (
-              <button
-                className={getButtonClasses()}
-                onClick={handleCtaClick} // Added onClick handler for redirect
-              >
-                {ctaData.ctaButtonText || "Get Program"}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
+        {programId && (
+          <GlobalProgram programId={programId} ctaData={ctaData as any} />
+        )}
 
         {/* Features grid section */}
         {exercises && exercises.length > 0 && (

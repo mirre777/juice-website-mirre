@@ -16,6 +16,7 @@ const workoutProgramData = {
   rating: "5/5 by our users",
   ctaText: "Get Free 3-Day Program",
   ctaButtonStyle: "green" as const, // Added green styling for first CTA button
+  programId: "76d24001-bf04-40d1-8976-fa20c93a30cc",
   features: [
     {
       title: "Complete Full Body Training",
@@ -124,6 +125,7 @@ export default function ThreeDayFullBodyClientPage() {
     title: "Why choose this workout program?",
     features: workoutProgramData.features,
     ctaData: workoutProgramData.ctaData,
+    programId: workoutProgramData.programId,
   }
 
   const faqData = {

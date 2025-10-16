@@ -11,29 +11,43 @@ type GlobalProgramProps = {
   ctaData: CTAData
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_API_URL || "https://app.juice.fitness"
-
 export const GlobalProgram = ({programId, ctaData}: GlobalProgramProps) => {
   const [programData, setProgramData] = useState<any>(null)
   console.log("programId", programId)
 
   useEffect(() => {
     const fetchProgramData = async () => {
-        const url = `${APP_URL}/api/programs/${programId}`;
-        console.log("fetching program data", url);
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch program data: ${response.status}`);
+        try {
+            const response = await fetch(`/api/programs/${programId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                mode: 'cors', // Explicitly set CORS mode
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch program data: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("program data", data);
+            setProgramData(data.program);
+        } catch (error) {
+            console.error("Error fetching program data:", error);
+            // Set a fallback or show error state
+            setProgramData(null);
         }
-        const data = await response.json();
-        console.log("program data", data);
-        setProgramData(data.program);
     }
-    fetchProgramData()
+
+    if (programId) {
+        fetchProgramData();
+    }
   }, [programId])
 
   const getGlobalProgramUrl = (programId: string) => {
-    return `${APP_URL}/programs/${programId}`
+    return `https://app.juice.fitness/programs/${programId}`
   }
 
   const getButtonClasses = () => {
@@ -44,41 +58,63 @@ export const GlobalProgram = ({programId, ctaData}: GlobalProgramProps) => {
     return "bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
   }
 
+  // Show loading state while fetching
+  if (!programData) {
+    return (
+      <div className="text-center mb-16">
+        <h2 className="text-4xl font-bold mb-8 text-black">What's Inside the Program</h2>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+          {/* Loading skeleton */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-gray-50 rounded-2xl p-6 animate-pulse">
+              <div className="bg-gray-300 h-8 rounded-lg mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((j) => (
+                  <div key={j} className="text-sm">
+                    <div className="bg-gray-300 h-4 rounded mb-1"></div>
+                    <div className="bg-gray-200 h-3 rounded mb-1"></div>
+                    <div className="bg-gray-200 h-3 rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="text-center mb-16">
     <h2 className="text-4xl font-bold mb-8 text-black">What's Inside the Program</h2>
 
     <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
-      {/* Day 1 - Push */}
-      {programData && programData?.routines.map((routine: any) => (
-      <div className="bg-gray-50 rounded-2xl p-6">
+      {/* Dynamic content from API */}
+      {programData?.routines?.map((routine: any, index: number) => (
+      <div key={index} className="bg-gray-50 rounded-2xl p-6">
         <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">{routine.name}</div>
         <div className="space-y-3 text-left">
-          <div className="text-sm">
-            <div className="font-semibold">Chest press</div>
-            <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-            <div className="text-gray-500 text-xs">Chest</div>
-          </div>
-          <div className="text-sm">
-            <div className="font-semibold">Incline fly</div>
-            <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-            <div className="text-gray-500 text-xs">Chest</div>
-          </div>
-          <div className="text-sm">
-            <div className="font-semibold">Arnold press</div>
-            <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-            <div className="text-gray-500 text-xs">Shoulders</div>
-          </div>
-          <div className="text-sm">
-            <div className="font-semibold">Overhead tricep</div>
-            <div className="text-gray-600">Dumbbells • 3 sets • 8-12 reps</div>
-            <div className="text-gray-500 text-xs">Triceps</div>
-          </div>
-          <div className="text-sm">
-            <div className="font-semibold">Crunches</div>
-            <div className="text-gray-600">Bodyweight • 3 sets • 15-20 reps</div>
-            <div className="text-gray-500 text-xs">Abs</div>
-          </div>
+          {routine.exercises?.map((exercise: any, exerciseIndex: number) => (
+            <div key={exerciseIndex} className="text-sm">
+              <div className="font-semibold">{exercise.name}</div>
+              <div className="text-gray-600">{exercise.sets.length} sets • {(exercise.sets && exercise.sets.length > 0 ? `${exercise.sets[0].reps} reps` : `10-12 reps`)}</div>
+              <div className="text-gray-500 text-xs">{exercise.muscleGroup}</div>
+            </div>
+          )) || (
+            // Fallback content if no exercises data
+            <>
+              <div className="text-sm">
+                <div className="font-semibold">Exercise 1</div>
+                <div className="text-gray-600">3 sets • 8-12 reps</div>
+                <div className="text-gray-500 text-xs">Muscle Group</div>
+              </div>
+              <div className="text-sm">
+                <div className="font-semibold">Exercise 2</div>
+                <div className="text-gray-600">3 sets • 8-12 reps</div>
+                <div className="text-gray-500 text-xs">Muscle Group</div>
+              </div>
+            </>
+          )}
         </div>
       </div>
       ))}
@@ -88,7 +124,7 @@ export const GlobalProgram = ({programId, ctaData}: GlobalProgramProps) => {
     <div className="flex justify-center mt-8">
         <button
             className={getButtonClasses()}
-            onClick={() => window.open(getGlobalProgramUrl(programId), "_blank")} // Added onClick handler for redirect
+            onClick={() => window.open(getGlobalProgramUrl(programId), "_blank")}
         >
             {ctaData.ctaButtonText || "Get Program"}
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
