@@ -18,9 +18,9 @@ import type { InterviewFrontmatter } from "@/app/interview/_lib/interview-data"
 export const dynamic = "force-dynamic"
 
 type InterviewPageProps = {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export async function generateStaticParams() {
@@ -38,7 +38,8 @@ async function getRelatedInterviews(currentSlug: string, limit = 2): Promise<Int
 const getPlaceholderImage = () => "/fitness-coaching-session.png"
 
 export async function generateMetadata({ params }: InterviewPageProps): Promise<Metadata> {
-  const interview = await getInterviewBySlug(params.slug)
+  const { slug } = await params
+  const interview = await getInterviewBySlug(slug)
 
   if (!interview) {
     return {
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
-  const fullUrl = `${baseUrl}/interview/${params.slug}`
+  const fullUrl = `${baseUrl}/interview/${slug}`
 
   const ogImage =
     interview.image === "/lena-gym-photo.png"
@@ -115,7 +116,8 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
 }
 
 export default async function InterviewPage({ params }: InterviewPageProps) {
-  const interview = await getInterviewBySlug(params.slug)
+  const { slug } = await params
+  const interview = await getInterviewBySlug(slug)
 
   if (!interview) {
     notFound()
@@ -128,8 +130,8 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
   console.log(`[v0] Content preview:`, interview.content?.substring(0, 200))
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
-  const fullUrl = `${baseUrl}/interview/${params.slug}`
-  const relatedInterviews = await getRelatedInterviews(params.slug, 2)
+  const fullUrl = `${baseUrl}/interview/${slug}`
+  const relatedInterviews = await getRelatedInterviews(slug, 2)
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -230,7 +232,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
           <InterviewWaitlistWidget
             trainerName={interview.trainerName}
             articleTitle={interview.title}
-            slug={params.slug}
+            slug={slug}
           />
 
           <footer className="mt-16 pt-8 border-t border-gray-200">
