@@ -31,6 +31,7 @@ export function Footer() {
   const isWhiteThemedPage =
     pathname === "/marketplace/personal-trainer-website" ||
     pathname === "/workout-planner" ||
+    pathname === "/marketplace" ||
     pathname === "/juice-raffle-hit-weekly-goal" ||
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/") ||
@@ -38,7 +39,7 @@ export function Footer() {
     
   const isFooterDark =
     !isWhiteThemedPage &&
-    ((pathname.startsWith("/marketplace") && pathname !== "/marketplace/personal-trainer-website") ||
+    ((pathname.startsWith("/marketplace") && pathname !== "/marketplace/personal-trainer-website" && pathname !== "/marketplace") ||
       pathname === "/100trainers" ||
       pathname === "/findatrainer" ||
       pathname === "/getclients" ||
@@ -99,6 +100,11 @@ export function Footer() {
             <li>
               <Link href="/blog" className={cn("text-sm", getTextColorClass())}>
                 Blog
+              </Link>
+            </li>
+            <li>
+              <Link href="/marketplace" className={cn("text-sm", getTextColorClass())}>
+                Marketplace
               </Link>
             </li>
           </ul>
