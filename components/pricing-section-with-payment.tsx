@@ -65,9 +65,9 @@ export function PricingSectionWithPayment() {
     // In a real app, this would update the user's subscription in the database
     console.log(`Payment completed for ${plan} plan`)
 
-    // Redirect to dashboard or account page after successful payment
+    // Redirect to marketplace after successful payment
     setTimeout(() => {
-      router.push("/account/dashboard")
+      router.push("/marketplace")
     }, 3000)
   }
 
@@ -181,7 +181,7 @@ export function PricingSectionWithPayment() {
                           isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
                         }`}
                         id="pricing_basic_client"
-                        onClick={() => router.push("/account/signup?plan=basic")}
+                        onClick={() => router.push("/download-juice-app")}
                       >
                         Get Started
                       </Button>
@@ -241,21 +241,13 @@ export function PricingSectionWithPayment() {
                       </ul>
                     </CardContent>
                     <CardFooter className="mt-auto">
-                      <PaymentModal
-                        amount="5.00"
-                        description="Juice Premium Monthly Subscription"
-                        planName="Premium"
-                        onPaymentComplete={() => handlePaymentComplete("premium")}
+                      <Button
+                        className="w-full max-w-xs mx-auto sm:max-w-none bg-gray-300 text-gray-500 cursor-not-allowed"
+                        id="pricing_premium_client"
+                        disabled
                       >
-                        <Button
-                          className={`w-full max-w-xs mx-auto sm:max-w-none ${
-                          isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
-                        }`}
-                          id="pricing_premium_client"
-                        >
-                          Get Premium
-                        </Button>
-                      </PaymentModal>
+                        Pre-order
+                      </Button>
                     </CardFooter>
                   </Card>
                 </motion.div>
