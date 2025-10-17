@@ -56,6 +56,7 @@ Form → Temp Profile → Payment → Activation → Editor → Live Profile
 
 ### **Key Files:**
 - `app/marketplace/trainer/[id]/TrainerProfilePage.tsx` - Main profile component (JUST FIXED)
+- `app/marketplace/public-trainer-page/[id]/page.tsx` - Standalone public profiles
 - `app/api/trainer/content/[id]/route.ts` - Content API (WORKING)
 - `app/marketplace/trainer/[id]/edit/` - Content editor (WORKING)
 

@@ -53,7 +53,8 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | Route | Description | Access |
 |-------|-------------|--------|
 | `/marketplace/personal-trainer-website` | Website builder for trainers | Trainers |
-| `/marketplace/trainer/[id]` | Individual trainer profiles | Public |
+| `/marketplace/trainer/[id]` | Full-featured trainer profiles | Public |
+| `/marketplace/public-trainer-page/[id]` | Standalone public trainer profiles | Public |
 | `/marketplace/trainer/[id]/dashboard` | Trainer dashboard | Trainer only |
 | `/marketplace/trainer/[id]/edit` | Profile editor | Trainer only |
 | `/marketplace/trainer/temp/[tempId]` | Temporary trainer pages | Public |
@@ -127,8 +128,11 @@ app/
 │       ├── personal-trainer-app/
 │       └── 100trainers/
 ├── marketplace/
+│   ├── (marketplace)/
+│   ├── (microsite)/
+│   ├── (landing-page-onboarding-form)/
+│   └── public-trainer-page/
 ├── admin/
-├── account/
 ├── payment/
 └── api/
 \`\`\`

@@ -303,6 +303,7 @@ interface TrainerWebsiteSettings {
 - **Form**: `/marketplace/personal-trainer-website`
 - **Preview**: `/marketplace/trainer/temp/[tempId]?token=[token]`
 - **Live Profile**: `/marketplace/trainer/[id]` or `/marketplace/trainer/[customSlug]`
+- **Public Profile**: `/marketplace/public-trainer-page/[id]` (standalone, no editing)
 - **Content Editor**: `/marketplace/trainer/[id]/edit`
 - **Dashboard**: `/marketplace/trainer/[id]/dashboard`
 
