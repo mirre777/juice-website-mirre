@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { useTheme } from "@/components/theme-provider"
 import { MapPin, CheckCircle, AlertCircle, Download, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { joinWaitlist } from "@/actions/waitlist-actions"
@@ -336,16 +337,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
       <Navbar isHomePage={false} />
 
       {/* Floating App Download Button */}
-      <Button
-        size="lg"
-        className="fixed bottom-6 right-6 z-50 bg-juice hover:bg-juice/90 text-black font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 text-sm md:text-base md:px-6 md:py-3"
-        asChild
-      >
-        <a href="https://www.juice.fitness/download-juice-app" target="_blank" rel="noopener noreferrer">
-          <Download className="h-5 w-5" />
-          {content.appDownload}
-        </a>
-      </Button>
+      <FloatingDownloadCTA />
 
       {/* Hero Section */}
       <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-gray-50 to-white">
@@ -385,7 +377,7 @@ export default function CityLandingPage({ content }: CityLandingPageProps) {
             >
               <Button
                 size="lg"
-                className="bg-juice text-black hover:bg-juice/90 text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold"
+                className="client-gradient-btn text-base sm:text-lg px-4 sm:px-8 w-full sm:w-auto font-bold"
                 onClick={() => {
                   const formElement = document.getElementById("coach-finder-form")
                   if (formElement) {

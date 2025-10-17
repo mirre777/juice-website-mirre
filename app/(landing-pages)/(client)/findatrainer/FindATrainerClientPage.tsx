@@ -7,6 +7,7 @@ import { TrainerGrid } from "@/components/trainer-grid"
 import { Users, Shield, Network } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 
 export default function FindATrainerClientPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
@@ -77,6 +78,7 @@ export default function FindATrainerClientPage() {
       </section>
 
       <Footer />
+      <FloatingDownloadCTA />
     </div>
   )
 }

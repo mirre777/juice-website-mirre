@@ -195,7 +195,7 @@ export function StripePayment({
             }
             createPaymentIntent()
           }}
-          className="mt-4 bg-juice text-black hover:bg-juice/90"
+          className="mt-4 trainer-gradient-btn"
         >
           Try Again
         </Button>
@@ -214,7 +214,7 @@ export function StripePayment({
             paymentIntentCreated.current = false
             window.location.reload()
           }}
-          className="mt-4 bg-juice text-black hover:bg-juice/90"
+          className="mt-4 trainer-gradient-btn"
         >
           Try Again
         </Button>
@@ -434,7 +434,7 @@ function CheckoutForm({
       <Button
         type="submit"
         disabled={!stripe || !elements || isProcessing || !elementsReady}
-        className="w-full bg-juice text-black hover:bg-juice/90"
+        className="w-full trainer-gradient-btn"
       >
         {isProcessing ? (
           <>

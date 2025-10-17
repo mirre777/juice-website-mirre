@@ -180,7 +180,7 @@ export function QRPayment({
           Download QR
         </Button>
         <Button
-          className="bg-juice text-black hover:bg-juice/90"
+          className="trainer-gradient-btn"
           onClick={handlePaymentComplete}
           disabled={isSubmitting}
         >

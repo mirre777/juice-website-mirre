@@ -116,8 +116,25 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               function initCalendly() {
-                if (window.location.pathname === '/gratis-workout-app-met-trainer' || 
-                    window.location.pathname.startsWith('/admin')) {
+                // Hide Calendly widget on client landing pages and admin pages
+                const clientLandingPages = [
+                  '/gratis-workout-app-met-trainer',
+                  '/trainingsplan-app-gratis', 
+                  '/best-free-workout-app-uk',
+                  '/gratis-fitness-app-danmark',
+                  '/juice-raffle-win-free-personal-training',
+                  '/download-juice-app',
+                  '/findatrainer',
+                  '/personal-training-amsterdam',
+                  '/personal-training-berlin', 
+                  '/personal-training-koebenhavn',
+                  '/personal-training-muenchen',
+                  '/personal-training-wien'
+                ];
+                
+                if (window.location.pathname.startsWith('/admin') || 
+                    clientLandingPages.includes(window.location.pathname) ||
+                    window.location.pathname.startsWith('/workout-programs')) {
                   return;
                 }
                 

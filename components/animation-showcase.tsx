@@ -74,7 +74,7 @@ export function AnimationShowcase() {
         </select>
       </div>
 
-      <Button onClick={playAnimation} className="bg-juice text-black hover:bg-juice/90 mb-6">
+      <Button onClick={playAnimation} className="trainer-gradient-btn mb-6">
         Play Animation
       </Button>
 
