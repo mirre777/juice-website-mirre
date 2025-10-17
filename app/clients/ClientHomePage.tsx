@@ -208,7 +208,7 @@ export default function ClientHomePage() {
               Discover insights, tips, and the latest trends in fitness coaching and technology.
             </p>
             <Link href="/blog">
-              <button className="rounded-full px-6 py-3 font-medium bg-white text-black border border-black transition-colors hover:bg-gray-100">
+              <button className="rounded-full px-6 py-3 font-medium client-gradient-btn transition-colors">
                 Go go gadget blog
               </button>
             </Link>
@@ -227,7 +227,7 @@ export default function ClientHomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                className="rounded-full px-6 py-3 font-medium client-gradient-btn transition-colors"
               >
                 Start now
               </button>

@@ -247,14 +247,9 @@ export function Navbar() {
                   href="https://app.juice.fitness/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 text-sm font-semibold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
-                  style={{
-                    background: "linear-gradient(135deg, #d2ff28 0%, #9acd32 50%, #7cb342 100%) !important",
-                    color: "#ffffff !important",
-                    fontWeight: "600 !important",
-                    backgroundColor: "#9acd32 !important",
-                    border: "2px solid #d2ff28 !important",
-                  }}
+                  className={`px-4 py-2 text-sm font-semibold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap ${
+                    isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                  }`}
                   onClick={() =>
                     trackEvent("cta_click", {
                       button_text: "Start now",
@@ -268,14 +263,9 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/download-juice-app"
-                  className="px-4 py-2 text-sm font-semibold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
-                  style={{
-                    background: "linear-gradient(135deg, #d2ff28 0%, #9acd32 50%, #7cb342 100%) !important",
-                    color: "#ffffff !important",
-                    fontWeight: "600 !important",
-                    backgroundColor: "#9acd32 !important",
-                    border: "2px solid #d2ff28 !important",
-                  }}
+                  className={`px-4 py-2 text-sm font-semibold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap ${
+                    isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                  }`}
                   onClick={() =>
                     trackEvent("cta_click", {
                       button_text: "Download App",

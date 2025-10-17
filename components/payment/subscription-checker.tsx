@@ -80,7 +80,7 @@ export function ProtectedContent({ children, fallback }: ProtectedContentProps) 
           <p className="text-red-700">This content is only available to premium subscribers.</p>
           <button
             onClick={() => (window.location.href = "/payment")}
-            className="mt-4 rounded-md bg-juice px-4 py-2 text-sm font-medium text-black hover:bg-juice/90"
+            className="mt-4 rounded-md trainer-gradient-btn px-4 py-2 text-sm font-medium"
           >
             Upgrade Now
           </button>

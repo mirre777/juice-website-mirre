@@ -141,7 +141,7 @@ export function PersonalTrainerAppClientPage() {
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
                     onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                    className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                    className="rounded-full px-6 py-3 font-medium trainer-gradient-btn transition-colors"
                     id="early_access_trainer_hero"
                   >
                     Start now
@@ -355,7 +355,9 @@ export function PersonalTrainerAppClientPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                className={`rounded-full px-6 py-3 font-medium transition-colors ${
+                  isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                }`}
                 id={isCoach ? "early_access_trainer_bottom" : "early_access_client_bottom"}
               >
                 Start now

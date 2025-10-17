@@ -51,11 +51,8 @@ export const GlobalProgram = ({programId, ctaData}: GlobalProgramProps) => {
   }
 
   const getButtonClasses = () => {
-    if (ctaData.ctaButtonStyle === "black") {
-      return "bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
-    }
-    // Default to green
-    return "bg-[#D2FF28] hover:bg-[#c4f01f] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+    // Always use green gradient for consistency
+    return "trainer-gradient-btn font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
   }
 
   // Show loading state while fetching

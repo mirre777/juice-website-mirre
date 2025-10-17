@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getAllWorkoutPrograms } from "@/lib/workout-programs"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { WorkoutProgramsClient } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-collection"
 
 export const metadata: Metadata = {
@@ -83,6 +84,7 @@ export default async function WorkoutProgramsPage() {
       </div>
 
       <Footer />
+      <FloatingDownloadCTA />
     </main>
   )
 }

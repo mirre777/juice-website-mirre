@@ -160,7 +160,7 @@ export function PaymentModal({
     >
       <DialogTrigger asChild>
         {children || (
-          <button className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
+          <button className="trainer-gradient-btn font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2">
             {triggerText}
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -318,7 +318,7 @@ export function PaymentModal({
               </Button>
               <Button
                 onClick={() => window.open("mailto:support@juicefitness.com", "_blank")}
-                className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+                className="trainer-gradient-btn font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
               >
                 Contact Support
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

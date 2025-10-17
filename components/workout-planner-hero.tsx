@@ -44,7 +44,7 @@ export default function WorkoutPlannerHero() {
                 href="https://app.juice.fitness/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block w-full sm:w-auto text-center bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors text-lg"
+                className="inline-block w-full sm:w-auto text-center trainer-gradient-btn px-8 py-4 rounded-full font-semibold transition-colors text-lg"
               >
                 Start Converting Programs
               </a>

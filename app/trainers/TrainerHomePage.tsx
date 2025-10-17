@@ -158,7 +158,7 @@ export default function TrainerHomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
             <button
               onClick={() => (window.location.href = "https://app.juice.fitness/")}
-              className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+              className="rounded-full px-6 py-3 font-medium trainer-gradient-btn transition-colors"
             >
               Start now
             </button>
@@ -259,7 +259,7 @@ export default function TrainerHomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                className="rounded-full px-6 py-3 font-medium trainer-gradient-btn transition-colors"
               >
                 Start now
               </button>

@@ -171,7 +171,7 @@ export function InterviewWaitlistWidget({ trainerName, articleTitle, slug }: Int
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-juice text-black hover:bg-juice/90 font-semibold py-6 text-lg"
+            className="w-full trainer-gradient-btn font-semibold py-6 text-lg"
           >
             {isSubmitting ? (
               <>

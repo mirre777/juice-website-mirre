@@ -40,7 +40,7 @@ export function PaymentSuccess({ planName = "Premium" }: PaymentSuccessProps) {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
           <Button
             onClick={() => (window.location.href = "https://app.juice.fitness")}
-            className="bg-juice text-black hover:bg-juice/90"
+            className="trainer-gradient-btn"
           >
             Go to App
           </Button>

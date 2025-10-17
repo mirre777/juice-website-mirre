@@ -42,7 +42,7 @@ export function DownloadHeroSection() {
             href="https://apps.apple.com/us/app/juice-fitness-app/id6744974452"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
+            className="client-gradient-btn px-8 py-4 rounded-full font-semibold transition-colors flex items-center gap-2"
             onClick={() =>
               trackEvent("download_intent", {
                 platform: "ios",
@@ -60,7 +60,7 @@ export function DownloadHeroSection() {
             href="https://play.google.com/store/apps/details?id=fitness.beta.juice"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
+            className="client-gradient-btn px-8 py-4 rounded-full font-semibold transition-colors flex items-center gap-2"
             onClick={() =>
               trackEvent("download_intent", {
                 platform: "android",

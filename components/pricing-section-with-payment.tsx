@@ -177,7 +177,9 @@ export function PricingSectionWithPayment() {
                     </CardContent>
                     <CardFooter className="mt-auto">
                       <Button
-                        className="w-full max-w-xs mx-auto sm:max-w-none bg-juice text-black hover:bg-juice/90"
+                        className={`w-full max-w-xs mx-auto sm:max-w-none ${
+                          isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                        }`}
                         id="pricing_basic_client"
                         onClick={() => router.push("/account/signup?plan=basic")}
                       >
@@ -246,7 +248,9 @@ export function PricingSectionWithPayment() {
                         onPaymentComplete={() => handlePaymentComplete("premium")}
                       >
                         <Button
-                          className="w-full max-w-xs mx-auto sm:max-w-none bg-juice text-black hover:bg-juice/90"
+                          className={`w-full max-w-xs mx-auto sm:max-w-none ${
+                          isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                        }`}
                           id="pricing_premium_client"
                         >
                           Get Premium
@@ -309,7 +313,9 @@ export function PricingSectionWithPayment() {
                     </CardContent>
                     <CardFooter className="mt-auto">
                       <Button
-                        className="w-full bg-juice text-black hover:bg-juice/90"
+                        className={`w-full ${
+                          isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                        }`}
                         onClick={() => (window.location.href = "https://app.juice.fitness/")}
                       >
                         Start now
@@ -377,7 +383,9 @@ export function PricingSectionWithPayment() {
                         planName="Pro"
                         onPaymentComplete={() => handlePaymentComplete("pro")}
                       >
-                        <Button className="w-full bg-juice text-black hover:bg-juice/90" disabled>
+                        <Button className={`w-full ${
+                          isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                        }`} disabled>
                           Pre-order
                         </Button>
                       </PaymentModal>
@@ -444,7 +452,9 @@ export function PricingSectionWithPayment() {
                         planName="Elite"
                         onPaymentComplete={() => handlePaymentComplete("elite")}
                       >
-                        <Button className="w-full bg-juice text-black hover:bg-juice/90" disabled>
+                        <Button className={`w-full ${
+                          isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                        }`} disabled>
                           Pre-order
                         </Button>
                       </PaymentModal>
@@ -502,7 +512,9 @@ export function PricingSectionWithPayment() {
                   </CardContent>
                   <CardFooter className="mt-auto">
                     <Button
-                      className="w-full bg-juice text-black hover:bg-juice/90"
+                      className={`w-full ${
+                        isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                      }`}
                       onClick={() => (window.location.href = "https://app.juice.fitness/")}
                     >
                       Start now
@@ -570,7 +582,9 @@ export function PricingSectionWithPayment() {
                       planName="Pro"
                       onPaymentComplete={() => handlePaymentComplete("pro")}
                     >
-                      <Button className="w-full bg-juice text-black hover:bg-juice/90" disabled>
+                      <Button className={`w-full ${
+                        isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                      }`} disabled>
                         Pre-order
                       </Button>
                     </PaymentModal>
@@ -637,7 +651,9 @@ export function PricingSectionWithPayment() {
                       planName="Elite"
                       onPaymentComplete={() => handlePaymentComplete("elite")}
                     >
-                      <Button className="w-full bg-juice text-black hover:bg-juice/90" disabled>
+                      <Button className={`w-full ${
+                        isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                      }`} disabled>
                         Pre-order
                       </Button>
                     </PaymentModal>

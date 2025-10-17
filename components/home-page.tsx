@@ -225,7 +225,9 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
               <button
                 onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                className={`rounded-full px-6 py-3 font-medium transition-colors ${
+                  isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                }`}
                 id="early_access_trainer_hero"
               >
                 Start now
@@ -411,7 +413,9 @@ export default function HomePage() {
             </p>
             <Link href="/blog">
               <button
-                className={`rounded-full px-6 py-3 font-medium bg-white text-black border border-black transition-colors hover:bg-gray-100`}
+                className={`rounded-full px-6 py-3 font-medium ${
+                  isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                } transition-colors`}
               >
                 Go go gadget blog
               </button>
@@ -435,7 +439,9 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium bg-black text-white transition-colors"
+                className={`rounded-full px-6 py-3 font-medium transition-colors ${
+                  isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
+                }`}
                 id={isCoach ? "early_access_trainer_bottom" : "early_access_client_bottom"}
               >
                 Start now
