@@ -150,6 +150,7 @@ export function Navbar() {
   const isWhiteThemedPage =
     pathname === "/marketplace/personal-trainer-website" ||
     pathname === "/workout-planner" ||
+    pathname === "/marketplace" ||
     pathname === "/juice-raffle-hit-weekly-goal" ||
     pathname === "/juice-raffle-win-free-personal-training" ||
     pathname === "/workout-programs" ||
