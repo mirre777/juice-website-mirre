@@ -170,4 +170,5 @@ trainers/[trainerId] = {
 - `/app/marketplace/trainer/[id]/edit/TrainerContentEditor.tsx`
 - `/app/api/trainer/content/[id]/route.ts`
 - `/app/marketplace/trainer/[id]/TrainerProfilePage.tsx` (needs update)
+- `/app/marketplace/public-trainer-page/[id]/page.tsx` (standalone public profiles)
 - `/types/trainer.ts`
