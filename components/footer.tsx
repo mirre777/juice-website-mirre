@@ -13,28 +13,38 @@ export function Footer() {
 
   // Determine if the footer background should be dark
   // It's dark if on marketplace or client routes, OR if it's client mode on other pages *except* download-juice-app, gratis-workout-app-met-trainer, trainingsplan-app-gratis, gratis-fitness-app-danmark, best-free-workout-app-uk, and workout-programs
+  // Define client landing pages with white backgrounds (same as navbar)
+  const whiteBackgroundClientPages = [
+    "/download-juice-app",
+    "/gratis-workout-app-met-trainer",
+    "/trainingsplan-app-gratis",
+    "/gratis-fitness-app-danmark",
+    "/best-free-workout-app-uk",
+    "/juice-raffle-win-free-personal-training",
+    "/personal-training-amsterdam",
+    "/personal-training-berlin",
+    "/personal-training-koebenhavn",
+    "/personal-training-muenchen",
+    "/personal-training-wien"
+  ]
+
   const isWhiteThemedPage =
     pathname === "/marketplace/personal-trainer-website" ||
     pathname === "/workout-planner" ||
     pathname === "/juice-raffle-hit-weekly-goal" ||
-    pathname === "/juice-raffle-win-free-personal-training" ||
     pathname === "/workout-programs" ||
-    pathname.startsWith("/workout-programs/")
+    pathname.startsWith("/workout-programs/") ||
+    whiteBackgroundClientPages.includes(pathname)
+    
   const isFooterDark =
     !isWhiteThemedPage &&
-    ((pathname.startsWith("/marketplace") && pathname !== "/marketplace/personal-trainer-website") || // Added exception for personal trainer website page to use light footer
+    ((pathname.startsWith("/marketplace") && pathname !== "/marketplace/personal-trainer-website") ||
       pathname === "/100trainers" ||
       pathname === "/findatrainer" ||
       pathname === "/getclients" ||
       pathname === "/legal" ||
       pathname.startsWith("/client") ||
-      pathname.startsWith("/workout-programs") || // Updated to make footer dark for workout-programs routes
-      (pathname !== "/download-juice-app" &&
-        pathname !== "/gratis-workout-app-met-trainer" &&
-        pathname !== "/trainingsplan-app-gratis" &&
-        pathname !== "/gratis-fitness-app-danmark" &&
-        pathname !== "/best-free-workout-app-uk" &&
-        !isCoach))
+      (!whiteBackgroundClientPages.includes(pathname) && !isCoach))
 
   const footerBgClass = isFooterDark ? "bg-black text-white" : "bg-gray-100 text-gray-800"
 
