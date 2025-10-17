@@ -16,6 +16,11 @@ const nextConfig = {
         destination: '/clients',
         permanent: true,
       },
+      {
+        source: '/trainer/:id',
+        destination: '/marketplace/public-trainer-page/:id',
+        permanent: true,
+      },
     ]
   },
 }
