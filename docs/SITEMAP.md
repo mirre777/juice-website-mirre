@@ -16,7 +16,6 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | `/blog` | Blog listing | Both |
 | `/blog/[slug]` | Individual blog posts | Both |
 | `/workout-planner` | Workout planning tool | Both |
-| `/pricing-demo` | Pricing demonstration | Both |
 | `/100trainers` | Special trainer showcase | Clients |
 | `/legal` | Legal/terms page | Both |
 
@@ -73,7 +72,6 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 |-------|-------------|--------|
 | `/payment` | Payment processing | Authenticated |
 | `/payment/success` | Payment confirmation | Authenticated |
-| `/payment-examples` | Payment demos | Public |
 
 ## Admin Panel
 
