@@ -8,92 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Search, Star } from "lucide-react"
 import { useState } from "react"
+import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
 
-const FEATURED_TRAINERS = [
-  {
-    id: 1,
-    name: "Sarah Mitchell",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "NASM Certified",
-    specialties: ["Weight Loss", "Strength Training"],
-    rating: 4.9,
-    reviews: 127,
-    hourlyRate: 85,
-  },
-  {
-    id: 2,
-    name: "Marcus Rodriguez",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "ACE Certified",
-    specialties: ["HIIT", "Functional Training"],
-    rating: 4.8,
-    reviews: 94,
-    hourlyRate: 75,
-  },
-  {
-    id: 3,
-    name: "Emma Chen",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "RYT-500",
-    specialties: ["Yoga", "Mindfulness", "Flexibility"],
-    rating: 5.0,
-    reviews: 156,
-    hourlyRate: 65,
-  },
-]
-
-const ALL_TRAINERS = [
-  ...FEATURED_TRAINERS,
-  {
-    id: 4,
-    name: "David Thompson",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "CSCS",
-    specialties: ["Strength Training", "Powerlifting"],
-    rating: 4.7,
-    reviews: 82,
-    hourlyRate: 90,
-  },
-  {
-    id: 5,
-    name: "Lisa Anderson",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "NASM Certified",
-    specialties: ["Weight Loss", "Nutrition Coaching"],
-    rating: 4.9,
-    reviews: 103,
-    hourlyRate: 70,
-  },
-  {
-    id: 6,
-    name: "James Wilson",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "ACE Certified",
-    specialties: ["CrossFit", "Athletic Performance"],
-    rating: 4.8,
-    reviews: 91,
-    hourlyRate: 80,
-  },
-  {
-    id: 7,
-    name: "Sophie Martinez",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "RYT-200",
-    specialties: ["Yoga", "Pilates"],
-    rating: 4.9,
-    reviews: 118,
-    hourlyRate: 60,
-  },
-]
-
-const SPECIALTIES = ["All Specialties", "Weight Loss", "Strength Training", "Yoga & Flexibility", "Nutrition Coaching"]
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -133,7 +49,7 @@ export default function MarketplaceClientPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {SPECIALTIES.map((specialty) => (
+                {specialties.map((specialty) => (
                   <Button
                     key={specialty}
                     variant={selectedSpecialty === specialty ? "default" : "outline"}
@@ -155,7 +71,7 @@ export default function MarketplaceClientPage() {
           <section className="w-full max-w-7xl mx-auto py-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Featured Trainers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {FEATURED_TRAINERS.map((trainer) => (
+              {featuredTrainers.map((trainer) => (
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
@@ -190,7 +106,7 @@ export default function MarketplaceClientPage() {
           <section className="w-full max-w-7xl mx-auto py-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">All Trainers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {ALL_TRAINERS.map((trainer) => (
+              {allTrainers.map((trainer) => (
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
