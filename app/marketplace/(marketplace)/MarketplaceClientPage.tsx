@@ -34,6 +34,11 @@ export default function MarketplaceClientPage() {
   const filteredFeatured = featuredTrainers.filter(matchesFilters)
   const filteredAll = allTrainers.filter(matchesFilters)
 
+  const goToMicrosite = (trainer: { slug: string; id: string }) => {
+    const url = `https://app.juice.fitness/trainer-profile/${trainer.slug}?source=marketplace&trainerId=${encodeURIComponent(trainer.id)}`
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+
   // Temporary debug logs
   console.log('allTrainers:', allTrainers.map((t) => t?.name))
   console.log('featuredTrainers:', featuredTrainers.map((t) => t?.name))
@@ -98,6 +103,9 @@ export default function MarketplaceClientPage() {
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => goToMicrosite(trainer)}
+                  role="button"
+                  aria-label={`Open ${trainer.name} microsite`}
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
                     <img
@@ -136,6 +144,9 @@ export default function MarketplaceClientPage() {
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => goToMicrosite(trainer)}
+                  role="button"
+                  aria-label={`Open ${trainer.name} microsite`}
                 >
                   <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
                     <img

@@ -1,6 +1,7 @@
 export interface Trainer {
   id: string
   name: string
+  slug: string
   image: string
   certification: string
   specialties: string[]

@@ -1,20 +1,20 @@
 import type { Trainer } from './types'
 import { erikKirchhoff } from './erik-kirchhoff'
-import { marcusRodriguez } from './marcus-rodriguez'
+import { lenaTraninger } from './lena-traninger'
 import { jonne } from './jonne'
 import { jonasEricsson } from './jonas-ericsson'
 import { lisaAnderson } from './lisa-anderson'
-import { jamesWilson } from './james-wilson'
+import { flokiBarth } from './floki-barth'
 import { sophieMartinez } from './sophie-martinez'
 
 // Export all trainers
 export const allTrainers: Trainer[] = [
   erikKirchhoff,
-  marcusRodriguez,
+  lenaTraninger,
   jonne,
   jonasEricsson,
   lisaAnderson,
-  jamesWilson,
+  flokiBarth,
   sophieMartinez,
 ].filter((trainer): trainer is Trainer => Boolean(trainer))
 
@@ -36,11 +36,11 @@ export const specialties: string[] = [
 // Export individual trainers for direct access
 export {
   erikKirchhoff,
-  marcusRodriguez,
+  lenaTraninger,
   jonne,
   jonasEricsson,
   lisaAnderson,
-  jamesWilson,
+  flokiBarth,
   sophieMartinez,
 }
 

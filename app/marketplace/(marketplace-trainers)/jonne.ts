@@ -3,6 +3,7 @@ import type { Trainer } from './types'
 export const jonne: Trainer = {
   id: "jonne",
   name: "Jonne",
+  slug: "jonne",
   image: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/trainer-profile-images/jonne%20trainer.png",
   certification: "RYT-500",
   specialties: ["Strength Training"],
