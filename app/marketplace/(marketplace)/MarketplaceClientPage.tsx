@@ -9,11 +9,14 @@ import { Card } from "@/components/ui/card"
 import { Search, Star } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
+import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
 
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties")
+  const [showModal, setShowModal] = useState(false)
+  const [selectedTrainerName, setSelectedTrainerName] = useState<string>("")
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -34,9 +37,14 @@ export default function MarketplaceClientPage() {
   const filteredFeatured = featuredTrainers.filter(matchesFilters)
   const filteredAll = allTrainers.filter(matchesFilters)
 
-  const goToMicrosite = (trainer: { slug: string; id: string }) => {
-    const url = `https://app.juice.fitness/trainer-profile/${trainer.slug}?source=marketplace&trainerId=${encodeURIComponent(trainer.id)}`
-    window.open(url, "_blank", "noopener,noreferrer")
+  const handleTrainerClick = (trainer: { name: string; slug: string; id: string }) => {
+    setSelectedTrainerName(trainer.name)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedTrainerName("")
   }
 
   // Temporary debug logs
@@ -103,7 +111,7 @@ export default function MarketplaceClientPage() {
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => goToMicrosite(trainer)}
+                  onClick={() => handleTrainerClick(trainer)}
                   role="button"
                   aria-label={`Open ${trainer.name} microsite`}
                 >
@@ -144,7 +152,7 @@ export default function MarketplaceClientPage() {
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => goToMicrosite(trainer)}
+                  onClick={() => handleTrainerClick(trainer)}
                   role="button"
                   aria-label={`Open ${trainer.name} microsite`}
                 >
@@ -177,6 +185,12 @@ export default function MarketplaceClientPage() {
 
         <Footer />
       </div>
+
+      <ComingSoonModal
+        isOpen={showModal}
+        onClose={closeModal}
+        trainerName={selectedTrainerName}
+      />
     </ThemeProvider>
   )
 }
