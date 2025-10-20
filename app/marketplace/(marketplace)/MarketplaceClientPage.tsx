@@ -109,13 +109,13 @@ export default function MarketplaceClientPage() {
                       {trainer.certification}
                     </Badge>
                   </div>
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col">
                     <h3 className="text-xl font-bold mb-1">{trainer.name}</h3>
                     {trainer.location && (
                       <p className="text-xs text-muted-foreground mb-1">{trainer.location}</p>
                     )}
-                    <p className="text-sm text-muted-foreground mb-3">{trainer.specialties.join(" • ")}</p>
-                    <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{trainer.specialties.join(" • ")}</p>
+                    <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{trainer.rating}</span>
@@ -144,13 +144,13 @@ export default function MarketplaceClientPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 flex flex-col">
                     <h3 className="font-bold mb-0.5">{trainer.name}</h3>
                     {trainer.location && (
                       <p className="text-[11px] text-muted-foreground mb-1">{trainer.location}</p>
                     )}
                     <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{trainer.specialties.join(" • ")}</p>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-sm mt-auto">
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{trainer.rating}</span>
