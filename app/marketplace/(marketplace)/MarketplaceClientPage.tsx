@@ -8,96 +8,48 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Search, Star } from "lucide-react"
 import { useState } from "react"
+import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
+import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
 
-const FEATURED_TRAINERS = [
-  {
-    id: 1,
-    name: "Sarah Mitchell",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "NASM Certified",
-    specialties: ["Weight Loss", "Strength Training"],
-    rating: 4.9,
-    reviews: 127,
-    hourlyRate: 85,
-  },
-  {
-    id: 2,
-    name: "Marcus Rodriguez",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "ACE Certified",
-    specialties: ["HIIT", "Functional Training"],
-    rating: 4.8,
-    reviews: 94,
-    hourlyRate: 75,
-  },
-  {
-    id: 3,
-    name: "Emma Chen",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "RYT-500",
-    specialties: ["Yoga", "Mindfulness", "Flexibility"],
-    rating: 5.0,
-    reviews: 156,
-    hourlyRate: 65,
-  },
-]
-
-const ALL_TRAINERS = [
-  ...FEATURED_TRAINERS,
-  {
-    id: 4,
-    name: "David Thompson",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "CSCS",
-    specialties: ["Strength Training", "Powerlifting"],
-    rating: 4.7,
-    reviews: 82,
-    hourlyRate: 90,
-  },
-  {
-    id: 5,
-    name: "Lisa Anderson",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "NASM Certified",
-    specialties: ["Weight Loss", "Nutrition Coaching"],
-    rating: 4.9,
-    reviews: 103,
-    hourlyRate: 70,
-  },
-  {
-    id: 6,
-    name: "James Wilson",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "ACE Certified",
-    specialties: ["CrossFit", "Athletic Performance"],
-    rating: 4.8,
-    reviews: 91,
-    hourlyRate: 80,
-  },
-  {
-    id: 7,
-    name: "Sophie Martinez",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-    certification: "RYT-200",
-    specialties: ["Yoga", "Pilates"],
-    rating: 4.9,
-    reviews: 118,
-    hourlyRate: 60,
-  },
-]
-
-const SPECIALTIES = ["All Specialties", "Weight Loss", "Strength Training", "Yoga & Flexibility", "Nutrition Coaching"]
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties")
+  const [showModal, setShowModal] = useState(false)
+  const [selectedTrainerName, setSelectedTrainerName] = useState<string>("")
+
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+
+  const matchesFilters = (trainer: { name: string; location?: string; specialties: string[] }) => {
+    const matchesSearch = !normalizedQuery
+      ? true
+      : [trainer.name, trainer.location, ...(trainer.specialties || [])]
+          .filter(Boolean)
+          .some((field) => String(field).toLowerCase().includes(normalizedQuery))
+
+    const matchesSpecialty =
+      selectedSpecialty === "All Specialties" ||
+      (trainer.specialties || []).some((s) => s.toLowerCase() === selectedSpecialty.toLowerCase())
+
+    return matchesSearch && matchesSpecialty
+  }
+
+  const filteredFeatured = featuredTrainers.filter(matchesFilters)
+  const filteredAll = allTrainers.filter(matchesFilters)
+
+  const handleTrainerClick = (trainer: { name: string; slug: string; id: string }) => {
+    setSelectedTrainerName(trainer.name)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedTrainerName("")
+  }
+
+  // Temporary debug logs
+  console.log('allTrainers:', allTrainers.map((t) => t?.name))
+  console.log('featuredTrainers:', featuredTrainers.map((t) => t?.name))
 
   return (
     <ThemeProvider>
@@ -133,7 +85,7 @@ export default function MarketplaceClientPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {SPECIALTIES.map((specialty) => (
+                {specialties.map((specialty) => (
                   <Button
                     key={specialty}
                     variant={selectedSpecialty === specialty ? "default" : "outline"}
@@ -155,10 +107,13 @@ export default function MarketplaceClientPage() {
           <section className="w-full max-w-7xl mx-auto py-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Featured Trainers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {FEATURED_TRAINERS.map((trainer) => (
+              {filteredFeatured.map((trainer) => (
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleTrainerClick(trainer)}
+                  role="button"
+                  aria-label={`Open ${trainer.name} microsite`}
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
                     <img
@@ -170,16 +125,19 @@ export default function MarketplaceClientPage() {
                       {trainer.certification}
                     </Badge>
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold mb-2">{trainer.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{trainer.specialties.join(" • ")}</p>
-                    <div className="flex items-center justify-between">
+                  <div className="p-6 flex flex-col">
+                    <h3 className="text-xl font-bold mb-1">{trainer.name}</h3>
+                    {trainer.location && (
+                      <p className="text-xs text-muted-foreground mb-1">{trainer.location}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{trainer.specialties.join(" • ")}</p>
+                    <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{trainer.rating}</span>
                         <span className="text-sm text-muted-foreground">({trainer.reviews})</span>
                       </div>
-                      <span className="text-lg font-bold">${trainer.hourlyRate}/hr</span>
+                      <span className="text-lg font-bold">€{trainer.hourlyRate}/hr</span>
                     </div>
                   </div>
                 </Card>
@@ -190,10 +148,13 @@ export default function MarketplaceClientPage() {
           <section className="w-full max-w-7xl mx-auto py-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">All Trainers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {ALL_TRAINERS.map((trainer) => (
+              {filteredAll.map((trainer) => (
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleTrainerClick(trainer)}
+                  role="button"
+                  aria-label={`Open ${trainer.name} microsite`}
                 >
                   <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
                     <img
@@ -202,15 +163,18 @@ export default function MarketplaceClientPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-bold mb-1">{trainer.name}</h3>
+                  <div className="p-4 flex flex-col">
+                    <h3 className="font-bold mb-0.5">{trainer.name}</h3>
+                    {trainer.location && (
+                      <p className="text-[11px] text-muted-foreground mb-1">{trainer.location}</p>
+                    )}
                     <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{trainer.specialties.join(" • ")}</p>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-sm mt-auto">
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{trainer.rating}</span>
                       </div>
-                      <span className="font-bold">${trainer.hourlyRate}/hr</span>
+                      <span className="font-bold">€{trainer.hourlyRate}/hr</span>
                     </div>
                   </div>
                 </Card>
@@ -221,6 +185,12 @@ export default function MarketplaceClientPage() {
 
         <Footer />
       </div>
+
+      <ComingSoonModal
+        isOpen={showModal}
+        onClose={closeModal}
+        trainerName={selectedTrainerName}
+      />
     </ThemeProvider>
   )
 }
