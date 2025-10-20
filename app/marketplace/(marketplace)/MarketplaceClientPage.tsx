@@ -15,6 +15,25 @@ export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties")
 
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+
+  const matchesFilters = (trainer: { name: string; location?: string; specialties: string[] }) => {
+    const matchesSearch = !normalizedQuery
+      ? true
+      : [trainer.name, trainer.location, ...(trainer.specialties || [])]
+          .filter(Boolean)
+          .some((field) => String(field).toLowerCase().includes(normalizedQuery))
+
+    const matchesSpecialty =
+      selectedSpecialty === "All Specialties" ||
+      (trainer.specialties || []).some((s) => s.toLowerCase() === selectedSpecialty.toLowerCase())
+
+    return matchesSearch && matchesSpecialty
+  }
+
+  const filteredFeatured = featuredTrainers.filter(matchesFilters)
+  const filteredAll = allTrainers.filter(matchesFilters)
+
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-background flex flex-col">
@@ -71,7 +90,7 @@ export default function MarketplaceClientPage() {
           <section className="w-full max-w-7xl mx-auto py-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Featured Trainers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredTrainers.map((trainer) => (
+              {filteredFeatured.map((trainer) => (
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
@@ -87,7 +106,10 @@ export default function MarketplaceClientPage() {
                     </Badge>
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-bold mb-2">{trainer.name}</h3>
+                    <h3 className="text-xl font-bold mb-1">{trainer.name}</h3>
+                    {trainer.location && (
+                      <p className="text-xs text-muted-foreground mb-1">{trainer.location}</p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-3">{trainer.specialties.join(" • ")}</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
@@ -95,7 +117,7 @@ export default function MarketplaceClientPage() {
                         <span className="font-semibold">{trainer.rating}</span>
                         <span className="text-sm text-muted-foreground">({trainer.reviews})</span>
                       </div>
-                      <span className="text-lg font-bold">${trainer.hourlyRate}/hr</span>
+                      <span className="text-lg font-bold">€{trainer.hourlyRate}/hr</span>
                     </div>
                   </div>
                 </Card>
@@ -106,7 +128,7 @@ export default function MarketplaceClientPage() {
           <section className="w-full max-w-7xl mx-auto py-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">All Trainers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {allTrainers.map((trainer) => (
+              {filteredAll.map((trainer) => (
                 <Card
                   key={trainer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
@@ -119,14 +141,17 @@ export default function MarketplaceClientPage() {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="font-bold mb-1">{trainer.name}</h3>
+                    <h3 className="font-bold mb-0.5">{trainer.name}</h3>
+                    {trainer.location && (
+                      <p className="text-[11px] text-muted-foreground mb-1">{trainer.location}</p>
+                    )}
                     <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{trainer.specialties.join(" • ")}</p>
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{trainer.rating}</span>
                       </div>
-                      <span className="font-bold">${trainer.hourlyRate}/hr</span>
+                      <span className="font-bold">€{trainer.hourlyRate}/hr</span>
                     </div>
                   </div>
                 </Card>

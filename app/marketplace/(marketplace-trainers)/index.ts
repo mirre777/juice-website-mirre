@@ -1,38 +1,44 @@
 import type { Trainer } from './types'
-import { sarahMitchell } from './sarah-mitchell'
+import { erikKirchhoff } from './erik-kirchhoff'
 import { marcusRodriguez } from './marcus-rodriguez'
-import { emmaChen } from './emma-chen'
-import { davidThompson } from './david-thompson'
+import { jonne } from './jonne'
+import { jonasEricsson } from './jonas-ericsson'
 import { lisaAnderson } from './lisa-anderson'
 import { jamesWilson } from './james-wilson'
 import { sophieMartinez } from './sophie-martinez'
 
 // Export all trainers
 export const allTrainers: Trainer[] = [
-  sarahMitchell,
+  erikKirchhoff,
   marcusRodriguez,
-  emmaChen,
-  davidThompson,
+  jonne,
+  jonasEricsson,
   lisaAnderson,
   jamesWilson,
   sophieMartinez,
-]
+].filter((trainer): trainer is Trainer => Boolean(trainer))
 
 // Export featured trainers (same as current FEATURED_TRAINERS)
-export const featuredTrainers: Trainer[] = allTrainers.filter(trainer => trainer.featured)
+export const featuredTrainers: Trainer[] = allTrainers.filter((trainer): trainer is Trainer => Boolean(trainer && trainer.featured))
 
 // Export all unique specialties (same as current SPECIALTIES)
 export const specialties: string[] = [
   "All Specialties",
-  ...Array.from(new Set(allTrainers.flatMap(trainer => trainer.specialties)))
+  ...Array.from(
+    new Set(
+      allTrainers
+        .filter(Boolean)
+        .flatMap((trainer) => trainer.specialties || [])
+    )
+  ),
 ]
 
 // Export individual trainers for direct access
 export {
-  sarahMitchell,
+  erikKirchhoff,
   marcusRodriguez,
-  emmaChen,
-  davidThompson,
+  jonne,
+  jonasEricsson,
   lisaAnderson,
   jamesWilson,
   sophieMartinez,
