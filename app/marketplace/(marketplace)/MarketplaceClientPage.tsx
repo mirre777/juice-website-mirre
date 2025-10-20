@@ -34,6 +34,10 @@ export default function MarketplaceClientPage() {
   const filteredFeatured = featuredTrainers.filter(matchesFilters)
   const filteredAll = allTrainers.filter(matchesFilters)
 
+  // Temporary debug logs
+  console.log('allTrainers:', allTrainers.map((t) => t?.name))
+  console.log('featuredTrainers:', featuredTrainers.map((t) => t?.name))
+
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-background flex flex-col">
