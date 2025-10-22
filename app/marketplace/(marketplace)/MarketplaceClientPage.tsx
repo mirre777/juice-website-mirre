@@ -379,10 +379,10 @@ export default function MarketplaceClientPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-8 text-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-black mb-4">
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 Can't find the perfect trainer?
               </h3>
-              <p className="text-black mb-6">
+              <p className="text-pink-100 mb-6">
                 Join our waitlist and we'll notify you when new trainers join in your area. 
                 Get early access to the best fitness professionals near you!
               </p>
