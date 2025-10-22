@@ -5,7 +5,7 @@ import { jonne } from './jonne'
 import { jonasEricsson } from './jonas-ericsson'
 import { lisaAnderson } from './lisa-anderson'
 import { flokiBarth } from './floki-barth'
-import { sophieMartinez } from './sophie-martinez'
+import { stevenNeider } from './steven-neider'
 
 // Export all trainers
 export const allTrainers: Trainer[] = [
@@ -15,7 +15,7 @@ export const allTrainers: Trainer[] = [
   jonasEricsson,
   lisaAnderson,
   flokiBarth,
-  sophieMartinez,
+  stevenNeider,
 ].filter((trainer): trainer is Trainer => Boolean(trainer))
 
 // Export featured trainers (same as current FEATURED_TRAINERS)
@@ -41,7 +41,7 @@ export {
   jonasEricsson,
   lisaAnderson,
   flokiBarth,
-  sophieMartinez,
+  stevenNeider,
 }
 
 // Export types
