@@ -32,6 +32,16 @@ export default function MarketplaceClientPage() {
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
 
+  const getDistanceToTrainer = (trainer: { location: { coordinates: { lat: number; lng: number } } }) => {
+    if (!userLocation) return null
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      trainer.location.coordinates.lat,
+      trainer.location.coordinates.lng
+    )
+  }
+
   const matchesFilters = (trainer: { name: string; location: { city: string; country: string }; specialties: string[] }) => {
     const matchesSearch = !normalizedQuery
       ? true
@@ -125,16 +135,6 @@ export default function MarketplaceClientPage() {
 
   const handleLocationError = (error: string) => {
     setLocationError(error)
-  }
-
-  const getDistanceToTrainer = (trainer: { location: { coordinates: { lat: number; lng: number } } }) => {
-    if (!userLocation) return null
-    return calculateDistance(
-      userLocation.lat,
-      userLocation.lng,
-      trainer.location.coordinates.lat,
-      trainer.location.coordinates.lng
-    )
   }
 
   // Temporary debug logs
