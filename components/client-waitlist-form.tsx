@@ -11,9 +11,10 @@ import { trackEvent } from "@/lib/analytics"
 
 interface ClientWaitlistFormProps {
   selectedPlan?: string | null
+  source?: string
 }
 
-export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
+export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStatus, setFormStatus] = useState<{
     success?: boolean
@@ -39,6 +40,9 @@ export function ClientWaitlistForm({ selectedPlan }: ClientWaitlistFormProps) {
     formData.append("user_type", "client")
     formData.append("city", city)
     formData.append("phone", phone)
+    if (source) {
+      formData.append("source", source)
+    }
 
     // Provide immediate visual feedback
     setButtonDisabled(true)

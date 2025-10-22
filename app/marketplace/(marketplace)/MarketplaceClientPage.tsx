@@ -15,6 +15,7 @@ import { useUserLocation } from "../(marketplace-trainers)/useUserLocation"
 import { getNearbyTrainers, calculateDistance, isWithinRadius } from "@/utils/location"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { ClientWaitlistForm } from "@/components/client-waitlist-form"
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -224,7 +225,7 @@ export default function MarketplaceClientPage() {
           <>
              {/* Trainers Near You */}
              <section className="w-full max-w-7xl mx-auto py-12">
-               <h2 className="text-3xl md:text-4xl font-bold mb-8">📍 Trainers Near You (within {radius}km)</h2>
+               <h2 className="text-3xl md:text-4xl font-bold mb-8">Trainers Near You within {radius}km</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredFeatured
                   .filter(trainer => !trainer.remoteAvailable)
@@ -268,6 +269,22 @@ export default function MarketplaceClientPage() {
                     </div>
                   </Card>
                 ))}
+              </div>
+            </section>
+
+            {/* Client Waitlist Widget */}
+            <section className="w-full max-w-7xl mx-auto py-12">
+              <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-8 text-center">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                  Can't find the perfect trainer?
+                </h3>
+                <p className="text-pink-100 mb-6 max-w-2xl mx-auto">
+                  Join our waitlist and we'll notify you when new trainers join in your area. 
+                  Get early access to the best fitness professionals near you!
+                </p>
+                <div className="max-w-md mx-auto">
+                  <ClientWaitlistForm selectedPlan="basic" source="marketplace" />
+                </div>
               </div>
             </section>
 
