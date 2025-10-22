@@ -51,16 +51,10 @@ export const useUserLocation = () => {
     }
   }
 
-  const clearLocation = () => {
-    setUserLocation(null)
-    setError(null)
-  }
-
   return {
     userLocation,
     isLoading,
     error,
-    requestLocation,
-    clearLocation
+    requestLocation
   }
 }

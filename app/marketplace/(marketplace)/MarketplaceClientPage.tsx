@@ -10,9 +10,8 @@ import { Star, MapPin, Loader2, Search } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
 import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
-import { LocationDetector } from "../(marketplace-trainers)/location-detector"
 import { useUserLocation } from "../(marketplace-trainers)/useUserLocation"
-import { getNearbyTrainers, calculateDistance, isWithinRadius } from "@/utils/location"
+import { calculateDistance, isWithinRadius } from "@/utils/location"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { ClientWaitlistForm } from "@/components/client-waitlist-form"
@@ -28,6 +27,9 @@ export default function MarketplaceClientPage() {
   const [radius, setRadius] = useState(50) // km
   const [locationError, setLocationError] = useState<string | null>(null)
   const [showLocationSections, setShowLocationSections] = useState(false)
+  
+  // Location detection hook
+  const { requestLocation, isLoading, error } = useUserLocation()
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -162,11 +164,25 @@ export default function MarketplaceClientPage() {
                    onChange={(e) => setSearchQuery(e.target.value)}
                    className="pl-4 pr-12"
                  />
-                 <LocationDetector 
-                   onLocationDetected={handleLocationDetected}
-                   onError={handleLocationError}
+                 <button
+                   onClick={async () => {
+                     const location = await requestLocation()
+                     if (location) {
+                       handleLocationDetected(location)
+                     } else if (error) {
+                       handleLocationError(error)
+                     }
+                   }}
+                   disabled={isLoading}
                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 hover:text-pink-600 cursor-pointer"
-                 />
+                   title="Use My Location"
+                 >
+                   {isLoading ? (
+                     <Loader2 className="h-4 w-4 animate-spin text-pink-500" />
+                   ) : (
+                     <MapPin className="h-4 w-4 text-pink-500" />
+                   )}
+                 </button>
                </div>
               <Button size="lg" className="bg-black text-white hover:bg-black/90">
                 <Search className="h-4 w-4 md:hidden" />

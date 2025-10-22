@@ -1,11 +1,4 @@
-/**
- * Calculate the distance between two coordinates using the Haversine formula
- * @param lat1 Latitude of first point
- * @param lng1 Longitude of first point
- * @param lat2 Latitude of second point
- * @param lng2 Longitude of second point
- * @returns Distance in kilometers
- */
+// Calculate distance between two coordinates using Haversine formula
 export const calculateDistance = (
   lat1: number, 
   lng1: number, 
@@ -23,13 +16,7 @@ export const calculateDistance = (
   return R * c
 }
 
-/**
- * Check if a trainer is within the specified radius of a user's location
- * @param trainerCoords Trainer's coordinates
- * @param userCoords User's coordinates
- * @param radiusKm Radius in kilometers
- * @returns True if trainer is within radius
- */
+// Check if trainer is within radius of user location
 export const isWithinRadius = (
   trainerCoords: { lat: number; lng: number },
   userCoords: { lat: number; lng: number },
@@ -44,45 +31,3 @@ export const isWithinRadius = (
   return distance <= radiusKm
 }
 
-/**
- * Get trainers within a certain radius of user location
- * @param trainers Array of trainers
- * @param userLocation User's location
- * @param maxRadiusKm Maximum radius in kilometers
- * @returns Filtered array of nearby trainers
- */
-export const getNearbyTrainers = (
-  trainers: Array<{
-    location: { coordinates: { lat: number; lng: number } }
-    serviceRadius?: number
-    remoteAvailable?: boolean
-  }>,
-  userLocation: { lat: number; lng: number },
-  maxRadiusKm: number = 50
-): Array<{
-  location: { coordinates: { lat: number; lng: number } }
-  serviceRadius?: number
-  remoteAvailable?: boolean
-}> => {
-  return trainers.filter(trainer => {
-    // Always show remote trainers
-    if (trainer.remoteAvailable) return true
-    
-    // Check if trainer is within their service radius
-    const trainerRadius = trainer.serviceRadius || 50
-    const isWithinTrainerRadius = isWithinRadius(
-      trainer.location.coordinates,
-      userLocation,
-      trainerRadius
-    )
-    
-    // Also check if within user's max radius preference
-    const isWithinUserRadius = isWithinRadius(
-      trainer.location.coordinates,
-      userLocation,
-      maxRadiusKm
-    )
-    
-    return isWithinTrainerRadius && isWithinUserRadius
-  })
-}
