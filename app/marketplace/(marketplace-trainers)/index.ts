@@ -3,7 +3,6 @@ import { erikKirchhoff } from './erik-kirchhoff'
 import { lenaTraninger } from './lena-traninger'
 import { jonne } from './jonne'
 import { jonasEricsson } from './jonas-ericsson'
-import { lisaAnderson } from './lisa-anderson'
 import { flokiBarth } from './floki-barth'
 import { stevenNeider } from './steven-neider'
 
@@ -13,7 +12,6 @@ export const allTrainers: Trainer[] = [
   lenaTraninger,
   jonne,
   jonasEricsson,
-  lisaAnderson,
   flokiBarth,
   stevenNeider,
 ].filter((trainer): trainer is Trainer => Boolean(trainer))
@@ -39,7 +37,6 @@ export {
   lenaTraninger,
   jonne,
   jonasEricsson,
-  lisaAnderson,
   flokiBarth,
   stevenNeider,
 }

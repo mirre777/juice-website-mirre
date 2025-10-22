@@ -1,17 +1,17 @@
 import type { Trainer } from './types'
 
-export const sophieMartinez: Trainer = {
-  id: "sophie-martinez",
-  name: "Sophie Martinez",
-  slug: "sophie-martinez",
-  image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/floating%20lemon%20dripping%20juice-CMWMSL6Y8DthAohaZTNcz90HWXXcXy.png",
-  certification: "RYT-200",
-  specialties: ["Yoga", "Pilates"],
+export const stevenNeider: Trainer = {
+  id: "steven-neider",
+  name: "Steven Neider",
+  slug: "steven-neider",
+  image: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/trainer-profile-images/steve%20neider.jpg",
+  certification: "",
+  specialties: ["Mobility", "Strength Training",  "Alternative Medicine"],
   rating: 4.9,
   reviews: 118,
-  hourlyRate: 60,
+  hourlyRate: 180,
   featured: false,
-  location: "Madrid",
-  bio: "RYT-200 certified yoga instructor with Pilates expertise.",
-  profileUrl: "/marketplace/trainer/sophie-martinez"
+  location: "Ocala, United States",
+  bio: "I'll help you get into the best shape of your life through my 1-on-1 personal training and online fitness coaching program.",
+  profileUrl: "/marketplace/trainer/steven-neider"
 }
