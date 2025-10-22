@@ -12,7 +12,7 @@ import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trai
 import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
 import { LocationDetector } from "../(marketplace-trainers)/location-detector"
 import { useUserLocation } from "../(marketplace-trainers)/useUserLocation"
-import { getNearbyTrainers, calculateDistance } from "@/utils/location"
+import { getNearbyTrainers, calculateDistance, isWithinRadius } from "@/utils/location"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -52,7 +52,28 @@ export default function MarketplaceClientPage() {
     
     // Apply location-based filtering if user location is available
     if (userLocation) {
-      filtered = getNearbyTrainers(filtered, userLocation, radius)
+      // Filter by distance manually since getNearbyTrainers has type issues
+      filtered = filtered.filter(trainer => {
+        // Always show remote trainers
+        if (trainer.remoteAvailable) return true
+        
+        // Check if trainer is within their service radius
+        const trainerRadius = trainer.serviceRadius || 50
+        const isWithinTrainerRadius = isWithinRadius(
+          trainer.location.coordinates,
+          userLocation,
+          trainerRadius
+        )
+        
+        // Also check if within user's max radius preference
+        const isWithinUserRadius = isWithinRadius(
+          trainer.location.coordinates,
+          userLocation,
+          radius
+        )
+        
+        return isWithinTrainerRadius && isWithinUserRadius
+      })
       
       // Filter out remote trainers if showRemote is false
       if (!showRemote) {

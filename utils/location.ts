@@ -59,7 +59,11 @@ export const getNearbyTrainers = (
   }>,
   userLocation: { lat: number; lng: number },
   maxRadiusKm: number = 50
-) => {
+): Array<{
+  location: { coordinates: { lat: number; lng: number } }
+  serviceRadius?: number
+  remoteAvailable?: boolean
+}> => {
   return trainers.filter(trainer => {
     // Always show remote trainers
     if (trainer.remoteAvailable) return true
