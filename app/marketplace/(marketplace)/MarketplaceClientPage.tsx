@@ -6,10 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Search, Star } from "lucide-react"
+import { Search, Star, MapPin, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
 import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
+import { LocationDetector } from "../(marketplace-trainers)/location-detector"
+import { useUserLocation } from "../(marketplace-trainers)/useUserLocation"
+import { getNearbyTrainers, calculateDistance } from "@/utils/location"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 
 export default function MarketplaceClientPage() {
@@ -17,6 +23,12 @@ export default function MarketplaceClientPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties")
   const [showModal, setShowModal] = useState(false)
   const [selectedTrainerName, setSelectedTrainerName] = useState<string>("")
+  
+  // Location state
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number, city: string, country: string} | null>(null)
+  const [radius, setRadius] = useState(50) // km
+  const [showRemote, setShowRemote] = useState(true)
+  const [locationError, setLocationError] = useState<string | null>(null)
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -34,8 +46,46 @@ export default function MarketplaceClientPage() {
     return matchesSearch && matchesSpecialty
   }
 
-  const filteredFeatured = featuredTrainers.filter(matchesFilters)
-  const filteredAll = allTrainers.filter(matchesFilters)
+  // Distance-based filtering and sorting
+  const getFilteredTrainers = (trainers: typeof allTrainers) => {
+    let filtered = trainers.filter(matchesFilters)
+    
+    // Apply location-based filtering if user location is available
+    if (userLocation) {
+      filtered = getNearbyTrainers(filtered, userLocation, radius)
+      
+      // Filter out remote trainers if showRemote is false
+      if (!showRemote) {
+        filtered = filtered.filter(trainer => !trainer.remoteAvailable)
+      }
+      
+      // Sort by distance (closest first), then by rating
+      filtered.sort((a, b) => {
+        const distanceA = getDistanceToTrainer(a)
+        const distanceB = getDistanceToTrainer(b)
+        
+        // Remote trainers go to the end
+        if (a.remoteAvailable && !b.remoteAvailable) return 1
+        if (!a.remoteAvailable && b.remoteAvailable) return -1
+        
+        // If both are remote or both are local, sort by distance
+        if (distanceA !== null && distanceB !== null) {
+          return distanceA - distanceB
+        }
+        
+        // Fallback to rating
+        return b.rating - a.rating
+      })
+    } else if (!showRemote) {
+      // If no location but remote is disabled, show only non-remote trainers
+      filtered = filtered.filter(trainer => !trainer.remoteAvailable)
+    }
+    
+    return filtered
+  }
+
+  const filteredFeatured = getFilteredTrainers(featuredTrainers)
+  const filteredAll = getFilteredTrainers(allTrainers)
 
   const handleTrainerClick = (trainer: { name: string; slug: string; id: string }) => {
     setSelectedTrainerName(trainer.name)
@@ -45,6 +95,25 @@ export default function MarketplaceClientPage() {
   const closeModal = () => {
     setShowModal(false)
     setSelectedTrainerName("")
+  }
+
+  const handleLocationDetected = (location: { lat: number; lng: number; city: string; country: string }) => {
+    setUserLocation(location)
+    setLocationError(null)
+  }
+
+  const handleLocationError = (error: string) => {
+    setLocationError(error)
+  }
+
+  const getDistanceToTrainer = (trainer: { location: { coordinates: { lat: number; lng: number } } }) => {
+    if (!userLocation) return null
+    return calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      trainer.location.coordinates.lat,
+      trainer.location.coordinates.lng
+    )
   }
 
   // Temporary debug logs
@@ -82,6 +151,53 @@ export default function MarketplaceClientPage() {
                 <Button size="lg" className="bg-black text-white hover:bg-black/90">
                   Search Trainers
                 </Button>
+              </div>
+
+              {/* Location Controls */}
+              <div className="flex flex-wrap gap-4 items-center mb-6 p-4 bg-gray-50 rounded-lg">
+                <LocationDetector 
+                  onLocationDetected={handleLocationDetected}
+                  onError={handleLocationError}
+                />
+                
+                {userLocation && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="radius">Within:</Label>
+                      <Select value={radius.toString()} onValueChange={(value) => setRadius(parseInt(value))}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5km</SelectItem>
+                          <SelectItem value="10">10km</SelectItem>
+                          <SelectItem value="25">25km</SelectItem>
+                          <SelectItem value="50">50km</SelectItem>
+                          <SelectItem value="100">100km</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="show-remote"
+                        checked={showRemote}
+                        onCheckedChange={setShowRemote}
+                      />
+                      <Label htmlFor="show-remote">Show remote trainers</Label>
+                    </div>
+                    
+                    <div className="text-sm text-green-600">
+                      📍 Location: {userLocation.city}
+                    </div>
+                  </>
+                )}
+                
+                {locationError && (
+                  <div className="text-sm text-red-600">
+                    {locationError}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -137,7 +253,14 @@ export default function MarketplaceClientPage() {
                         <span className="font-semibold">{trainer.rating}</span>
                         <span className="text-sm text-muted-foreground">({trainer.reviews})</span>
                       </div>
-                      <span className="text-lg font-bold">€{trainer.hourlyRate}/hr</span>
+                      <div className="text-right">
+                        <span className="text-lg font-bold">€{trainer.hourlyRate}/hr</span>
+                        {userLocation && (
+                          <p className="text-xs text-muted-foreground">
+                            {trainer.remoteAvailable ? "🌐 Remote" : `${getDistanceToTrainer(trainer)?.toFixed(1)}km away`}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -174,7 +297,14 @@ export default function MarketplaceClientPage() {
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{trainer.rating}</span>
                       </div>
-                      <span className="font-bold">€{trainer.hourlyRate}/hr</span>
+                      <div className="text-right">
+                        <span className="font-bold">€{trainer.hourlyRate}/hr</span>
+                        {userLocation && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {trainer.remoteAvailable ? "🌐 Remote" : `${getDistanceToTrainer(trainer)?.toFixed(1)}km away`}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Card>

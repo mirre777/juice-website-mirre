@@ -12,11 +12,11 @@ export const erikKirchhoff: Trainer = {
   hourlyRate: 85,
   featured: true,
   location: {
-    city: "Amsterdam",
-    country: "Netherlands",
+    city: "Berlin",
+    country: "Germany",
     coordinates: {
       lat: 52.3676,
-      lng: 4.9041
+      lng: 13.4049
     }
   },
   serviceRadius: 50,
