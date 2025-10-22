@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Star, MapPin, Loader2 } from "lucide-react"
+import { Star, MapPin, Loader2, Search } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
 import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
@@ -169,7 +169,8 @@ export default function MarketplaceClientPage() {
                  />
                </div>
               <Button size="lg" className="bg-black text-white hover:bg-black/90">
-                Search Trainers
+                <Search className="h-4 w-4 md:hidden" />
+                <span className="hidden md:inline">Search Trainers</span>
               </Button>
             </div>
 
