@@ -141,7 +141,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            className="w-full px-4 h-12 rounded-full border border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
+            className="w-full px-4 h-12 rounded-full border border-zinc-300 bg-white text-black placeholder:text-black focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
           />
         </div>
 
@@ -158,7 +158,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+31 6 1234 5678"
             required
-            className="w-full px-4 h-12 rounded-full border border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
+            className="w-full px-4 h-12 rounded-full border border-zinc-300 bg-white text-black placeholder:text-black focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
           />
         </div>
 
@@ -175,7 +175,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
             onChange={(e) => setCity(e.target.value)}
             placeholder="Your City"
             required
-            className="w-full px-4 h-12 rounded-full border border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
+            className="w-full px-4 h-12 rounded-full border border-zinc-300 bg-white text-black placeholder:text-black focus:outline-none focus:ring-2 focus:ring-[#D2FF28] focus:border-transparent text-sm"
           />
         </div>
       </div>
