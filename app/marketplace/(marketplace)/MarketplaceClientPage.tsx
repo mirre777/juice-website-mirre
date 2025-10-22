@@ -20,10 +20,10 @@ export default function MarketplaceClientPage() {
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
 
-  const matchesFilters = (trainer: { name: string; location?: string; specialties: string[] }) => {
+  const matchesFilters = (trainer: { name: string; location: { city: string; country: string }; specialties: string[] }) => {
     const matchesSearch = !normalizedQuery
       ? true
-      : [trainer.name, trainer.location, ...(trainer.specialties || [])]
+      : [trainer.name, trainer.location.city, trainer.location.country, ...(trainer.specialties || [])]
           .filter(Boolean)
           .some((field) => String(field).toLowerCase().includes(normalizedQuery))
 
@@ -128,7 +128,7 @@ export default function MarketplaceClientPage() {
                   <div className="p-6 flex flex-col">
                     <h3 className="text-xl font-bold mb-1">{trainer.name}</h3>
                     {trainer.location && (
-                      <p className="text-xs text-muted-foreground mb-1">{trainer.location}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{trainer.location.city}, {trainer.location.country}</p>
                     )}
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{trainer.specialties.join(" • ")}</p>
                     <div className="flex items-center justify-between mt-auto">
@@ -166,7 +166,7 @@ export default function MarketplaceClientPage() {
                   <div className="p-4 flex flex-col">
                     <h3 className="font-bold mb-0.5">{trainer.name}</h3>
                     {trainer.location && (
-                      <p className="text-[11px] text-muted-foreground mb-1">{trainer.location}</p>
+                      <p className="text-[11px] text-muted-foreground mb-1">{trainer.location.city}, {trainer.location.country}</p>
                     )}
                     <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{trainer.specialties.join(" • ")}</p>
                     <div className="flex items-center justify-between text-sm mt-auto">

@@ -11,7 +11,16 @@ export const jonne: Trainer = {
   reviews: 156,
   hourlyRate: 110,
   featured: true,
-  location: "Vienna",
+  location: {
+    city: "Vienna",
+    country: "Austria",
+    coordinates: {
+      lat: 48.2082,
+      lng: 16.3738
+    }
+  },
+  serviceRadius: 50,
+  remoteAvailable: true,
   bio: "I'll help you get into the best shape of your life through my 1-on-1 personal training and online fitness coaching program.",
   profileUrl: "/marketplace/trainer/jonne"
 }
