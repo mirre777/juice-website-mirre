@@ -29,12 +29,11 @@ export const useUserLocation = () => {
           })
         })
 
-        // Reverse geocoding to get city/country (simplified for now)
         const location: UserLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-          city: 'Detected Location', // TODO: Implement reverse geocoding
-          country: 'Unknown',
+          city: 'Your Location',
+          country: 'Detected',
           accuracy: position.coords.accuracy,
           source: 'gps'
         }
@@ -45,12 +44,7 @@ export const useUserLocation = () => {
         throw new Error('Geolocation not supported')
       }
     } catch (err) {
-      console.error('Location detection failed:', err)
-      setError('Unable to detect your location. Please try manual entry.')
-      
-      // TODO: Implement IP-based fallback
-      // TODO: Implement manual location entry
-      
+      setError('Unable to detect your location')
       return null
     } finally {
       setIsLoading(false)

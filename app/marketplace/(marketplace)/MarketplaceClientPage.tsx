@@ -14,7 +14,6 @@ import { LocationDetector } from "../(marketplace-trainers)/location-detector"
 import { useUserLocation } from "../(marketplace-trainers)/useUserLocation"
 import { getNearbyTrainers, calculateDistance, isWithinRadius } from "@/utils/location"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 
 export default function MarketplaceClientPage() {
@@ -26,7 +25,6 @@ export default function MarketplaceClientPage() {
   // Location state
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, city: string, country: string} | null>(null)
   const [radius, setRadius] = useState(50) // km
-  const [showRemote, setShowRemote] = useState(true)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [showLocationSections, setShowLocationSections] = useState(false)
 
@@ -190,14 +188,6 @@ export default function MarketplaceClientPage() {
                   </Select>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="show-remote"
-                    checked={showRemote}
-                    onCheckedChange={setShowRemote}
-                  />
-                  <Label htmlFor="show-remote">Show remote trainers</Label>
-                </div>
               </div>
             )}
                 
@@ -275,56 +265,6 @@ export default function MarketplaceClientPage() {
               </div>
             </section>
 
-            {/* Remote Trainers */}
-            {showRemote && (
-              <section className="w-full max-w-7xl mx-auto py-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-8">🌐 Remote Trainers</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredFeatured
-                    .filter(trainer => trainer.remoteAvailable)
-                    .map((trainer) => (
-                    <Card
-                      key={trainer.id}
-                      className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => handleTrainerClick(trainer)}
-                      role="button"
-                      aria-label={`Open ${trainer.name} microsite`}
-                    >
-                      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
-                        <img
-                          src={trainer.image || "/placeholder.svg"}
-                          alt={trainer.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <Badge className="absolute top-4 left-4 bg-[#CDFF00] text-black hover:bg-[#CDFF00]/90 border-0">
-                          {trainer.certification}
-                        </Badge>
-                      </div>
-                      <div className="p-6 flex flex-col">
-                        <h3 className="text-xl font-bold mb-1">{trainer.name}</h3>
-                        {trainer.location && (
-                          <p className="text-xs text-muted-foreground mb-1">{trainer.location.city}, {trainer.location.country}</p>
-                        )}
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{trainer.specialties.join(" • ")}</p>
-                        <div className="flex items-center justify-between mt-auto">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-semibold">{trainer.rating}</span>
-                            <span className="text-sm text-muted-foreground">({trainer.reviews})</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-lg font-bold">€{trainer.hourlyRate}/hr</span>
-                            <p className="text-xs text-muted-foreground">
-                              🌐 Remote
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
           </>
         ) : (
           /* Default Featured Trainers */
