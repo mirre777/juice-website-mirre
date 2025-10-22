@@ -27,9 +27,9 @@ export function LocationDetector({ onLocationDetected, onError, className }: Loc
       title="Use My Location"
     >
       {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="h-4 w-4 animate-spin text-pink-500" />
       ) : (
-        <MapPin className="h-4 w-4" />
+        <MapPin className="h-4 w-4 text-pink-500" />
       )}
     </button>
   )

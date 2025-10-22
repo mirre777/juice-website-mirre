@@ -164,7 +164,7 @@ export default function MarketplaceClientPage() {
                  <LocationDetector 
                    onLocationDetected={handleLocationDetected}
                    onError={handleLocationError}
-                   className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-black cursor-pointer"
+                   className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 hover:text-pink-600 cursor-pointer"
                  />
                </div>
               <Button size="lg" className="bg-black text-white hover:bg-black/90">
