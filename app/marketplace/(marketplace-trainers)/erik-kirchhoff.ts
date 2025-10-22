@@ -11,7 +11,7 @@ export const erikKirchhoff: Trainer = {
   reviews: 127,
   hourlyRate: 85,
   featured: true,
-  location: "Amsterdam",
+  location: "Berlin",
   bio: "Experienced NASM certified trainer specializing in weight loss and strength training.",
   profileUrl: "/marketplace/trainer/erik-kirchhoff"
 }
