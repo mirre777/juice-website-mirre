@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Search, Star, MapPin, Loader2 } from "lucide-react"
+import { Star, MapPin, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "../(marketplace-trainers)"
 import { ComingSoonModal } from "../(marketplace-trainers)/coming-soon-modal"
@@ -117,9 +117,16 @@ export default function MarketplaceClientPage() {
   }
 
   const handleLocationDetected = (location: { lat: number; lng: number; city: string; country: string }) => {
-    setUserLocation(location)
-    setLocationError(null)
-    setShowLocationSections(true)
+    if (userLocation && showLocationSections) {
+      // If location is already detected and sections are shown, collapse them
+      setShowLocationSections(false)
+      setUserLocation(null)
+    } else {
+      // Otherwise, detect location and show sections
+      setUserLocation(location)
+      setLocationError(null)
+      setShowLocationSections(true)
+    }
   }
 
   const handleLocationError = (error: string) => {
@@ -145,51 +152,26 @@ export default function MarketplaceClientPage() {
               <span className="bg-[#CDFF00]/20 text-foreground px-1">perfect trainer</span> for your goals and budget.
             </p>
 
-            <div className="flex gap-2 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search trainers by name, specialty, or location"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-12"
-                />
-                <LocationDetector 
-                  onLocationDetected={handleLocationDetected}
-                  onError={handleLocationError}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-black cursor-pointer"
-                />
-              </div>
+             <div className="flex gap-2 mb-6">
+               <div className="relative flex-1">
+                 <Input
+                   type="text"
+                   placeholder="Search trainers by name, specialty, or location"
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="pl-4 pr-12"
+                 />
+                 <LocationDetector 
+                   onLocationDetected={handleLocationDetected}
+                   onError={handleLocationError}
+                   className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-black cursor-pointer"
+                 />
+               </div>
               <Button size="lg" className="bg-black text-white hover:bg-black/90">
                 Search Trainers
               </Button>
             </div>
 
-            {/* Location Controls */}
-            {userLocation && (
-              <div className="flex flex-wrap gap-4 items-center mb-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="radius">Within:</Label>
-                  <Select value={radius.toString()} onValueChange={(value) => setRadius(parseInt(value))}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5km</SelectItem>
-                      <SelectItem value="10">10km</SelectItem>
-                      <SelectItem value="25">25km</SelectItem>
-                      <SelectItem value="50">50km</SelectItem>
-                      <SelectItem value="75">75km</SelectItem>
-                      <SelectItem value="100">100km</SelectItem>
-                      <SelectItem value="150">150km</SelectItem>
-                      <SelectItem value="200">200km</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-              </div>
-            )}
                 
             {locationError && (
               <div className="text-sm text-red-600">
@@ -197,28 +179,52 @@ export default function MarketplaceClientPage() {
               </div>
             )}
 
-            {/* Specialty Filter */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {specialties.map((specialty) => (
-                <Button
-                  key={specialty}
-                  variant={selectedSpecialty === specialty ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedSpecialty(specialty)}
-                >
-                  {specialty}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </section>
+             {/* Specialty Filter */}
+             <div className="flex flex-wrap gap-2 mb-8">
+               {specialties.map((specialty) => (
+                 <Button
+                   key={specialty}
+                   variant={selectedSpecialty === specialty ? "default" : "outline"}
+                   size="sm"
+                   onClick={() => setSelectedSpecialty(specialty)}
+                 >
+                   {specialty}
+                 </Button>
+               ))}
+             </div>
+
+             {/* Location Controls */}
+             {userLocation && (
+               <div className="flex flex-wrap gap-4 items-center mb-6 p-4 bg-gray-50 rounded-lg">
+                 <div className="flex items-center gap-2">
+                   <Label htmlFor="radius">Within:</Label>
+                   <Select value={radius.toString()} onValueChange={(value) => setRadius(parseInt(value))}>
+                     <SelectTrigger className="w-32">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="5">5km</SelectItem>
+                       <SelectItem value="10">10km</SelectItem>
+                       <SelectItem value="25">25km</SelectItem>
+                       <SelectItem value="50">50km</SelectItem>
+                       <SelectItem value="75">75km</SelectItem>
+                       <SelectItem value="100">100km</SelectItem>
+                       <SelectItem value="150">150km</SelectItem>
+                       <SelectItem value="200">200km</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
+             )}
+           </div>
+         </section>
 
         {/* Location-based sections */}
         {showLocationSections && userLocation ? (
           <>
-            {/* Trainers Near You */}
-            <section className="w-full max-w-7xl mx-auto py-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8">📍 Trainers Near You</h2>
+             {/* Trainers Near You */}
+             <section className="w-full max-w-7xl mx-auto py-12">
+               <h2 className="text-3xl md:text-4xl font-bold mb-8">📍 Trainers Near You (within {radius}km)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredFeatured
                   .filter(trainer => !trainer.remoteAvailable)
