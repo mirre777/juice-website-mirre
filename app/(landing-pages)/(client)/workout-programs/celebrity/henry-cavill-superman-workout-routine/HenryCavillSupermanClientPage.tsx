@@ -3,7 +3,7 @@ import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
-import { WorkoutProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-features-section"
+import { WorkoutFreeProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-free-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
@@ -16,6 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Superman Program",
   ctaButtonStyle: "green" as const,
+  programId: "henry-cavill-superman-program-id", // Add programId for Henry Cavill
   features: [
     {
       title: "Superhero-Level Strength",
@@ -146,6 +147,7 @@ export default function HenryCavillSupermanClientPage() {
     title: "Why choose Henry Cavill's Superman program?",
     features: workoutProgramData.features,
     ctaData: workoutProgramData.ctaData,
+    programId: workoutProgramData.programId,
   }
 
   const faqData = {
@@ -166,7 +168,7 @@ export default function HenryCavillSupermanClientPage() {
       <main className="flex min-h-screen flex-col">
         <Navbar />
         <WorkoutProgramsHeroSection {...heroData} />
-        <WorkoutProgramsFeaturesSection {...featuresData} />
+        <WorkoutFreeProgramsFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
 
         <section className="container mx-auto px-4 md:px-6 py-16">

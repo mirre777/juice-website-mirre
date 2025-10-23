@@ -3,7 +3,7 @@ import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
-import { WorkoutProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-features-section"
+import { WorkoutFreeProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-free-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
@@ -16,6 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Creed Program",
   ctaButtonStyle: "green" as const,
+  programId: "c24a4705-af73-4d8c-bc89-64fe43cce372", // ← ADD THIS LINE
   features: [
     {
       title: "Fighter-Level Conditioning",
@@ -43,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this boxing training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/michael-b-jordan-creed-workout",
+    ctaButtonUrl: "https://app.juice.fitness/programs/c24a4705-af73-4d8c-bc89-64fe43cce372",
     bulletPoints: [
       "Free boxing workout program included",
       "Fighter-level training principles",
@@ -146,6 +147,7 @@ export default function MichaelBJordanCreedClientPage() {
     title: "Why choose Michael B. Jordan's Creed program?",
     features: workoutProgramData.features,
     ctaData: workoutProgramData.ctaData,
+    programId: workoutProgramData.programId,
   }
 
   const faqData = {
@@ -166,7 +168,7 @@ export default function MichaelBJordanCreedClientPage() {
       <main className="flex min-h-screen flex-col">
         <Navbar />
         <WorkoutProgramsHeroSection {...heroData} />
-        <WorkoutProgramsFeaturesSection {...featuresData} />
+        <WorkoutFreeProgramsFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
 
         <section className="container mx-auto px-4 md:px-6 py-16">
