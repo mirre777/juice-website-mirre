@@ -17,7 +17,8 @@ import { ClientWaitlistForm } from "@/components/client-waitlist-form"
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties")
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([])
+  const [showAllSpecialties, setShowAllSpecialties] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [selectedTrainerName, setSelectedTrainerName] = useState<string>("")
   
@@ -31,6 +32,19 @@ export default function MarketplaceClientPage() {
   const { requestLocation, isLoading, error } = useUserLocation()
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
+
+  // Multi-select specialty functions
+  const toggleSpecialty = (specialty: string) => {
+    setShowAllSpecialties(false)
+    setSelectedSpecialties((prev) =>
+      prev.includes(specialty) ? prev.filter((s) => s !== specialty) : [...prev, specialty]
+    )
+  }
+
+  const selectAllSpecialties = () => {
+    setShowAllSpecialties(true)
+    setSelectedSpecialties([])
+  }
 
   const getDistanceToTrainer = (trainer: { location: { coordinates: { lat: number; lng: number } } }) => {
     if (!userLocation) return null
@@ -55,8 +69,8 @@ export default function MarketplaceClientPage() {
         .some((field) => String(field).toLowerCase().includes(normalizedQuery))
 
     const matchesSpecialty =
-      selectedSpecialty === "All Specialties" ||
-      (trainer.specialties || []).some((s) => s.toLowerCase() === selectedSpecialty.toLowerCase())
+      showAllSpecialties ||
+      (trainer.specialties || []).some((s) => selectedSpecialties.includes(s))
 
     return matchesSearch && matchesSpecialty
   }
@@ -184,12 +198,22 @@ export default function MarketplaceClientPage() {
 
              {/* Specialty Filter */}
              <div className="flex flex-wrap gap-2 mb-8">
-               {specialties.map((specialty) => (
+               {/* All Specialties button */}
+               <Button
+                 variant={showAllSpecialties ? "default" : "outline"}
+                 size="sm"
+                 onClick={selectAllSpecialties}
+               >
+                 All Specialties
+               </Button>
+               
+               {/* Individual specialty buttons */}
+               {specialties.filter(s => s !== "All Specialties").map((specialty) => (
                  <Button
                    key={specialty}
-                   variant={selectedSpecialty === specialty ? "default" : "outline"}
+                   variant={!showAllSpecialties && selectedSpecialties.includes(specialty) ? "default" : "outline"}
                    size="sm"
-                   onClick={() => setSelectedSpecialty(specialty)}
+                   onClick={() => toggleSpecialty(specialty)}
                  >
                    {specialty}
                  </Button>
