@@ -6,7 +6,7 @@ import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/worko
 import { WorkoutFreeProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-free-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
-import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
+import { RelatedWorkoutPrograms } from "@/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const workoutProgramData = {
@@ -141,6 +141,7 @@ export default function MichaelBJordanCreedClientPage() {
     subtitle: workoutProgramData.subtitle,
     rating: workoutProgramData.rating,
     ctaText: workoutProgramData.ctaText,
+    ctaUrl: workoutProgramData.ctaData.ctaButtonUrl,
   }
 
   const featuresData = {
