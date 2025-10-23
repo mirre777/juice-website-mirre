@@ -89,7 +89,7 @@ const workoutProgramData = {
     name: "Michael B. Jordan's Creed Workout Routine",
     description:
       "Boxing training program featuring athletic conditioning, boxing movements, and high-intensity workouts. Designed to build the endurance and strength of a champion boxer with real-world athleticism.",
-    url: "https://juice-website-mirre.vercel.app/workout-programs/celebrity/michael-b-jordan-creed-workout",
+    url: "https://juice.fitness/workout-programs/celebrity/michael-b-jordan-creed-workout",
     category: "Celebrity Training Program",
     exerciseType: "Boxing Workout",
     duration: "P28D",

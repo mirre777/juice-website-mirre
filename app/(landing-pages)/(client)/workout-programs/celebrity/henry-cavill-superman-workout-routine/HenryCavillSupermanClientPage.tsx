@@ -44,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this superhero training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/henry-cavill-superman-workout-routine",
+    ctaButtonUrl: "https://app.juice.fitness/programs/c303aed1-8168-44b2-aa37-d6ef8d9c8c5b",
     bulletPoints: [
       "Free superhero workout program included",
       "Superhero-level training principles",
@@ -89,7 +89,7 @@ const workoutProgramData = {
     name: "Henry Cavill's Superman Workout Routine",
     description:
       "Superhero training program featuring compound movements, functional training, and high-intensity workouts. Designed to build the strength and physique of Superman with real-world athleticism.",
-    url: "https://juice-website-mirre.vercel.app/workout-programs/celebrity/henry-cavill-superman-workout-routine",
+    url: "https://juice.fitness/workout-programs/celebrity/henry-cavill-superman-workout-routine",
     category: "Celebrity Training Program",
     exerciseType: "Superhero Workout",
     duration: "P28D",

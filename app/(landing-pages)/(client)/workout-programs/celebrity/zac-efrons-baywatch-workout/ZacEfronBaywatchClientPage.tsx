@@ -44,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this beach body training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/c382bfccc-82a1-4de6-bc9e-72bff20a1c45",
+    ctaButtonUrl: "https://app.juice.fitness/programs/382bfccc-82a1-4de6-bc9e-72bff20a1c45",
     bulletPoints: [
       "Free beach body workout program included",
       "Lifeguard-level training principles",
@@ -89,7 +89,7 @@ const workoutProgramData = {
     name: "Zac Efron's Baywatch Workout Routine",
     description:
       "Beach body training program featuring lean muscle building, lifeguard conditioning, and high-intensity workouts. Designed to build the lean, defined physique of a Baywatch lifeguard with real-world beach athleticism.",
-    url: "https://juice-website-mirre.vercel.app/workout-programs/celebrity/zac-efrons-baywatch-workout",
+    url: "https://juice.fitness/workout-programs/celebrity/zac-efrons-baywatch-workout",
     category: "Celebrity Training Program",
     exerciseType: "Beach Body Workout",
     duration: "P28D",

@@ -89,7 +89,7 @@ const workoutProgramData = {
     name: "Jeff Nippard's Free Minimalist Workout",
     description:
       "Evidence-based minimalist training program featuring flat dumbbell press, Romanian deadlifts, lat pulldowns, and more proven exercises. Designed for maximum results with minimal time investment.",
-    url: "https://juice-website-mirre.vercel.app/workout-programs/celebrity/jeff-nippard-free-minimalist-workout",
+    url: "https://juice.fitness/workout-programs/celebrity/jeff-nippard-free-minimalist-workout",
     category: "Celebrity Training Program",
     exerciseType: "Minimalist Workout",
     duration: "P21D",
