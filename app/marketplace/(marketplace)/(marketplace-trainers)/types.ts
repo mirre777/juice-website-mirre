@@ -9,7 +9,16 @@ export interface Trainer {
   reviews: number
   hourlyRate: number
   featured: boolean
-  location?: string
+  location: {
+    city: string
+    country: string
+    coordinates: {
+      lat: number
+      lng: number
+    }
+  }
+  serviceRadius?: number // km radius they serve (default: 50km)
+  remoteAvailable?: boolean // can they do online sessions?
   bio?: string
   profileUrl?: string
 }

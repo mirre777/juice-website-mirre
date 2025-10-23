@@ -11,7 +11,16 @@ export const lenaTraninger: Trainer = {
   reviews: 94,
   hourlyRate: 95,
   featured: true,
-  location: "Vienna",
+  location: {
+    city: "Vienna",
+    country: "Austria",
+    coordinates: {
+      lat: 48.2082,
+      lng: 16.3738
+    }
+  },
+  serviceRadius: 50,
+  remoteAvailable: true,
   bio: "ACE certified trainer with expertise in HIIT and functional training.",
   profileUrl: "/marketplace/trainer/lena-traninger"
 }

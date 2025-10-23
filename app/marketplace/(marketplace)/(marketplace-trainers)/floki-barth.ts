@@ -11,7 +11,16 @@ export const flokiBarth: Trainer = {
   reviews: 91,
   hourlyRate: 45,
   featured: false,
-  location: "Vienna",
+  location: {
+    city: "Vienna",
+    country: "Austria",
+    coordinates: {
+      lat: 48.2082,
+      lng: 16.3738
+    }
+  },
+  serviceRadius: 50,
+  remoteAvailable: true,
   bio: "ACE certified trainer with CrossFit and athletic performance expertise.",
   profileUrl: "/marketplace/trainer/floki-barth"
 }
