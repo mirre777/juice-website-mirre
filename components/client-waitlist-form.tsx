@@ -115,10 +115,10 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
           animate={animation.text.animate}
           transition={animation.text.transition}
         >
-          <h3 className="text-lg font-bold mb-1 text-white">Thank You!</h3>
-          <p className="text-zinc-400 text-sm">{formStatus.message}</p>
+          <h3 className="text-lg font-bold mb-1 text-gray-900">Thank You!</h3>
+          <p className="text-gray-600 text-sm">{formStatus.message}</p>
           {formStatus.alreadyExists && (
-            <p className="text-zinc-400 text-sm mt-2">We'll keep you updated on our progress.</p>
+            <p className="text-gray-600 text-sm mt-2">We'll keep you updated on our progress.</p>
           )}
         </motion.div>
       </div>
@@ -130,7 +130,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
       <div className="flex flex-col gap-4">
         {/* Email Input */}
         <div className="space-y-2">
-          <label htmlFor="client-email" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="client-email" className="text-sm font-medium text-left block text-gray-900">
             Email
           </label>
           <input
@@ -147,7 +147,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
 
         {/* Phone Input */}
         <div className="space-y-2">
-          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-gray-900">
             Phone
           </label>
           <input
@@ -164,7 +164,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
 
         {/* City Input */}
         <div className="space-y-2">
-          <label htmlFor="client-city" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="client-city" className="text-sm font-medium text-left block text-gray-900">
             City
           </label>
           <input
@@ -183,14 +183,15 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
       {/* Hidden inputs for form data */}
       <input type="hidden" name="plan" value={selectedPlan || "basic"} />
 
-      <p className="text-xs text-zinc-400 text-center mt-4">
+      <p className="text-xs text-gray-600 text-center mt-4">
         By joining, you agree to receive updates about our launch. 💪
       </p>
 
       <div className="flex justify-center mt-6">
         <Button
           type="submit"
-          className="bg-white text-black hover:bg-gray-200 py-3 h-auto px-8 transition-all active:scale-95 active:bg-gray-300 rounded-full font-medium"
+          className="text-black hover:bg-[#fefac3]/80 py-3 h-auto px-8 transition-all active:scale-95 active:bg-[#fefac3] rounded-full font-medium"
+          style={{ backgroundColor: '#fefac3' }}
           disabled={isSubmitting || buttonDisabled}
           id="waitlist_submit_client"
           data-plan={selectedPlan || "basic"}

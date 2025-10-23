@@ -314,8 +314,8 @@ export async function joinWaitlist(formData: FormData) {
     // Return success with appropriate message
     const successMessage =
       userType === "client" && city === "München"
-        ? "Perfekt! Wir melden uns in den nächsten 24 Stunden bei dir mit passenden Trainer-Vorschlägen."
-        : "Vielen Dank für deine Anmeldung! Wir melden uns bald bei dir."
+        ? "Perfect! We'll contact you within the next 24 hours with matching trainer suggestions."
+        : "Thank you for signing up! We'll be in touch soon."
 
     return {
       success: true,
