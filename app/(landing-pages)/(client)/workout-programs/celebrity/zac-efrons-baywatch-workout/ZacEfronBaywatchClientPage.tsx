@@ -16,8 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Baywatch Program",
   ctaButtonStyle: "green" as const,
-  programId: "382bfccc-82a1-4de6-bc9e-72bff20a1c45
-",
+  programId: "382bfccc-82a1-4de6-bc9e-72bff20a1c45",
   features: [
     {
       title: "Beach Body Conditioning",

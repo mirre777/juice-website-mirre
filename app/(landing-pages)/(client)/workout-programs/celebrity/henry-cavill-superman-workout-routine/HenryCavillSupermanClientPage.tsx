@@ -16,7 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Superman Program",
   ctaButtonStyle: "green" as const,
-  programId: "henry-cavill-superman-program-id", // Add programId for Henry Cavill
+  programId: "c303aed1-8168-44b2-aa37-d6ef8d9c8c5b", // Add programId for Henry Cavill
   features: [
     {
       title: "Superhero-Level Strength",
