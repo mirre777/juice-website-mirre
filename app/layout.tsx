@@ -134,7 +134,8 @@ export default function RootLayout({
                 
                 if (window.location.pathname.startsWith('/admin') || 
                     clientLandingPages.includes(window.location.pathname) ||
-                    window.location.pathname.startsWith('/workout-programs')) {
+                    window.location.pathname.startsWith('/workout-programs') ||
+                    window.location.pathname.startsWith('/marketplace')) {
                   return;
                 }
                 
