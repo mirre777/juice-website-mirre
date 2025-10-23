@@ -20,13 +20,18 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
         {relatedPrograms.map((program) => (
           <Link
             key={program.slug}
-            href={`/workout-programs/${program.isPaid ? "paid" : "free"}/${program.slug}`}
+            href={`/workout-programs/${program.isCelebrity ? "celebrity" : program.isPaid ? "paid" : "free"}/${program.slug}`}
             className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
           >
             <div className="relative h-48 bg-white flex items-center justify-center">
               <Dumbbell className="w-16 h-16 text-black" />
 
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 flex flex-col gap-1">
+                {program.isCelebrity && (
+                  <span className="px-3 py-1 text-xs font-bold rounded-full bg-white text-black border border-black">
+                    Celebrity
+                  </span>
+                )}
                 <span className="px-3 py-1 text-xs font-bold rounded-full bg-juice text-black">
                   {program.isPaid ? "Paid" : "Free"}
                 </span>
