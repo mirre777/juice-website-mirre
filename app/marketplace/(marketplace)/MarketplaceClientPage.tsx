@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Star, MapPin, Loader2, Search } from "lucide-react"
+import { Star, MapPin, Loader2, Search, X } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "./(marketplace-trainers)"
 import { ComingSoonModal } from "./(marketplace-trainers)/coming-soon-modal"
@@ -14,6 +14,7 @@ import { useUserLocation, calculateDistance, isWithinRadius, LocationDetector } 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { ClientWaitlistForm } from "@/components/client-waitlist-form"
+import { WaitlistForm } from "@/components/waitlist-form"
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -21,6 +22,7 @@ export default function MarketplaceClientPage() {
   const [showAllSpecialties, setShowAllSpecialties] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [selectedTrainerName, setSelectedTrainerName] = useState<string>("")
+  const [showTrainerModal, setShowTrainerModal] = useState(false)
   
   // Location state
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, city: string, country: string} | null>(null)
@@ -400,25 +402,15 @@ export default function MarketplaceClientPage() {
         </section>
       </main>
 
-      {/* Client Waitlist Widget - Bottom of Page */}
-      <section className="w-full py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-8 text-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                Can't find the perfect trainer?
-              </h3>
-              <p className="text-pink-100 mb-6">
-                Join our waitlist and we'll notify you when new trainers join in your area. 
-                Get early access to the best fitness professionals near you!
-              </p>
-              <div className="max-w-md mx-auto">
-                <ClientWaitlistForm selectedPlan="basic" source="marketplace" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Floating Trainer Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => setShowTrainerModal(true)}
+          className="bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 px-6 py-3 rounded-full shadow-lg font-medium transition-all duration-300 hover:scale-105"
+        >
+          Add Me Too!
+        </Button>
+      </div>
 
       <Footer />
       
@@ -427,6 +419,46 @@ export default function MarketplaceClientPage() {
         onClose={closeModal}
         trainerName={selectedTrainerName}
       />
+
+      {/* Trainer Waitlist Modal */}
+      {showTrainerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50" 
+            onClick={() => setShowTrainerModal(false)}
+          />
+          <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTrainerModal(false)}
+              className="absolute top-4 right-4 h-8 w-8 p-0 z-10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            <div className="p-6">
+              <div className="text-center">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">💪</span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Join as a Trainer
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Ready to help clients reach their fitness goals? Join our trainer network!
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <WaitlistForm selectedPlan="trainer" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
