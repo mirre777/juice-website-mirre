@@ -130,7 +130,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
       <div className="flex flex-col gap-4">
         {/* Email Input */}
         <div className="space-y-2">
-          <label htmlFor="client-email" className="text-sm font-medium text-left block text-gray-900">
+          <label htmlFor="client-email" className="text-sm font-medium text-left block text-white">
             Email
           </label>
           <input
@@ -147,7 +147,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
 
         {/* Phone Input */}
         <div className="space-y-2">
-          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-gray-900">
+          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-white">
             Phone
           </label>
           <input
@@ -164,7 +164,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
 
         {/* City Input */}
         <div className="space-y-2">
-          <label htmlFor="client-city" className="text-sm font-medium text-left block text-gray-900">
+          <label htmlFor="client-city" className="text-sm font-medium text-left block text-white">
             City
           </label>
           <input
@@ -183,7 +183,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
       {/* Hidden inputs for form data */}
       <input type="hidden" name="plan" value={selectedPlan || "basic"} />
 
-      <p className="text-xs text-gray-600 text-center mt-4">
+      <p className="text-xs text-pink-100 text-center mt-4">
         By joining, you agree to receive updates about our launch. 💪
       </p>
 
