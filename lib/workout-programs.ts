@@ -56,7 +56,7 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       slug: "henry-cavill-superman-workout-routine",
       title: "Henry Cavill's Superman Workout Routine",
       excerpt:
-        "Train like Superman with Henry Cavill's intense workout routine. Features compound movements, functional training, and superhero-level strength building exercises.",
+        "Train like Superman with Henry Cavill's intense workout routine. Features compound movements, functional training, and superhero-level strength building exercises for maximum results.",
       category: "Superhero",
       difficulty: "Advanced",
       duration: "4-5 days/week",
@@ -69,7 +69,7 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       slug: "michael-b-jordan-creed-workout",
       title: "Michael B. Jordan's Creed Workout Routine",
       excerpt:
-        "Train like a champion with Michael B. Jordan's Creed workout routine. Features boxing training, athletic conditioning, and fighter-level strength building exercises.",
+        "Train like a champion with Michael B. Jordan's Creed workout routine. Features boxing training, athletic conditioning, and fighter-level strength building exercises for maximum results.",
       category: "Boxing",
       difficulty: "Advanced",
       duration: "4-5 days/week",
@@ -82,7 +82,7 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       slug: "zac-efrons-baywatch-workout",
       title: "Zac Efron's Baywatch Workout Routine",
       excerpt:
-        "Get the Baywatch physique with Zac Efron's intense workout routine. Features beach body training, lean muscle building, and lifeguard-level conditioning.",
+        "Get the Baywatch physique with Zac Efron's intense workout routine. Features beach body training, lean muscle building, and lifeguard-level conditioning for maximum results.",
       category: "Beach Body",
       difficulty: "Intermediate",
       duration: "4-5 days/week",
