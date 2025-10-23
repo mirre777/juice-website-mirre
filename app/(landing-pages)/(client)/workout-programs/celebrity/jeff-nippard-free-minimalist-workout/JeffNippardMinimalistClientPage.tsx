@@ -16,7 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Free Minimalist Program",
   ctaButtonStyle: "green" as const,
-  programId: "jeff-nippard-minimalist-program-id", // Add programId for Jeff Nippard
+  programId: "0acefc6e-4abe-4e74-90fb-79ef3382e702", // Add programId for Jeff Nippard
   features: [
     {
       title: "Evidence-Based Training",
@@ -44,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this evidence-based training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/jeff-nippard-free-minimalist-workout",
+    ctaButtonUrl: "https://app.juice.fitness/programs/0acefc6e-4abe-4e74-90fb-79ef3382e702",
     bulletPoints: [
       "Free minimalist workout program included",
       "Evidence-based training principles",
