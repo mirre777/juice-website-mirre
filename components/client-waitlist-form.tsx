@@ -147,7 +147,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
 
         {/* Phone Input */}
         <div className="space-y-2">
-          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="client-phone" className="text-sm font-medium text-left block text-white" style={{ color: 'white' }}>
             Phone
           </label>
           <input
@@ -164,7 +164,7 @@ export function ClientWaitlistForm({ selectedPlan, source }: ClientWaitlistFormP
 
         {/* City Input */}
         <div className="space-y-2">
-          <label htmlFor="client-city" className="text-sm font-medium text-left block text-white">
+          <label htmlFor="client-city" className="text-sm font-medium text-left block text-white" style={{ color: 'white' }}>
             City
           </label>
           <input
