@@ -116,7 +116,7 @@ export function WorkoutProgramsClient({ programs }: WorkoutProgramsClientProps) 
                   />
                   <div className="absolute top-4 left-4 flex gap-1">
                     {program.isCelebrity && (
-                      <span className="bg-yellow-500 text-black text-sm font-medium px-2 py-1 rounded-full">
+                      <span className="bg-white text-black border border-black text-sm font-medium px-2 py-1 rounded-full">
                         Celebrity
                       </span>
                     )}
