@@ -16,7 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Baywatch Program",
   ctaButtonStyle: "green" as const,
-  programId: "382bfccc-82a1-4de6-bc9e-72bff20a1c45",
+  programId: "508e8a92-aa3c-4354-8880-b095addce3ee",
   features: [
     {
       title: "Beach Body Conditioning",
@@ -44,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this beach body training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/382bfccc-82a1-4de6-bc9e-72bff20a1c45",
+    ctaButtonUrl: "https://app.juice.fitness/programs/508e8a92-aa3c-4354-8880-b095addce3ee",
     bulletPoints: [
       "Free beach body workout program included",
       "Lifeguard-level training principles",

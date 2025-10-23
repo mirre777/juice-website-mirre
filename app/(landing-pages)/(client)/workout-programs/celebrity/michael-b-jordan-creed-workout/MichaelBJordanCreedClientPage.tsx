@@ -16,7 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Creed Program",
   ctaButtonStyle: "green" as const,
-  programId: "c24a4705-af73-4d8c-bc89-64fe43cce372", // ← ADD THIS LINE
+  programId: "71f8e19e-40e8-4726-937f-eff898e07913", // ← ADD THIS LINE
   features: [
     {
       title: "Fighter-Level Conditioning",
@@ -44,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this boxing training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/c24a4705-af73-4d8c-bc89-64fe43cce372",
+    ctaButtonUrl: "https://app.juice.fitness/programs/71f8e19e-40e8-4726-937f-eff898e07913",
     bulletPoints: [
       "Free boxing workout program included",
       "Fighter-level training principles",

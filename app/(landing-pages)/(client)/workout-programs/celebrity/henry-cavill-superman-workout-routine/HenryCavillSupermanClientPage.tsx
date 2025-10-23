@@ -16,7 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Superman Program",
   ctaButtonStyle: "green" as const,
-  programId: "c303aed1-8168-44b2-aa37-d6ef8d9c8c5b", // Add programId for Henry Cavill
+  programId: "26e3f5a7-9ef0-4ee6-a81f-298f51c9c94d", // Add programId for Henry Cavill
   features: [
     {
       title: "Superhero-Level Strength",
@@ -44,7 +44,7 @@ const workoutProgramData = {
     subtitle: "Download the Juice app and access this superhero training program instantly.",
     ctaButtonText: "Get Program",
     ctaButtonStyle: "black" as const,
-    ctaButtonUrl: "https://app.juice.fitness/programs/c303aed1-8168-44b2-aa37-d6ef8d9c8c5b",
+    ctaButtonUrl: "https://app.juice.fitness/programs/26e3f5a7-9ef0-4ee6-a81f-298f51c9c94d",
     bulletPoints: [
       "Free superhero workout program included",
       "Superhero-level training principles",

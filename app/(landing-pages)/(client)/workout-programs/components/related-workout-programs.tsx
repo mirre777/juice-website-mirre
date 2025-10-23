@@ -2,15 +2,53 @@
 
 import Link from "next/link"
 import { Dumbbell, Activity, Star } from "lucide-react"
-import { getAllWorkoutPrograms, WorkoutProgram } from "@/lib/workout-programs"
+
+interface WorkoutProgram {
+  title: string
+  slug: string
+  isPaid: boolean
+  isCelebrity: boolean
+  daysPerWeek: number
+  equipment: string
+  icon: "dumbbell" | "fullbody" | "celebrity"
+}
 
 interface RelatedWorkoutProgramsProps {
   currentSlug: string
 }
 
+const workoutPrograms: WorkoutProgram[] = [
+  {
+    title: "3-Day Full Body Workout Program",
+    slug: "3-day-full-body",
+    isPaid: false,
+    isCelebrity: false,
+    daysPerWeek: 3,
+    equipment: "Gym Equipment",
+    icon: "fullbody",
+  },
+  {
+    title: "Push/Pull/Legs Dumbbell Program",
+    slug: "dumbbell-workout",
+    isPaid: true,
+    isCelebrity: false,
+    daysPerWeek: 6,
+    equipment: "Dumbbells Only",
+    icon: "dumbbell",
+  },
+  {
+    title: "Jeff Nippard's Free Minimalist Workout",
+    slug: "jeff-nippard-free-minimalist-workout",
+    isPaid: false,
+    isCelebrity: true,
+    daysPerWeek: 3,
+    equipment: "Gym Equipment",
+    icon: "celebrity",
+  },
+]
+
 export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsProps) {
-  const allPrograms = getAllWorkoutPrograms()
-  const relatedPrograms = allPrograms.filter((program) => program.slug !== currentSlug)
+  const relatedPrograms = workoutPrograms.filter((program) => program.slug !== currentSlug)
 
   if (relatedPrograms.length === 0) return null
 
@@ -36,7 +74,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
               <div className="relative bg-white h-36 flex items-center justify-center">
                 <div className="absolute top-4 left-4 flex gap-1">
                   {program.isCelebrity && (
-                    <span className="bg-white text-black border border-black text-sm font-medium px-2 py-1 rounded-full">
+                    <span className="bg-yellow-500 text-black text-sm font-medium px-2 py-1 rounded-full">
                       Celebrity
                     </span>
                   )}
@@ -52,9 +90,9 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
                   )}
                 </div>
                 <div className="text-black">
-                  {program.category === "Dumbbell" ? (
+                  {program.icon === "dumbbell" ? (
                     <Dumbbell size={64} strokeWidth={1.5} />
-                  ) : program.isCelebrity ? (
+                  ) : program.icon === "celebrity" ? (
                     <Star size={64} strokeWidth={1.5} />
                   ) : (
                     <Activity size={64} strokeWidth={1.5} />
@@ -74,7 +112,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12,6 12,12 16,14" />
                     </svg>
-                    <span>{program.duration}</span>
+                    <span>3-6 days/week</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +120,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
                       <line x1="3" y1="6" x2="21" y2="6" />
                       <path d="M16 10a4 4 0 0 1-8 0" />
                     </svg>
-                    <span>{program.category}</span>
+                    <span>{program.equipment}</span>
                   </div>
                 </div>
               </div>
