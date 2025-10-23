@@ -14,7 +14,7 @@ import { useUserLocation, calculateDistance, isWithinRadius, LocationDetector } 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { ClientWaitlistForm } from "@/components/client-waitlist-form"
-import { WaitlistForm } from "@/components/waitlist-form"
+import { joinWaitlist } from "@/actions/waitlist-actions"
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -23,6 +23,18 @@ export default function MarketplaceClientPage() {
   const [showModal, setShowModal] = useState(false)
   const [selectedTrainerName, setSelectedTrainerName] = useState<string>("")
   const [showTrainerModal, setShowTrainerModal] = useState(false)
+  
+  // Trainer form state
+  const [trainerEmail, setTrainerEmail] = useState("")
+  const [trainerPhone, setTrainerPhone] = useState("")
+  const [trainerCity, setTrainerCity] = useState("")
+  const [trainerNumClients, setTrainerNumClients] = useState(1)
+  const [isSubmittingTrainer, setIsSubmittingTrainer] = useState(false)
+  const [trainerFormStatus, setTrainerFormStatus] = useState<{
+    success?: boolean
+    message?: string
+    error?: string
+  }>({})
   
   // Location state
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, city: string, country: string} | null>(null)
@@ -151,44 +163,81 @@ export default function MarketplaceClientPage() {
     setLocationError(error)
   }
 
+  const handleTrainerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmittingTrainer(true)
+    setTrainerFormStatus({})
+
+    try {
+      const formData = new FormData()
+      formData.append("email", trainerEmail)
+      formData.append("phone", trainerPhone)
+      formData.append("city", trainerCity)
+      formData.append("numClients", trainerNumClients.toString())
+      formData.append("plan", "trainer")
+      formData.append("user_type", "trainer")
+      formData.append("source", "marketplace-trainer")
+
+      const result = await joinWaitlist(formData)
+      setTrainerFormStatus(result)
+
+      if (result.success) {
+        // Clear form on success
+        setTrainerEmail("")
+        setTrainerPhone("")
+        setTrainerCity("")
+        setTrainerNumClients(1)
+      }
+    } catch (error) {
+      console.error("Trainer form submission error:", error)
+      setTrainerFormStatus({
+        success: false,
+        message: "Something went wrong. Please try again.",
+        error: error instanceof Error ? error.message : String(error),
+      })
+    } finally {
+      setIsSubmittingTrainer(false)
+    }
+  }
+
   // Temporary debug logs
   console.log('allTrainers:', allTrainers.map((t) => t?.name))
   console.log('featuredTrainers:', featuredTrainers.map((t) => t?.name))
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      <main className="flex-grow pt-20 pb-16 px-4">
-        <section className="w-full max-w-7xl mx-auto py-12 md:py-16">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              Personal Trainer <span className="bg-[#CDFF00] text-black px-3 py-1 inline-block">Marketplace</span>
-            </h1>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-20 pb-16 px-4">
+          <section className="w-full max-w-7xl mx-auto py-12 md:py-16">
+            <div className="max-w-3xl">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                Personal Trainer <span className="bg-[#CDFF00] text-black px-3 py-1 inline-block">Marketplace</span>
+              </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Connect with{" "}
-              <span className="bg-[#CDFF00]/20 text-foreground px-1">certified fitness professionals</span>. Find the{" "}
-              <span className="bg-[#CDFF00]/20 text-foreground px-1">perfect trainer</span> for your goals and budget.
-            </p>
+                Connect with{" "}
+                <span className="bg-[#CDFF00]/20 text-foreground px-1">certified fitness professionals</span>. Find the{" "}
+                <span className="bg-[#CDFF00]/20 text-foreground px-1">perfect trainer</span> for your goals and budget.
+              </p>
 
-             <div className="flex gap-2 mb-6">
-               <div className="relative flex-1">
-                 <Input
-                   type="text"
-                   placeholder="Search trainers by name, specialty, or location"
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
+              <div className="flex gap-2 mb-6">
+                <div className="relative flex-1">
+                  <Input
+                    type="text"
+                    placeholder="Search trainers by name, specialty, or location"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                    className="pl-4 pr-12"
                  />
                  <LocationDetector 
                    onLocationDetected={handleLocationDetected}
                    onError={handleLocationError}
                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 hover:text-pink-600 cursor-pointer"
-                 />
-               </div>
-              <Button size="lg" className="bg-black text-white hover:bg-black/90">
+                  />
+                </div>
+                <Button size="lg" className="bg-black text-white hover:bg-black/90">
                 <Search className="h-4 w-4 md:hidden" />
                 <span className="hidden md:inline">Search Trainers</span>
-              </Button>
+                </Button>
             </div>
 
                 
@@ -211,16 +260,16 @@ export default function MarketplaceClientPage() {
                
                {/* Individual specialty buttons */}
                {specialties.filter(s => s !== "All Specialties").map((specialty) => (
-                 <Button
-                   key={specialty}
+                  <Button
+                    key={specialty}
                    variant={!showAllSpecialties && selectedSpecialties.includes(specialty) ? "default" : "outline"}
-                   size="sm"
+                    size="sm"
                    onClick={() => toggleSpecialty(specialty)}
-                 >
-                   {specialty}
-                 </Button>
-               ))}
-             </div>
+                  >
+                    {specialty}
+                  </Button>
+                ))}
+              </div>
 
              {/* Location Controls */}
              {userLocation && (
@@ -297,8 +346,8 @@ export default function MarketplaceClientPage() {
                     </div>
                   </Card>
                 ))}
-              </div>
-            </section>
+            </div>
+          </section>
 
 
           </>
@@ -353,27 +402,27 @@ export default function MarketplaceClientPage() {
           </section>
         )}
 
-        <section className="w-full max-w-7xl mx-auto py-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">All Trainers</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <section className="w-full max-w-7xl mx-auto py-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">All Trainers</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredAll.map((trainer) => (
-              <Card
-                key={trainer.id}
-                className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                <Card
+                  key={trainer.id}
+                  className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => handleTrainerClick(trainer)}
                 role="button"
                 aria-label={`Open ${trainer.name} microsite`}
-              >
+                >
                 <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-amber-100 to-amber-200">
-                  <img
-                    src={trainer.image || "/placeholder.svg"}
-                    alt={trainer.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                    <img
+                      src={trainer.image || "/placeholder.svg"}
+                      alt={trainer.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   <Badge className="absolute top-4 left-4 bg-[#CDFF00] text-black hover:bg-[#CDFF00]/90 border-0">
                     {trainer.certification}
                   </Badge>
-                </div>
+                  </div>
                 <div className="p-6 flex flex-col">
                   <h3 className="text-xl font-bold mb-1">{trainer.name}</h3>
                   {trainer.location && (
@@ -381,11 +430,11 @@ export default function MarketplaceClientPage() {
                   )}
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{trainer.specialties.join(" • ")}</p>
                   <div className="flex items-center justify-between mt-auto">
-                    <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{trainer.rating}</span>
+                        <span className="font-semibold">{trainer.rating}</span>
                       <span className="text-sm text-muted-foreground">({trainer.reviews})</span>
-                    </div>
+                      </div>
                     <div className="text-right">
                       <span className="text-lg font-bold">€{trainer.hourlyRate}/hr</span>
                       {userLocation && (
@@ -394,13 +443,13 @@ export default function MarketplaceClientPage() {
                         </p>
                       )}
                     </div>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-      </main>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </main>
 
       {/* Floating Trainer Button */}
       <div className="fixed bottom-6 right-6 z-50">
@@ -452,7 +501,81 @@ export default function MarketplaceClientPage() {
                 </div>
                 
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <WaitlistForm selectedPlan="trainer" />
+                  {trainerFormStatus.success ? (
+                    <div className="text-center py-4">
+                      <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-2xl">✅</span>
+                      </div>
+                      <h3 className="text-lg font-bold mb-1 text-gray-900">Thank You!</h3>
+                      <p className="text-gray-600 text-sm">{trainerFormStatus.message}</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleTrainerSubmit} className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-900 block mb-1">Email</label>
+                        <input 
+                          type="email" 
+                          value={trainerEmail}
+                          onChange={(e) => setTrainerEmail(e.target.value)}
+                          placeholder="your@email.com" 
+                          required
+                          className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CDFF00]"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-gray-900 block mb-1">Phone</label>
+                        <input 
+                          type="tel" 
+                          value={trainerPhone}
+                          onChange={(e) => setTrainerPhone(e.target.value)}
+                          placeholder="+31 6 1234 5678" 
+                          required
+                          className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CDFF00]"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-gray-900 block mb-1">City</label>
+                        <input 
+                          type="text" 
+                          value={trainerCity}
+                          onChange={(e) => setTrainerCity(e.target.value)}
+                          placeholder="Your City" 
+                          required
+                          className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CDFF00]"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-gray-900 block mb-1">Number of Clients</label>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          value={trainerNumClients}
+                          onChange={(e) => setTrainerNumClients(parseInt(e.target.value) || 1)}
+                          placeholder="1" 
+                          required
+                          className="w-full px-4 h-12 rounded-full border border-gray-300 bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CDFF00]"
+                        />
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmittingTrainer}
+                        className="w-full bg-black text-white hover:bg-gray-800 py-3 rounded-full"
+                      >
+                        {isSubmittingTrainer ? "Processing..." : "Enter waitlist now"}
+                      </Button>
+                      
+                      {trainerFormStatus.success === false && (
+                        <div className="text-red-500 text-xs text-center mt-2">
+                          <p>{trainerFormStatus.message}</p>
+                          {trainerFormStatus.error && <p className="mt-1">Error details: {trainerFormStatus.error}</p>}
+                        </div>
+                      )}
+                    </form>
+                  )}
                 </div>
               </div>
             </div>
