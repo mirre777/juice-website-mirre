@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Star, MapPin, Loader2, Search, X } from "lucide-react"
+import { Star, MapPin, Loader2, Search, X, CheckCircle } from "lucide-react"
 import { useState } from "react"
 import { allTrainers, featuredTrainers, specialties } from "./(marketplace-trainers)"
 import { ComingSoonModal } from "./(marketplace-trainers)/coming-soon-modal"
@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { ClientWaitlistForm } from "@/components/client-waitlist-form"
 import { joinWaitlist } from "@/actions/waitlist-actions"
+import { motion } from "framer-motion"
+import { successAnimations } from "@/utils/animations"
 
 export default function MarketplaceClientPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -502,12 +504,29 @@ export default function MarketplaceClientPage() {
                 
                 <div className="bg-gray-50 rounded-lg p-4">
                   {trainerFormStatus.success ? (
-                    <div className="text-center py-4">
-                      <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-2xl">✅</span>
-                      </div>
-                      <h3 className="text-lg font-bold mb-1 text-gray-900">Thank You!</h3>
-                      <p className="text-gray-600 text-sm">{trainerFormStatus.message}</p>
+                    <div className="py-4 text-center">
+                      <motion.div
+                        className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3"
+                        initial={successAnimations.pulse.container.initial}
+                        animate={successAnimations.pulse.container.animate}
+                        transition={successAnimations.pulse.container.transition}
+                      >
+                        <motion.div
+                          initial={successAnimations.pulse.icon.initial}
+                          animate={successAnimations.pulse.icon.animate}
+                          transition={successAnimations.pulse.icon.transition}
+                        >
+                          <CheckCircle className="h-6 w-6 text-green-500" />
+                        </motion.div>
+                      </motion.div>
+                      <motion.div
+                        initial={successAnimations.pulse.text.initial}
+                        animate={successAnimations.pulse.text.animate}
+                        transition={successAnimations.pulse.text.transition}
+                      >
+                        <h3 className="text-lg font-bold mb-1 text-gray-900">Thank You!</h3>
+                        <p className="text-gray-600 text-sm">{trainerFormStatus.message}</p>
+                      </motion.div>
                     </div>
                   ) : (
                     <form onSubmit={handleTrainerSubmit} className="space-y-4">
