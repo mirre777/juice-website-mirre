@@ -1,6 +1,7 @@
 import * as React from "react"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ClientWaitlistForm } from "@/components/client-waitlist-form"
 
 interface ComingSoonModalProps {
   isOpen: boolean
@@ -18,17 +19,16 @@ export function ComingSoonModal({ isOpen, onClose, trainerName }: ComingSoonModa
         onClick={onClose}
       />
       <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">Coming Soon</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* X button in top-right corner */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="absolute top-4 right-4 h-8 w-8 p-0 z-10"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+        
         <div className="p-6">
           <div className="text-center">
             <div className="mb-4">
@@ -39,12 +39,16 @@ export function ComingSoonModal({ isOpen, onClose, trainerName }: ComingSoonModa
                 {trainerName}'s Profile
               </h3>
               <p className="text-gray-600 mb-4">
-                This trainer's microsite is coming soon! We're working hard to bring you the best experience.
+                This trainer's microsite is coming soon! Join the waitlist to be notified when it's ready.
               </p>
             </div>
-            <Button onClick={onClose} className="w-full">
-              Got it!
-            </Button>
+            
+            {/* Replace button with ClientWaitlistForm */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <ClientWaitlistForm 
+                source={`trainer-${trainerName.toLowerCase().replace(/\s+/g, '-')}`}
+              />
+            </div>
           </div>
         </div>
       </div>
