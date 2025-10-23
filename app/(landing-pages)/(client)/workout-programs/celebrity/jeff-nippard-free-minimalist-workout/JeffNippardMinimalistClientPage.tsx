@@ -3,10 +3,10 @@ import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { WorkoutProgramsHeroSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-hero-section"
-import { WorkoutProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-programs-features-section"
+import { WorkoutFreeProgramsFeaturesSection } from "@/app/(landing-pages)/(client)/workout-programs/components/workout-free-programs-features-section"
 import { ClientFAQSection } from "@/components/client-faq-section"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
-import { RelatedWorkoutPrograms } from "@/app/(landing-pages)/(client)/workout-programs/components/related-workout-programs"
+import { RelatedWorkoutPrograms } from "@/components/related-workout-programs"
 import { useTheme } from "@/contexts/theme-context"
 
 const workoutProgramData = {
@@ -16,6 +16,7 @@ const workoutProgramData = {
   rating: "4.9/5 by our users",
   ctaText: "Get Free Minimalist Program",
   ctaButtonStyle: "green" as const,
+  programId: "jeff-nippard-minimalist-program-id", // Add programId for Jeff Nippard
   features: [
     {
       title: "Evidence-Based Training",
@@ -88,7 +89,7 @@ const workoutProgramData = {
     name: "Jeff Nippard's Free Minimalist Workout",
     description:
       "Evidence-based minimalist training program featuring flat dumbbell press, Romanian deadlifts, lat pulldowns, and more proven exercises. Designed for maximum results with minimal time investment.",
-    url: "https://juice-website-mirre.vercel.app/workout-programs/celebrity/jeff-nippard-free-minimalist-workout",
+    url: "https://juice.fitness/workout-programs/celebrity/jeff-nippard-free-minimalist-workout",
     category: "Celebrity Training Program",
     exerciseType: "Minimalist Workout",
     duration: "P21D",
@@ -140,12 +141,14 @@ export default function JeffNippardMinimalistClientPage() {
     subtitle: workoutProgramData.subtitle,
     rating: workoutProgramData.rating,
     ctaText: workoutProgramData.ctaText,
+    ctaUrl: workoutProgramData.ctaData.ctaButtonUrl,
   }
 
   const featuresData = {
     title: "Why choose Jeff Nippard's minimalist program?",
     features: workoutProgramData.features,
     ctaData: workoutProgramData.ctaData,
+    programId: workoutProgramData.programId,
   }
 
   const faqData = {
@@ -166,7 +169,7 @@ export default function JeffNippardMinimalistClientPage() {
       <main className="flex min-h-screen flex-col">
         <Navbar />
         <WorkoutProgramsHeroSection {...heroData} />
-        <WorkoutProgramsFeaturesSection {...featuresData} />
+        <WorkoutFreeProgramsFeaturesSection {...featuresData} />
         <ClientFAQSection {...faqData} />
 
         <section className="container mx-auto px-4 md:px-6 py-16">

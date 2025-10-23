@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const programId = params.id
+    const { id: programId } = await params
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://app.juice.fitness'}/api/programs/${programId}`
 
     console.log('Proxying request to:', apiUrl)

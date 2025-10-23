@@ -52,6 +52,45 @@ export function getAllWorkoutPrograms(): WorkoutProgram[] {
       image: "/images/workout-program.png",
       ctaUrl: "https://app.juice.fitness/programs/jeff-nippard-free-minimalist-workout",
     },
+    {
+      slug: "henry-cavill-superman-workout-routine",
+      title: "Henry Cavill's Superman Workout Routine",
+      excerpt:
+        "Train like Superman with Henry Cavill's intense workout routine. Features compound movements, functional training, and superhero-level strength building exercises for maximum results.",
+      category: "Superhero",
+      difficulty: "Advanced",
+      duration: "4-5 days/week",
+      isPaid: false,
+      isCelebrity: true,
+      image: "/images/workout-program.png",
+      ctaUrl: "https://app.juice.fitness/programs/c303aed1-8168-44b2-aa37-d6ef8d9c8c5b",
+    },
+    {
+      slug: "michael-b-jordan-creed-workout",
+      title: "Michael B. Jordan's Creed Workout Routine",
+      excerpt:
+        "Train like a champion with Michael B. Jordan's Creed workout routine. Features boxing training, athletic conditioning, and fighter-level strength building exercises for maximum results.",
+      category: "Boxing",
+      difficulty: "Advanced",
+      duration: "4-5 days/week",
+      isPaid: false,
+      isCelebrity: true,
+      image: "/images/workout-program.png",
+      ctaUrl: "https://app.juice.fitness/programs/c24a4705-af73-4d8c-bc89-64fe43cce372",
+    },
+    {
+      slug: "zac-efrons-baywatch-workout",
+      title: "Zac Efron's Baywatch Workout Routine",
+      excerpt:
+        "Get the Baywatch physique with Zac Efron's intense workout routine. Features beach body training, lean muscle building, and lifeguard-level conditioning for maximum results.",
+      category: "Beach Body",
+      difficulty: "Intermediate",
+      duration: "4-5 days/week",
+      isPaid: false,
+      isCelebrity: true,
+      image: "/images/workout-program.png",
+      ctaUrl: "https://app.juice.fitness/programs/382bfccc-82a1-4de6-bc9e-72bff20a1c45",
+    },
   ]
 }
 

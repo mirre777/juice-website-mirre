@@ -18,13 +18,16 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps & { chi
   // Apply body class based on isCoach state
   useEffect(() => {
     if (typeof document !== "undefined") {
-      if (isCoach) {
-        document.body.classList.add("coach-mode")
-        document.body.classList.remove("client-mode")
-      } else {
-        document.body.classList.add("client-mode")
-        document.body.classList.remove("coach-mode")
-      }
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        if (isCoach) {
+          document.body.classList.add("coach-mode")
+          document.body.classList.remove("client-mode")
+        } else {
+          document.body.classList.add("client-mode")
+          document.body.classList.remove("coach-mode")
+        }
+      })
     }
   }, [isCoach])
 
