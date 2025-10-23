@@ -26,7 +26,7 @@ export function RelatedWorkoutPrograms({ currentSlug }: RelatedWorkoutProgramsPr
             <div className="relative h-48 bg-white flex items-center justify-center">
               <Dumbbell className="w-16 h-16 text-black" />
 
-              <div className="absolute top-4 left-4 flex flex-col gap-1">
+              <div className="absolute top-4 left-4 flex gap-1">
                 {program.isCelebrity && (
                   <span className="px-3 py-1 text-xs font-bold rounded-full bg-white text-black border border-black">
                     Celebrity
