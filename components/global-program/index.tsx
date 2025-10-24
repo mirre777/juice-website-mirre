@@ -87,7 +87,7 @@ export const GlobalProgram = ({programId, ctaData}: GlobalProgramProps) => {
 
     <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
       {/* Dynamic content from API */}
-      {programData?.routines?.map((routine: any, index: number) => (
+      {programData?.routines?.sort((a, b) => (a.order || 0) - (b.order || 0)).map((routine: any, index: number) => (
       <div key={index} className="bg-gray-50 rounded-2xl p-6">
         <div className="bg-[#D2FF28] text-black font-bold text-xl py-3 px-4 rounded-lg mb-4 text-left">{routine.name}</div>
         <div className="space-y-3 text-left">

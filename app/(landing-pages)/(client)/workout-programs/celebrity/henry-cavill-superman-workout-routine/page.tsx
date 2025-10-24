@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import HenryCavillSupermanClientPage from "./HenryCavillSupermanClientPage"
 
 export const metadata: Metadata = {
-  title: "Henry Cavill's Superman Workout Routine - Superhero Training | Juice",
+  title: "Henry Cavill's Superman Routine - 4-Day Bodybuilding Split | Juice",
   description:
     "Train like Superman with Henry Cavill's intense workout routine. Features compound movements, functional training, and superhero-level strength building exercises for maximum results.",
   keywords: [

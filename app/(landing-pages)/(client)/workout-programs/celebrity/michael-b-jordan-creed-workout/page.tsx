@@ -20,6 +20,7 @@ export const metadata: Metadata = {
     "intense workout routine",
     "fighter strength training",
     "athletic performance",
+    "6-day split with progressive overload",
   ],
   openGraph: {
     title: "Michael B. Jordan's Creed Workout Routine - Celebrity Training | Juice",
