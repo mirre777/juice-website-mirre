@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowDown, ChevronRight, ChevronLeft } from "lucide-react"
+import { ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -268,15 +268,6 @@ export default function PersonalTrainerWebsitePage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [hasTrackedFormStart, currentStep, formStartTime])
 
-  const scrollToForm = () => {
-    const formElement = document.getElementById("trainer-form")
-    if (formElement) {
-      formElement.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      })
-    }
-  }
 
   const getTotalFilledFields = () => {
     const allFields = [
@@ -588,11 +579,17 @@ export default function PersonalTrainerWebsitePage() {
             {/* CTA Button */}
             <div className="mb-8">
               <Button
-                onClick={scrollToForm}
+                asChild
                 className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Create for free
-                <ArrowDown className="w-5 h-5 ml-2" />
+                <a
+                  href="https://app.juice.fitness/trainer-profile"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Create for free
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </a>
               </Button>
               <p className="text-sm text-gray-800 mt-3 max-w-md">We won't charge you for creating the page.</p>
             </div>
@@ -630,95 +627,6 @@ export default function PersonalTrainerWebsitePage() {
       </section>
 
       {/* Stats Section */}
-
-      {/* Form Section */}
-      <section id="trainer-form" className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Stand out. Book clients.</h2>
-            <p className="text-xl text-gray-800">Fill out this form to get your own page. No coding required.</p>
-          </div>
-
-          <Card className="shadow-xl border-0">
-            <CardHeader className="bg-gray-50 rounded-t-lg">
-              <CardTitle className="text-2xl text-center">Create Your Trainer Profile</CardTitle>
-
-              {/* Progress Indicator */}
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">
-                    Step {currentStep + 1} of {formSteps.length}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {getTotalFilledFields()} of {getRequiredFieldsCount()} fields completed
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-[#D2FF28] h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
-                  />
-                </div>
-                <p className="text-center text-sm text-gray-600 mt-2">{formSteps[currentStep].title}</p>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-8">
-              <form onSubmit={handleFormSubmit}>
-                <div className="min-h-[300px]">{renderCurrentStepFields()}</div>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between items-center pt-8 mt-8 border-t">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={prevStep}
-                    disabled={currentStep === 0}
-                    className="flex items-center gap-2 bg-transparent"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-
-                  {currentStep < formSteps.length - 1 ? (
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      disabled={!canProceedToNext()}
-                      className="bg-[#D2FF28] hover:bg-[#B8E625] text-black flex items-center gap-2"
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      onClick={handleFormSubmit}
-                      disabled={isSubmitting}
-                      className="bg-[#D2FF28] hover:bg-[#B8E625] text-black font-semibold px-8 py-3"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                          Creating...
-                        </>
-                      ) : (
-                        "Show Preview"
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </form>
-
-              <p className="text-center text-sm text-gray-800 mt-4">
-                Your website will be generated instantly. You can edit and activate it for{" "}
-                <span className="bg-[#D2FF28] text-black px-1 py-0.5 rounded font-medium">€70.</span>{" "}
-                <strong>You will not be charged anything by creating the Preview.</strong>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
 
       {/* Footer Section */}
       <Footer />
