@@ -91,6 +91,16 @@ const berlinTrainers = [
     locations: ["Mitte"],
     isOnline: true,
   },
+  {
+    id: "8",
+    name: "Maria Schmidt",
+    isVerified: true,
+    certifications: ["NASM CPT", "ACSM CPT", "NSCA CSCS", "Certified Nutrition Coach", "Yoga Instructor", "Pilates Certification"],
+    hasReviews: true,
+    specialties: ["Yoga", "Pilates", "Strength Training", "Flexibility", "Rehabilitation"],
+    locations: ["Charlottenburg", "Mitte", "Prenzlauer Berg"],
+    isOnline: true,
+  },
 ]
 
 // Sample data for London

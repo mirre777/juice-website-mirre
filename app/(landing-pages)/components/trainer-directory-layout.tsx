@@ -27,11 +27,122 @@ interface TrainerDirectoryLayoutProps {
 }
 
 const sectionClass = "px-4 sm:px-6 max-w-6xl mx-auto"
-const badgeClass = "border-0 rounded-md px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs text-white"
+const badgeClass = "border-0 rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs text-white"
 const iconClass = "h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1"
-const buttonClass = "rounded-full text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
-const buttonActiveClass = "bg-juice text-gray-900 hover:bg-juice/90 border-juice"
-const buttonInactiveClass = "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+const buttonClass = "rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
+const buttonActiveAllDistrictsClass = "bg-green-500 text-white hover:bg-green-600 border-green-500"
+const buttonActiveDistrictClass = "bg-juice text-gray-900 hover:bg-juice/90 border-juice"
+const buttonInactiveClass = "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+
+function TrainerCard({ trainer }: { trainer: Trainer }) {
+  const badgeRef = useRef<HTMLDivElement>(null)
+  const [showEllipsis, setShowEllipsis] = useState(false)
+  
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (badgeRef.current) {
+        const isOverflowing = badgeRef.current.scrollHeight > badgeRef.current.clientHeight
+        setShowEllipsis(isOverflowing)
+      }
+    }
+    
+    checkOverflow()
+    window.addEventListener("resize", checkOverflow)
+    // Check again after a brief delay to ensure DOM is fully rendered
+    const timeout = setTimeout(checkOverflow, 100)
+    
+    return () => {
+      window.removeEventListener("resize", checkOverflow)
+      clearTimeout(timeout)
+    }
+  }, [trainer])
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  return (
+    <Card className={`rounded-lg transition-colors cursor-pointer ${
+      trainer.isVerified 
+        ? "border-2 border-juice hover:border-juice/80 bg-gradient-to-br from-white to-[#f8fff0]" 
+        : "border border-juice/30 hover:border-juice/50 bg-[#faf9f6]"
+    }`}>
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          {trainer.isVerified ? (
+            <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden">
+              <img
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=4f46e5&color=fff&size=128&bold=true`}
+                alt={trainer.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = "none"
+                  const parent = target.parentElement
+                  if (parent) {
+                    parent.innerHTML = `<span class="text-white font-bold text-sm sm:text-base">${getInitials(trainer.name)}</span>`
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center">
+              <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-2 gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{trainer.name}</h3>
+                <div className="relative flex items-center gap-1 sm:gap-2 flex-wrap">
+                  <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap max-h-6 sm:max-h-7 overflow-hidden">
+                    {trainer.isVerified && (
+                      <Badge className={`${badgeClass} bg-green-500 flex-shrink-0`}>
+                        <Check className={iconClass} />
+                        Verified
+                      </Badge>
+                    )}
+                    {trainer.certifications.map((cert, i) => (
+                      <Badge key={i} className={`${badgeClass} bg-blue-500 flex-shrink-0`}>
+                        <User className={iconClass} />
+                        {cert}
+                      </Badge>
+                    ))}
+                    {trainer.hasReviews && (
+                      <Badge className={`${badgeClass} bg-blue-400 flex-shrink-0`}>
+                        <MessageCircle className={iconClass} />
+                        Reviews
+                      </Badge>
+                    )}
+                  </div>
+                  {showEllipsis && (
+                    <span className={`absolute right-0 top-0 h-6 sm:h-7 flex items-center pl-1 text-gray-500 text-xs pointer-events-none ${
+                      trainer.isVerified ? "bg-gradient-to-r from-transparent via-white/90 to-white/90" : "bg-[#faf9f6]/90"
+                    }`}>…</span>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+            </div>
+            <p className="text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
+            <div className="flex items-center gap-1 text-gray-600 text-xs sm:text-sm">
+              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="break-words">
+                {trainer.locations.join(" • ")}
+                {trainer.isOnline && " • Online"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDirectoryLayoutProps) {
   const searchParams = useSearchParams()
@@ -112,10 +223,10 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   return (
     <>
       <section className={`${sectionClass} py-8 sm:py-12`}>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 text-center">
           Personal Trainer Directory {city}
         </h1>
-        <p className="text-base sm:text-lg text-gray-700 max-w-3xl">
+        <p className="text-base sm:text-lg text-gray-700 max-w-3xl mx-auto text-center">
           Find certified personal trainers in {city}. Connect with verified professionals or discover talented trainers in your neighborhood.
         </p>
       </section>
@@ -135,7 +246,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
           <Button
             variant="outline"
             onClick={() => handleDistrictClick("all")}
-            className={`${buttonClass} ${showAllDistricts ? buttonActiveClass : buttonInactiveClass}`}
+            className={`${buttonClass} ${showAllDistricts ? buttonActiveAllDistrictsClass : buttonInactiveClass}`}
           >
             All Districts
           </Button>
@@ -146,7 +257,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
                 key={district}
                 variant="outline"
                 onClick={() => handleDistrictClick(district)}
-                className={`${buttonClass} ${isSelected ? buttonActiveClass : buttonInactiveClass}`}
+                className={`${buttonClass} ${isSelected ? buttonActiveDistrictClass : buttonInactiveClass}`}
               >
                 {district}
               </Button>
@@ -159,51 +270,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
         <div className="space-y-3 sm:space-y-4">
           {filteredTrainers.length > 0 ? (
             filteredTrainers.map((trainer) => (
-              <Card key={trainer.id} className="rounded-lg border-juice/30 hover:border-juice/50 transition-colors cursor-pointer">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                      <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2 gap-2">
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{trainer.name}</h3>
-                          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                            {trainer.isVerified && (
-                              <Badge className={`${badgeClass} bg-green-500`}>
-                                <Check className={iconClass} />
-                                Verified
-                              </Badge>
-                            )}
-                            {trainer.certifications.map((cert, i) => (
-                              <Badge key={i} className={`${badgeClass} bg-blue-500`}>
-                                <User className={iconClass} />
-                                {cert}
-                              </Badge>
-                            ))}
-                            {trainer.hasReviews && (
-                              <Badge className={`${badgeClass} bg-blue-400`}>
-                                <MessageCircle className={iconClass} />
-                                Reviews
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                      </div>
-                      <p className="text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
-                      <div className="flex items-center gap-1 text-gray-600 text-xs sm:text-sm">
-                        <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                        <span className="break-words">
-                          {trainer.locations.join(" • ")}
-                          {trainer.isOnline && " • Online"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <TrainerCard key={trainer.id} trainer={trainer} />
             ))
           ) : (
             <div className="text-center py-12">
