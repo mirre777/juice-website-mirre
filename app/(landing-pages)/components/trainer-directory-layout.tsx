@@ -102,7 +102,9 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
       return (
         trainer.name.toLowerCase().includes(query) ||
         trainer.specialties.some((s) => s.toLowerCase().includes(query)) ||
-        trainer.certifications.some((c) => c.toLowerCase().includes(query))
+        trainer.certifications.some((c) => c.toLowerCase().includes(query)) ||
+        trainer.locations.some((loc) => loc.toLowerCase().includes(query)) ||
+        (trainer.isOnline && "online".includes(query))
       )
     })
   }, [trainers, selectedDistricts, searchQuery, showAllDistricts])
@@ -123,7 +125,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
           <Input
             type="text"
-            placeholder="Search trainers by name or specialty..."
+            placeholder="Search trainers by name, specialty, district, or certification..."
             className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm sm:text-base rounded-lg border-gray-300"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
