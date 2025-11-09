@@ -159,27 +159,14 @@ const londonTrainers = [
   },
 ]
 
+const cityData = {
+  berlin: { cityName: "Berlin", districts: berlinDistricts, trainers: berlinTrainers },
+  london: { cityName: "London", districts: londonDistricts, trainers: londonTrainers },
+}
+
 function getCityData(city: string) {
   const normalizedCity = city.toLowerCase()
-  
-  if (normalizedCity === "berlin") {
-    return {
-      cityName: "Berlin",
-      districts: berlinDistricts,
-      trainers: berlinTrainers,
-    }
-  }
-  
-  if (normalizedCity === "london") {
-    return {
-      cityName: "London",
-      districts: londonDistricts,
-      trainers: londonTrainers,
-    }
-  }
-  
-  // Default to Berlin if city not found
-  return {
+  return cityData[normalizedCity as keyof typeof cityData] || {
     cityName: city.charAt(0).toUpperCase() + city.slice(1),
     districts: berlinDistricts,
     trainers: berlinTrainers,
