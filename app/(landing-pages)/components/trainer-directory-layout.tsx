@@ -44,23 +44,20 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const badgeRef = useRef<HTMLDivElement>(null)
   const [hiddenCount, setHiddenCount] = useState(0)
   
-  const totalBadges = (trainer.isVerified ? 1 : 0) + trainer.certifications.length + (trainer.hasReviews ? 1 : 0)
+  const totalBadges = Number(trainer.isVerified) + trainer.certifications.length + Number(trainer.hasReviews)
   
   useEffect(() => {
+    if (!badgeRef.current) return
+    const container = badgeRef.current
     const checkOverflow = () => {
-      if (!badgeRef.current) return
-      const container = badgeRef.current
-      const hasOverflow = container.scrollHeight > container.clientHeight
-      if (!hasOverflow) {
+      if (container.scrollHeight <= container.clientHeight) {
         setHiddenCount(0)
         return
       }
-      const children = Array.from(container.children) as HTMLElement[]
       const containerBottom = container.getBoundingClientRect().bottom
-      let visibleCount = 0
-      children.forEach((child) => {
-        if (child.getBoundingClientRect().bottom <= containerBottom + 1) visibleCount++
-      })
+      const visibleCount = Array.from(container.children).filter((child) => 
+        child.getBoundingClientRect().bottom <= containerBottom + 1
+      ).length
       setHiddenCount(Math.max(0, totalBadges - visibleCount))
     }
     
@@ -104,7 +101,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
                   <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words font-sen">{truncateName(trainer.name)}</h3>
                   <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap max-h-6 sm:max-h-7 overflow-hidden">
+                    <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: '1.375rem' }}>
                       {isVerified && (
                         <Badge className={`${badgeBase} ${badgeVerified}`}>
                           <BadgeCheck className={iconBase} />
