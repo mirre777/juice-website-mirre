@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, X } from "lucide-react"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 
 const TITLE_OVERRIDES: Record<string, string> = {
   "ai-and-personal-training-bffs-or-frenemies": "AI And Personal Training BFFs Or Frenemies",
@@ -64,6 +64,7 @@ const BLUR_DATA_URL =
 
 export function BlogClient({ posts }: BlogClientProps) {
   const searchParams = useSearchParams()
+  const isInitialMount = useRef(true)
   
   const [showAllPosts, setShowAllPosts] = useState(() => {
     const categoriesParam = searchParams.get("categories")
@@ -80,16 +81,24 @@ export function BlogClient({ posts }: BlogClientProps) {
 
   const allCategories = [...new Set(posts.map((post) => post.category))].sort()
 
-  // Update URL when filters change (client-side only to avoid hydration issues)
+  // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined" || isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
     
     const params = new URLSearchParams()
     if (!showAllPosts && selectedCategories.length > 0) {
       params.set("categories", selectedCategories.join(","))
     }
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
-    window.history.pushState({}, "", newUrl)
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+    const currentUrl = window.location.pathname + window.location.search
+    
+    // Only update if URL actually changed
+    if (newUrl !== currentUrl) {
+      window.history.replaceState({}, "", newUrl)
+    }
   }, [selectedCategories, showAllPosts])
 
   const filteredPosts = useMemo(() => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { Search, MapPin, Check, User, MessageCircle, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -36,6 +36,7 @@ const buttonInactiveClass = "bg-gray-100 text-gray-700 hover:bg-gray-200 border-
 export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDirectoryLayoutProps) {
   const searchParams = useSearchParams()
   const districtsParam = searchParams.get("districts")
+  const isInitialMount = useRef(true)
   
   const [showAllDistricts, setShowAllDistricts] = useState(() => !districtsParam || districtsParam === "all")
   const [selectedDistricts, setSelectedDistricts] = useState<string[]>(() => 
@@ -43,17 +44,25 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   )
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "")
 
-  // Update URL when filters change (client-side only to avoid hydration issues)
+  // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined" || isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
     
     const params = new URLSearchParams()
     if (searchQuery) params.set("search", searchQuery)
     if (!showAllDistricts && selectedDistricts.length > 0) {
       params.set("districts", selectedDistricts.join(","))
     }
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
-    window.history.pushState({}, "", newUrl)
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+    const currentUrl = window.location.pathname + window.location.search
+    
+    // Only update if URL actually changed
+    if (newUrl !== currentUrl) {
+      window.history.replaceState({}, "", newUrl)
+    }
   }, [selectedDistricts, searchQuery, showAllDistricts])
 
   const handleDistrictClick = (district: string) => {
