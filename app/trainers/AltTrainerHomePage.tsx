@@ -12,7 +12,7 @@ import { Footer } from "@/components/footer"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 
-export default function TrainerHomePage() {
+export default function AltTrainerHomePage() {
   const { setIsCoach } = useTheme()
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
@@ -273,3 +273,4 @@ export default function TrainerHomePage() {
     </main>
   )
 }
+
