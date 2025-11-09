@@ -15,7 +15,7 @@ import { ChevronRight } from "lucide-react"
 const BLUR_DATA_URL =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
 
-export function HomePageClient() {
+export default function TrainerHomePage() {
   const { setIsCoach } = useTheme()
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
@@ -212,3 +212,4 @@ export function HomePageClient() {
     </main>
   )
 }
+

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { HomePageClient } from "./HomePageClient"
+import TrainerHomePage from "./TrainerHomePage"
 
 export const metadata: Metadata = {
   title: "Juice - All-in-One Platform for Personal Trainers | Get More Clients",
@@ -61,5 +61,5 @@ export const metadata: Metadata = {
 }
 
 export default function HomePage() {
-  return <HomePageClient />
+  return <TrainerHomePage />
 }

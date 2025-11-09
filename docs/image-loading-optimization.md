@@ -141,7 +141,7 @@ The blog images stored in Vercel Blob are **large unoptimized files** (likely 50
   blurDataURL={BLUR_DATA_URL}
   \`\`\`
 - **Files Modified**:
-  - `app/HomePageClient.tsx` (hero section images)
+  - `app/TrainerHomePage.tsx` (hero section images)
   - `components/homepage-features-section.tsx` (webpage builder image)
   - `components/homepage-how-it-works.tsx` (all step images)
 

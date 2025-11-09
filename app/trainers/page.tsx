@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import TrainerHomePage from "./TrainerHomePage"
+import AltTrainerHomePage from "./AltTrainerHomePage"
 
 export const metadata: Metadata = {
   title: "Juice - Personal Training Software for Coaches | Get More Clients",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     description:
       "The complete personal training platform for coaches. Manage clients, create workout programs, track progress, and grow your fitness business.",
     type: "website",
-    url: "https://juice.fitness/for-trainers",
+    url: "https://juice.fitness/trainers",
   },
   twitter: {
     card: "summary_large_image",
@@ -21,10 +21,11 @@ export const metadata: Metadata = {
       "The complete personal training platform for coaches. Manage clients, create workout programs, track progress, and grow your fitness business.",
   },
   alternates: {
-    canonical: "https://juice.fitness/for-trainers",
+    canonical: "https://juice.fitness/trainers",
   },
 }
 
 export default function TrainersPage() {
-  return <TrainerHomePage />
+  return <AltTrainerHomePage />
 }
+

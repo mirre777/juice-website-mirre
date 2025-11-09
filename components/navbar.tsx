@@ -21,7 +21,6 @@ export function Navbar() {
     if (
       pathname === "/" ||
       pathname === "/trainers" ||
-      pathname === "/for-trainers" ||
       pathname === "/personal-trainer-app"
     ) {
       setIsCoach(true)
@@ -45,7 +44,6 @@ export function Navbar() {
       if (
         pathname === "/" ||
         pathname === "/trainers" ||
-        pathname === "/for-trainers" ||
         pathname === "/personal-trainer-app" ||
         pathname === "/download-juice-app"
       ) {
@@ -63,7 +61,7 @@ export function Navbar() {
       location: "navbar",
     })
 
-    const pagesWithPricing = ["/", "/trainers", "/for-trainers", "/personal-trainer-app"]
+    const pagesWithPricing = ["/", "/trainers", "/personal-trainer-app"]
     const currentPageHasSection = pagesWithPricing.includes(pathname)
 
     if (currentPageHasSection) {
