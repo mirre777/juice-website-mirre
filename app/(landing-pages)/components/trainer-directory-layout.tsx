@@ -39,6 +39,7 @@ const profileBase = "flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex i
 const badgeVerified = "bg-gradient-to-r from-green-500 to-green-600"
 const badgeCert = "bg-gradient-to-r from-blue-500 to-blue-600"
 const badgeReviews = "bg-gradient-to-r from-blue-400 to-blue-500"
+const badgeContainerMaxHeight = "1.375rem"
 
 function TrainerCard({ trainer }: { trainer: Trainer }) {
   const badgeRef = useRef<HTMLDivElement>(null)
@@ -86,9 +87,11 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
-                  target.style.display = "none"
                   const parent = target.parentElement
-                  if (parent) parent.innerHTML = `<span class="text-white font-bold text-sm sm:text-base">${getInitials(trainer.name)}</span>`
+                  if (parent) {
+                    target.style.display = "none"
+                    parent.innerHTML = `<span class="text-white font-bold text-sm sm:text-base">${getInitials(trainer.name)}</span>`
+                  }
                 }}
               />
             ) : (
@@ -101,7 +104,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
                   <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words font-sen">{truncateName(trainer.name)}</h3>
                   <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: '1.375rem' }}>
+                    <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: badgeContainerMaxHeight }}>
                       {isVerified && (
                         <Badge className={`${badgeBase} ${badgeVerified}`}>
                           <BadgeCheck className={iconBase} />
@@ -185,7 +188,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     setSelectedDistricts((prev) => {
       const newSelection = prev.includes(district) ? prev.filter((d) => d !== district) : [...prev, district]
       if (newSelection.length === 0) setShowAllDistricts(true)
-      return newSelection.length === 0 ? [] : newSelection
+      return newSelection
     })
   }
 

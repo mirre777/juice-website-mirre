@@ -174,12 +174,13 @@ const cityData = {
   london: { cityName: "London", districts: londonDistricts, trainers: londonTrainers },
 }
 
+const defaultCityData = { cityName: "Berlin", districts: berlinDistricts, trainers: berlinTrainers }
+
 function getCityData(city: string) {
   const normalizedCity = city.toLowerCase()
   return cityData[normalizedCity as keyof typeof cityData] || {
+    ...defaultCityData,
     cityName: city.charAt(0).toUpperCase() + city.slice(1),
-    districts: berlinDistricts,
-    trainers: berlinTrainers,
   }
 }
 
