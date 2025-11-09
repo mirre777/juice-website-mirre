@@ -1,6 +1,19 @@
 import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer-directory-layout"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { getFirebaseWebappAdminDb, isBuildTime } from "@/lib/firebase-global-guard"
+
+type Trainer = {
+  id: string
+  name: string
+  imageUrl?: string
+  isVerified: boolean
+  certifications: string[]
+  hasReviews: boolean
+  specialties: string[]
+  locations: string[]
+  isOnline: boolean
+}
 
 type TrainerDirectoryPageProps = {
   params: Promise<{
@@ -176,6 +189,73 @@ const cityData = {
 
 const defaultCityData = { cityName: "Berlin", districts: berlinDistricts, trainers: berlinTrainers }
 
+async function fetchTrainersByCity(city: string): Promise<any[]> {
+  if (isBuildTime()) return []
+  
+  try {
+    const db = await getFirebaseWebappAdminDb()
+    if (!db) return []
+    
+    const querySnapshot = await db.collection("trainer_profiles").where("city", "==", city).get()
+    return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error("Error fetching trainers:", error)
+    return []
+  }
+}
+
+function parseCertifications(certifications: string | undefined | null): string[] {
+  if (!certifications || typeof certifications !== "string") return []
+  return certifications
+    .split(/[,;]/)
+    .map((cert) => cert.trim())
+    .filter(Boolean)
+}
+
+function mapTrainerFromDb(doc: any): Trainer {
+  const isVerified = doc.status === "claimed"
+  
+  // Try multiple possible field paths for profile image
+  const imageUrl = 
+    doc.photos?.profileImageUrl || 
+    doc.profileImageUrl || 
+    doc.photo?.profileImageUrl ||
+    doc.imageUrl ||
+    undefined
+  
+  // Debug logging for image URLs
+  if (isVerified && doc.fullName) {
+    console.log(`[SERVER] Trainer ${doc.fullName}:`, {
+      status: doc.status,
+      isVerified,
+      hasPhotos: !!doc.photos,
+      photosKeys: doc.photos ? Object.keys(doc.photos) : [],
+      imageUrl,
+      photosObject: doc.photos,
+      allDocKeys: Object.keys(doc).filter(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image')),
+    })
+  }
+  
+  return {
+    id: doc.id || "",
+    name: doc.fullName || "",
+    imageUrl,
+    isVerified,
+    certifications: parseCertifications(doc.certifications),
+    hasReviews: false,
+    specialties: Array.isArray(doc.services) ? doc.services : [],
+    locations: doc.district ? [doc.district] : [],
+    isOnline: false,
+  }
+}
+
+function extractDistricts(trainers: Trainer[]): string[] {
+  const districts = trainers
+    .flatMap((trainer) => trainer.locations)
+    .filter((district): district is string => Boolean(district))
+  return [...new Set(districts)].sort()
+}
+
 function getCityData(city: string) {
   const normalizedCity = city.toLowerCase()
   return cityData[normalizedCity as keyof typeof cityData] || {
@@ -186,7 +266,10 @@ function getCityData(city: string) {
 
 export default async function TrainerDirectoryPage({ params }: TrainerDirectoryPageProps) {
   const { city } = await params
-  const { cityName, districts, trainers } = getCityData(city)
+  const { cityName } = getCityData(city)
+  const dbTrainers = await fetchTrainersByCity(cityName)
+  const trainers = dbTrainers.map(mapTrainerFromDb)
+  const districts = extractDistricts(trainers)
 
   return (
     <main className="flex min-h-screen flex-col bg-white">

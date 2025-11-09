@@ -13,6 +13,7 @@ const isBuildTime = () => {
 
 let firebaseClientDb: any = null
 let firebaseAdminDb: any = null
+let firebaseWebappAdminDb: any = null
 
 export async function getFirebaseClientDb() {
   if (isBuildTime()) {
@@ -80,6 +81,40 @@ export function createBuildTimeGuard(routeName: string) {
     }
     return next ? next() : null
   }
+}
+
+export async function getFirebaseWebappAdminDb() {
+  if (isBuildTime()) {
+    console.log("Build time detected - completely skipping Firebase webapp admin initialization")
+    throw new Error("Firebase webapp admin not available during build time")
+  }
+
+  if (!firebaseWebappAdminDb) {
+    const [{ initializeApp, getApps, cert }, { getFirestore }] = await Promise.all([
+      import("firebase-admin/app"),
+      import("firebase-admin/firestore"),
+    ])
+
+    const appName = "webapp-firebase-admin"
+    let app = getApps().find((a) => a.name === appName)
+
+    if (!app) {
+      app = initializeApp(
+        {
+          credential: cert({
+            projectId: process.env.WEBAPP_FIREBASE_PROJECT_ID,
+            clientEmail: process.env.WEBAPP_FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.WEBAPP_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+          }),
+        },
+        appName,
+      )
+    }
+
+    firebaseWebappAdminDb = getFirestore(app)
+  }
+
+  return firebaseWebappAdminDb
 }
 
 export { isBuildTime }
