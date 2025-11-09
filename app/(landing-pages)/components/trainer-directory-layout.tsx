@@ -36,35 +36,42 @@ const btnInactive = "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
 const cardVerified = "border-2 border-juice hover:border-juice/80 bg-gradient-to-br from-white to-[#f8fff0]"
 const cardUnverified = "border border-juice/30 hover:border-juice/50 bg-[#fafafa]"
 const profileBase = "flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center overflow-hidden"
-const ellipsisBase = "absolute right-0 top-0 h-6 sm:h-7 flex items-center pl-1 text-gray-500 text-xs pointer-events-none"
-const ellipsisBgVerified = "bg-gradient-to-r from-transparent via-white/90 to-white/90"
-const ellipsisBgUnverified = "bg-[#fafafa]/90"
 const badgeVerified = "bg-gradient-to-r from-green-500 to-green-600"
 const badgeCert = "bg-gradient-to-r from-blue-500 to-blue-600"
 const badgeReviews = "bg-gradient-to-r from-blue-400 to-blue-500"
 
 function TrainerCard({ trainer }: { trainer: Trainer }) {
   const badgeRef = useRef<HTMLDivElement>(null)
-  const [showEllipsis, setShowEllipsis] = useState(false)
+  const [hiddenCount, setHiddenCount] = useState(0)
+  
+  const totalBadges = (trainer.isVerified ? 1 : 0) + trainer.certifications.length + (trainer.hasReviews ? 1 : 0)
   
   useEffect(() => {
     const checkOverflow = () => {
-      if (badgeRef.current) {
-        const isOverflowing = badgeRef.current.scrollHeight > badgeRef.current.clientHeight
-        setShowEllipsis(isOverflowing)
+      if (!badgeRef.current) return
+      const container = badgeRef.current
+      const hasOverflow = container.scrollHeight > container.clientHeight
+      if (!hasOverflow) {
+        setHiddenCount(0)
+        return
       }
+      const children = Array.from(container.children) as HTMLElement[]
+      const containerBottom = container.getBoundingClientRect().bottom
+      let visibleCount = 0
+      children.forEach((child) => {
+        if (child.getBoundingClientRect().bottom <= containerBottom + 1) visibleCount++
+      })
+      setHiddenCount(Math.max(0, totalBadges - visibleCount))
     }
     
     checkOverflow()
     window.addEventListener("resize", checkOverflow)
-    // Check again after a brief delay to ensure DOM is fully rendered
     const timeout = setTimeout(checkOverflow, 100)
-    
     return () => {
       window.removeEventListener("resize", checkOverflow)
       clearTimeout(timeout)
     }
-  }, [trainer])
+  }, [trainer, totalBadges])
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
   const truncateName = (name: string) => name.length > 20 ? `${name.slice(0, 20)}...` : name
@@ -96,7 +103,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
               <div className="flex items-start justify-between mb-2 gap-2">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
                   <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words font-sen">{truncateName(trainer.name)}</h3>
-                  <div className="relative flex items-center gap-1 sm:gap-2 flex-wrap">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap max-h-6 sm:max-h-7 overflow-hidden">
                       {isVerified && (
                         <Badge className={`${badgeBase} ${badgeVerified}`}>
@@ -117,7 +124,11 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                         </Badge>
                       )}
                     </div>
-                    {showEllipsis && <span className={`${ellipsisBase} ${isVerified ? ellipsisBgVerified : ellipsisBgUnverified}`}>…</span>}
+                    {hiddenCount > 0 && (
+                      <span className="text-gray-500 text-xs whitespace-nowrap ml-1">
+                        and {hiddenCount} More
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
