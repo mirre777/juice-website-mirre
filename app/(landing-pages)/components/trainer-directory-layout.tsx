@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, MapPin, Check, User, MessageCircle, ChevronRight } from "lucide-react"
+import { Search, MapPin, BadgeCheck, Award, MessageCircle, ArrowRight, User } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,7 +26,7 @@ interface TrainerDirectoryLayoutProps {
   trainers: Trainer[]
 }
 
-const sectionClass = "px-4 sm:px-6 max-w-6xl mx-auto"
+const sectionClass = "px-4 md:px-6 max-w-6xl mx-auto"
 const badgeClass = "border-0 rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs text-white"
 const iconClass = "h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1"
 const buttonClass = "rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
@@ -95,48 +95,52 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
               <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
             </div>
           )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-2 gap-2">
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{trainer.name}</h3>
-                <div className="relative flex items-center gap-1 sm:gap-2 flex-wrap">
-                  <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap max-h-6 sm:max-h-7 overflow-hidden">
-                    {trainer.isVerified && (
-                      <Badge className={`${badgeClass} bg-green-500 flex-shrink-0`}>
-                        <Check className={iconClass} />
-                        Verified
-                      </Badge>
-                    )}
-                    {trainer.certifications.map((cert, i) => (
-                      <Badge key={i} className={`${badgeClass} bg-blue-500 flex-shrink-0`}>
-                        <User className={iconClass} />
-                        {cert}
-                      </Badge>
-                    ))}
-                    {trainer.hasReviews && (
-                      <Badge className={`${badgeClass} bg-blue-400 flex-shrink-0`}>
-                        <MessageCircle className={iconClass} />
-                        Reviews
-                      </Badge>
+          <div className="flex-1 min-w-0 flex items-center">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between mb-2 gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">
+                    {trainer.name.length > 20 ? `${trainer.name.slice(0, 20)}...` : trainer.name}
+                  </h3>
+                  <div className="relative flex items-center gap-1 sm:gap-2 flex-wrap">
+                    <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap max-h-6 sm:max-h-7 overflow-hidden">
+                      {trainer.isVerified && (
+                        <Badge className={`${badgeClass} bg-gradient-to-r from-green-500 to-green-600 flex-shrink-0`}>
+                          <BadgeCheck className={iconClass} />
+                          Verified
+                        </Badge>
+                      )}
+                      {trainer.certifications.map((cert, i) => (
+                        <Badge key={i} className={`${badgeClass} bg-gradient-to-r from-blue-500 to-blue-600 flex-shrink-0`}>
+                          <Award className={iconClass} />
+                          {cert}
+                        </Badge>
+                      ))}
+                      {trainer.hasReviews && (
+                        <Badge className={`${badgeClass} bg-gradient-to-r from-blue-400 to-blue-500 flex-shrink-0`}>
+                          <MessageCircle className={iconClass} />
+                          Reviews
+                        </Badge>
+                      )}
+                    </div>
+                    {showEllipsis && (
+                      <span className={`absolute right-0 top-0 h-6 sm:h-7 flex items-center pl-1 text-gray-500 text-xs pointer-events-none ${
+                        trainer.isVerified ? "bg-gradient-to-r from-transparent via-white/90 to-white/90" : "bg-[#faf9f6]/90"
+                      }`}>…</span>
                     )}
                   </div>
-                  {showEllipsis && (
-                    <span className={`absolute right-0 top-0 h-6 sm:h-7 flex items-center pl-1 text-gray-500 text-xs pointer-events-none ${
-                      trainer.isVerified ? "bg-gradient-to-r from-transparent via-white/90 to-white/90" : "bg-[#faf9f6]/90"
-                    }`}>…</span>
-                  )}
                 </div>
               </div>
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
+              <div className="flex items-center gap-1 text-gray-600 text-xs sm:text-sm">
+                <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="break-words">
+                  {trainer.locations.join(" • ")}
+                  {trainer.isOnline && " • Online"}
+                </span>
+              </div>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
-            <div className="flex items-center gap-1 text-gray-600 text-xs sm:text-sm">
-              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-              <span className="break-words">
-                {trainer.locations.join(" • ")}
-                {trainer.isOnline && " • Online"}
-              </span>
-            </div>
+            <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-4" />
           </div>
         </div>
       </CardContent>
@@ -222,8 +226,8 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
 
   return (
     <>
-      <section className={`${sectionClass} py-8 sm:py-12`}>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 text-center">
+      <section className={`${sectionClass} py-12 md:py-16`}>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
           Personal Trainer Directory {city}
         </h1>
         <p className="text-base sm:text-lg text-gray-700 max-w-3xl mx-auto text-center">
@@ -231,7 +235,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
         </p>
       </section>
 
-      <section className={`${sectionClass} pb-6 sm:pb-8`}>
+      <section className={`${sectionClass} pb-8 md:pb-12`}>
         <div className="relative mb-4 sm:mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
           <Input
@@ -266,7 +270,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
         </div>
       </section>
 
-      <section className={`${sectionClass} pb-12 sm:pb-16`}>
+      <section className={`${sectionClass} pb-16 md:pb-20`}>
         <div className="space-y-3 sm:space-y-4">
           {filteredTrainers.length > 0 ? (
             filteredTrainers.map((trainer) => (
