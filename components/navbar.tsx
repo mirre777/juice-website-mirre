@@ -153,6 +153,7 @@ export function Navbar() {
     pathname === "/juice-raffle-win-free-personal-training" ||
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/") ||
+    pathname.startsWith("/findatrainer/") ||
     whiteBackgroundClientPages.includes(pathname)
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
 

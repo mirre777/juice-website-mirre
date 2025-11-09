@@ -35,6 +35,7 @@ export function Footer() {
     pathname === "/juice-raffle-hit-weekly-goal" ||
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/") ||
+    pathname.startsWith("/findatrainer/") ||
     whiteBackgroundClientPages.includes(pathname)
     
   const isFooterDark =
