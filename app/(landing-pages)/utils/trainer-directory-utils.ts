@@ -36,7 +36,7 @@ function parseCertifications(certifications: string | undefined | null): string[
     .filter(Boolean)
 }
 
-function mapTrainerFromDb(doc: any): Trainer {
+function mapTrainerFromDb(doc: any, hasReviews: boolean = false): Trainer {
   const isVerified = doc.status === "claimed"
   
   const imageUrl = 
@@ -52,7 +52,7 @@ function mapTrainerFromDb(doc: any): Trainer {
     imageUrl,
     isVerified,
     certifications: parseCertifications(doc.certifications),
-    hasReviews: false,
+    hasReviews,
     specialties: Array.isArray(doc.services) ? doc.services : [],
     locations: doc.district ? [doc.district] : [],
     isOnline: false,
@@ -69,6 +69,29 @@ export function extractDistricts(trainers: Trainer[]): string[] {
 
 export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
   const dbTrainers = await fetchTrainersByCity(city)
-  return dbTrainers.map(mapTrainerFromDb)
+  if (!dbTrainers.length) return []
+  
+  const db = await getFirebaseWebappAdminDb()
+  if (!db) return dbTrainers.map((doc) => mapTrainerFromDb(doc))
+  
+  const reviewsMap = new Map(
+    await Promise.all(
+      dbTrainers.map(async (trainer) => {
+        try {
+          const reviewSnapshot = await db
+            .collection("trainer_profiles")
+            .doc(trainer.id)
+            .collection("client-reviews")
+            .limit(1)
+            .get()
+          return [trainer.id, !reviewSnapshot.empty] as [string, boolean]
+        } catch {
+          return [trainer.id, false] as [string, boolean]
+        }
+      })
+    )
+  )
+  
+  return dbTrainers.map((trainer) => mapTrainerFromDb(trainer, reviewsMap.get(trainer.id) || false))
 }
 
