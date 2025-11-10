@@ -4,6 +4,8 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { getFirebaseWebappAdminDb, isBuildTime } from "@/lib/firebase-global-guard"
 
+export const dynamic = 'force-dynamic'
+
 type Trainer = {
   id: string
   name: string
