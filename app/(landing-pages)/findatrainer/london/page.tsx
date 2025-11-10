@@ -17,16 +17,51 @@ type Trainer = {
 }
 
 async function fetchTrainersByCity(city: string): Promise<any[]> {
-  if (isBuildTime()) return []
+  console.log("[DEBUG] fetchTrainersByCity called for city:", city)
+  console.log("[DEBUG] isBuildTime():", isBuildTime())
+  
+  if (isBuildTime()) {
+    console.log("[DEBUG] Build time detected, returning empty array")
+    return []
+  }
+  
+  console.log("[DEBUG] Environment variables check:")
+  console.log("[DEBUG]   WEBAPP_FIREBASE_PROJECT_ID:", process.env.WEBAPP_FIREBASE_PROJECT_ID ? `SET (${process.env.WEBAPP_FIREBASE_PROJECT_ID})` : "MISSING")
+  console.log("[DEBUG]   WEBAPP_FIREBASE_CLIENT_EMAIL:", process.env.WEBAPP_FIREBASE_CLIENT_EMAIL ? `SET (${process.env.WEBAPP_FIREBASE_CLIENT_EMAIL})` : "MISSING")
+  console.log("[DEBUG]   WEBAPP_FIREBASE_PRIVATE_KEY:", process.env.WEBAPP_FIREBASE_PRIVATE_KEY ? `SET (length: ${process.env.WEBAPP_FIREBASE_PRIVATE_KEY.length})` : "MISSING")
   
   try {
+    console.log("[DEBUG] Attempting to get Firebase webapp admin DB...")
     const db = await getFirebaseWebappAdminDb()
-    if (!db) return []
+    
+    if (!db) {
+      console.log("[DEBUG] Database connection failed - db is null")
+      return []
+    }
+    
+    console.log("[DEBUG] Database connection successful, querying Firestore...")
+    console.log("[DEBUG] Query: trainer_profiles where city == ", city)
     
     const querySnapshot = await db.collection("trainer_profiles").where("city", "==", city).get()
+    
+    console.log("[DEBUG] Query completed. Found", querySnapshot.docs.length, "trainers")
+    
+    if (querySnapshot.docs.length > 0) {
+      console.log("[DEBUG] First trainer sample:", {
+        id: querySnapshot.docs[0].id,
+        city: querySnapshot.docs[0].data()?.city,
+        fullName: querySnapshot.docs[0].data()?.fullName,
+        status: querySnapshot.docs[0].data()?.status,
+      })
+    }
+    
     return querySnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
   } catch (error) {
-    console.error("Error fetching trainers:", error)
+    console.error("[DEBUG] Error fetching trainers:", error)
+    console.error("[DEBUG] Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return []
   }
 }

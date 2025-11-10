@@ -84,34 +84,67 @@ export function createBuildTimeGuard(routeName: string) {
 }
 
 export async function getFirebaseWebappAdminDb() {
+  console.log("[DEBUG] getFirebaseWebappAdminDb called")
+  
   if (isBuildTime()) {
-    console.log("Build time detected - completely skipping Firebase webapp admin initialization")
+    console.log("[DEBUG] Build time detected - completely skipping Firebase webapp admin initialization")
     throw new Error("Firebase webapp admin not available during build time")
   }
 
   if (!firebaseWebappAdminDb) {
-    const [{ initializeApp, getApps, cert }, { getFirestore }] = await Promise.all([
-      import("firebase-admin/app"),
-      import("firebase-admin/firestore"),
-    ])
+    console.log("[DEBUG] Initializing Firebase webapp admin DB...")
+    console.log("[DEBUG] Environment variables at initialization:")
+    console.log("[DEBUG]   WEBAPP_FIREBASE_PROJECT_ID:", process.env.WEBAPP_FIREBASE_PROJECT_ID ? `SET (${process.env.WEBAPP_FIREBASE_PROJECT_ID})` : "MISSING")
+    console.log("[DEBUG]   WEBAPP_FIREBASE_CLIENT_EMAIL:", process.env.WEBAPP_FIREBASE_CLIENT_EMAIL ? `SET (${process.env.WEBAPP_FIREBASE_CLIENT_EMAIL})` : "MISSING")
+    console.log("[DEBUG]   WEBAPP_FIREBASE_PRIVATE_KEY:", process.env.WEBAPP_FIREBASE_PRIVATE_KEY ? `SET (length: ${process.env.WEBAPP_FIREBASE_PRIVATE_KEY.length}, starts with: ${process.env.WEBAPP_FIREBASE_PRIVATE_KEY.substring(0, 30)}...)` : "MISSING")
+    
+    try {
+      const [{ initializeApp, getApps, cert }, { getFirestore }] = await Promise.all([
+        import("firebase-admin/app"),
+        import("firebase-admin/firestore"),
+      ])
 
-    const appName = "webapp-firebase-admin"
-    let app = getApps().find((a) => a.name === appName)
+      const appName = "webapp-firebase-admin"
+      let app = getApps().find((a) => a.name === appName)
 
-    if (!app) {
-      app = initializeApp(
-        {
-          credential: cert({
-            projectId: process.env.WEBAPP_FIREBASE_PROJECT_ID,
-            clientEmail: process.env.WEBAPP_FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.WEBAPP_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-          }),
-        },
-        appName,
-      )
+      if (!app) {
+        console.log("[DEBUG] Creating new Firebase app instance...")
+        const projectId = process.env.WEBAPP_FIREBASE_PROJECT_ID
+        const clientEmail = process.env.WEBAPP_FIREBASE_CLIENT_EMAIL
+        const privateKey = process.env.WEBAPP_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")
+        
+        if (!projectId || !clientEmail || !privateKey) {
+          console.error("[DEBUG] Missing required Firebase credentials!")
+          throw new Error("Missing Firebase webapp admin credentials")
+        }
+        
+        app = initializeApp(
+          {
+            credential: cert({
+              projectId,
+              clientEmail,
+              privateKey,
+            }),
+          },
+          appName,
+        )
+        console.log("[DEBUG] Firebase app initialized successfully")
+      } else {
+        console.log("[DEBUG] Using existing Firebase app instance")
+      }
+
+      firebaseWebappAdminDb = getFirestore(app)
+      console.log("[DEBUG] Firestore instance created successfully")
+    } catch (error) {
+      console.error("[DEBUG] Error initializing Firebase webapp admin:", error)
+      console.error("[DEBUG] Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      })
+      throw error
     }
-
-    firebaseWebappAdminDb = getFirestore(app)
+  } else {
+    console.log("[DEBUG] Using cached Firebase webapp admin DB")
   }
 
   return firebaseWebappAdminDb
