@@ -75,15 +75,6 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const truncateName = (name: string) => name.length > 20 ? `${name.slice(0, 20)}...` : name
   const isVerified = trainer.isVerified
 
-  // Debug logging for image URLs
-  if (isVerified && trainer.name) {
-    console.log(`TrainerCard ${trainer.name}:`, {
-      isVerified,
-      hasImageUrl: !!trainer.imageUrl,
-      imageUrl: trainer.imageUrl,
-    })
-  }
-
   return (
     <Card className={`rounded-lg transition-colors cursor-pointer ${isVerified ? cardVerified : cardUnverified}`}>
       <CardContent className="p-4 sm:p-6">
@@ -95,9 +86,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                   src={trainer.imageUrl}
                   alt={trainer.name}
                   className="w-full h-full object-cover rounded-full"
-                  onLoad={() => console.log(`Image loaded successfully for ${trainer.name}`)}
                   onError={(e) => {
-                    console.error(`Image failed to load for ${trainer.name}:`, trainer.imageUrl)
                     const target = e.target as HTMLImageElement
                     const parent = target.parentElement
                     if (parent) {
