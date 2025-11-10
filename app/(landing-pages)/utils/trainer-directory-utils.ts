@@ -10,6 +10,7 @@ export type Trainer = {
   specialties: string[]
   locations: string[]
   isOnline: boolean
+  publicPath?: string
 }
 
 async function fetchTrainersByCity(city: string): Promise<any[]> {
@@ -55,6 +56,7 @@ function mapTrainerFromDb(doc: any): Trainer {
     specialties: Array.isArray(doc.services) ? doc.services : [],
     locations: doc.district ? [doc.district] : [],
     isOnline: false,
+    publicPath: doc.publicPath || undefined,
   }
 }
 

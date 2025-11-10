@@ -63,8 +63,10 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
   const truncateName = (name: string) => name.length > 20 ? `${name.slice(0, 20)}...` : name
   const isVerified = trainer.isVerified
+  const trainerUrl = trainer.publicPath ? `https://app.juice.fitness${trainer.publicPath}` : undefined
 
   return (
+    <a href={trainerUrl} className="block no-underline" onClick={(e) => !trainerUrl && e.preventDefault()}>
     <Card className={`rounded-lg transition-colors cursor-pointer ${isVerified ? cardVerified : cardUnverified}`}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start gap-3 sm:gap-4">
@@ -148,6 +150,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
         </div>
       </CardContent>
     </Card>
+    </a>
   )
 }
 
