@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Sen } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -9,7 +9,8 @@ import { AnalyticsProvider } from "@/components/analytics-provider"
 import { AnalyticsConsentBanner } from "@/components/analytics-consent-banner"
 import { Suspense } from "react"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const sen = Sen({ subsets: ["latin"], variable: "--font-sen" })
 
 export const metadata: Metadata = {
   title: "Juice - Fitness Tracking & Coaching Platform | Best Online Personal Trainer",
@@ -51,7 +52,7 @@ export default function RootLayout({
       <head>
         <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${inter.variable} ${sen.variable}`}>
         {/* Google Tag Manager (noscript) */}
         <noscript
           dangerouslySetInnerHTML={{

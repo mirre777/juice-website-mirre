@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, X } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 
 const TITLE_OVERRIDES: Record<string, string> = {
   "ai-and-personal-training-bffs-or-frenemies": "AI And Personal Training BFFs Or Frenemies",
@@ -62,18 +63,61 @@ const BLUR_DATA_URL =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
 
 export function BlogClient({ posts }: BlogClientProps) {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [showAllPosts, setShowAllPosts] = useState(true)
+  const searchParams = useSearchParams()
+  const isInitialMount = useRef(true)
+  
+  const [showAllPosts, setShowAllPosts] = useState(() => {
+    const categoriesParam = searchParams.get("categories")
+    return !categoriesParam || categoriesParam === "all"
+  })
+  
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    const categoriesParam = searchParams.get("categories")
+    if (categoriesParam && categoriesParam !== "all") {
+      return categoriesParam.split(",").filter(Boolean)
+    }
+    return []
+  })
 
   const allCategories = [...new Set(posts.map((post) => post.category))].sort()
 
-  const filteredPosts = showAllPosts ? posts : posts.filter((post) => selectedCategories.includes(post.category))
+  // Update URL when filters change (skip initial mount to avoid history entries)
+  useEffect(() => {
+    if (typeof window === "undefined" || isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    
+    const params = new URLSearchParams()
+    if (!showAllPosts && selectedCategories.length > 0) {
+      params.set("categories", selectedCategories.join(","))
+    }
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+    const currentUrl = window.location.pathname + window.location.search
+    
+    // Only update if URL actually changed
+    if (newUrl !== currentUrl) {
+      window.history.replaceState({}, "", newUrl)
+    }
+  }, [selectedCategories, showAllPosts])
+
+  const filteredPosts = useMemo(() => {
+    return showAllPosts ? posts : posts.filter((post) => selectedCategories.includes(post.category))
+  }, [posts, showAllPosts, selectedCategories])
 
   const toggleCategory = (category: string) => {
     setShowAllPosts(false)
-    setSelectedCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
-    )
+    setSelectedCategories((prev) => {
+      const newSelection = prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+      // If no categories selected, automatically select "all"
+      if (newSelection.length === 0) {
+        setShowAllPosts(true)
+        return []
+      }
+      return newSelection
+    })
   }
 
   const selectAllCategories = () => {
