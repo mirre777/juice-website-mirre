@@ -7,18 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-
-interface Trainer {
-  id: string
-  name: string
-  imageUrl?: string
-  isVerified: boolean
-  certifications: string[]
-  hasReviews: boolean
-  specialties: string[]
-  locations: string[]
-  isOnline: boolean
-}
+import type { Trainer } from "@/app/(landing-pages)/utils/trainer-directory-utils"
 
 interface TrainerDirectoryLayoutProps {
   city: string
