@@ -63,6 +63,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Trainer directory routes
+  const trainerDirectoryRoutes: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/findatrainer/berlin`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/findatrainer/london`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+  ]
+
   return [
     {
       url: baseUrl,
@@ -90,6 +106,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     // Include workout program routes
     ...workoutProgramRoutes,
+    // Include trainer directory routes
+    ...trainerDirectoryRoutes,
     // Include other static pages as needed
     ...blogPostEntries,
   ]
