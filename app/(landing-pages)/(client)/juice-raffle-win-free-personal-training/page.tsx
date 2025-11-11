@@ -1,24 +1,26 @@
+// page.tsx
+
 import type { Metadata } from "next"
 import JuiceRaffleWeeklyGoalClientPage from "./JuiceRaffleWeeklyGoalClientPage"
 
 export const metadata: Metadata = {
-  title: "Juice Raffle – Win a Free Form Check | Juice",
+  title: "Juice Raffle – Win Free Personal Training | Juice",
   description:
-    "Join the Juice raffle by hitting your weekly goal. Track workouts, stay consistent, and enter to win a free form check once you complete your weekly target.",
+    "Win a free month of personal training — just by working out. Download the app, set a weekly goal (min. 3 sessions), log your workouts, and hit your goal 4 weeks in a row to enter.",
   keywords: [
     "juice raffle",
+    "free personal training",
     "weekly goal",
-    "fitness challenge",
     "workout tracking",
-    "consistency challenge",
+    "gym challenge",
     "fitness motivation",
     "workout streak",
     "fitness rewards",
   ],
   openGraph: {
-    title: "Juice Raffle – Win a Free Form Check",
+    title: "Juice Raffle – Win Free Personal Training",
     description:
-      "Hit your weekly goal in the Juice app to enter the raffle. Stay consistent, track progress, and win a free form check.",
+      "Hit your weekly goal 4 weeks in a row to enter the Juice raffle and win a free month of personal training.",
     url: "/juice-raffle-win-free-personal-training",
     siteName: "Juice",
     locale: "en_GB",
@@ -28,13 +30,13 @@ export const metadata: Metadata = {
         url: "/images/juice-raffle-form-check.png",
         width: 1200,
         height: 630,
-        alt: "Juice Raffle – Win a Free Form Check",
+        alt: "Juice Raffle – Win Free Personal Training",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Juice Raffle – Win a Free Form Check",
+    title: "Juice Raffle – Win Free Personal Training",
     description:
       "Track your training, hit the weekly goal, and enter the raffle in the Juice app.",
     images: ["/images/juice-raffle-form-check.png"],
