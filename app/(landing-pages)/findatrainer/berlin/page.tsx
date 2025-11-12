@@ -78,8 +78,71 @@ export default async function BerlinTrainerDirectoryPage() {
   const trainers = await fetchTrainersForCity("Berlin")
   const districts = extractDistricts(trainers)
 
+  const baseUrl = "https://juice.fitness"
+  const fullUrl = `${baseUrl}/findatrainer/berlin`
+
+  // JSON-LD structured data for LLM optimization
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": fullUrl, // unique page reference for LLMs
+    url: fullUrl, // explicit canonical link
+    name: "Find a Personal Trainer in Berlin | Verified Fitness Coaches",
+    description:
+      "Discover certified personal trainers in Berlin. Connect with verified fitness professionals in Mitte, Friedrichshain, Kreuzberg, and more. Find your perfect trainer today.",
+    about: "Personal Training Directory, Fitness Coaches, Berlin", // helps topic classification for AI
+    keywords: [
+      "personal trainer Berlin",
+      "fitness trainer Berlin",
+      "personal training Berlin",
+      "certified trainer Berlin",
+      "trainer directory Berlin",
+      "fitness coach Berlin",
+      "personal trainer Mitte",
+      "trainer Berlin-Mitte",
+      "personal trainer Friedrichshain",
+      "trainer Kreuzberg",
+      "Personal Trainer fuer Rueckentraining",
+      "Personal Trainer fuer Abnehmen",
+      "Personal Trainer fuer Muskelaufbau",
+      "Personal Trainer Vergleich",
+      "Personal Trainer Angebot",
+      "Personal Trainer Zuhause",
+      "private trainer berlin",
+      "personal trainer kosten",
+      "personal trainer preise",
+    ].join(", "), // semantic keywords
+    speakable: {
+      // for AI voice/summarization models
+      "@type": "SpeakableSpecification",
+      xpath: ["/html/head/title", "/html/body/main/section/article/h2", "/html/body/main/section/article/p[1]"],
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Juice Fitness",
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/images/juiceNewLogoPrime.png`,
+      },
+    },
+    image: {
+      "@type": "ImageObject",
+      url: `${baseUrl}/images/og-trainer-directory-berlin.jpg`,
+      width: 1200,
+      height: 630,
+      alt: "Personal Trainer Directory Berlin - Juice",
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      name: "Personal Trainers in Berlin",
+      description: "Directory of certified personal trainers in Berlin",
+    },
+  }
+
   return (
-    <main className="flex min-h-screen flex-col bg-white">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <main className="flex min-h-screen flex-col bg-white">
       <Navbar />
       <TrainerDirectoryLayout city="Berlin" districts={districts} trainers={trainers} />
       
@@ -213,6 +276,7 @@ export default async function BerlinTrainerDirectoryPage() {
       
       <Footer />
     </main>
+    </>
   )
 }
 
