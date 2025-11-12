@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put, del, list } from "@vercel/blob"
 import matter from "gray-matter"
+import { renameSlug } from "@/app/api/admin/utils/blog-helpers"
 
 const INTERVIEW_CONTENT_PATH = "interviews/"
 
@@ -59,7 +60,23 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const { slug, title, date, category, excerpt, image, trainerName } = body
+    const { slug, title, date, category, excerpt, image, trainerName, newSlug } = body
+
+    // Handle slug rename separately (different operation)
+    if (newSlug) {
+      const { revalidatePath } = await import("next/cache")
+      const result = await renameSlug(slug, newSlug, INTERVIEW_CONTENT_PATH, revalidatePath)
+
+      if (!result.success) {
+        return NextResponse.json({ error: result.error }, { status: 400 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully renamed slug from "${slug}" to "${result.newSlug}"`,
+        newSlug: result.newSlug,
+      })
+    }
 
     console.log("[v0] ===== PATCH /api/admin/interviews =====")
     console.log("[v0] Request body:", JSON.stringify(body, null, 2))
