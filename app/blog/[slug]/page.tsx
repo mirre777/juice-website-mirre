@@ -56,6 +56,38 @@ const getPlaceholderImage = (category: string) => {
   return placeholders[categoryKey] || placeholders.default
 }
 
+// Generate SEO-optimized keywords based on post content and category
+// Moved outside generateMetadata so it can be reused in both metadata and JSON-LD
+const generateKeywords = (title: string, category: string, excerpt: string) => {
+  const baseKeywords = [
+    "fitness coaching",
+    "personal trainer",
+    "fitness business",
+    "trainer marketing",
+    "fitness SEO",
+    "personal training",
+    "fitness coach",
+    "trainer website",
+    "fitness industry",
+    "Europe fitness",
+    "Berlin fitness",
+    category.toLowerCase(),
+  ]
+
+  // Add specific keywords based on title content
+  const titleLower = title.toLowerCase()
+  if (titleLower.includes("seo")) baseKeywords.push("SEO for fitness", "fitness SEO tips", "trainer SEO")
+  if (titleLower.includes("website")) baseKeywords.push("trainer website", "fitness website", "website builder")
+  if (titleLower.includes("booking")) baseKeywords.push("online booking", "fitness booking", "trainer booking")
+  if (titleLower.includes("marketing"))
+    baseKeywords.push("fitness marketing", "trainer marketing", "digital marketing")
+  if (titleLower.includes("tools")) baseKeywords.push("fitness tools", "trainer tools", "fitness software")
+  if (titleLower.includes("berlin")) baseKeywords.push("Berlin fitness", "Berlin trainer", "Germany fitness")
+  if (titleLower.includes("nutrition")) baseKeywords.push("nutrition coaching", "fitness nutrition", "meal planning")
+
+  return baseKeywords.slice(0, 15) // Limit to 15 keywords
+}
+
 // Generate metadata for SEO - applies to ALL blog posts
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
@@ -71,37 +103,6 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
   const imageUrl = post.image ? `${baseUrl}${post.image}` : `${baseUrl}${getPlaceholderImage(post.category)}`
-
-  // Generate SEO-optimized keywords based on post content and category
-  const generateKeywords = (title: string, category: string, excerpt: string) => {
-    const baseKeywords = [
-      "fitness coaching",
-      "personal trainer",
-      "fitness business",
-      "trainer marketing",
-      "fitness SEO",
-      "personal training",
-      "fitness coach",
-      "trainer website",
-      "fitness industry",
-      "Europe fitness",
-      "Berlin fitness",
-      category.toLowerCase(),
-    ]
-
-    // Add specific keywords based on title content
-    const titleLower = title.toLowerCase()
-    if (titleLower.includes("seo")) baseKeywords.push("SEO for fitness", "fitness SEO tips", "trainer SEO")
-    if (titleLower.includes("website")) baseKeywords.push("trainer website", "fitness website", "website builder")
-    if (titleLower.includes("booking")) baseKeywords.push("online booking", "fitness booking", "trainer booking")
-    if (titleLower.includes("marketing"))
-      baseKeywords.push("fitness marketing", "trainer marketing", "digital marketing")
-    if (titleLower.includes("tools")) baseKeywords.push("fitness tools", "trainer tools", "fitness software")
-    if (titleLower.includes("berlin")) baseKeywords.push("Berlin fitness", "Berlin trainer", "Germany fitness")
-    if (titleLower.includes("nutrition")) baseKeywords.push("nutrition coaching", "fitness nutrition", "meal planning")
-
-    return baseKeywords.slice(0, 15) // Limit to 15 keywords
-  }
 
   return {
     title: `${post.title} | Juice Fitness Blog`,
@@ -208,6 +209,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
+    "@id": fullUrl, // ✅ unique page reference for LLMs
+    url: fullUrl,   // ✅ explicit canonical link
     headline: post.title,
     description: post.excerpt,
     image: {
@@ -230,12 +233,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         url: `${baseUrl}/images/juiceNewLogoPrime.png`,
       },
     },
-    description: post.excerpt,
+    about: post.category, // ✅ helps topic classification for AI
+    keywords: generateKeywords(post.title, post.category, post.excerpt).join(", "), // ✅ semantic keywords
+    speakable: { // ✅ for AI voice/summarization models
+      "@type": "SpeakableSpecification",
+      "xpath": ["/html/head/title", "/html/body/article/h1", "/html/body/article/p[1]"],
+    },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": fullUrl,
     },
   }
+
 
   return (
     <>
