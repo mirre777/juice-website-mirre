@@ -214,12 +214,29 @@ export default function BlogAdminPage() {
         return // User cancelled
       }
       
-      // For now, we'll just show a message that slug updates require file renaming
-      // This is a complex operation that would require renaming the blob file
-      alert("Slug updates require file renaming and are not yet implemented. Please rename the .md file in blob storage manually.")
-      return
+      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slug: oldSlug,
+          newSlug: newSlug,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to update slug")
+      }
+
+      const result = await response.json()
+      await fetchAllData()
+      alert(`Successfully renamed slug to: ${result.newSlug || newSlug}`)
     } catch (error) {
       console.error("Error updating slug:", error)
+      alert(error instanceof Error ? error.message : "Failed to update slug")
       throw error
     }
   }

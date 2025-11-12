@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAllPosts } from "@/lib/blog"
 import { del, list, put } from "@vercel/blob" // Added put import for updating blog posts
+import { renameSlug } from "@/app/api/admin/utils/blog-helpers"
 
 function isHardcodedPost(slug: string): boolean {
   const hardcodedSlugs = [
@@ -62,12 +63,33 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { slug, image, title, category, date } = await request.json()
+    const { slug, image, title, category, date, newSlug } = await request.json()
 
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
+    // Handle slug rename separately (different operation)
+    if (newSlug) {
+      if (isHardcodedPost(slug)) {
+        return NextResponse.json({ error: "Cannot rename hardcoded sample posts" }, { status: 403 })
+      }
+
+      const { revalidatePath } = await import("next/cache")
+      const result = await renameSlug(slug, newSlug, "blog/", revalidatePath)
+
+      if (!result.success) {
+        return NextResponse.json({ error: result.error }, { status: 400 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully renamed slug from "${slug}" to "${result.newSlug}"`,
+        newSlug: result.newSlug,
+      })
+    }
+
+    // Existing logic for image, title, category, date updates
     if (!image && !title && !category && !date) {
       return NextResponse.json({ error: "Either image URL, title, category, or date is required" }, { status: 400 })
     }
