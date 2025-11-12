@@ -130,7 +130,7 @@
 /* Blog specific styles */
 @layer components {
   .blog-content {
-    @apply prose prose-lg max-w-none;
+    @apply max-w-none;
   }
 
   .blog-content h1 {
@@ -172,6 +172,10 @@
 
   .blog-content pre code {
     @apply bg-transparent p-0;
+  }
+
+  .blog-content hr {
+    @apply my-8 border-t border-gray-200;
   }
 
   .blog-tldr {
