@@ -2,8 +2,8 @@
 // This will run once to update the blog post category
 
 const ADMIN_API_URL = process.env.NEXT_PUBLIC_APP_URL
-  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/admin/blog-posts`
-  : "http://localhost:3000/api/admin/blog-posts"
+  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/admin/blog/blogs`
+  : "http://localhost:3000/api/admin/blog/blogs"
 
 async function updateMythsCategory() {
   try {

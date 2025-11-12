@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest) {
       })
     }
 
-    console.log("[v0] ===== PATCH /api/admin/interviews =====")
+    console.log("[v0] ===== PATCH /api/admin/blog/interviews =====")
     console.log("[v0] Request body:", JSON.stringify(body, null, 2))
     console.log("[v0] Image field received:", image)
     console.log("[v0] Image field type:", typeof image)
