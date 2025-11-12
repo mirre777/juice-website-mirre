@@ -1,19 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put, list } from "@vercel/blob"
+import { findBlobBySlug, cleanSlugFromFilename } from "@/app/admin/blog/utils/blog-and-interview-helpers"
 
 const INTERVIEW_CONTENT_PATH = "interviews/"
-
-// Function to clean slug from filename
-function cleanSlugFromFilename(filename: string): string {
-  return filename
-    .replace(/^-+/, "")
-    .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s*/g, "")
-    .replace(/-\d{10,}/g, "")
-    .replace(/[^a-z0-9-]/gi, "-")
-    .replace(/-+/g, "-")
-    .toLowerCase()
-}
 
 // GET - Fetch interview content for editing
 export async function GET(request: NextRequest) {
@@ -25,14 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 })
     }
 
-    const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
-    const interviewBlob = blobs.blobs.find((blob) => {
-      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
-      const blobSlug = cleanSlugFromFilename(rawSlug)
-      const requestSlug = cleanSlugFromFilename(slug)
-      // Match if either slug contains the other (handles partial slug matches)
-      return blobSlug === requestSlug || blobSlug.includes(requestSlug) || requestSlug.includes(blobSlug)
-    })
+    const interviewBlob = await findBlobBySlug(slug, INTERVIEW_CONTENT_PATH)
 
     if (!interviewBlob) {
       return NextResponse.json({ error: "Interview not found" }, { status: 404 })
@@ -62,37 +44,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Slug and content are required" }, { status: 400 })
     }
 
-    const blobs = await list({ prefix: INTERVIEW_CONTENT_PATH })
-    console.log(`[v0] Total blobs found: ${blobs.blobs.length}`)
-
-    blobs.blobs.forEach((blob, index) => {
-      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
-      const blobSlug = cleanSlugFromFilename(rawSlug)
-      console.log(`[v0] Blob ${index + 1}:`)
-      console.log(`[v0]   - pathname: ${blob.pathname}`)
-      console.log(`[v0]   - rawSlug: ${rawSlug}`)
-      console.log(`[v0]   - cleanedSlug: ${blobSlug}`)
-    })
-
-    const requestSlug = cleanSlugFromFilename(slug)
-    console.log(`[v0] Request slug (original): ${slug}`)
-    console.log(`[v0] Request slug (cleaned): ${requestSlug}`)
-
-    const interviewBlob = blobs.blobs.find((blob) => {
-      const rawSlug = blob.pathname.replace(INTERVIEW_CONTENT_PATH, "").replace(/\.md$/, "")
-      const blobSlug = cleanSlugFromFilename(rawSlug)
-
-      const exactMatch = blobSlug === requestSlug
-      const blobContainsRequest = blobSlug.includes(requestSlug)
-      const requestContainsBlob = requestSlug.includes(blobSlug)
-
-      console.log(`[v0] Comparing "${blobSlug}" with "${requestSlug}":`)
-      console.log(`[v0]   - exactMatch: ${exactMatch}`)
-      console.log(`[v0]   - blobContainsRequest: ${blobContainsRequest}`)
-      console.log(`[v0]   - requestContainsBlob: ${requestContainsBlob}`)
-
-      return exactMatch || blobContainsRequest || requestContainsBlob
-    })
+    const interviewBlob = await findBlobBySlug(slug, INTERVIEW_CONTENT_PATH)
 
     if (!interviewBlob) {
       console.log("[v0] ❌ Interview not found for slug:", slug)
@@ -124,3 +76,4 @@ export async function PATCH(request: NextRequest) {
     )
   }
 }
+
