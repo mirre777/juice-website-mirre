@@ -68,11 +68,11 @@ export function StripePayment({
           setError(null)
 
           const apiUrl = getApiUrl()
-          console.log(`Attempting to create payment intent using API: ${apiUrl}/create-payment-intent`)
+          console.log(`Attempting to create payment intent using API: ${apiUrl}/payments/create-payment-intent`)
 
           const productType = amount === "2" ? "dumbbell-program" : "trainer-activation"
 
-          const response = await fetch(`${apiUrl}/create-payment-intent`, {
+          const response = await fetch(`${apiUrl}/payments/create-payment-intent`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -349,7 +349,7 @@ function CheckoutForm({
 
         try {
           const apiUrl = getApiUrl()
-          await fetch(`${apiUrl}/update-payment-metadata`, {
+          await fetch(`${apiUrl}/payments/update-payment-metadata`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

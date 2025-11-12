@@ -340,7 +340,7 @@ function PaymentPageContent() {
 
         // Create payment intent
         console.log("Creating payment intent for trainer:", trainer.id)
-        const paymentResponse = await fetch("/api/create-payment-intent", {
+        const paymentResponse = await fetch("/api/payments/create-payment-intent", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

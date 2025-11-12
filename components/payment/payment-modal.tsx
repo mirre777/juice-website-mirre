@@ -86,7 +86,7 @@ export function PaymentModal({
   const verifyPayment = async (amount: string, description: string) => {
     try {
       // In a real implementation, this would be an API call to your backend
-      // const response = await fetch('/api/verify-payment', {
+      // const response = await fetch('/api/payments/verify-payment', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ amount, description, user_id: currentUser.id })
