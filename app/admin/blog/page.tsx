@@ -77,7 +77,7 @@ export default function BlogAdminPage() {
       setError(null)
 
       // Fetch blog posts
-      const blogResponse = await fetch(`/api/admin/blog-posts?t=${Date.now()}`, {
+      const blogResponse = await fetch(`/api/admin/blog/blogs?t=${Date.now()}`, {
         cache: "no-store",
       })
       if (!blogResponse.ok) {
@@ -90,7 +90,7 @@ export default function BlogAdminPage() {
       })
 
       // Fetch interviews
-      const interviewResponse = await fetch(`/api/admin/interviews?t=${Date.now()}`, {
+      const interviewResponse = await fetch(`/api/admin/blog/interviews?t=${Date.now()}`, {
         cache: "no-store",
       })
       if (!interviewResponse.ok) {
@@ -122,7 +122,7 @@ export default function BlogAdminPage() {
     try {
       setDeletingPosts((prev) => new Set(prev).add(slug))
 
-      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs" : "/api/admin/blog/interviews"
       const response = await fetch(endpoint, {
         method: "DELETE",
         headers: {
@@ -150,7 +150,7 @@ export default function BlogAdminPage() {
 
   const handleImageAssigned = async (imageUrl: string, postSlug: string, type: "blog" | "interview") => {
     try {
-      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs" : "/api/admin/blog/interviews"
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -176,7 +176,7 @@ export default function BlogAdminPage() {
 
   const handleTitleUpdate = async (slug: string, newTitle: string, type: "blog" | "interview") => {
     try {
-      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs" : "/api/admin/blog/interviews"
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -214,7 +214,7 @@ export default function BlogAdminPage() {
         return // User cancelled
       }
       
-      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs" : "/api/admin/blog/interviews"
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -255,7 +255,7 @@ export default function BlogAdminPage() {
     try {
       setUpdatingCategories((prev) => new Set(prev).add(slug))
 
-      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs" : "/api/admin/blog/interviews"
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -300,7 +300,7 @@ export default function BlogAdminPage() {
 
       const formattedDate = format(newDate, "yyyy-MM-dd")
 
-      const endpoint = type === "blog" ? "/api/admin/blog-posts" : "/api/admin/interviews"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs" : "/api/admin/blog/interviews"
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
@@ -337,7 +337,7 @@ export default function BlogAdminPage() {
 
     try {
       const endpoint =
-        type === "blog" ? `/api/admin/blog-posts/content?slug=${slug}` : `/api/admin/interviews/content?slug=${slug}`
+        type === "blog" ? `/api/admin/blog/blogs/content?slug=${slug}` : `/api/admin/blog/interviews/content?slug=${slug}`
       const response = await fetch(endpoint)
       if (!response.ok) {
         throw new Error("Failed to fetch content")
@@ -356,7 +356,7 @@ export default function BlogAdminPage() {
     try {
       setSavingContent(true)
 
-      const endpoint = type === "blog" ? "/api/admin/blog-posts/content" : "/api/admin/interviews/content"
+      const endpoint = type === "blog" ? "/api/admin/blog/blogs/content" : "/api/admin/blog/interviews/content"
       const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {

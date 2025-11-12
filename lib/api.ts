@@ -51,14 +51,14 @@ export const paymentAPI = {
 
   // Create a payment intent
   createPaymentIntent: (amount: string, description: string, metadata?: Record<string, any>) =>
-    fetchFromAPI<{ clientSecret: string; paymentIntentId: string }>("/api/create-payment-intent", {
+    fetchFromAPI<{ clientSecret: string; paymentIntentId: string }>("/api/payments/create-payment-intent", {
       method: "POST",
       body: JSON.stringify({ amount, description, metadata }),
     }),
 
   // Verify a payment
   verifyPayment: (paymentIntentId: string) =>
-    fetchFromAPI<{ success: boolean; paymentIntent?: any }>("/api/verify-payment", {
+    fetchFromAPI<{ success: boolean; paymentIntent?: any }>("/api/payments/verify-payment", {
       method: "POST",
       body: JSON.stringify({ paymentIntentId }),
     }),

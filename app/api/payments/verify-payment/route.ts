@@ -37,7 +37,7 @@ async function resolveTrainerIdFromPaymentIntent(paymentIntentId: string) {
 }
 
 /**
- * POST /api/verify-payment
+ * POST /api/payments/verify-payment
  * Body: { paymentIntentId: string }
  * Purely read-only; returns Stripe status and trainerId if resolvable.
  */

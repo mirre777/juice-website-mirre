@@ -78,8 +78,8 @@ export default function UserManagementPage() {
       setError(null)
       console.log("🔄 Set loading=true, error=null")
 
-      console.log("📞 Making API call to /api/admin/users")
-      const response = await fetch("/api/admin/users")
+      console.log("📞 Making API call to /api/admin/user-management")
+      const response = await fetch("/api/admin/user-management")
       console.log("📨 API response received:", {
         ok: response.ok,
         status: response.status,
@@ -165,7 +165,7 @@ export default function UserManagementPage() {
   const handleContactedUser = async (userId: string) => {
     console.log("📞 Contacted user clicked:", userId)
     try {
-      const response = await fetch(`/api/admin/users/accept`, {
+      const response = await fetch(`/api/admin/user-management/accept`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -192,7 +192,7 @@ export default function UserManagementPage() {
     }
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`/api/admin/user-management/${userId}`, {
         method: "DELETE",
       })
 
@@ -222,7 +222,7 @@ export default function UserManagementPage() {
     }
 
     try {
-      const response = await fetch(`/api/admin/users/convert-to-trainer`, {
+      const response = await fetch(`/api/admin/user-management/convert-to-trainer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

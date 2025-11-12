@@ -106,10 +106,10 @@ export function BlogImageUploader({
         console.log("[v0] Linking image to content:", {
           contentType,
           slug: blogSlug,
-          endpoint: contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts",
+          endpoint: contentType === "interview" ? "/api/admin/blog/interviews" : "/api/admin/blog/blogs",
         })
 
-        const endpoint = contentType === "interview" ? "/api/admin/interviews" : "/api/admin/blog-posts"
+        const endpoint = contentType === "interview" ? "/api/admin/blog/interviews" : "/api/admin/blog/blogs"
 
         const linkResponse = await fetch(endpoint, {
           method: "PATCH",

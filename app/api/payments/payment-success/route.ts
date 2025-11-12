@@ -17,7 +17,7 @@ async function getStripe() {
 }
 
 /**
- * GET /api/payment-success?payment_intent=pi_123&user_id=456
+ * GET /api/payments/payment-success?payment_intent=pi_123&user_id=456
  * Handle payment success and redirect
  */
 export async function GET(request: NextRequest) {

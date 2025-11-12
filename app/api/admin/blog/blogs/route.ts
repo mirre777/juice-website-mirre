@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAllPosts } from "@/lib/blog"
 import { del, list, put } from "@vercel/blob" // Added put import for updating blog posts
-import { renameSlug } from "@/app/api/admin/utils/blog-helpers"
+import { renameSlug, findBlobBySlug } from "@/app/admin/blog/utils/blog-and-interview-helpers"
 
 function isHardcodedPost(slug: string): boolean {
   const hardcodedSlugs = [
@@ -111,26 +111,11 @@ export async function PATCH(request: NextRequest) {
       console.log(`[v0] Blog admin API: New date will be: "${date}"`)
     }
 
-    const { blobs } = await list({ prefix: "blog/" })
-
-    const blogFile = blobs.find((blob) => {
-      if (!blob.pathname.endsWith(".md")) return false
-
-      const rawSlug = blob.pathname.replace("blog/", "").replace(/\.md$/, "")
-      const cleanedSlug = cleanSlugFromFilename(rawSlug)
-
-      return (
-        cleanedSlug === slug ||
-        rawSlug === slug ||
-        blob.pathname.includes(slug) ||
-        rawSlug.includes(slug) ||
-        slug.includes(cleanedSlug) ||
-        slug.includes(rawSlug)
-      )
-    })
+    const blogFile = await findBlobBySlug(slug, "blog/")
 
     if (!blogFile) {
       console.log(`[v0] Blog admin API: No matching file found for slug: ${slug}`)
+      const { blobs } = await list({ prefix: "blog/" })
       console.log(
         `[v0] Available files:`,
         blobs.map((b) => b.pathname),
@@ -352,13 +337,3 @@ function updateFrontmatterDate(content: string, newDate: string): string {
   return `---\n${updatedFrontmatter}\n---${restOfContent}`
 }
 
-function cleanSlugFromFilename(filename: string): string {
-  return filename
-    .replace(/^-+/, "")
-    .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s*/g, "")
-    .replace(/-\d{10,}/g, "")
-    .replace(/[^a-z0-9-]/gi, "-")
-    .replace(/-+/g, "-")
-    .toLowerCase()
-}

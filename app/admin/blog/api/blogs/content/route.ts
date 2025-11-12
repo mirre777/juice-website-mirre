@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { list, put } from "@vercel/blob"
+import { findBlobBySlug } from "@/app/admin/blog/utils/blog-and-interview-helpers"
 
 function isHardcodedPost(slug: string): boolean {
   const hardcodedSlugs = [
@@ -16,17 +17,6 @@ function isHardcodedPost(slug: string): boolean {
   return hardcodedSlugs.includes(slug)
 }
 
-function cleanSlugFromFilename(filename: string): string {
-  return filename
-    .replace(/^-+/, "")
-    .replace(/-+$/, "")
-    .replace(/\s*$$[^)]*$$\s*/g, "")
-    .replace(/-\d{10,}/g, "")
-    .replace(/[^a-z0-9-]/gi, "-")
-    .replace(/-+/g, "-")
-    .toLowerCase()
-}
-
 // GET endpoint to fetch full markdown content
 export async function GET(request: NextRequest) {
   try {
@@ -41,23 +31,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Cannot fetch hardcoded sample posts" }, { status: 403 })
     }
 
-    const { blobs } = await list({ prefix: "blog/" })
-
-    const blogFile = blobs.find((blob) => {
-      if (!blob.pathname.endsWith(".md")) return false
-
-      const rawSlug = blob.pathname.replace("blog/", "").replace(/\.md$/, "")
-      const cleanedSlug = cleanSlugFromFilename(rawSlug)
-
-      return (
-        cleanedSlug === slug ||
-        rawSlug === slug ||
-        blob.pathname.includes(slug) ||
-        rawSlug.includes(slug) ||
-        slug.includes(cleanedSlug) ||
-        slug.includes(rawSlug)
-      )
-    })
+    const blogFile = await findBlobBySlug(slug, "blog/")
 
     if (!blogFile) {
       return NextResponse.json({ error: "Blog post not found" }, { status: 404 })
@@ -96,23 +70,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Cannot update hardcoded sample posts" }, { status: 403 })
     }
 
-    const { blobs } = await list({ prefix: "blog/" })
-
-    const blogFile = blobs.find((blob) => {
-      if (!blob.pathname.endsWith(".md")) return false
-
-      const rawSlug = blob.pathname.replace("blog/", "").replace(/\.md$/, "")
-      const cleanedSlug = cleanSlugFromFilename(rawSlug)
-
-      return (
-        cleanedSlug === slug ||
-        rawSlug === slug ||
-        blob.pathname.includes(slug) ||
-        rawSlug.includes(slug) ||
-        slug.includes(cleanedSlug) ||
-        slug.includes(rawSlug)
-      )
-    })
+    const blogFile = await findBlobBySlug(slug, "blog/")
 
     if (!blogFile) {
       return NextResponse.json({ error: "Blog post not found" }, { status: 404 })
@@ -148,3 +106,4 @@ export async function PATCH(request: NextRequest) {
     )
   }
 }
+
