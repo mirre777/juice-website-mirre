@@ -11,6 +11,7 @@ export type Trainer = {
   locations: string[]
   isOnline: boolean
   publicPath?: string
+  districtDisplay?: string
 }
 
 async function fetchTrainersByCity(city: string): Promise<any[]> {
@@ -36,6 +37,14 @@ function parseCertifications(certifications: string | undefined | null): string[
     .filter(Boolean)
 }
 
+function parseDistricts(district: string | undefined | null): string[] {
+  if (!district || typeof district !== "string") return []
+  return district
+    .split(/[,;]/)
+    .map((d) => d.trim())
+    .filter(Boolean)
+}
+
 function mapTrainerFromDb(doc: any, hasReviews: boolean = false): Trainer {
   const isVerified = doc.status === "claimed"
   
@@ -54,9 +63,10 @@ function mapTrainerFromDb(doc: any, hasReviews: boolean = false): Trainer {
     certifications: parseCertifications(doc.certifications),
     hasReviews,
     specialties: Array.isArray(doc.services) ? doc.services : [],
-    locations: doc.district ? [doc.district] : [],
+    locations: doc.district ? parseDistricts(doc.district) : [],
     isOnline: false,
     publicPath: doc.publicPath || undefined,
+    districtDisplay: doc.district || undefined,
   }
 }
 
