@@ -67,7 +67,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const trainerUrl = trainer.publicPath ? `https://app.juice.fitness${trainer.publicPath}` : undefined
 
   // Helper to render a badge
-  const renderBadge = (type: "verified" | "cert" | "reviews", certIndex?: number) => {
+  const renderBadge = (type: "verified" | "cert" | "reviews", certIndex?: number, truncate?: boolean) => {
     if (type === "verified") {
       return (
         <Badge key="verified" className={`${badgeBase} ${badgeVerified}`}>
@@ -77,10 +77,11 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
       )
     }
     if (type === "cert" && certIndex !== undefined) {
+      const certText = trainer.certifications[certIndex]
       return (
         <Badge key={`cert-${certIndex}`} className={`${badgeBase} ${badgeCert}`}>
           <Award className={iconBase} />
-          {trainer.certifications[certIndex]}
+          <span className={truncate ? "truncate max-w-[100px]" : ""}>{certText}</span>
         </Badge>
       )
     }
@@ -151,9 +152,9 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
                   <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 line-clamp-1 font-sen">{truncateName(trainer.name)}</h3>
                   <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    {/* Mobile: Max 2 badges */}
-                    <div className="md:hidden flex items-center gap-1 flex-wrap">
-                      {mobileBadges.map((badge) => renderBadge(badge.type, badge.certIndex))}
+                    {/* Mobile: Max 2 badges - no wrap, truncate second badge */}
+                    <div className="md:hidden flex items-center gap-1 flex-nowrap overflow-hidden">
+                      {mobileBadges.map((badge, idx) => renderBadge(badge.type, badge.certIndex, idx === 1))}
                     </div>
                     {/* Desktop: All badges with overflow handling */}
                     <div ref={badgeRef} className="hidden md:flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: badgeContainerMaxHeight }}>
