@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, MapPin, BadgeCheck, Award, MessageCircle, ArrowRight, User } from "lucide-react"
+import { Search, MapPin, BadgeCheck, Award, MessageCircle, ArrowRight, User, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import type { Trainer } from "@/app/(landing-pages)/utils/trainer-directory-utils"
 
 interface TrainerDirectoryLayoutProps {
@@ -172,6 +173,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     districtsParam && districtsParam !== "all" ? districtsParam.split(",").filter(Boolean) : []
   )
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "")
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
 
   // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
@@ -206,6 +208,38 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
       if (newSelection.length === 0) setShowAllDistricts(true)
       return newSelection
     })
+  }
+
+  const renderDistrictButton = (district: string, isMobile: boolean) => {
+    const isSelected = !showAllDistricts && selectedDistricts.includes(district)
+    const isAll = district === "all"
+    
+    if (isMobile) {
+      return (
+        <Button
+          key={district}
+          variant="ghost"
+          onClick={() => {
+            handleDistrictClick(district)
+            if (isAll) setIsMobileDropdownOpen(false)
+          }}
+          className={`w-full justify-start ${isSelected || (isAll && showAllDistricts) ? "bg-juice/10" : ""}`}
+        >
+          {district === "all" ? "All Districts" : district}
+        </Button>
+      )
+    }
+    
+    return (
+      <Button
+        key={district}
+        variant="outline"
+        onClick={() => handleDistrictClick(district)}
+        className={`${btnBase} ${isSelected || (isAll && showAllDistricts) ? (isAll ? btnActiveAll : btnActive) : btnInactive}`}
+      >
+        {district === "all" ? "All Districts" : district}
+      </Button>
+    )
   }
 
   const filteredTrainers = useMemo(() => {
@@ -249,27 +283,37 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap gap-2 w-full">
-            <Button
-              variant="outline"
-              onClick={() => handleDistrictClick("all")}
-              className={`${btnBase} ${showAllDistricts ? btnActiveAll : btnInactive}`}
-            >
-              All Districts
-            </Button>
-            {districts.map((district) => {
-              const isSelected = !showAllDistricts && selectedDistricts.includes(district)
-              return (
+          {/* Mobile: Dropdown */}
+          <div className="md:hidden w-full">
+            <Popover open={isMobileDropdownOpen} onOpenChange={setIsMobileDropdownOpen}>
+              <PopoverTrigger asChild>
                 <Button
-                  key={district}
                   variant="outline"
-                  onClick={() => handleDistrictClick(district)}
-                  className={`${btnBase} ${isSelected ? btnActive : btnInactive}`}
+                  className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActiveAll : btnInactive}`}
                 >
-                  {district}
+                  <span>
+                    {showAllDistricts 
+                      ? "All Districts" 
+                      : selectedDistricts.length > 0 
+                        ? `${selectedDistricts.length} district${selectedDistricts.length > 1 ? 's' : ''} selected`
+                        : "Select Districts"}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
                 </Button>
-              )
-            })}
+              </PopoverTrigger>
+              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 p-2 max-h-[60vh] overflow-y-auto" align="start">
+                <div className="space-y-1">
+                  {renderDistrictButton("all", true)}
+                  {districts.map((district) => renderDistrictButton(district, true))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Desktop: Button Grid */}
+          <div className="hidden md:flex flex-wrap gap-2 w-full">
+            {renderDistrictButton("all", false)}
+            {districts.map((district) => renderDistrictButton(district, false))}
           </div>
         </div>
       </section>
