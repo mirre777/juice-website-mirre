@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, MapPin, BadgeCheck, Award, MessageCircle, ArrowRight, User } from "lucide-react"
+import { Search, MapPin, BadgeCheck, Award, MessageCircle, ArrowRight, User, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import type { Trainer } from "@/app/(landing-pages)/utils/trainer-directory-utils"
 
 interface TrainerDirectoryLayoutProps {
@@ -65,12 +66,52 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const isVerified = trainer.isVerified
   const trainerUrl = trainer.publicPath ? `https://app.juice.fitness${trainer.publicPath}` : undefined
 
+  // Helper to render a badge
+  const renderBadge = (type: "verified" | "cert" | "reviews", certIndex?: number, truncate?: boolean) => {
+    if (type === "verified") {
+      return (
+        <Badge key="verified" className={`${badgeBase} ${badgeVerified}`}>
+          <BadgeCheck className={iconBase} />
+          Verified
+        </Badge>
+      )
+    }
+    if (type === "cert" && certIndex !== undefined) {
+      const certText = trainer.certifications[certIndex]
+      return (
+        <Badge key={`cert-${certIndex}`} className={`${badgeBase} ${badgeCert}`}>
+          <Award className={iconBase} />
+          <span className={truncate ? "truncate max-w-[100px]" : ""}>{certText}</span>
+        </Badge>
+      )
+    }
+    if (type === "reviews") {
+      return (
+        <Badge key="reviews" className={`${badgeBase} ${badgeReviews}`}>
+          <MessageCircle className={iconBase} />
+          Reviews
+        </Badge>
+      )
+    }
+    return null
+  }
+
+  // Mobile: Get max 2 badges (prioritize: Verified > Certifications > Reviews)
+  const mobileBadges: Array<{ type: "verified" | "cert" | "reviews"; certIndex?: number }> = []
+  if (isVerified) mobileBadges.push({ type: "verified" })
+  if (trainer.certifications.length > 0 && mobileBadges.length < 2) {
+    mobileBadges.push({ type: "cert", certIndex: 0 })
+  }
+  if (trainer.hasReviews && mobileBadges.length < 2) {
+    mobileBadges.push({ type: "reviews" })
+  }
+
   return (
     <a href={trainerUrl} className="block no-underline w-full" onClick={(e) => !trainerUrl && e.preventDefault()}>
-    <Card className={`w-full rounded-lg transition-colors cursor-pointer ${isVerified ? cardVerified : cardUnverified}`}>
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-start gap-3 sm:gap-4">
-          <div className={`${profileBase} ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
+    <Card className={`w-full rounded-lg transition-colors cursor-pointer h-[140px] md:h-auto overflow-hidden ${isVerified ? cardVerified : cardUnverified}`}>
+      <CardContent className="p-4 sm:p-6 h-full flex">
+        <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
+          <div className={`${profileBase} flex-shrink-0 ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
             {isVerified ? (
               trainer.imageUrl ? (
                 <img
@@ -106,43 +147,39 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
             )}
           </div>
           <div className="flex-1 min-w-0 flex items-center">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-2 gap-2">
+            <div className="flex-1 min-w-0 h-full flex flex-col justify-center">
+              <div className="flex items-start justify-between mb-1 md:mb-2 gap-2">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words font-sen">{truncateName(trainer.name)}</h3>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 line-clamp-1 font-sen">{truncateName(trainer.name)}</h3>
                   <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    <div ref={badgeRef} className="flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: badgeContainerMaxHeight }}>
-                      {isVerified && (
-                        <Badge className={`${badgeBase} ${badgeVerified}`}>
-                          <BadgeCheck className={iconBase} />
-                          Verified
-                        </Badge>
-                      )}
-                      {trainer.certifications.map((cert, i) => (
-                        <Badge key={i} className={`${badgeBase} ${badgeCert}`}>
-                          <Award className={iconBase} />
-                          {cert}
-                        </Badge>
-                      ))}
-                      {trainer.hasReviews && (
-                        <Badge className={`${badgeBase} ${badgeReviews}`}>
-                          <MessageCircle className={iconBase} />
-                          Reviews
-                        </Badge>
-                      )}
+                    {/* Mobile: Max 2 badges - no wrap, truncate second badge */}
+                    <div className="md:hidden flex items-center gap-1 flex-nowrap overflow-hidden">
+                      {mobileBadges.map((badge, idx) => renderBadge(badge.type, badge.certIndex, idx === 1))}
+                    </div>
+                    {/* Desktop: All badges with overflow handling */}
+                    <div ref={badgeRef} className="hidden md:flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: badgeContainerMaxHeight }}>
+                      {isVerified && renderBadge("verified")}
+                      {trainer.certifications.map((_, i) => renderBadge("cert", i))}
+                      {trainer.hasReviews && renderBadge("reviews")}
                     </div>
                     {hiddenCount > 0 && (
-                      <span className="text-gray-500 text-xs whitespace-nowrap ml-1">
+                      <span className="hidden md:inline text-gray-500 text-xs whitespace-nowrap ml-1">
                         and {hiddenCount} More
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <p className="text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
-              <div className="flex items-center gap-1 text-gray-600 text-xs sm:text-sm">
-                <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                <span className="break-words">
+              {/* Mobile: Truncated services with line-clamp */}
+              <p className="md:hidden text-xs text-gray-700 mb-1 line-clamp-2">
+                {trainer.specialties.slice(0, 3).join(" • ")}
+                {trainer.specialties.length > 3 && " • ..."}
+              </p>
+              {/* Desktop: All services */}
+              <p className="hidden md:block text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
+              <div className="flex items-center gap-1 text-gray-600 text-xs">
+                <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                <span className="line-clamp-1">
                   {trainer.districtDisplay 
                     ? [trainer.districtDisplay, trainer.isOnline && "Online"].filter(Boolean).join(" • ")
                     : [...trainer.locations, trainer.isOnline && "Online"].filter(Boolean).join(" • ")
@@ -150,7 +187,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 </span>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-4" />
+            <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2 md:ml-4" />
           </div>
         </div>
       </CardContent>
@@ -172,6 +209,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     districtsParam && districtsParam !== "all" ? districtsParam.split(",").filter(Boolean) : []
   )
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "")
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
 
   // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
@@ -206,6 +244,38 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
       if (newSelection.length === 0) setShowAllDistricts(true)
       return newSelection
     })
+  }
+
+  const renderDistrictButton = (district: string, isMobile: boolean) => {
+    const isSelected = !showAllDistricts && selectedDistricts.includes(district)
+    const isAll = district === "all"
+    
+    if (isMobile) {
+      return (
+        <Button
+          key={district}
+          variant="ghost"
+          onClick={() => {
+            handleDistrictClick(district)
+            if (isAll) setIsMobileDropdownOpen(false)
+          }}
+          className={`w-full justify-start ${isSelected || (isAll && showAllDistricts) ? "bg-juice/10" : ""}`}
+        >
+          {district === "all" ? "All Districts" : district}
+        </Button>
+      )
+    }
+    
+    return (
+      <Button
+        key={district}
+        variant="outline"
+        onClick={() => handleDistrictClick(district)}
+        className={`${btnBase} ${isSelected || (isAll && showAllDistricts) ? (isAll ? btnActiveAll : btnActive) : btnInactive}`}
+      >
+        {district === "all" ? "All Districts" : district}
+      </Button>
+    )
   }
 
   const filteredTrainers = useMemo(() => {
@@ -249,27 +319,37 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap gap-2 w-full">
-            <Button
-              variant="outline"
-              onClick={() => handleDistrictClick("all")}
-              className={`${btnBase} ${showAllDistricts ? btnActiveAll : btnInactive}`}
-            >
-              All Districts
-            </Button>
-            {districts.map((district) => {
-              const isSelected = !showAllDistricts && selectedDistricts.includes(district)
-              return (
+          {/* Mobile: Dropdown */}
+          <div className="md:hidden w-full">
+            <Popover open={isMobileDropdownOpen} onOpenChange={setIsMobileDropdownOpen}>
+              <PopoverTrigger asChild>
                 <Button
-                  key={district}
                   variant="outline"
-                  onClick={() => handleDistrictClick(district)}
-                  className={`${btnBase} ${isSelected ? btnActive : btnInactive}`}
+                  className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActiveAll : btnInactive}`}
                 >
-                  {district}
+                  <span>
+                    {showAllDistricts 
+                      ? "All Districts" 
+                      : selectedDistricts.length > 0 
+                        ? `${selectedDistricts.length} district${selectedDistricts.length > 1 ? 's' : ''} selected`
+                        : "Select Districts"}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
                 </Button>
-              )
-            })}
+              </PopoverTrigger>
+              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 p-2 max-h-[60vh] overflow-y-auto" align="start">
+                <div className="space-y-1">
+                  {renderDistrictButton("all", true)}
+                  {districts.map((district) => renderDistrictButton(district, true))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Desktop: Button Grid */}
+          <div className="hidden md:flex flex-wrap gap-2 w-full">
+            {renderDistrictButton("all", false)}
+            {districts.map((district) => renderDistrictButton(district, false))}
           </div>
         </div>
       </section>

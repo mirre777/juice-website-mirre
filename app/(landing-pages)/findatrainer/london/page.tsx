@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer-directory-layout"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { fetchTrainersForCity, extractDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"
+import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"
 
 export const dynamic = 'force-dynamic'
 
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
 
 export default async function LondonTrainerDirectoryPage() {
   const trainers = await fetchTrainersForCity("London")
-  const districts = extractDistricts(trainers)
+  const districts = getCityDistricts("London")
 
   const baseUrl = "https://juice.fitness"
   const fullUrl = `${baseUrl}/findatrainer/london`
