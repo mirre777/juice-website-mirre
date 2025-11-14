@@ -66,8 +66,8 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const trainerUrl = trainer.publicPath ? `https://app.juice.fitness${trainer.publicPath}` : undefined
 
   return (
-    <a href={trainerUrl} className="block no-underline" onClick={(e) => !trainerUrl && e.preventDefault()}>
-    <Card className={`rounded-lg transition-colors cursor-pointer ${isVerified ? cardVerified : cardUnverified}`}>
+    <a href={trainerUrl} className="block no-underline w-full" onClick={(e) => !trainerUrl && e.preventDefault()}>
+    <Card className={`w-full rounded-lg transition-colors cursor-pointer ${isVerified ? cardVerified : cardUnverified}`}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start gap-3 sm:gap-4">
           <div className={`${profileBase} ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
@@ -274,11 +274,11 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
         </div>
       </section>
 
-      <section className={`${sectionClass} pb-16 md:pb-20`}>
-        <div className="space-y-3 sm:space-y-4">
+      <section className={`${sectionClass} pb-16 md:pb-20 w-full`}>
+        <div className="w-full space-y-3 sm:space-y-4">
           {filteredTrainers.length > 0 ? (
-            filteredTrainers.map((trainer) => (
-              <TrainerCard key={trainer.id} trainer={trainer} />
+            filteredTrainers.map((trainer, index) => (
+              <TrainerCard key={trainer.id || `trainer-${index}`} trainer={trainer} />
             ))
           ) : (
             <div className="text-center py-12">

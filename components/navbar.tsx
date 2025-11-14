@@ -253,7 +253,7 @@ export function Navbar() {
             <div className="flex-shrink-0">
               <UserToggle isCoach={isCoach} onChange={handleToggleChange} isDarkBackground={!shouldUseWhiteNavbar} />
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0" suppressHydrationWarning>
               {isCoach ? (
                 <Link
                   href="https://app.juice.fitness/"
