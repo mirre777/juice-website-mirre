@@ -77,6 +77,87 @@ export function extractDistricts(trainers: Trainer[]): string[] {
   return [...new Set(districts)].sort()
 }
 
+export function getCityDistricts(city: string): string[] {
+  const cityDistricts: Record<string, string[]> = {
+    Vienna: [
+      "Innere Stadt",
+      "Leopoldstadt",
+      "Landstraße",
+      "Wieden",
+      "Margareten",
+      "Mariahilf",
+      "Neubau",
+      "Josefstadt",
+      "Alsergrund",
+      "Favoriten",
+      "Simmering",
+      "Meidling",
+      "Hietzing",
+      "Penzing",
+      "Rudolfsheim-Fünfhaus",
+      "Ottakring",
+      "Hernals",
+      "Währing",
+      "Döbling",
+      "Brigittenau",
+      "Floridsdorf",
+      "Donaustadt",
+      "Liesing",
+    ],
+    Berlin: [
+      "Mitte",
+      "Friedrichshain-Kreuzberg",
+      "Pankow",
+      "Charlottenburg-Wilmersdorf",
+      "Spandau",
+      "Steglitz-Zehlendorf",
+      "Tempelhof-Schöneberg",
+      "Neukölln",
+      "Treptow-Köpenick",
+      "Marzahn-Hellersdorf",
+      "Lichtenberg",
+      "Reinickendorf",
+    ],
+    London: [
+      "City of London",
+      "City of Westminster",
+      "Kensington and Chelsea",
+      "Hammersmith and Fulham",
+      "Wandsworth",
+      "Lambeth",
+      "Southwark",
+      "Tower Hamlets",
+      "Hackney",
+      "Islington",
+      "Camden",
+      "Brent",
+      "Ealing",
+      "Hounslow",
+      "Richmond upon Thames",
+      "Kingston upon Thames",
+      "Merton",
+      "Sutton",
+      "Croydon",
+      "Bromley",
+      "Lewisham",
+      "Greenwich",
+      "Bexley",
+      "Havering",
+      "Barking and Dagenham",
+      "Redbridge",
+      "Newham",
+      "Waltham Forest",
+      "Haringey",
+      "Enfield",
+      "Barnet",
+      "Harrow",
+      "Hillingdon",
+    ],
+  }
+  
+  return cityDistricts[city] || []
+}
+
 export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
   const dbTrainers = await fetchTrainersByCity(city)
   if (!dbTrainers.length) return []
