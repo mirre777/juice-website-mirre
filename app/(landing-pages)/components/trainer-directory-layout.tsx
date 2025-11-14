@@ -142,7 +142,12 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
               <p className="text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
               <div className="flex items-center gap-1 text-gray-600 text-xs sm:text-sm">
                 <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                <span className="break-words">{[...trainer.locations, trainer.isOnline && "Online"].filter(Boolean).join(" • ")}</span>
+                <span className="break-words">
+                  {trainer.districtDisplay 
+                    ? [trainer.districtDisplay, trainer.isOnline && "Online"].filter(Boolean).join(" • ")
+                    : [...trainer.locations, trainer.isOnline && "Online"].filter(Boolean).join(" • ")
+                  }
+                </span>
               </div>
             </div>
             <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-4" />
