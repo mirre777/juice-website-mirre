@@ -46,14 +46,13 @@ function parseDistricts(district: string | undefined | null): string[] {
 }
 
 function mapTrainerFromDb(doc: any, hasReviews: boolean = false): Trainer {
-  const isVerified = doc.status === "claimed"
-  
   const imageUrl = 
     doc.photos?.profileImageUrl || 
     doc.profileImageUrl || 
     doc.photo?.profileImageUrl ||
     doc.imageUrl ||
     undefined
+  const isVerified = doc.status === "claimed" || imageUrl !== undefined
   
   return {
     id: doc.id || "",
