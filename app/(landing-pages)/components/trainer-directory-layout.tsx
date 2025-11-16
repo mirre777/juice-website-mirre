@@ -282,7 +282,13 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     const query = searchQuery.toLowerCase().trim()
     return trainers.filter((trainer) => {
       const matchesDistrict = showAllDistricts || 
-        trainer.locations.some((loc) => selectedDistricts.includes(loc)) ||
+        selectedDistricts.some((selected) => {
+          const sel = selected.toLowerCase()
+          return trainer.locations.some((loc) => {
+            const l = loc.toLowerCase()
+            return l === sel || l.includes(`-${sel}`) || l.includes(`${sel}-`) || l.includes(` ${sel} `) || l.startsWith(`${sel} `) || l.endsWith(` ${sel}`)
+          })
+        }) ||
         (trainer.isOnline && selectedDistricts.includes("Online"))
       if (!matchesDistrict) return false
       if (!query) return true
