@@ -73,45 +73,28 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   const isVerified = trainer.isVerified
   const trainerUrl = trainer.publicPath ? `https://app.juice.fitness${trainer.publicPath}` : undefined
 
-  // Helper to render a badge
+  const badgeConfig = {
+    verified: { Icon: BadgeCheck, className: badgeVerified, text: "Verified" },
+    cert: { Icon: Award, className: badgeCert },
+    reviews: { Icon: MessageCircle, className: badgeReviews, text: "Reviews" }
+  } as const
   const renderBadge = (type: "verified" | "cert" | "reviews", certIndex?: number, truncate?: boolean) => {
-    if (type === "verified") {
-      return (
-        <Badge key="verified" className={`${badgeBase} ${badgeVerified}`}>
-          <BadgeCheck className={iconBase} />
-          Verified
-        </Badge>
-      )
-    }
-    if (type === "cert" && certIndex !== undefined) {
-      const certText = trainer.certifications[certIndex]
-      return (
-        <Badge key={`cert-${certIndex}`} className={`${badgeBase} ${badgeCert}`}>
-          <Award className={iconBase} />
-          <span className={truncate ? "truncate max-w-[100px]" : ""}>{certText}</span>
-        </Badge>
-      )
-    }
-    if (type === "reviews") {
-      return (
-        <Badge key="reviews" className={`${badgeBase} ${badgeReviews}`}>
-          <MessageCircle className={iconBase} />
-          Reviews
-        </Badge>
-      )
-    }
-    return null
+    if (type === "cert" && certIndex === undefined) return null
+    const config = badgeConfig[type]
+    const text = type === "cert" ? trainer.certifications[certIndex!] : (config as { text: string }).text
+    return (
+      <Badge key={type === "cert" ? `cert-${certIndex}` : type} className={`${badgeBase} ${config.className}`}>
+        <config.Icon className={iconBase} />
+        {type === "cert" ? <span className={truncate ? "truncate max-w-[100px]" : ""}>{text}</span> : text}
+      </Badge>
+    )
   }
 
-  // Mobile: Get max 2 badges (prioritize: Verified > Certifications > Reviews)
-  const mobileBadges: Array<{ type: "verified" | "cert" | "reviews"; certIndex?: number }> = []
-  if (isVerified) mobileBadges.push({ type: "verified" })
-  if (trainer.certifications.length > 0 && mobileBadges.length < 2) {
-    mobileBadges.push({ type: "cert", certIndex: 0 })
-  }
-  if (trainer.hasReviews && mobileBadges.length < 2) {
-    mobileBadges.push({ type: "reviews" })
-  }
+  const mobileBadges = [
+    isVerified && { type: "verified" as const },
+    trainer.certifications.length > 0 && { type: "cert" as const, certIndex: 0 },
+    trainer.hasReviews && { type: "reviews" as const }
+  ].filter(Boolean).slice(0, 2) as Array<{ type: "verified" | "cert" | "reviews"; certIndex?: number }>
 
   return (
     <a href={trainerUrl} className="block no-underline w-full" target="_blank" rel="noopener noreferrer" onClick={(e) => !trainerUrl && e.preventDefault()}>
@@ -120,21 +103,12 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
         <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
           <div className={`${profileBase} flex-shrink-0 ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
             {isVerified ? (
-              trainer.imageUrl ? (
-                <img
-                  src={trainer.imageUrl}
-                  alt={trainer.name}
-                  className="w-full h-full object-cover rounded-full"
-                  onError={handleImageError}
-                />
-              ) : (
-                <img
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=4f46e5&color=fff&size=128&bold=true`}
-                  alt={trainer.name}
-                  className="w-full h-full object-cover"
-                  onError={handleImageError}
-                />
-              )
+              <img
+                src={trainer.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=4f46e5&color=fff&size=128&bold=true`}
+                alt={trainer.name}
+                className={`w-full h-full object-cover ${trainer.imageUrl ? "rounded-full" : ""}`}
+                onError={handleImageError}
+              />
             ) : (
               <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
             )}
@@ -145,11 +119,9 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
                   <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 line-clamp-1 font-sen">{truncateName(trainer.name)}</h3>
                   <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    {/* Mobile: Max 2 badges - no wrap, truncate second badge */}
                     <div className="md:hidden flex items-center gap-1 flex-nowrap overflow-hidden">
                       {mobileBadges.map((badge, idx) => renderBadge(badge.type, badge.certIndex, idx === 1))}
                     </div>
-                    {/* Desktop: All badges with overflow handling */}
                     <div ref={badgeRef} className="hidden md:flex items-center gap-1 sm:gap-2 flex-wrap overflow-hidden" style={{ maxHeight: badgeContainerMaxHeight }}>
                       {isVerified && renderBadge("verified")}
                       {trainer.certifications.map((_, i) => renderBadge("cert", i))}
@@ -163,20 +135,12 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                   </div>
                 </div>
               </div>
-              {/* Mobile: Truncated services with line-clamp */}
-              <p className="md:hidden text-xs text-gray-700 mb-1 line-clamp-2">
-                {trainer.specialties.slice(0, 3).join(" • ")}
-                {trainer.specialties.length > 3 && " • ..."}
-              </p>
-              {/* Desktop: All services */}
+              <p className="md:hidden text-xs text-gray-700 mb-1 line-clamp-2">{trainer.specialties.slice(0, 3).join(" • ")}{trainer.specialties.length > 3 && " • ..."}</p>
               <p className="hidden md:block text-sm sm:text-base text-gray-700 mb-2 break-words">{trainer.specialties.join(" • ")}</p>
               <div className="flex items-center gap-1 text-gray-600 text-xs">
                 <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0" />
                 <span className="line-clamp-1">
-                  {trainer.districtDisplay 
-                    ? [trainer.districtDisplay, trainer.isOnline && "Online"].filter(Boolean).join(" • ")
-                    : [...trainer.locations, trainer.isOnline && "Online"].filter(Boolean).join(" • ")
-                  }
+                  {[...(trainer.districtDisplay ? [trainer.districtDisplay] : trainer.locations), trainer.isOnline && "Online"].filter(Boolean).join(" • ")}
                 </span>
               </div>
             </div>
@@ -249,29 +213,16 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   const renderDistrictButton = (district: string, isMobile: boolean) => {
     const isSelected = !showAllDistricts && selectedDistricts.includes(district)
     const isAll = district === "all"
-    
-    if (isMobile) {
-      return (
-        <Button
-          key={district}
-          variant="ghost"
-          onClick={() => {
-            handleDistrictClick(district)
-            if (isAll) setIsMobileDropdownOpen(false)
-          }}
-          className={`w-full justify-start ${isSelected || (isAll && showAllDistricts) ? "bg-juice/10" : ""}`}
-        >
-          {getDistrictLabel(district)}
-        </Button>
-      )
-    }
-    
+    const isActive = isSelected || (isAll && showAllDistricts)
     return (
       <Button
         key={district}
-        variant="outline"
-        onClick={() => handleDistrictClick(district)}
-        className={`${btnBase} ${isSelected || (isAll && showAllDistricts) ? btnActive : btnInactive}`}
+        variant={isMobile ? "ghost" : "outline"}
+        onClick={() => {
+          handleDistrictClick(district)
+          if (isMobile && isAll) setIsMobileDropdownOpen(false)
+        }}
+        className={isMobile ? `w-full justify-start ${isActive ? "bg-juice/10" : ""}` : `${btnBase} ${isActive ? btnActive : btnInactive}`}
       >
         {getDistrictLabel(district)}
       </Button>
@@ -284,15 +235,9 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
       const districtMatch = showAllDistricts || 
         selectedDistricts.some((selected) => trainer.locations.some((loc) => matchesDistrict(loc, selected))) ||
         (trainer.isOnline && selectedDistricts.includes("Online"))
-      if (!districtMatch) return false
-      if (!query) return true
-      return (
-        trainer.name.toLowerCase().includes(query) ||
-        trainer.specialties.some((s) => s.toLowerCase().includes(query)) ||
-        trainer.certifications.some((c) => c.toLowerCase().includes(query)) ||
-        trainer.locations.some((loc) => loc.toLowerCase().includes(query)) ||
-        (trainer.isOnline && "online".includes(query))
-      )
+      if (!districtMatch || !query) return districtMatch
+      const matches = (s: string) => s.toLowerCase().includes(query)
+      return matches(trainer.name) || trainer.specialties.some(matches) || trainer.certifications.some(matches) || trainer.locations.some(matches) || (trainer.isOnline && matches("online"))
     })
   }, [trainers, selectedDistricts, searchQuery, showAllDistricts])
 
@@ -319,21 +264,11 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          {/* Mobile: Dropdown */}
           <div className="md:hidden w-full">
             <Popover open={isMobileDropdownOpen} onOpenChange={setIsMobileDropdownOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActive : btnInactive}`}
-                >
-                  <span>
-                    {showAllDistricts 
-                      ? "All Districts" 
-                      : selectedDistricts.length > 0 
-                        ? `${selectedDistricts.length} district${selectedDistricts.length > 1 ? 's' : ''} selected`
-                        : "Select Districts"}
-                  </span>
+                <Button variant="outline" className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActive : btnInactive}`}>
+                  <span>{showAllDistricts ? "All Districts" : selectedDistricts.length > 0 ? `${selectedDistricts.length} district${selectedDistricts.length > 1 ? 's' : ''} selected` : "Select Districts"}</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -345,8 +280,6 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               </PopoverContent>
             </Popover>
           </div>
-
-          {/* Desktop: Button Grid */}
           <div className="hidden md:flex flex-wrap gap-2 w-full">
             {renderDistrictButton("all", false)}
             {districts.map((district) => renderDistrictButton(district, false))}
