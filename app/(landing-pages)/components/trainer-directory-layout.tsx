@@ -85,7 +85,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
     return (
       <Badge key={type === "cert" ? `cert-${certIndex}` : type} className={`${badgeBase} ${config.className}`}>
         <config.Icon className={iconBase} />
-        {type === "cert" ? <span className={truncate ? "truncate max-w-[100px]" : ""}>{text}</span> : text}
+        {type === "cert" ? <span className="truncate max-w-[120px]">{text}</span> : text}
       </Badge>
     )
   }
