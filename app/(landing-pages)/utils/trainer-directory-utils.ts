@@ -77,6 +77,14 @@ export function extractDistricts(trainers: Trainer[]): string[] {
   return [...new Set(districts)].sort()
 }
 
+function splitCompoundDistrict(district: string): string[] {
+  if (["City of London", "City of Westminster", "Richmond upon Thames", "Kingston upon Thames"].includes(district)) {
+    return [district]
+  }
+  const parts = district.split(/[-]| and /).map((d) => d.trim()).filter(Boolean)
+  return parts.length > 1 ? parts : [district]
+}
+
 export function getCityDistricts(city: string): string[] {
   const cityDistricts: Record<string, string[]> = {
     Vienna: [
@@ -155,7 +163,13 @@ export function getCityDistricts(city: string): string[] {
     ],
   }
   
-  return cityDistricts[city] || []
+  const districts = cityDistricts[city] || []
+  
+  // Split compound districts and flatten the result
+  const splitDistricts = districts.flatMap((district) => splitCompoundDistrict(district))
+  
+  // Remove duplicates and sort
+  return [...new Set(splitDistricts)].sort()
 }
 
 export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
