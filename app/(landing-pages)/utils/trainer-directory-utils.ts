@@ -160,6 +160,15 @@ export function getCityDistricts(city: string): string[] {
       "Harrow",
       "Hillingdon",
     ],
+    Amsterdam: [
+      "Centrum",
+      "Noord",
+      "Oost",
+      "West",
+      "Zuid",
+      "Zuidoost",
+      "Nieuw-West",
+    ],
   }
   
   const districts = cityDistricts[city] || []
