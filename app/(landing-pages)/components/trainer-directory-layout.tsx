@@ -20,7 +20,6 @@ const sectionClass = "px-4 md:px-6 max-w-6xl mx-auto"
 const badgeBase = "border-0 rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs text-white flex-shrink-0"
 const iconBase = "h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1"
 const btnBase = "rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
-const btnActiveAll = "bg-juice text-gray-900 hover:bg-juice/90 border-juice"
 const btnActive = "bg-juice text-gray-900 hover:bg-juice/90 border-juice"
 const btnInactive = "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
 const cardVerified = "border-2 border-juice hover:border-juice/80 bg-gradient-to-br from-white to-[#f8fff0]"
@@ -63,6 +62,14 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
   const truncateName = (name: string) => name.length > 20 ? `${name.slice(0, 20)}...` : name
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement
+    const parent = target.parentElement
+    if (parent) {
+      target.style.display = "none"
+      parent.innerHTML = `<span class="text-white font-bold text-sm sm:text-base">${getInitials(trainer.name)}</span>`
+    }
+  }
   const isVerified = trainer.isVerified
   const trainerUrl = trainer.publicPath ? `https://app.juice.fitness${trainer.publicPath}` : undefined
 
@@ -107,7 +114,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   }
 
   return (
-    <a href={trainerUrl} className="block no-underline w-full" onClick={(e) => !trainerUrl && e.preventDefault()}>
+    <a href={trainerUrl} className="block no-underline w-full" target="_blank" rel="noopener noreferrer" onClick={(e) => !trainerUrl && e.preventDefault()}>
     <Card className={`w-full rounded-lg transition-colors cursor-pointer h-[140px] md:h-auto overflow-hidden ${isVerified ? cardVerified : cardUnverified}`}>
       <CardContent className="p-4 sm:p-6 h-full flex">
         <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
@@ -118,28 +125,14 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                   src={trainer.imageUrl}
                   alt={trainer.name}
                   className="w-full h-full object-cover rounded-full"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    const parent = target.parentElement
-                    if (parent) {
-                      target.style.display = "none"
-                      parent.innerHTML = `<span class="text-white font-bold text-sm sm:text-base">${getInitials(trainer.name)}</span>`
-                    }
-                  }}
+                  onError={handleImageError}
                 />
               ) : (
                 <img
                   src={`https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=4f46e5&color=fff&size=128&bold=true`}
                   alt={trainer.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    const parent = target.parentElement
-                    if (parent) {
-                      target.style.display = "none"
-                      parent.innerHTML = `<span class="text-white font-bold text-sm sm:text-base">${getInitials(trainer.name)}</span>`
-                    }
-                  }}
+                  onError={handleImageError}
                 />
               )
             ) : (
@@ -232,6 +225,13 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     }
   }, [selectedDistricts, searchQuery, showAllDistricts])
 
+  const getDistrictLabel = (district: string) => district === "all" ? "All Districts" : district
+  const matchesDistrict = (loc: string, selected: string) => {
+    const l = loc.toLowerCase()
+    const sel = selected.toLowerCase()
+    return l === sel || l.includes(`-${sel}`) || l.includes(`${sel}-`) || l.includes(` ${sel} `) || l.startsWith(`${sel} `) || l.endsWith(` ${sel}`)
+  }
+
   const handleDistrictClick = (district: string) => {
     if (district === "all") {
       setShowAllDistricts(true)
@@ -261,7 +261,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
           }}
           className={`w-full justify-start ${isSelected || (isAll && showAllDistricts) ? "bg-juice/10" : ""}`}
         >
-          {district === "all" ? "All Districts" : district}
+          {getDistrictLabel(district)}
         </Button>
       )
     }
@@ -271,9 +271,9 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
         key={district}
         variant="outline"
         onClick={() => handleDistrictClick(district)}
-        className={`${btnBase} ${isSelected || (isAll && showAllDistricts) ? (isAll ? btnActiveAll : btnActive) : btnInactive}`}
+        className={`${btnBase} ${isSelected || (isAll && showAllDistricts) ? btnActive : btnInactive}`}
       >
-        {district === "all" ? "All Districts" : district}
+        {getDistrictLabel(district)}
       </Button>
     )
   }
@@ -281,16 +281,10 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   const filteredTrainers = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
     return trainers.filter((trainer) => {
-      const matchesDistrict = showAllDistricts || 
-        selectedDistricts.some((selected) => {
-          const sel = selected.toLowerCase()
-          return trainer.locations.some((loc) => {
-            const l = loc.toLowerCase()
-            return l === sel || l.includes(`-${sel}`) || l.includes(`${sel}-`) || l.includes(` ${sel} `) || l.startsWith(`${sel} `) || l.endsWith(` ${sel}`)
-          })
-        }) ||
+      const districtMatch = showAllDistricts || 
+        selectedDistricts.some((selected) => trainer.locations.some((loc) => matchesDistrict(loc, selected))) ||
         (trainer.isOnline && selectedDistricts.includes("Online"))
-      if (!matchesDistrict) return false
+      if (!districtMatch) return false
       if (!query) return true
       return (
         trainer.name.toLowerCase().includes(query) ||
@@ -331,7 +325,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActiveAll : btnInactive}`}
+                  className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActive : btnInactive}`}
                 >
                   <span>
                     {showAllDistricts 
