@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
 import type { Trainer } from "@/app/(landing-pages)/utils/trainer-directory-utils"
 
 interface TrainerDirectoryLayoutProps {
@@ -167,6 +168,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   )
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "")
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false)
 
   // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
@@ -232,6 +234,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   const filteredTrainers = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
     return trainers.filter((trainer) => {
+      if (showVerifiedOnly && !trainer.isVerified) return false
       const districtMatch = showAllDistricts || 
         selectedDistricts.some((selected) => trainer.locations.some((loc) => matchesDistrict(loc, selected))) ||
         (trainer.isOnline && selectedDistricts.includes("Online"))
@@ -239,7 +242,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
       const matches = (s: string) => s.toLowerCase().includes(query)
       return matches(trainer.name) || trainer.specialties.some(matches) || trainer.certifications.some(matches) || trainer.locations.some(matches) || (trainer.isOnline && matches("online"))
     })
-  }, [trainers, selectedDistricts, searchQuery, showAllDistricts])
+  }, [trainers, selectedDistricts, searchQuery, showAllDistricts, showVerifiedOnly])
 
   return (
     <>
@@ -254,15 +257,21 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
 
       <section className={`${sectionClass} pb-8 md:pb-12`}>
         <div className="max-w-3xl mx-auto w-full">
-          <div className="relative mb-4 sm:mb-6 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 z-10" />
-            <Input
-              type="text"
-              placeholder="Search trainers by name, specialty, district, or certification..."
-              className="w-full max-w-full pl-9 sm:pl-10 h-11 sm:h-12 text-sm sm:text-base rounded-lg border-gray-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="flex gap-3 items-center mb-4 sm:mb-6 w-full">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 z-10" />
+              <Input
+                type="text"
+                placeholder="Search trainers by name, specialty, district, or certification..."
+                className="w-full pl-9 sm:pl-10 h-11 sm:h-12 text-sm sm:text-base rounded-lg border-gray-300"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <label className="flex items-center gap-2 whitespace-nowrap text-sm cursor-pointer">
+              <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
+              Only show me verified trainers
+            </label>
           </div>
           <div className="md:hidden w-full">
             <Popover open={isMobileDropdownOpen} onOpenChange={setIsMobileDropdownOpen}>
