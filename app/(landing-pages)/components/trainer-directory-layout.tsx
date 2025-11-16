@@ -246,19 +246,21 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
 
   return (
     <>
-      <section className={`${sectionClass} py-12 md:py-16`}>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 text-center font-sen">
-          Personal Trainer Directory {city}
-        </h1>
-        <p className="text-base sm:text-lg text-gray-700 max-w-3xl mx-auto text-center">
-          Find certified personal trainers in {city}. Connect with verified professionals or discover talented trainers in your neighborhood.
-        </p>
+      <section className="px-4 md:px-6 py-12 md:py-16">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 text-center font-sen">
+            Personal Trainer Directory {city}
+          </h1>
+          <p className="text-base sm:text-lg text-gray-700 text-center">
+            Find certified personal trainers in {city}. Connect with verified professionals or discover talented trainers in your neighborhood.
+          </p>
+        </div>
       </section>
 
-      <section className={`${sectionClass} pb-8 md:pb-12`}>
+      <section className="px-4 md:px-6 pb-8 md:pb-12">
         <div className="max-w-3xl mx-auto w-full">
-          <div className="flex gap-3 items-center mb-4 sm:mb-6 w-full">
-            <div className="relative flex-1">
+          <div className="flex flex-col md:flex-row gap-3 items-start md:items-center mb-4 sm:mb-6 w-full">
+            <div className="relative w-full md:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 z-10" />
               <Input
                 type="text"
@@ -268,26 +270,32 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <label className="flex items-center gap-2 whitespace-nowrap text-sm cursor-pointer">
+            <label className="hidden md:flex items-center gap-2 whitespace-nowrap text-sm cursor-pointer">
               <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
               Only show me verified trainers
             </label>
           </div>
-          <div className="md:hidden w-full">
-            <Popover open={isMobileDropdownOpen} onOpenChange={setIsMobileDropdownOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActive : btnInactive}`}>
-                  <span>{showAllDistricts ? "All Districts" : selectedDistricts.length > 0 ? `${selectedDistricts.length} district${selectedDistricts.length > 1 ? 's' : ''} selected` : "Select Districts"}</span>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 p-2 max-h-[60vh] overflow-y-auto" align="start">
-                <div className="space-y-1">
-                  {renderDistrictButton("all", true)}
-                  {districts.map((district) => renderDistrictButton(district, true))}
-                </div>
-              </PopoverContent>
-            </Popover>
+          <div className="flex gap-3 items-center mb-4 sm:mb-6 w-full md:hidden">
+            <div className="flex-1 min-w-0">
+              <Popover open={isMobileDropdownOpen} onOpenChange={setIsMobileDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={`${btnBase} w-full justify-between ${showAllDistricts ? btnActive : btnInactive}`}>
+                    <span className="truncate">{showAllDistricts ? "All Districts" : selectedDistricts.length > 0 ? `${selectedDistricts.length} district${selectedDistricts.length > 1 ? 's' : ''} selected` : "Select Districts"}</span>
+                    <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 p-2 max-h-[60vh] overflow-y-auto" align="start">
+                  <div className="space-y-1">
+                    {renderDistrictButton("all", true)}
+                    {districts.map((district) => renderDistrictButton(district, true))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <label className="flex items-center gap-2 text-sm cursor-pointer flex-shrink-0">
+              <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
+              <span className="whitespace-nowrap">Verified only</span>
+            </label>
           </div>
           <div className="hidden md:flex flex-wrap gap-2 w-full">
             {renderDistrictButton("all", false)}
