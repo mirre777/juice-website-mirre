@@ -6,6 +6,8 @@ import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/ut
 
 export const dynamic = 'force-dynamic'
 
+const ogImageUrl = "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/blog-images/london-1126007_1280.jpg"
+
 export const metadata: Metadata = {
   title: "Find a Personal Trainer in London | Verified Fitness Coaches | Juice",
   description:
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-trainer-directory-london.jpg",
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "Personal Trainer Directory London - Juice",
@@ -50,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Find a Personal Trainer in London | Verified Fitness Coaches",
     description: "Discover certified personal trainers in London. Find your perfect trainer today.",
-    images: ["/images/og-trainer-directory-london.jpg"],
+    images: [ogImageUrl],
   },
   robots: {
     index: true,
@@ -109,7 +111,7 @@ export default async function LondonTrainerDirectoryPage() {
     },
     image: {
       "@type": "ImageObject",
-      url: `${baseUrl}/images/og-trainer-directory-london.jpg`,
+      url: ogImageUrl,
       width: 1200,
       height: 630,
       alt: "Personal Trainer Directory London - Juice",

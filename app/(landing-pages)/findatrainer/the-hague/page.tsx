@@ -6,6 +6,8 @@ import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/ut
 
 export const dynamic = 'force-dynamic'
 
+const ogImageUrl = "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/blog-images/the%20hague%20pier.jpg"
+
 export const metadata: Metadata = {
   title: "Personal Training Den Haag - Vind jouw trainer | Juice",
   description:
@@ -43,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-trainer-directory-the-hague.jpg",
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "Personal Trainer Directory Den Haag - Juice",
@@ -54,7 +56,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Personal Training Den Haag - Vind jouw trainer | Juice",
     description: "Vind gecertificeerde personal trainers in Den Haag. Kies verified coaches in Centrum, Scheveningen, Segbroek, Haagse Hout, Loosduinen en meer. Start vandaag nog met je training.",
-    images: ["/images/og-trainer-directory-the-hague.jpg"],
+    images: [ogImageUrl],
   },
   robots: {
     index: true,
@@ -117,7 +119,7 @@ export default async function TheHagueTrainerDirectoryPage() {
     },
     image: {
       "@type": "ImageObject",
-      url: `${baseUrl}/images/og-trainer-directory-the-hague.jpg`,
+      url: ogImageUrl,
       width: 1200,
       height: 630,
       alt: "Personal Trainer Directory Den Haag - Juice",

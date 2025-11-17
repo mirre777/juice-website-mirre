@@ -6,6 +6,8 @@ import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/ut
 
 export const dynamic = 'force-dynamic'
 
+const ogImageUrl = "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/blog-images/rotterdam-7095262_1280.jpg"
+
 export const metadata: Metadata = {
   title: "Personal Training Rotterdam - Vind jouw trainer | Juice",
   description:
@@ -56,7 +58,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-trainer-directory-rotterdam.jpg",
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "Personal Trainer Directory Rotterdam - Juice",
@@ -68,7 +70,7 @@ export const metadata: Metadata = {
     title: "Personal Training Rotterdam - Vind jouw trainer | Juice",
     description:
       "Vind gecertificeerde personal trainers in Rotterdam. Kies verified coaches in Stadscentrum, Delfshaven, Kralingen-Crooswijk, Hoek van Holland, Rozenburg en meer.",
-    images: ["/images/og-trainer-directory-rotterdam.jpg"],
+    images: [ogImageUrl],
   },
   robots: {
     index: true,
@@ -144,7 +146,7 @@ export default async function RotterdamTrainerDirectoryPage() {
     },
     image: {
       "@type": "ImageObject",
-      url: `${baseUrl}/images/og-trainer-directory-rotterdam.jpg`,
+      url: ogImageUrl,
       width: 1200,
       height: 630,
       alt: "Personal Trainer Directory Rotterdam - Juice",
