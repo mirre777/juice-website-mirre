@@ -76,8 +76,21 @@ export function extractDistricts(trainers: Trainer[]): string[] {
   return [...new Set(districts)].sort()
 }
 
+const preserveCompoundDistricts = new Set([
+  "City of London",
+  "City of Westminster",
+  "Richmond upon Thames",
+  "Kingston upon Thames",
+  "Hillegersberg-Schiebroek",
+  "Kralingen-Crooswijk",
+  "Nieuw-Mathenesse",
+  "Waalhaven-Eemhaven",
+  "Botlek-Europoort-Maasvlakte",
+  "Rotterdam-Noord-West",
+])
+
 function splitCompoundDistrict(district: string): string[] {
-  if (["City of London", "City of Westminster", "Richmond upon Thames", "Kingston upon Thames"].includes(district)) {
+  if (preserveCompoundDistricts.has(district)) {
     return [district]
   }
   const parts = district.split(/[-]| and /).map((d) => d.trim()).filter(Boolean)
@@ -168,6 +181,30 @@ export function getCityDistricts(city: string): string[] {
       "Zuid",
       "Zuidoost",
       "Nieuw-West",
+    ],
+    Rotterdam: [
+      "Stadscentrum",
+      "Delfshaven",
+      "Overschie",
+      "Noord",
+      "Hillegersberg-Schiebroek",
+      "Kralingen-Crooswijk",
+      "Feijenoord",
+      "IJsselmonde",
+      "Pernis",
+      "Prins Alexander",
+      "Charlois",
+      "Hoogvliet",
+      "Hoek van Holland",
+      "Spaanse Polder",
+      "Nieuw-Mathenesse",
+      "Waalhaven-Eemhaven",
+      "Vondelingenplaat",
+      "Botlek-Europoort-Maasvlakte",
+      "Rotterdam-Noord-West",
+      "Rivium",
+      "Bedrijventerrein Schieveen",
+      "Rozenburg",
     ],
   }
   
