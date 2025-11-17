@@ -6,6 +6,8 @@ import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/ut
 
 export const dynamic = 'force-dynamic'
 
+const ogImageUrl = "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/blog-images/berlin%20city%20bridge.jpeg"
+
 export const metadata: Metadata = {
   title: "Find a Personal Trainer in Berlin | Verified Fitness Coaches | Juice",
   description:
@@ -48,7 +50,7 @@ export const metadata: Metadata = {
     siteName: "Juice",
     images: [
       {
-        url: "/images/og-trainer-directory-berlin.jpg",
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "Personal Trainer Directory Berlin - Juice",
@@ -59,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Find a Personal Trainer in Berlin | Verified Fitness Coaches",
     description: "Discover certified personal trainers in Berlin. Find your perfect trainer today.",
-    images: ["/images/og-trainer-directory-berlin.jpg"],
+    images: [ogImageUrl],
   },
   robots: {
     index: true,
@@ -127,7 +129,7 @@ export default async function BerlinTrainerDirectoryPage() {
     },
     image: {
       "@type": "ImageObject",
-      url: `${baseUrl}/images/og-trainer-directory-berlin.jpg`,
+      url: ogImageUrl,
       width: 1200,
       height: 630,
       alt: "Personal Trainer Directory Berlin - Juice",
