@@ -87,6 +87,7 @@ const preserveCompoundDistricts = new Set([
   "Waalhaven-Eemhaven",
   "Botlek-Europoort-Maasvlakte",
   "Rotterdam-Noord-West",
+  "Leidschenveen-Ypenburg",
 ])
 
 function splitCompoundDistrict(district: string): string[] {
@@ -205,6 +206,16 @@ export function getCityDistricts(city: string): string[] {
       "Rivium",
       "Bedrijventerrein Schieveen",
       "Rozenburg",
+    ],
+    "The Hague": [
+      "Segbroek",
+      "Scheveningen",
+      "Haagse Hout",
+      "Loosduinen",
+      "Laak",
+      "Leidschenveen-Ypenburg",
+      "Escamp",
+      "Centrum",
     ],
   }
   
