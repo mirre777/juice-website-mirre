@@ -34,7 +34,7 @@ export default function FindATrainerClientPage() {
             near you
           </h1>
           <p className="text-xl text-zinc-400 mb-12 max-w-3xl mx-auto">
-            Browse our directory of certified personal trainers in major cities across Europe. Find your perfect match and start your fitness journey today.
+            Find your perfect match and start your fitness journey today.
           </p>
         </div>
       </section>
