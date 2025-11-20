@@ -30,7 +30,7 @@ export default function FindATrainerClientPage() {
       <section className="relative py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            Find a Personal Trainer
+            Find a Personal Trainer{" "}
             <br className="hidden md:block" />
             near you
           </h1>
