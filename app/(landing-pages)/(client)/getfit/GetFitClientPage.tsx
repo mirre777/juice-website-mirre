@@ -32,10 +32,17 @@ export default function GetFitClientPage() {
           <div className="mb-8">
             <TrainerGrid totalSpots={40} filledSpots={17} />
           </div>
+        </div>
+      </section>
 
-          {/* Can't find your city text */}
-          <p className="text-zinc-400 text-center mb-4">
-            Can't find your city? Tell us.
+      {/* Waitlist Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+            Can't find your city?
+          </h2>
+          <p className="text-xl text-zinc-400 mb-8">
+            Tell us where you're located and we'll notify you when trainers become available in your area.
           </p>
 
           {/* Waitlist Form */}

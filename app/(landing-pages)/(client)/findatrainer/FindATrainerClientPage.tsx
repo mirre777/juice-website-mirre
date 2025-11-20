@@ -94,11 +94,6 @@ export default function FindATrainerClientPage() {
           <p className="text-xl text-zinc-400 mb-8">
             Tell us where you're located and we'll notify you when trainers become available in your area.
           </p>
-          
-          {/* Can't find your city text */}
-          <p className="text-zinc-400 text-center mb-4">
-            Can't find your city? Tell us.
-          </p>
 
           {/* Waitlist Form */}
           <WaitlistForm selectedPlan={selectedPlan} showClientCounter={false} />
