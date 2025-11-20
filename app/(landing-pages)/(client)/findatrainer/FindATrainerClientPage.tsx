@@ -33,14 +33,14 @@ export default function FindATrainerClientPage() {
             <br className="hidden md:block" />
             near you
           </h1>
-          <p className="text-xl text-zinc-400 mb-12 max-w-3xl mx-auto">
+          <p className="text-xl text-zinc-400 mb-6 max-w-3xl mx-auto">
             Find your perfect match and start your fitness journey today.
           </p>
         </div>
       </section>
 
       {/* Cities Grid Section */}
-      <section className="py-12 px-4">
+      <section className="pt-4 pb-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cities.map((city) => (
