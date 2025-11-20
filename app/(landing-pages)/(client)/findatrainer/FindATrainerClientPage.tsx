@@ -31,7 +31,7 @@ export default function FindATrainerClientPage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
             Find a Personal Trainer
-            <br />
+            <br className="hidden md:block" />
             near you
           </h1>
           <p className="text-xl text-zinc-400 mb-12 max-w-3xl mx-auto">
