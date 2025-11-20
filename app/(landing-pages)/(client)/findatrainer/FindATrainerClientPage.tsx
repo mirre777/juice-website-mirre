@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { Users, Shield, Network, MapPin, ArrowRight } from "lucide-react"
@@ -34,6 +35,27 @@ export default function FindATrainerClientPage() {
           <p className="text-xl text-zinc-400 mb-12 max-w-3xl mx-auto">
             Browse our directory of certified personal trainers in major cities across Europe. Find your perfect match and start your fitness journey today.
           </p>
+        </div>
+      </section>
+
+      {/* Europe Map Section */}
+      <section className="py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
+            <Image
+              src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000&auto=format&fit=crop"
+              alt="Europe map showing cities where trainers are available"
+              fill
+              className="object-cover opacity-60"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/40" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-white text-lg md:text-xl font-semibold text-center px-4">
+                Trainers available across Europe
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
