@@ -232,12 +232,20 @@ export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
   const dbTrainers = await fetchTrainersByCity(city)
   if (!dbTrainers.length) return []
   
+  // Filter out trainers with @juice.fitness emails
+  const filteredTrainers = dbTrainers.filter((trainer) => {
+    const email = trainer.email || ""
+    return !email.includes("@juice.fitness")
+  })
+  
+  if (!filteredTrainers.length) return []
+  
   const db = await getFirebaseWebappAdminDb()
-  if (!db) return dbTrainers.map((doc) => mapTrainerFromDb(doc))
+  if (!db) return filteredTrainers.map((doc) => mapTrainerFromDb(doc))
   
   const reviewsMap = new Map(
     await Promise.all(
-      dbTrainers.map(async (trainer) => {
+      filteredTrainers.map(async (trainer) => {
         try {
           const reviewSnapshot = await db
             .collection("trainer_profiles")
@@ -253,6 +261,6 @@ export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
     )
   )
   
-  return dbTrainers.map((trainer) => mapTrainerFromDb(trainer, reviewsMap.get(trainer.id) || false))
+  return filteredTrainers.map((trainer) => mapTrainerFromDb(trainer, reviewsMap.get(trainer.id) || false))
 }
 
