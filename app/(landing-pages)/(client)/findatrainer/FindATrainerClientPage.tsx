@@ -71,6 +71,74 @@ export default function FindATrainerClientPage() {
         </div>
       </section>
 
+      {/* SEO Content - General Europe */}
+      <section className="py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">
+            Connect with Expert Personal Trainers Across Europe
+          </h2>
+          <p className="text-zinc-400 mb-4 leading-relaxed">
+            Whether you're in London, Berlin, Amsterdam, Vienna, or Brussels, finding the right personal trainer has never been easier. Juice connects you with certified fitness professionals who specialize in strength training, nutrition coaching, body recomposition, and personalized workout programs tailored to your goals.
+          </p>
+          <p className="text-zinc-400 leading-relaxed">
+            Our directory features verified personal trainers in major cities across the UK, Germany, Austria, the Netherlands, and Belgium. From powerlifting coaches to nutrition specialists, find experienced professionals who can help you build muscle, lose fat, and achieve your fitness goals.
+          </p>
+        </div>
+      </section>
+
+      {/* SEO Content - City Specific */}
+      <section className="py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-white">
+            Personal Trainers in Your City
+          </h2>
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">London Personal Trainers</h3>
+              <p className="text-zinc-400 leading-relaxed">
+                Find certified personal trainers throughout Greater London, from Central London to outer boroughs. Our London coaches specialize in gym-based training, home workouts, and online coaching programs designed for busy professionals.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Berlin Personal Trainers</h3>
+              <p className="text-zinc-400 leading-relaxed">
+                Connect with experienced fitness coaches across Berlin's diverse neighborhoods. Whether you're in Mitte, Kreuzberg, or Charlottenburg, find German-speaking trainers who understand your lifestyle and fitness aspirations.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Amsterdam Personal Trainers</h3>
+              <p className="text-zinc-400 leading-relaxed">
+                Discover qualified personal trainers in Amsterdam and surrounding areas. Our Dutch fitness professionals offer both in-person training at local gyms and flexible online coaching options.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Vienna Personal Trainers</h3>
+              <p className="text-zinc-400 leading-relaxed">
+                Work with certified trainers in Vienna who combine evidence-based methods with personalized attention. Find coaches fluent in German and English throughout Austria's capital.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Rotterdam & The Hague Personal Trainers</h3>
+              <p className="text-zinc-400 leading-relaxed">
+                Browse fitness professionals serving Rotterdam, The Hague, and the Randstad region. Our trainers offer science-backed programs for muscle building, weight loss, and athletic performance.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Brussels Personal Trainers</h3>
+              <p className="text-zinc-400 leading-relaxed">
+                Find bilingual personal trainers in Brussels offering services in Dutch, French, and English. Connect with coaches who specialize in body transformation and sustainable fitness habits.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Waitlist Section */}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
