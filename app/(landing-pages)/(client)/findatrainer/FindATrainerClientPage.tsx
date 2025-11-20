@@ -4,18 +4,18 @@ import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { WaitlistForm } from "@/components/waitlist-form"
-import { Users, Shield, Network, MapPin, ArrowRight } from "lucide-react"
+import { Users, Shield, Network, ArrowRight } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 
 const cities = [
-  { name: "London", slug: "london", path: "/findatrainer/london" },
-  { name: "Berlin", slug: "berlin", path: "/findatrainer/berlin" },
-  { name: "Amsterdam", slug: "amsterdam", path: "/findatrainer/amsterdam" },
-  { name: "Vienna", slug: "vienna", path: "/findatrainer/vienna" },
-  { name: "Rotterdam", slug: "rotterdam", path: "/findatrainer/rotterdam" },
-  { name: "The Hague", slug: "the-hague", path: "/findatrainer/the-hague" },
+  { name: "London", slug: "london", path: "/findatrainer/london", icon: "🏛️" },
+  { name: "Berlin", slug: "berlin", path: "/findatrainer/berlin", icon: "🐻" },
+  { name: "Amsterdam", slug: "amsterdam", path: "/findatrainer/amsterdam", icon: "🚲" },
+  { name: "Vienna", slug: "vienna", path: "/findatrainer/vienna", icon: "☕" },
+  { name: "Rotterdam", slug: "rotterdam", path: "/findatrainer/rotterdam", icon: "⚓" },
+  { name: "The Hague", slug: "the-hague", path: "/findatrainer/the-hague", icon: "⚖️" },
 ]
 
 export default function FindATrainerClientPage() {
@@ -53,7 +53,7 @@ export default function FindATrainerClientPage() {
                   <CardContent className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-juice/20 rounded-full flex items-center justify-center flex-shrink-0">
-                        <MapPin className="h-6 w-6 text-juice" />
+                        <span className="text-2xl">{city.icon}</span>
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white group-hover:text-juice transition-colors">
