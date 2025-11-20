@@ -3,6 +3,8 @@ import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"
+import { getRandomArticles } from "@/lib/blog"
+import { RelatedArticles } from "@/components/related-articles"
 
 export const dynamic = 'force-dynamic'
 
@@ -23,31 +25,6 @@ export const metadata: Metadata = {
     "fitness coach Vienna",
     "personal trainer Innere Stadt",
     "trainer Vienna-Leopoldstadt",
-    "personal trainer Landstraße",
-    "trainer Wieden",
-    "personal trainer Margareten",
-    "trainer Mariahilf",
-    "personal trainer Neubau",
-    "trainer Josefstadt",
-    "personal trainer Alsergrund",
-    "trainer Favoriten",
-    "personal trainer Simmering",
-    "trainer Meidling",
-    "personal trainer Hietzing",
-    "trainer Penzing",
-    "personal trainer Rudolfsheim-Fünfhaus",
-    "trainer Ottakring",
-    "personal trainer Hernals",
-    "trainer Währing",
-    "personal trainer Döbling",
-    "trainer Brigittenau",
-    "personal trainer Floridsdorf",
-    "trainer Donaustadt",
-    "personal trainer Liesing",
-    "Personal Trainer Wien",
-    "Fitness Trainer Wien",
-    "Personal Training Wien",
-    "zertifizierter Trainer Wien",
   ],
   authors: [{ name: "Juice" }],
   creator: "Juice",
@@ -95,6 +72,7 @@ export const metadata: Metadata = {
 export default async function ViennaTrainerDirectoryPage() {
   const trainers = await fetchTrainersForCity("Vienna")
   const districts = getCityDistricts("Vienna")
+  const relatedArticles = await getRandomArticles(2)
 
   const baseUrl = "https://juice.fitness"
   const fullUrl = `${baseUrl}/findatrainer/vienna`
@@ -177,6 +155,9 @@ export default async function ViennaTrainerDirectoryPage() {
       <main className="flex min-h-screen flex-col bg-white">
         <Navbar />
         <TrainerDirectoryLayout city="Vienna" districts={districts} trainers={trainers} />
+        <section className="max-w-6xl mx-auto px-4 md:px-6 pb-12">
+          <RelatedArticles articles={relatedArticles} />
+        </section>
         <Footer />
       </main>
     </>

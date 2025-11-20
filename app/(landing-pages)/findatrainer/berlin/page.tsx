@@ -3,6 +3,8 @@ import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"
+import { getRandomArticles } from "@/lib/blog"
+import { RelatedArticles } from "@/components/related-articles"
 
 export const dynamic = 'force-dynamic'
 
@@ -79,6 +81,7 @@ export const metadata: Metadata = {
 export default async function BerlinTrainerDirectoryPage() {
   const trainers = await fetchTrainersForCity("Berlin")
   const districts = getCityDistricts("Berlin")
+  const relatedArticles = await getRandomArticles(2)
 
   const baseUrl = "https://juice.fitness"
   const fullUrl = `${baseUrl}/findatrainer/berlin`
@@ -274,6 +277,10 @@ export default async function BerlinTrainerDirectoryPage() {
             <strong>Find your personal trainer in Berlin today to get stronger, move better, and train smarter.</strong>
           </p>
         </article>
+      </section>
+      
+      <section className="max-w-6xl mx-auto px-4 md:px-6 pb-12">
+        <RelatedArticles articles={relatedArticles} />
       </section>
       
       <Footer />

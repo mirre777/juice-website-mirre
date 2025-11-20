@@ -884,6 +884,24 @@ export async function getPostSlugs(): Promise<string[]> {
   return posts.map((post) => post.slug)
 }
 
+// Helper function to get random articles (for trainer directory pages)
+export async function getRandomArticles(limit = 2): Promise<BlogPostFrontmatter[]> {
+  const allPosts = await getAllPosts()
+  // Shuffle and take the first 'limit' posts
+  const shuffled = allPosts.sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, limit)
+}
+
+// Helper function to get related articles (excluding current post)
+export async function getRelatedArticles(currentSlug: string, limit = 2): Promise<BlogPostFrontmatter[]> {
+  const allPosts = await getAllPosts()
+  // Filter out current post and get random selection
+  const otherPosts = allPosts.filter((post) => post.slug !== currentSlug)
+  // Shuffle and take the first 'limit' posts
+  const shuffled = otherPosts.sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, limit)
+}
+
 async function fetchBlobContent(url: string): Promise<string> {
   try {
     const response = await fetch(url)

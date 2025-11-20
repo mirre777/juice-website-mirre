@@ -3,6 +3,8 @@ import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"
+import { getRandomArticles } from "@/lib/blog"
+import { RelatedArticles } from "@/components/related-articles"
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +72,7 @@ export const metadata: Metadata = {
 export default async function LondonTrainerDirectoryPage() {
   const trainers = await fetchTrainersForCity("London")
   const districts = getCityDistricts("London")
+  const relatedArticles = await getRandomArticles(2)
 
   const baseUrl = "https://juice.fitness"
   const fullUrl = `${baseUrl}/findatrainer/london`
@@ -236,6 +239,10 @@ export default async function LondonTrainerDirectoryPage() {
             In London, one-to-one personal training usually sits in the region of £70 to £150 per hour, though you will find lower or higher depending on context. Packages and frequency plans can offer better per-hour value. Given the cost of operating in London (studio rent, commute, demand) higher rates aren't unusual, but your focus should always be on value, fit, and quality, not just the number.
           </p>
         </article>
+      </section>
+      
+      <section className="max-w-6xl mx-auto px-4 md:px-6 pb-12">
+        <RelatedArticles articles={relatedArticles} />
       </section>
       
       <Footer />
