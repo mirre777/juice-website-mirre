@@ -43,18 +43,12 @@ export default function FindATrainerClientPage() {
         <div className="max-w-6xl mx-auto">
           <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
             <Image
-              src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000&auto=format&fit=crop"
+              src="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/blog-images/europe%20trainers%20map.png"
               alt="Europe map showing cities where trainers are available"
               fill
-              className="object-cover opacity-60"
+              className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/40" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-white text-lg md:text-xl font-semibold text-center px-4">
-                Trainers available across Europe
-              </p>
-            </div>
           </div>
         </div>
       </section>
