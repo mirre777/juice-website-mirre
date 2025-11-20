@@ -232,10 +232,27 @@ export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
   const dbTrainers = await fetchTrainersByCity(city)
   if (!dbTrainers.length) return []
   
-  // Filter out trainers with @juice.fitness emails
+  // Filter out trainers with @juice.fitness emails, test profiles, and specific names
+  const excludedNames = [
+    "mirre snelting",
+    "folger fonseca",
+    "lena traninger"
+  ].map(n => n.toLowerCase())
+  
   const filteredTrainers = dbTrainers.filter((trainer) => {
     const email = trainer.email || ""
-    return !email.includes("@juice.fitness")
+    const name = (trainer.fullName || "").toLowerCase()
+    
+    // Filter out @juice.fitness emails
+    if (email.includes("@juice.fitness")) return false
+    
+    // Filter out profiles with 'test' in the name (case insensitive)
+    if (name.includes("test")) return false
+    
+    // Filter out specific names (case insensitive, exact match)
+    if (excludedNames.includes(name)) return false
+    
+    return true
   })
   
   if (!filteredTrainers.length) return []
