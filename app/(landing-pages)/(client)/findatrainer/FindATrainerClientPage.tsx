@@ -30,7 +30,9 @@ export default function FindATrainerClientPage() {
       <section className="relative py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            Find a Personal Trainer near you
+            Find a Personal Trainer
+            <br />
+            near you
           </h1>
           <p className="text-xl text-zinc-400 mb-12 max-w-3xl mx-auto">
             Browse our directory of certified personal trainers in major cities across Europe. Find your perfect match and start your fitness journey today.
