@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { WaitlistForm } from "@/components/waitlist-form"
@@ -8,18 +7,190 @@ import { Users, Shield, Network, ArrowRight } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
+import { ClientFAQSection } from "@/components/client-faq-section"
+
+const SVG_CLASSES = "w-6 h-6 text-juice"
+
+// Custom city icons as SVG components
+const CityIcon = ({ citySlug }: { citySlug: string }) => {
+  const icons: Record<string, JSX.Element> = {
+    london: (
+      // Big Ben
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+        <path d="M12 2V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <rect x="9" y="6" width="6" height="6" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+        <circle cx="12" cy="9" r="1.5" fill="currentColor"/>
+        <path d="M10 6H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M10 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M8 14H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M8 16H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M10 18H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 20V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    berlin: (
+      // Train
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+        <rect x="4" y="10" width="16" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="6" y="6" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="14" y="6" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+        <circle cx="8" cy="18" r="1.5" fill="currentColor"/>
+        <circle cx="16" cy="18" r="1.5" fill="currentColor"/>
+        <path d="M8 10V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M16 10V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M10 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    amsterdam: (
+      // Row of typical houses
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+        <path d="M4 20V10L7 8L10 10V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M10 20V12L13 10L16 12V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M16 20V14L19 12L22 14V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M4 20H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <rect x="5" y="13" width="2" height="2" rx="0.3" fill="currentColor"/>
+        <rect x="11" y="15" width="2" height="2" rx="0.3" fill="currentColor"/>
+        <rect x="17" y="17" width="2" height="2" rx="0.3" fill="currentColor"/>
+      </svg>
+    ),
+    vienna: (
+      // Cup of coffee
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+        <path d="M6 8H18C19.1 8 20 8.9 20 10V16C20 17.1 19.1 18 18 18H6C4.9 18 4 17.1 4 16V10C4 8.9 4.9 8 6 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8 8V6C8 5.4 8.4 5 9 5H15C15.6 5 16 5.4 16 6V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M20 12H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M7 13H17" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.6"/>
+      </svg>
+    ),
+    rotterdam: (
+      // Erasmus Bridge
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+        <path d="M3 20H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 20V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 4L8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 4L16 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8 8V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M16 8V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M6 12H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M6 16H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    "the-hague": (
+      // Pier
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+        <path d="M3 20H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M12 20V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M8 20V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M16 20V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M4 20V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M20 20V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M10 8H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M8 12H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+      </svg>
+    ),
+  }
+
+  return icons[citySlug] || (
+    <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 5.03 7.03 1 12 1C16.97 1 21 5.03 21 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
 
 const cities = [
-  { name: "London", slug: "london", path: "/findatrainer/london", icon: "🏛️" },
-  { name: "Berlin", slug: "berlin", path: "/findatrainer/berlin", icon: "🐻" },
-  { name: "Amsterdam", slug: "amsterdam", path: "/findatrainer/amsterdam", icon: "🚲" },
-  { name: "Vienna", slug: "vienna", path: "/findatrainer/vienna", icon: "☕" },
-  { name: "Rotterdam", slug: "rotterdam", path: "/findatrainer/rotterdam", icon: "⚓" },
-  { name: "The Hague", slug: "the-hague", path: "/findatrainer/the-hague", icon: "⚖️" },
+  { name: "London", slug: "london", path: "/findatrainer/london" },
+  { name: "Berlin", slug: "berlin", path: "/findatrainer/berlin" },
+  { name: "Amsterdam", slug: "amsterdam", path: "/findatrainer/amsterdam" },
+  { name: "Vienna", slug: "vienna", path: "/findatrainer/vienna" },
+  { name: "Rotterdam", slug: "rotterdam", path: "/findatrainer/rotterdam" },
+  { name: "The Hague", slug: "the-hague", path: "/findatrainer/the-hague" },
+]
+
+const citySEOContent = [
+  {
+    title: "London Personal Trainers",
+    description:
+      "Find certified personal trainers throughout Greater London, from Central London to outer boroughs. Our London coaches specialize in gym-based training, home workouts, and online coaching programs designed for busy professionals.",
+  },
+  {
+    title: "Berlin Personal Trainers",
+    description:
+      "Connect with experienced fitness coaches across Berlin's diverse neighborhoods. Whether you're in Mitte, Kreuzberg, or Charlottenburg, find German-speaking trainers who understand your lifestyle and fitness aspirations.",
+  },
+  {
+    title: "Amsterdam Personal Trainers",
+    description:
+      "Discover qualified personal trainers in Amsterdam and surrounding areas. Our Dutch fitness professionals offer both in-person training at local gyms and flexible online coaching options.",
+  },
+  {
+    title: "Vienna Personal Trainers",
+    description:
+      "Work with certified trainers in Vienna who combine evidence-based methods with personalized attention. Find coaches fluent in German and English throughout Austria's capital.",
+  },
+  {
+    title: "Rotterdam & The Hague Personal Trainers",
+    description:
+      "Browse fitness professionals serving Rotterdam, The Hague, and the Randstad region. Our trainers offer science-backed programs for muscle building, weight loss, and athletic performance.",
+  },
+  {
+    title: "Brussels Personal Trainers",
+    description:
+      "Find bilingual personal trainers in Brussels offering services in Dutch, French, and English. Connect with coaches who specialize in body transformation and sustainable fitness habits.",
+  },
+]
+
+const featureCards = [
+  {
+    number: "1",
+    icon: Users,
+    title: "Priority Matching",
+    description: "Get first access to new personal trainers in your area",
+  },
+  {
+    number: "2",
+    icon: Shield,
+    title: "Verified Coaches",
+    description: "All trainers are pre-screened and serious about helping you",
+  },
+  {
+    number: "3",
+    icon: Network,
+    title: "Exclusive Network and Support",
+    description: "Join a curated community of supportive gym-goers and trainers",
+  },
+]
+
+const faqData = [
+  {
+    question: "How much does a personal trainer cost in Europe?",
+    answer:
+      "Personal training rates vary by location and experience. In major cities like London, Berlin, and Amsterdam, expect to pay €50-120 per session. Many trainers offer package deals and online coaching at reduced rates.",
+  },
+  {
+    question: "Do I need to go to a gym to work with a personal trainer?",
+    answer:
+      "No. Many trainers offer home-based training, outdoor sessions, or online coaching programs. Choose the format that works best for your lifestyle.",
+  },
+  {
+    question: "Are the trainers certified?",
+    answer:
+      "You can search for trainers by their certifications, and all certifications are always displayed on each trainer's profile. This allows you to find trainers with the specific qualifications you're looking for, like NASM, NSCA, ACE, ISSA, NFPT, and others.",
+  },
+  {
+    question: "Can I find trainers who speak my language?",
+    answer:
+      "Absolutely. Our directory includes trainers fluent in English, German, Dutch, French, and other European languages. Filter by language preference when browsing.",
+  },
+  {
+    question: "What if my city isn't listed?",
+    answer:
+      "Join our waitlist! We're constantly expanding to new cities across Europe. We'll notify you when trainers become available in your area.",
+  },
 ]
 
 export default function FindATrainerClientPage() {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -53,7 +224,7 @@ export default function FindATrainerClientPage() {
                   <CardContent className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-juice/20 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl">{city.icon}</span>
+                        <CityIcon citySlug={city.slug} />
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white group-hover:text-juice transition-colors">
@@ -94,47 +265,12 @@ export default function FindATrainerClientPage() {
           </h2>
 
           <div className="space-y-8">
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">London Personal Trainers</h3>
-              <p className="text-zinc-400 leading-relaxed">
-                Find certified personal trainers throughout Greater London, from Central London to outer boroughs. Our London coaches specialize in gym-based training, home workouts, and online coaching programs designed for busy professionals.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Berlin Personal Trainers</h3>
-              <p className="text-zinc-400 leading-relaxed">
-                Connect with experienced fitness coaches across Berlin's diverse neighborhoods. Whether you're in Mitte, Kreuzberg, or Charlottenburg, find German-speaking trainers who understand your lifestyle and fitness aspirations.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Amsterdam Personal Trainers</h3>
-              <p className="text-zinc-400 leading-relaxed">
-                Discover qualified personal trainers in Amsterdam and surrounding areas. Our Dutch fitness professionals offer both in-person training at local gyms and flexible online coaching options.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Vienna Personal Trainers</h3>
-              <p className="text-zinc-400 leading-relaxed">
-                Work with certified trainers in Vienna who combine evidence-based methods with personalized attention. Find coaches fluent in German and English throughout Austria's capital.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Rotterdam & The Hague Personal Trainers</h3>
-              <p className="text-zinc-400 leading-relaxed">
-                Browse fitness professionals serving Rotterdam, The Hague, and the Randstad region. Our trainers offer science-backed programs for muscle building, weight loss, and athletic performance.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">Brussels Personal Trainers</h3>
-              <p className="text-zinc-400 leading-relaxed">
-                Find bilingual personal trainers in Brussels offering services in Dutch, French, and English. Connect with coaches who specialize in body transformation and sustainable fitness habits.
-              </p>
-            </div>
+            {citySEOContent.map((city, index) => (
+              <div key={index}>
+                <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">{city.title}</h3>
+                <p className="text-zinc-400 leading-relaxed">{city.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -150,7 +286,7 @@ export default function FindATrainerClientPage() {
           </p>
 
           {/* Waitlist Form */}
-          <WaitlistForm selectedPlan={selectedPlan} showClientCounter={false} />
+          <WaitlistForm selectedPlan={null} showClientCounter={false} />
         </div>
       </section>
 
@@ -160,41 +296,31 @@ export default function FindATrainerClientPage() {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">What Happens Next</h2>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="bg-zinc-900 border-zinc-800 text-center p-8">
-              <CardContent className="pt-6">
-                <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                  <Users className="h-8 w-8 text-juice" />
-                </div>
-                <h3 className="text-xl font-bold mb-4 text-white">Priority Matching</h3>
-                <p className="text-zinc-400">Get first access to new personal trainers in your area</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-zinc-900 border-zinc-800 text-center p-8">
-              <CardContent className="pt-6">
-                <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                  <Shield className="h-8 w-8 text-juice" />
-                </div>
-                <h3 className="text-xl font-bold mb-4 text-white">Verified Coaches</h3>
-                <p className="text-zinc-400">All trainers are pre-screened and serious about helping you</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-zinc-900 border-zinc-800 text-center p-8">
-              <CardContent className="pt-6">
-                <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                  <Network className="h-8 w-8 text-juice" />
-                </div>
-                <h3 className="text-xl font-bold mb-4 text-white">Exclusive Network and Support</h3>
-                <p className="text-zinc-400">Join a curated community of supportive gym-goers and trainers</p>
-              </CardContent>
-            </Card>
+            {featureCards.map((feature) => {
+              const IconComponent = feature.icon
+              return (
+                <Card key={feature.number} className="bg-zinc-900 border-zinc-800 text-center p-8">
+                  <CardContent className="pt-6">
+                    <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">
+                        {feature.number}
+                      </span>
+                      <IconComponent className="h-8 w-8 text-juice" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-4 text-white">{feature.title}</h3>
+                    <p className="text-zinc-400">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <div className="bg-white">
+        <ClientFAQSection title="Frequently Asked Questions" faqs={faqData} />
+      </div>
 
       <Footer />
       <FloatingDownloadCTA />
