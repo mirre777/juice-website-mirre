@@ -94,7 +94,8 @@ export default function FindATrainerClientPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="bg-zinc-900 border-zinc-800 text-center p-8">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">1</span>
                   <Users className="h-8 w-8 text-juice" />
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-white">Priority Matching</h3>
@@ -104,7 +105,8 @@ export default function FindATrainerClientPage() {
 
             <Card className="bg-zinc-900 border-zinc-800 text-center p-8">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">2</span>
                   <Shield className="h-8 w-8 text-juice" />
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-white">Verified Coaches</h3>
@@ -114,7 +116,8 @@ export default function FindATrainerClientPage() {
 
             <Card className="bg-zinc-900 border-zinc-800 text-center p-8">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="relative w-16 h-16 bg-juice/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-juice text-black rounded-full flex items-center justify-center text-sm font-bold">3</span>
                   <Network className="h-8 w-8 text-juice" />
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-white">Exclusive Network and Support</h3>
