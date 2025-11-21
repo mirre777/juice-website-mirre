@@ -564,15 +564,6 @@ function enhanceMarkdownContent(content: string): string {
   content = content.replace(/^\n+/, "")
   content = content.replace(/\n+$/, "")
 
-  // Step 9: Add conclusion section if content is long enough and doesn't have one
-  if (content.length > 500 && !content.toLowerCase().includes("conclusion")) {
-    const paragraphs = content.split("\n\n").filter((p) => p.trim())
-    if (paragraphs.length > 3) {
-      content +=
-        "\n\n## Conclusion\n\nThis approach provides a solid foundation for achieving your fitness goals through evidence-based training and consistent application of proven principles."
-    }
-  }
-
   return content
 }
 
