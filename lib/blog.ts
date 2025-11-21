@@ -559,57 +559,10 @@ function enhanceMarkdownContent(content: string): string {
   content = content.replace(/^(##[^#].*?)$/gm, "\n$1\n")
   content = content.replace(/^(###[^#].*?)$/gm, "\n$1\n")
 
-  // Step 8: Create "Key Points" or "Tips" sections from lists
-  const lines = content.split("\n")
-  const enhancedLines: string[] = []
-  let inList = false
-  let listItems: string[] = []
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-
-    // Detect list items
-    if (line.match(/^[•\-*]\s/) || line.match(/^\d+\.\s/)) {
-      if (!inList) {
-        inList = true
-        listItems = []
-        // Add a heading before the list if the previous line doesn't have one
-        const prevLine = enhancedLines[enhancedLines.length - 1]
-        if (prevLine && !prevLine.match(/^#+\s/) && !prevLine.trim().endsWith(":")) {
-          enhancedLines.push("\n## Key Points\n")
-        }
-      }
-      listItems.push(line)
-    } else {
-      if (inList) {
-        enhancedLines.push(...listItems)
-        inList = false
-        listItems = []
-      }
-      enhancedLines.push(line)
-    }
-  }
-
-  // Add remaining list items
-  if (listItems.length > 0) {
-    enhancedLines.push(...listItems)
-  }
-
-  content = enhancedLines.join("\n")
-
-  // Step 9: Clean up excessive whitespace
+  // Step 8: Clean up excessive whitespace
   content = content.replace(/\n{3,}/g, "\n\n")
   content = content.replace(/^\n+/, "")
   content = content.replace(/\n+$/, "")
-
-  // Step 10: Add conclusion section if content is long enough and doesn't have one
-  if (content.length > 500 && !content.toLowerCase().includes("conclusion")) {
-    const paragraphs = content.split("\n\n").filter((p) => p.trim())
-    if (paragraphs.length > 3) {
-      content +=
-        "\n\n## Conclusion\n\nThis approach provides a solid foundation for achieving your fitness goals through evidence-based training and consistent application of proven principles."
-    }
-  }
 
   return content
 }
