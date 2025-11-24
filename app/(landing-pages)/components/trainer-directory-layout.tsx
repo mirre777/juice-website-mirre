@@ -62,7 +62,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   }, [trainer, totalBadges])
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-  const truncateName = (name: string) => name.length > 20 ? `${name.slice(0, 20)}...` : name
+  const truncateName = (name: string) => name.length > 35 ? `${name.slice(0, 35)}...` : name
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement
     const parent = target.parentElement
