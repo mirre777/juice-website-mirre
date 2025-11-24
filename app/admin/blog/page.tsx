@@ -392,7 +392,7 @@ export default function BlogAdminPage() {
   }
 
   const renderContentItem = (item: ContentItem) => {
-    const allCategories = ["Interview", "Science", "Training", "Nutrition"]
+    const allCategories = ["Interview", "Science", "Training", "Nutrition", "Advice"]
     const isEditing = editingContent === item.slug
     const viewUrl = item.type === "blog" ? `/blog/${item.slug}` : `/interview/${item.slug}`
 

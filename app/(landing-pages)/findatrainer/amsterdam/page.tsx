@@ -3,7 +3,7 @@ import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"
-import { getRandomArticles } from "@/lib/blog"
+import { getArticlesByCategory } from "@/lib/blog"
 import { RelatedArticles } from "@/components/related-articles"
 
 export const dynamic = 'force-dynamic'
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
 export default async function AmsterdamTrainerDirectoryPage() {
   const trainers = await fetchTrainersForCity("Amsterdam")
   const districts = getCityDistricts("Amsterdam")
-  const relatedArticles = await getRandomArticles(2)
+  const relatedArticles = await getArticlesByCategory("Advice", 2)
 
   const baseUrl = "https://juice.fitness"
   const fullUrl = `${baseUrl}/findatrainer/amsterdam`
