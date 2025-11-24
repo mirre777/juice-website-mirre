@@ -260,24 +260,33 @@ export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
   const db = await getFirebaseWebappAdminDb()
   if (!db) return filteredTrainers.map((doc) => mapTrainerFromDb(doc))
   
-  const reviewsMap = new Map(
-    await Promise.all(
-      filteredTrainers.map(async (trainer) => {
-        try {
-          const reviewSnapshot = await db
-            .collection("trainer_profiles")
-            .doc(trainer.id)
-            .collection("client-reviews")
-            .limit(1)
-            .get()
-          return [trainer.id, !reviewSnapshot.empty] as [string, boolean]
-        } catch {
-          return [trainer.id, false] as [string, boolean]
-        }
-      })
-    )
+  // Use admin SDK's collectionGroup method
+  const querySnapshot = await db.collectionGroup('client-reviews').get();
+
+  // Create a Set of trainer IDs for fast lookup
+  const filteredTrainerIds = new Set(filteredTrainers.map(trainer => trainer.id))
+
+  const reviewsMap = new Map<string, boolean>(
+    querySnapshot.docs.map((doc: any) => {
+      // Extract trainer profile id from the document path
+      // Path format: trainer_profiles/{trainerId}/client-reviews/{reviewId}
+      const docPath = doc.ref.path;
+      const pathParts = docPath.split('/');
+      
+      // Trainer ID is at index 1 (trainer_profiles/{trainerId}/client-reviews/{reviewId})
+      const trainerProfileId = pathParts.length > 1 ? pathParts[1] : null;
+      
+      // Only include trainers that are in our filtered list
+      if (trainerProfileId && filteredTrainerIds.has(trainerProfileId)) {
+        return [trainerProfileId, true] as [string, boolean];
+      }
+      return null;
+    }).filter((entry: [string, boolean] | null): entry is [string, boolean] => entry !== null)
   )
   
-  return filteredTrainers.map((trainer) => mapTrainerFromDb(trainer, reviewsMap.get(trainer.id) || false))
+  return filteredTrainers.map((trainer) => {
+    const hasReviews = reviewsMap.get(trainer.id) ?? false;
+    return mapTrainerFromDb(trainer, hasReviews);
+  })
 }
 
