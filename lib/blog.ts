@@ -845,6 +845,23 @@ export async function getRandomArticles(limit = 2): Promise<BlogPostFrontmatter[
   return shuffled.slice(0, limit)
 }
 
+// Helper function to get articles by category (for trainer directory pages)
+export async function getArticlesByCategory(category: string, limit = 2): Promise<BlogPostFrontmatter[]> {
+  const allPosts = await getAllPosts()
+  // Filter posts by category
+  const categoryPosts = allPosts.filter((post) => post.category === category)
+  
+  // If no posts found in category, fallback to random articles
+  if (categoryPosts.length === 0) {
+    const shuffled = allPosts.sort(() => 0.5 - Math.random())
+    return shuffled.slice(0, limit)
+  }
+  
+  // Shuffle and take the first 'limit' posts
+  const shuffled = categoryPosts.sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, limit)
+}
+
 // Helper function to get related articles (excluding current post)
 export async function getRelatedArticles(currentSlug: string, limit = 2): Promise<BlogPostFrontmatter[]> {
   const allPosts = await getAllPosts()
