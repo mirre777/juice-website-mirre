@@ -141,7 +141,14 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
               <div className="flex items-center gap-1 text-gray-600 text-xs">
                 <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 flex-shrink-0" />
                 <span className="line-clamp-1">
-                  {[...(trainer.districtDisplay ? [trainer.districtDisplay] : trainer.locations), trainer.isOnline && "Online"].filter(Boolean).join(" • ")}
+                  {[
+                    ...(trainer.districtDisplay 
+                      ? [trainer.districtDisplay] 
+                      : trainer.locations.length > 0 
+                        ? trainer.locations 
+                        : ["All Districts"]), 
+                    trainer.isOnline && "Online"
+                  ].filter(Boolean).join(" • ")}
                 </span>
               </div>
             </div>
