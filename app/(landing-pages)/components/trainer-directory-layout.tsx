@@ -278,7 +278,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               />
             </div>
             <label className="hidden md:flex items-center gap-2 whitespace-nowrap text-sm cursor-pointer">
-              <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
+              <Checkbox checked={showVerifiedOnly} onCheckedChange={(checked) => setShowVerifiedOnly(checked === true)} />
               Only show me verified trainers
             </label>
           </div>
@@ -300,7 +300,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               </Popover>
             </div>
             <label className="flex items-center gap-2 text-sm cursor-pointer flex-shrink-0">
-              <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
+              <Checkbox checked={showVerifiedOnly} onCheckedChange={(checked) => setShowVerifiedOnly(checked === true)} />
               <span className="whitespace-nowrap">Verified only</span>
             </label>
           </div>
