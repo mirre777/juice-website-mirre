@@ -247,7 +247,7 @@ export async function fetchTrainersForCity(city: string): Promise<Trainer[]> {
     if (email.includes("@juice.fitness")) return false
     
     // Filter out profiles with 'test' in the name (case insensitive)
-    if (name.includes("test")) return false
+    if (name.includes("test","folger","fonseca")) return false
     
     // Filter out specific names (case insensitive, exact match)
     if (excludedNames.includes(name)) return false

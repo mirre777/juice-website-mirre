@@ -62,7 +62,6 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
   }, [trainer, totalBadges])
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-  const truncateName = (name: string) => name.length > 35 ? `${name.slice(0, 35)}...` : name
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement
     const parent = target.parentElement
@@ -118,7 +117,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
             <div className="flex-1 min-w-0 h-full flex flex-col justify-center">
               <div className="flex items-start justify-between mb-1 md:mb-2 gap-2">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 line-clamp-1 font-sen">{truncateName(trainer.name)}</h3>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 line-clamp-1 font-sen truncate">{trainer.name}</h3>
                   <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <div className="md:hidden flex items-center gap-1 flex-nowrap overflow-hidden">
                       {mobileBadges.map((badge, idx) => renderBadge(badge.type, badge.certIndex, idx === 1))}
@@ -278,7 +277,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               />
             </div>
             <label className="hidden md:flex items-center gap-2 whitespace-nowrap text-sm cursor-pointer">
-              <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
+              <Checkbox checked={showVerifiedOnly} onCheckedChange={(checked) => setShowVerifiedOnly(checked === true)} />
               Only show me verified trainers
             </label>
           </div>
@@ -300,7 +299,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
               </Popover>
             </div>
             <label className="flex items-center gap-2 text-sm cursor-pointer flex-shrink-0">
-              <Checkbox checked={showVerifiedOnly} onCheckedChange={setShowVerifiedOnly} />
+              <Checkbox checked={showVerifiedOnly} onCheckedChange={(checked) => setShowVerifiedOnly(checked === true)} />
               <span className="whitespace-nowrap">Verified only</span>
             </label>
           </div>
