@@ -168,6 +168,14 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* ElevenLabs Audio Native */}
+        <Script
+          id="elevenlabs-audio-native"
+          strategy="afterInteractive"
+          src="https://elevenlabs.io/audio-native/player.js"
+          data-api-key="57caa77d28af2c591f3bc8bff5a0aca7e3214c394cc805eceb49397be83ca8e9"
+        />
       </body>
     </html>
   )

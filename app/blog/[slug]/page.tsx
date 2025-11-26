@@ -8,7 +8,7 @@ import { ReadingProgress } from "@/components/blog/reading-progress"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { SocialShare } from "@/components/blog/social-share"
 import { ReadingTime } from "@/components/blog/reading-time"
-import { ElevenLabsAudioNative } from "@/components/blog/elevenlabs-audionative"
+// import { ElevenLabsAudioNative } from "@/components/blog/elevenlabs-audionative" // Commented out - testing global script approach
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -301,9 +301,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           {/* ElevenLabs AudioNative Widget - placed after content so it can read the fully rendered article */}
-          <div className="mb-8 mt-8">
+          {/* Commented out - testing global script approach in layout.tsx */}
+          {/* <div className="mb-8 mt-8">
             <ElevenLabsAudioNative />
-          </div>
+          </div> */}
 
           {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t border-gray-200">
