@@ -219,11 +219,6 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             </div>
           )}
 
-          {/* ElevenLabs AudioNative Widget - placed after image as requested */}
-          <div className="mb-8">
-            <ElevenLabsAudioNative />
-          </div>
-
           <div id="article-content" itemProp="articleBody" className="relative article-body">
             <div className="prose prose-lg max-w-none">
               {interview.content ? (
@@ -234,6 +229,11 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* ElevenLabs AudioNative Widget - placed after content so it can read the fully rendered article */}
+          <div className="mb-8 mt-8">
+            <ElevenLabsAudioNative />
           </div>
 
           <InterviewWaitlistWidget

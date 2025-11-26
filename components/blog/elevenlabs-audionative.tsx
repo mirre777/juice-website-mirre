@@ -23,14 +23,28 @@ export function ElevenLabsAudioNative() {
         return
       }
 
-      // Content is ready, load the script
-      const script = document.createElement("script")
-      script.src = "https://elevenlabs.io/player/audioNativeHelper.js"
-      script.async = true
-      script.type = "text/javascript"
-      document.body.appendChild(script)
+      // Content is ready, add additional delay to ensure it's fully rendered
+      setTimeout(() => {
+        // Double-check content is still there and has substantial text
+        const mdxContent = document.querySelector(".mdx-content")
+        if (!mdxContent || !mdxContent.textContent || mdxContent.textContent.trim().length < 100) {
+          console.warn("MDX content not substantial enough, waiting more...")
+          setTimeout(loadScript, 1000)
+          return
+        }
 
-      console.log("ElevenLabs AudioNative script loaded after content ready")
+        // Content is ready, load the script
+        const script = document.createElement("script")
+        script.src = "https://elevenlabs.io/player/audioNativeHelper.js"
+        script.async = true
+        script.type = "text/javascript"
+        document.body.appendChild(script)
+
+        console.log("ElevenLabs AudioNative script loaded after content ready", {
+          contentLength: mdxContent.textContent.length,
+          contentPreview: mdxContent.textContent.substring(0, 100)
+        })
+      }, 2000) // 2 second delay after content is detected to ensure full rendering
     }
 
     // Start checking for content
