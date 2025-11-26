@@ -223,7 +223,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             <ElevenLabsAudioNative />
           </div>
 
-          <div className="relative">
+          <div id="article-content" className="relative">
             <div className="prose prose-lg max-w-none">
               {interview.content ? (
                 <MdxRenderer source={interview.content} />

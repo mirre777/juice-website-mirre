@@ -298,7 +298,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           {/* Article Content */}
-          <div className="relative">
+          <div id="article-content" className="relative">
             <div className="prose prose-lg max-w-none">
               <MdxRenderer source={post.rawContent || ""} />
             </div>
