@@ -1,15 +1,21 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 export function ElevenLabsAudioNative() {
+  const widgetRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
+    // Wait for widget div to be in DOM first, then wait for content
+    const checkWidget = () => {
+      const widget = document.querySelector("#elevenlabs-audionative-widget")
+      return widget !== null
+    }
+
     // Wait for article content to be available before loading script
-    // Check for both .mdx-content and article tag for better detection
     const checkContent = () => {
       const mdxContent = document.querySelector(".mdx-content")
       const articleContent = document.querySelector("article")
-      const articleBody = document.querySelector("#article-content")
       
       // Check if we have substantial content
       const hasMdxContent = mdxContent && mdxContent.textContent && mdxContent.textContent.trim().length > 100
@@ -24,15 +30,21 @@ export function ElevenLabsAudioNative() {
       return
     }
 
-    // Wait for content to be ready
+    // Wait for both widget and content to be ready
     const loadScript = () => {
+      if (!checkWidget()) {
+        console.log("Widget not in DOM yet, waiting...")
+        setTimeout(loadScript, 200)
+        return
+      }
+
       if (!checkContent()) {
         // If content not ready, wait a bit and try again
         setTimeout(loadScript, 500)
         return
       }
 
-      // Content is ready, add additional delay to ensure it's fully rendered
+      // Both widget and content are ready, add delay to ensure full rendering
       setTimeout(() => {
         // Double-check content is still there and has substantial text
         const mdxContent = document.querySelector(".mdx-content")
@@ -53,43 +65,49 @@ export function ElevenLabsAudioNative() {
         script.type = "text/javascript"
         document.body.appendChild(script)
 
-        console.log("ElevenLabs AudioNative script loaded after content ready", {
+        console.log("ElevenLabs AudioNative script loaded after widget and content ready", {
+          widgetInDOM: checkWidget(),
           mdxContentLength: mdxContent?.textContent?.length || 0,
           articleContentLength: articleContent?.textContent?.length || 0,
           contentPreview: mdxContent?.textContent?.substring(0, 100) || articleContent?.textContent?.substring(0, 100) || "N/A"
         })
-      }, 2000) // 2 second delay after content is detected to ensure full rendering
+      }, 1000) // 1 second delay after both are detected
     }
 
-    // Start checking for content
-    if (checkContent()) {
-      // Content already available, load immediately
-      loadScript()
-    } else {
-      // Wait for content with MutationObserver
-      const observer = new MutationObserver(() => {
-        if (checkContent()) {
+    // Start checking - wait a bit for widget to render first
+    setTimeout(() => {
+      if (checkWidget() && checkContent()) {
+        // Both already available, load immediately
+        loadScript()
+      } else {
+        // Wait for widget and content with MutationObserver
+        const observer = new MutationObserver(() => {
+          if (checkWidget() && checkContent()) {
+            observer.disconnect()
+            loadScript()
+          }
+        })
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        })
+
+        // Fallback timeout
+        setTimeout(() => {
           observer.disconnect()
-          loadScript()
-        }
-      })
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-      })
-
-      // Fallback timeout
-      setTimeout(() => {
-        observer.disconnect()
-        if (checkContent()) {
-          loadScript() // Load if content is available
-        } else {
-          console.warn("ElevenLabs AudioNative: Content not found after timeout, loading script anyway")
-          loadScript() // Load anyway after timeout
-        }
-      }, 5000) // Increased timeout to 5 seconds
-    }
+          if (checkWidget() && checkContent()) {
+            loadScript() // Load if both are available
+          } else {
+            console.warn("ElevenLabs AudioNative: Widget or content not found after timeout", {
+              widget: checkWidget(),
+              content: checkContent()
+            })
+            loadScript() // Load anyway after timeout
+          }
+        }, 5000)
+      }
+    }, 100) // Small delay to ensure widget is rendered
 
     return () => {
       const existingScript = document.querySelector('script[src*="audioNativeHelper.js"]')
@@ -101,6 +119,7 @@ export function ElevenLabsAudioNative() {
 
   return (
     <div
+      ref={widgetRef}
       id="elevenlabs-audionative-widget"
       data-height="90"
       data-width="100%"
