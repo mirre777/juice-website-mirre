@@ -219,12 +219,12 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             </div>
           )}
 
-          {/* ElevenLabs AudioNative Widget */}
+          {/* ElevenLabs AudioNative Widget - placed after image as requested */}
           <div className="mb-8">
             <ElevenLabsAudioNative />
           </div>
 
-          <div id="article-content" itemProp="articleBody" className="relative">
+          <div id="article-content" itemProp="articleBody" className="relative article-body">
             <div className="prose prose-lg max-w-none">
               {interview.content ? (
                 <MdxRenderer source={interview.content} />
