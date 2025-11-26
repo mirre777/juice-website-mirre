@@ -13,6 +13,7 @@ export function ElevenLabsAudioNative() {
         data-scrolling="no"
         data-publicuserid="93e4e7453a2b1b2ff158da61919ff4bf5f46f4e83d756d8265f39187ed5e0b9c"
         data-playerurl="https://elevenlabs.io/player/index.html"
+        data-content-selector="#article-content"
       >
         Loading the{" "}
         <a href="https://elevenlabs.io/text-to-speech" target="_blank" rel="noopener">
