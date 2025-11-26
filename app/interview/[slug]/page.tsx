@@ -7,6 +7,7 @@ import { ReadingProgress } from "@/components/blog/reading-progress"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { SocialShare } from "@/components/blog/social-share"
 import { ReadingTime } from "@/components/blog/reading-time"
+import { ElevenLabsAudioNative } from "@/components/blog/elevenlabs-audionative"
 import { InterviewWaitlistWidget } from "@/app/interview/_components/interview-waitlist-widget"
 import Image from "next/image"
 import Link from "next/link"
@@ -216,6 +217,11 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             </div>
           )}
+
+          {/* ElevenLabs AudioNative Widget */}
+          <div className="mb-8">
+            <ElevenLabsAudioNative />
+          </div>
 
           <div className="relative">
             <div className="prose prose-lg max-w-none">

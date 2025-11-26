@@ -8,6 +8,7 @@ import { ReadingProgress } from "@/components/blog/reading-progress"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { SocialShare } from "@/components/blog/social-share"
 import { ReadingTime } from "@/components/blog/reading-time"
+import { ElevenLabsAudioNative } from "@/components/blog/elevenlabs-audionative"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -290,6 +291,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             </div>
           )}
+
+          {/* ElevenLabs AudioNative Widget */}
+          <div className="mb-8">
+            <ElevenLabsAudioNative />
+          </div>
 
           {/* Article Content */}
           <div className="relative">
