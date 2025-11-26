@@ -1,15 +1,16 @@
 "use client"
 
-import { useEffect } from "react"
-import Script from "next/script"
+import { useEffect, useState } from "react"
 
 export function ElevenLabsAudioNative() {
+  const [contentReady, setContentReady] = useState(false)
+
   useEffect(() => {
-    // Wait for content to be available before initializing
+    // Wait for MDX content to be available
     const checkContent = () => {
-      const articleContent = document.getElementById("article-content")
-      if (articleContent && articleContent.textContent && articleContent.textContent.trim().length > 0) {
-        console.log("Article content is available:", articleContent.textContent.substring(0, 100))
+      const mdxContent = document.querySelector(".mdx-content")
+      if (mdxContent && mdxContent.textContent && mdxContent.textContent.trim().length > 0) {
+        console.log("MDX content is available:", mdxContent.textContent.substring(0, 100))
         return true
       }
       return false
@@ -17,12 +18,14 @@ export function ElevenLabsAudioNative() {
 
     // Check immediately
     if (checkContent()) {
+      setContentReady(true)
       return
     }
 
-    // If not available, wait for it
+    // If not available, wait for it with MutationObserver
     const observer = new MutationObserver(() => {
       if (checkContent()) {
+        setContentReady(true)
         observer.disconnect()
       }
     })
@@ -36,11 +39,13 @@ export function ElevenLabsAudioNative() {
     const timeout = setTimeout(() => {
       observer.disconnect()
       if (checkContent()) {
-        console.log("Article content found after timeout")
+        setContentReady(true)
+        console.log("MDX content found after timeout")
       } else {
-        console.warn("Article content not found after timeout")
+        console.warn("MDX content not found after timeout - loading widget anyway")
+        setContentReady(true) // Load anyway after timeout
       }
-    }, 5000)
+    }, 2000)
 
     return () => {
       observer.disconnect()
@@ -48,43 +53,52 @@ export function ElevenLabsAudioNative() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!contentReady) return
+
+    // Add a delay to ensure content is fully rendered
+    const timer = setTimeout(() => {
+      // Check if script already exists
+      if (document.querySelector('script[src*="audioNativeHelper.js"]')) {
+        console.log("ElevenLabs script already loaded")
+        return
+      }
+
+      const script = document.createElement("script")
+      script.src = "https://elevenlabs.io/player/audioNativeHelper.js"
+      script.async = true
+      script.type = "text/javascript"
+      document.body.appendChild(script)
+
+      console.log("ElevenLabs AudioNative script loaded after content ready")
+    }, 1000) // 1 second delay after content is ready
+
+    return () => {
+      clearTimeout(timer)
+      const existingScript = document.querySelector('script[src*="audioNativeHelper.js"]')
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript)
+      }
+    }
+  }, [contentReady])
+
   return (
-    <>
-      <div
-        id="elevenlabs-audionative-widget"
-        data-height="90"
-        data-width="100%"
-        data-frameborder="no"
-        data-scrolling="no"
-        data-publicuserid="93e4e7453a2b1b2ff158da61919ff4bf5f46f4e83d756d8265f39187ed5e0b9c"
-        data-playerurl="https://elevenlabs.io/player/index.html"
-        data-content-selector="#article-content"
-      >
-        Loading the{" "}
-        <a href="https://elevenlabs.io/text-to-speech" target="_blank" rel="noopener">
-          Elevenlabs Text to Speech
-        </a>{" "}
-        AudioNative Player...
-      </div>
-      <Script
-        id="elevenlabs-audionative-helper"
-        src="https://elevenlabs.io/player/audioNativeHelper.js"
-        strategy="lazyOnload"
-        onLoad={() => {
-          console.log("ElevenLabs AudioNative script loaded")
-          // Give the widget a moment to find the content
-          setTimeout(() => {
-            const articleContent = document.getElementById("article-content")
-            if (articleContent) {
-              console.log("Article content element found for widget:", articleContent)
-            }
-          }, 1000)
-        }}
-        onError={(e) => {
-          console.error("Failed to load ElevenLabs AudioNative script:", e)
-        }}
-      />
-    </>
+    <div
+      id="elevenlabs-audionative-widget"
+      data-height="90"
+      data-width="100%"
+      data-frameborder="no"
+      data-scrolling="no"
+      data-publicuserid="93e4e7453a2b1b2ff158da61919ff4bf5f46f4e83d756d8265f39187ed5e0b9c"
+      data-playerurl="https://elevenlabs.io/player/index.html"
+      data-content-selector=".mdx-content"
+    >
+      Loading the{" "}
+      <a href="https://elevenlabs.io/text-to-speech" target="_blank" rel="noopener">
+        Elevenlabs Text to Speech
+      </a>{" "}
+      AudioNative Player...
+    </div>
   )
 }
 
