@@ -7,7 +7,7 @@ import { ReadingProgress } from "@/components/blog/reading-progress"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { SocialShare } from "@/components/blog/social-share"
 import { ReadingTime } from "@/components/blog/reading-time"
-// import { ElevenLabsAudioNative } from "@/components/blog/elevenlabs-audionative" // Commented out - testing global script approach
+import { ElevenLabsAudioNative } from "@/components/blog/elevenlabs-audionative"
 import { InterviewWaitlistWidget } from "@/app/interview/_components/interview-waitlist-widget"
 import Image from "next/image"
 import Link from "next/link"
@@ -232,10 +232,9 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
           </div>
 
           {/* ElevenLabs AudioNative Widget - placed after content so it can read the fully rendered article */}
-          {/* Commented out - testing global script approach in layout.tsx */}
-          {/* <div className="mb-8 mt-8">
+          <div className="mb-8 mt-8">
             <ElevenLabsAudioNative />
-          </div> */}
+          </div>
 
           <InterviewWaitlistWidget
             trainerName={interview.trainerName}

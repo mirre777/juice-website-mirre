@@ -4,14 +4,23 @@ import { useEffect } from "react"
 
 export function ElevenLabsAudioNative() {
   useEffect(() => {
-    // Wait for MDX content to be available before loading script
+    // Wait for article content to be available before loading script
+    // Check for both .mdx-content and article tag for better detection
     const checkContent = () => {
       const mdxContent = document.querySelector(".mdx-content")
-      return mdxContent && mdxContent.textContent && mdxContent.textContent.trim().length > 0
+      const articleContent = document.querySelector("article")
+      const articleBody = document.querySelector("#article-content")
+      
+      // Check if we have substantial content
+      const hasMdxContent = mdxContent && mdxContent.textContent && mdxContent.textContent.trim().length > 100
+      const hasArticleContent = articleContent && articleContent.textContent && articleContent.textContent.trim().length > 100
+      
+      return hasMdxContent || hasArticleContent
     }
 
     // Check if script already exists
     if (document.querySelector('script[src*="audioNativeHelper.js"]')) {
+      console.log("ElevenLabs AudioNative script already loaded")
       return
     }
 
@@ -27,8 +36,12 @@ export function ElevenLabsAudioNative() {
       setTimeout(() => {
         // Double-check content is still there and has substantial text
         const mdxContent = document.querySelector(".mdx-content")
-        if (!mdxContent || !mdxContent.textContent || mdxContent.textContent.trim().length < 100) {
-          console.warn("MDX content not substantial enough, waiting more...")
+        const articleContent = document.querySelector("article")
+        
+        const contentLength = mdxContent?.textContent?.length || articleContent?.textContent?.length || 0
+        
+        if (contentLength < 100) {
+          console.warn("Content not substantial enough, waiting more...", { contentLength })
           setTimeout(loadScript, 1000)
           return
         }
@@ -41,8 +54,9 @@ export function ElevenLabsAudioNative() {
         document.body.appendChild(script)
 
         console.log("ElevenLabs AudioNative script loaded after content ready", {
-          contentLength: mdxContent.textContent.length,
-          contentPreview: mdxContent.textContent.substring(0, 100)
+          mdxContentLength: mdxContent?.textContent?.length || 0,
+          articleContentLength: articleContent?.textContent?.length || 0,
+          contentPreview: mdxContent?.textContent?.substring(0, 100) || articleContent?.textContent?.substring(0, 100) || "N/A"
         })
       }, 2000) // 2 second delay after content is detected to ensure full rendering
     }
@@ -68,8 +82,13 @@ export function ElevenLabsAudioNative() {
       // Fallback timeout
       setTimeout(() => {
         observer.disconnect()
-        loadScript() // Load anyway after timeout
-      }, 3000)
+        if (checkContent()) {
+          loadScript() // Load if content is available
+        } else {
+          console.warn("ElevenLabs AudioNative: Content not found after timeout, loading script anyway")
+          loadScript() // Load anyway after timeout
+        }
+      }, 5000) // Increased timeout to 5 seconds
     }
 
     return () => {
