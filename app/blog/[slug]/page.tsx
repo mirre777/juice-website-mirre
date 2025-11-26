@@ -243,7 +243,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <main className="min-h-screen bg-white text-black">
         <Navbar isCoach={true} className="bg-white" />
 
-        <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
+        <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl" itemScope itemType="https://schema.org/Article">
           {/* Back to Blog */}
           <Link
             href="/blog"
@@ -271,9 +271,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <ReadingTime content={post.rawContent || ""} />
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{post.title}</h1>
+            <h1 itemProp="headline" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{post.title}</h1>
 
-            {post.excerpt && <p className="text-xl text-gray-600 leading-relaxed mb-6">{post.excerpt}</p>}
+            {post.excerpt && <p itemProp="description" className="text-xl text-gray-600 leading-relaxed mb-6">{post.excerpt}</p>}
 
             <SocialShare title={post.title} url={fullUrl} excerpt={post.excerpt} />
           </header>
@@ -297,8 +297,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <ElevenLabsAudioNative />
           </div>
 
-          {/* Article Content */}
-          <div id="article-content" className="relative">
+          {/* Article Content - Main body text for AudioNative */}
+          <div id="article-content" itemProp="articleBody" className="relative">
             <div className="prose prose-lg max-w-none">
               <MdxRenderer source={post.rawContent || ""} />
             </div>

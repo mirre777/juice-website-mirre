@@ -172,7 +172,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
       <main className="min-h-screen bg-white text-black">
         <Navbar isCoach={true} className="bg-white" />
 
-        <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
+        <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl" itemScope itemType="https://schema.org/Article">
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-juice transition-colors mb-8"
@@ -198,9 +198,9 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
               <ReadingTime content={interview.rawContent || ""} />
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{interview.title}</h1>
+            <h1 itemProp="headline" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{interview.title}</h1>
 
-            {interview.excerpt && <p className="text-xl text-gray-600 leading-relaxed mb-6">{interview.excerpt}</p>}
+            {interview.excerpt && <p itemProp="description" className="text-xl text-gray-600 leading-relaxed mb-6">{interview.excerpt}</p>}
 
             <SocialShare title={interview.title} url={fullUrl} excerpt={interview.excerpt} />
           </header>
@@ -223,7 +223,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
             <ElevenLabsAudioNative />
           </div>
 
-          <div id="article-content" className="relative">
+          <div id="article-content" itemProp="articleBody" className="relative">
             <div className="prose prose-lg max-w-none">
               {interview.content ? (
                 <MdxRenderer source={interview.content} />
