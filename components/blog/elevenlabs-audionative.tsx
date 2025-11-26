@@ -1,69 +1,29 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 export function ElevenLabsAudioNative() {
-  const [contentReady, setContentReady] = useState(false)
-
   useEffect(() => {
-    // Wait for MDX content to be available
+    // Wait for MDX content to be available before loading script
     const checkContent = () => {
       const mdxContent = document.querySelector(".mdx-content")
-      if (mdxContent && mdxContent.textContent && mdxContent.textContent.trim().length > 0) {
-        console.log("MDX content is available:", mdxContent.textContent.substring(0, 100))
-        return true
-      }
-      return false
+      return mdxContent && mdxContent.textContent && mdxContent.textContent.trim().length > 0
     }
 
-    // Check immediately
-    if (checkContent()) {
-      setContentReady(true)
+    // Check if script already exists
+    if (document.querySelector('script[src*="audioNativeHelper.js"]')) {
       return
     }
 
-    // If not available, wait for it with MutationObserver
-    const observer = new MutationObserver(() => {
-      if (checkContent()) {
-        setContentReady(true)
-        observer.disconnect()
-      }
-    })
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    })
-
-    // Fallback timeout
-    const timeout = setTimeout(() => {
-      observer.disconnect()
-      if (checkContent()) {
-        setContentReady(true)
-        console.log("MDX content found after timeout")
-      } else {
-        console.warn("MDX content not found after timeout - loading widget anyway")
-        setContentReady(true) // Load anyway after timeout
-      }
-    }, 2000)
-
-    return () => {
-      observer.disconnect()
-      clearTimeout(timeout)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!contentReady) return
-
-    // Add a delay to ensure content is fully rendered
-    const timer = setTimeout(() => {
-      // Check if script already exists
-      if (document.querySelector('script[src*="audioNativeHelper.js"]')) {
-        console.log("ElevenLabs script already loaded")
+    // Wait for content to be ready
+    const loadScript = () => {
+      if (!checkContent()) {
+        // If content not ready, wait a bit and try again
+        setTimeout(loadScript, 500)
         return
       }
 
+      // Content is ready, load the script
       const script = document.createElement("script")
       script.src = "https://elevenlabs.io/player/audioNativeHelper.js"
       script.async = true
@@ -71,16 +31,40 @@ export function ElevenLabsAudioNative() {
       document.body.appendChild(script)
 
       console.log("ElevenLabs AudioNative script loaded after content ready")
-    }, 1000) // 1 second delay after content is ready
+    }
+
+    // Start checking for content
+    if (checkContent()) {
+      // Content already available, load immediately
+      loadScript()
+    } else {
+      // Wait for content with MutationObserver
+      const observer = new MutationObserver(() => {
+        if (checkContent()) {
+          observer.disconnect()
+          loadScript()
+        }
+      })
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      })
+
+      // Fallback timeout
+      setTimeout(() => {
+        observer.disconnect()
+        loadScript() // Load anyway after timeout
+      }, 3000)
+    }
 
     return () => {
-      clearTimeout(timer)
       const existingScript = document.querySelector('script[src*="audioNativeHelper.js"]')
       if (existingScript && existingScript.parentNode) {
         existingScript.parentNode.removeChild(existingScript)
       }
     }
-  }, [contentReady])
+  }, [])
 
   return (
     <div
@@ -92,6 +76,9 @@ export function ElevenLabsAudioNative() {
       data-publicuserid="93e4e7453a2b1b2ff158da61919ff4bf5f46f4e83d756d8265f39187ed5e0b9c"
       data-playerurl="https://elevenlabs.io/player/index.html"
       data-content-selector=".mdx-content"
+      data-small="True"
+      data-textcolor="rgba(0, 0, 0, 1.0)"
+      data-backgroundcolor="rgba(255, 255, 255, 1.0)"
     >
       Loading the{" "}
       <a href="https://elevenlabs.io/text-to-speech" target="_blank" rel="noopener">
