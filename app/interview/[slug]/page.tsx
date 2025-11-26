@@ -139,6 +139,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
     "@type": "Article",
     headline: interview.title,
     description: interview.excerpt,
+    articleBody: interview.rawContent || interview.content || "", // ✅ Full article content for AudioNative widget
     image: {
       "@type": "ImageObject",
       url: interview.image ? `${baseUrl}${interview.image}` : `${baseUrl}${getPlaceholderImage()}`,

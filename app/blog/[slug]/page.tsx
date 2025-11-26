@@ -203,6 +203,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     url: fullUrl,   // ✅ explicit canonical link
     headline: post.title,
     description: post.excerpt,
+    articleBody: post.rawContent || post.content || "", // ✅ Full article content for AudioNative widget
     image: {
       "@type": "ImageObject",
       url: post.image ? `${baseUrl}${post.image}` : `${baseUrl}${getPlaceholderImage(post.category)}`,
