@@ -72,21 +72,76 @@ export function ElevenLabsAudioNative() {
         script.async = false // Load synchronously to ensure widget is ready
         script.type = "text/javascript"
         
+        // Store widget reference to check later
+        const widgetElement = widget
+        
+        // Watch for changes to the widget (Audio Native might replace its content)
+        const widgetObserver = new MutationObserver((mutations) => {
+          const currentWidget = document.querySelector("#elevenlabs-audionative-widget")
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              console.log("Widget content changed - Audio Native might be initializing", {
+                addedNodes: mutation.addedNodes.length,
+                widgetExists: !!currentWidget,
+                hasIframe: currentWidget?.querySelector('iframe') !== null
+              })
+            }
+          })
+        })
+        
+        if (widget) {
+          widgetObserver.observe(widget, {
+            childList: true,
+            subtree: true,
+            attributes: true
+          })
+        }
+        
         // Add onload handler to verify script loaded
         script.onload = () => {
+          // Re-check widget immediately
+          const widgetCheck = document.querySelector("#elevenlabs-audionative-widget")
           console.log("ElevenLabs AudioNative script onload fired", {
-            widgetInDOM: !!document.querySelector("#elevenlabs-audionative-widget"),
-            widgetVisible: widget ? window.getComputedStyle(widget).display !== 'none' : false
+            widgetInDOM: !!widgetCheck,
+            widgetElementStillExists: !!widgetElement && document.body.contains(widgetElement),
+            widgetRefCurrent: widgetRef.current !== null,
+            widgetVisible: widgetCheck ? window.getComputedStyle(widgetCheck).display !== 'none' : false,
+            hasIframe: widgetCheck?.querySelector('iframe') !== null
           })
+          
+          // Stop observing after a delay
+          setTimeout(() => {
+            widgetObserver.disconnect()
+          }, 5000)
           
           // Give the script a moment to initialize
           setTimeout(() => {
             const widgetAfter = document.querySelector("#elevenlabs-audionative-widget")
-            console.log("Widget state after script load:", {
-              exists: !!widgetAfter,
+            const parent = widgetRef.current?.parentElement
+            const iframe = widgetAfter?.querySelector('iframe')
+            const anyPlayer = parent?.querySelector('[id*="elevenlabs"], [class*="elevenlabs"], iframe')
+            
+            console.log("Widget state after script load (2s delay):", {
+              widgetExists: !!widgetAfter,
+              widgetRefExists: widgetRef.current !== null,
+              parentElement: !!parent,
+              iframeFound: !!iframe,
+              anyPlayerFound: !!anyPlayer,
               innerHTML: widgetAfter?.innerHTML?.substring(0, 200),
-              children: widgetAfter?.children?.length || 0
+              children: widgetAfter?.children?.length || 0,
+              widgetDisplay: widgetAfter ? window.getComputedStyle(widgetAfter).display : 'N/A'
             })
+            
+            // If widget exists but has no iframe, Audio Native might not have initialized
+            if (widgetAfter && !iframe && widgetAfter.children.length === 0) {
+              console.warn("Widget exists but Audio Native player not initialized - checking if script is available")
+              // Check if Audio Native global is available
+              if ((window as any).ElevenLabsAudioNative) {
+                console.log("ElevenLabsAudioNative global found")
+              } else {
+                console.warn("ElevenLabsAudioNative global not found - script might not have initialized properly")
+              }
+            }
           }, 2000)
         }
         
