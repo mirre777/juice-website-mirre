@@ -58,15 +58,47 @@ export function ElevenLabsAudioNative() {
           return
         }
 
+        // Verify widget is definitely in DOM before loading script
+        const widget = document.querySelector("#elevenlabs-audionative-widget")
+        if (!widget) {
+          console.error("Widget not found in DOM before script load!")
+          setTimeout(loadScript, 500)
+          return
+        }
+
         // Content is ready, load the script
         const script = document.createElement("script")
         script.src = "https://elevenlabs.io/player/audioNativeHelper.js"
-        script.async = true
+        script.async = false // Load synchronously to ensure widget is ready
         script.type = "text/javascript"
+        
+        // Add onload handler to verify script loaded
+        script.onload = () => {
+          console.log("ElevenLabs AudioNative script onload fired", {
+            widgetInDOM: !!document.querySelector("#elevenlabs-audionative-widget"),
+            widgetVisible: widget ? window.getComputedStyle(widget).display !== 'none' : false
+          })
+          
+          // Give the script a moment to initialize
+          setTimeout(() => {
+            const widgetAfter = document.querySelector("#elevenlabs-audionative-widget")
+            console.log("Widget state after script load:", {
+              exists: !!widgetAfter,
+              innerHTML: widgetAfter?.innerHTML?.substring(0, 200),
+              children: widgetAfter?.children?.length || 0
+            })
+          }, 2000)
+        }
+        
+        script.onerror = (error) => {
+          console.error("Failed to load ElevenLabs AudioNative script", error)
+        }
+        
         document.body.appendChild(script)
 
-        console.log("ElevenLabs AudioNative script loaded after widget and content ready", {
+        console.log("ElevenLabs AudioNative script element added to DOM", {
           widgetInDOM: checkWidget(),
+          widgetElement: widget,
           mdxContentLength: mdxContent?.textContent?.length || 0,
           articleContentLength: articleContent?.textContent?.length || 0,
           contentPreview: mdxContent?.textContent?.substring(0, 100) || articleContent?.textContent?.substring(0, 100) || "N/A"
@@ -131,6 +163,7 @@ export function ElevenLabsAudioNative() {
       data-small="True"
       data-textcolor="rgba(0, 0, 0, 1.0)"
       data-backgroundcolor="rgba(255, 255, 255, 1.0)"
+      style={{ display: 'block', minHeight: '90px', width: '100%' }}
     >
       Loading the{" "}
       <a href="https://elevenlabs.io/text-to-speech" target="_blank" rel="noopener">
