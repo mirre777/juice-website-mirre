@@ -97,6 +97,29 @@ export function ElevenLabsAudioNative() {
           })
         }
         
+        // Monitor widget to detect if it gets removed
+        const widgetMonitor = setInterval(() => {
+          const currentWidget = document.querySelector("#elevenlabs-audionative-widget")
+          if (!currentWidget && widgetRef.current) {
+            console.error("CRITICAL: Widget was removed from DOM!", {
+              refExists: widgetRef.current !== null,
+              refInDOM: widgetRef.current ? document.body.contains(widgetRef.current) : false,
+              parentExists: widgetRef.current?.parentElement !== null
+            })
+            
+            // Try to restore widget if ref still exists but element was removed
+            if (widgetRef.current && !document.body.contains(widgetRef.current)) {
+              console.warn("Attempting to restore widget...")
+              const parent = widgetRef.current.parentElement
+              if (parent) {
+                // Widget was removed from parent, try to re-append
+                parent.appendChild(widgetRef.current)
+                console.log("Widget restored to parent")
+              }
+            }
+          }
+        }, 500) // Check every 500ms
+        
         // Add onload handler to verify script loaded
         script.onload = () => {
           // Re-check widget immediately
@@ -105,12 +128,14 @@ export function ElevenLabsAudioNative() {
             widgetInDOM: !!widgetCheck,
             widgetElementStillExists: !!widgetElement && document.body.contains(widgetElement),
             widgetRefCurrent: widgetRef.current !== null,
+            widgetRefInDOM: widgetRef.current ? document.body.contains(widgetRef.current) : false,
             widgetVisible: widgetCheck ? window.getComputedStyle(widgetCheck).display !== 'none' : false,
             hasIframe: widgetCheck?.querySelector('iframe') !== null
           })
           
-          // Stop observing after a delay
+          // Stop monitoring and observing after a delay
           setTimeout(() => {
+            clearInterval(widgetMonitor)
             widgetObserver.disconnect()
           }, 5000)
           
@@ -197,10 +222,16 @@ export function ElevenLabsAudioNative() {
     }, 100) // Small delay to ensure widget is rendered
 
     return () => {
-      const existingScript = document.querySelector('script[src*="audioNativeHelper.js"]')
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript)
-      }
+      console.log("ElevenLabs AudioNative component cleanup - checking widget state", {
+        widgetExists: !!document.querySelector("#elevenlabs-audionative-widget"),
+        refExists: widgetRef.current !== null
+      })
+      
+      // Don't remove the script - let it stay for Audio Native to use
+      // The script should handle its own lifecycle
+      
+      // Clear any intervals (they should be cleared in onload, but just in case)
+      // Note: We can't access widgetMonitor here as it's in loadScript scope
     }
   }, [])
 
