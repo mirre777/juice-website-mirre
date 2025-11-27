@@ -1,9 +1,29 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useCallback } from "react"
 
 export function ElevenLabsAudioNative() {
   const widgetRef = useRef<HTMLDivElement>(null)
+  const scriptLoadedRef = useRef(false)
+  const widgetMountedRef = useRef(false)
+  
+  // Use ref callback to track when widget is actually mounted
+  const setWidgetRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      widgetRef.current = node
+      widgetMountedRef.current = true
+      console.log("Widget ref callback - widget mounted in DOM", {
+        nodeId: node.id,
+        inDOM: document.body.contains(node),
+        parent: node.parentElement?.tagName
+      })
+    } else {
+      console.warn("Widget ref callback - widget unmounted", {
+        wasMounted: widgetMountedRef.current
+      })
+      widgetMountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     // Wait for widget div to be in DOM first, then wait for content
@@ -27,8 +47,12 @@ export function ElevenLabsAudioNative() {
     // Check if script already exists
     if (document.querySelector('script[src*="audioNativeHelper.js"]')) {
       console.log("ElevenLabs AudioNative script already loaded")
+      scriptLoadedRef.current = true
       return
     }
+    
+    // Prevent cleanup if widget is being used
+    let isActive = true
 
     // Wait for both widget and content to be ready
     const loadScript = () => {
@@ -99,24 +123,22 @@ export function ElevenLabsAudioNative() {
         
         // Monitor widget to detect if it gets removed
         const widgetMonitor = setInterval(() => {
+          if (!isActive) {
+            clearInterval(widgetMonitor)
+            return
+          }
+          
           const currentWidget = document.querySelector("#elevenlabs-audionative-widget")
-          if (!currentWidget && widgetRef.current) {
+          if (!currentWidget && widgetRef.current && widgetMountedRef.current) {
             console.error("CRITICAL: Widget was removed from DOM!", {
               refExists: widgetRef.current !== null,
               refInDOM: widgetRef.current ? document.body.contains(widgetRef.current) : false,
-              parentExists: widgetRef.current?.parentElement !== null
+              parentExists: widgetRef.current?.parentElement !== null,
+              widgetMounted: widgetMountedRef.current
             })
             
-            // Try to restore widget if ref still exists but element was removed
-            if (widgetRef.current && !document.body.contains(widgetRef.current)) {
-              console.warn("Attempting to restore widget...")
-              const parent = widgetRef.current.parentElement
-              if (parent) {
-                // Widget was removed from parent, try to re-append
-                parent.appendChild(widgetRef.current)
-                console.log("Widget restored to parent")
-              }
-            }
+            // Don't try to restore - React will handle it
+            // Just log the issue
           }
         }, 500) // Check every 500ms
         
@@ -222,22 +244,22 @@ export function ElevenLabsAudioNative() {
     }, 100) // Small delay to ensure widget is rendered
 
     return () => {
+      isActive = false
       console.log("ElevenLabs AudioNative component cleanup - checking widget state", {
         widgetExists: !!document.querySelector("#elevenlabs-audionative-widget"),
-        refExists: widgetRef.current !== null
+        refExists: widgetRef.current !== null,
+        widgetMounted: widgetMountedRef.current,
+        scriptLoaded: scriptLoadedRef.current
       })
       
       // Don't remove the script - let it stay for Audio Native to use
       // The script should handle its own lifecycle
-      
-      // Clear any intervals (they should be cleared in onload, but just in case)
-      // Note: We can't access widgetMonitor here as it's in loadScript scope
     }
   }, [])
 
-  return (
+    return (
     <div
-      ref={widgetRef}
+      ref={setWidgetRef}
       id="elevenlabs-audionative-widget"
       data-height="90"
       data-width="100%"

@@ -232,8 +232,8 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
           </div>
 
           {/* ElevenLabs AudioNative Widget - placed after content so it can read the fully rendered article */}
-          <div className="mb-8 mt-8">
-            <ElevenLabsAudioNative />
+          <div className="mb-8 mt-8" key="elevenlabs-audio-native-container">
+            <ElevenLabsAudioNative key="elevenlabs-audio-native-widget" />
           </div>
 
           <InterviewWaitlistWidget
