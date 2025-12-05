@@ -45,6 +45,20 @@ const getPlaceholderImage = (category: string) => {
   return placeholders[categoryKey] || placeholders.default
 }
 
+// Helper function to normalize image URL - handles both full URLs and relative paths
+// This ensures LinkedIn and other social platforms get the correct image URL
+const getImageUrl = (image: string | undefined, category: string, baseUrl: string): string => {
+  if (!image) {
+    return `${baseUrl}${getPlaceholderImage(category)}`
+  }
+  // If image is already a full URL (starts with http:// or https://), use it as-is
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image
+  }
+  // Otherwise, prepend baseUrl for relative paths
+  return `${baseUrl}${image}`
+}
+
 // Generate SEO-optimized keywords based on post content and category
 // Moved outside generateMetadata so it can be reused in both metadata and JSON-LD
 const generateKeywords = (title: string, category: string, excerpt: string) => {
@@ -91,7 +105,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${params.slug}`
 
-  const imageUrl = post.image ? `${baseUrl}${post.image}` : `${baseUrl}${getPlaceholderImage(post.category)}`
+  const imageUrl = getImageUrl(post.image, post.category, baseUrl)
 
   return {
     title: `${post.title} | Juice Fitness Blog`,
@@ -194,6 +208,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Get related articles
   const relatedArticles = await getRelatedArticles(params.slug, 2)
 
+  // Calculate image URL for JSON-LD (same logic as in generateMetadata)
+  const imageUrl = getImageUrl(post.image, post.category, baseUrl)
+
   // JSON-LD structured data for this specific article
   const jsonLd = {
     "@context": "https://schema.org",
@@ -204,7 +221,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     description: post.excerpt,
     image: {
       "@type": "ImageObject",
-      url: post.image ? `${baseUrl}${post.image}` : `${baseUrl}${getPlaceholderImage(post.category)}`,
+      url: imageUrl,
       width: 1200,
       height: 630,
     },

@@ -37,6 +37,24 @@ async function getRelatedInterviews(currentSlug: string, limit = 2): Promise<Int
 
 const getPlaceholderImage = () => "/fitness-coaching-session.png"
 
+// Helper function to normalize image URL - handles both full URLs and relative paths
+// This ensures LinkedIn and other social platforms get the correct image URL
+const getImageUrl = (image: string | undefined, baseUrl: string): string => {
+  if (!image) {
+    return `${baseUrl}${getPlaceholderImage()}`
+  }
+  // Special case for legacy image path
+  if (image === "/lena-gym-photo.png") {
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png"
+  }
+  // If image is already a full URL (starts with http:// or https://), use it as-is
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return image
+  }
+  // Otherwise, prepend baseUrl for relative paths
+  return `${baseUrl}${image}`
+}
+
 export async function generateMetadata({ params }: InterviewPageProps): Promise<Metadata> {
   const { slug } = await params
   const interview = await getInterviewBySlug(slug)
@@ -51,12 +69,7 @@ export async function generateMetadata({ params }: InterviewPageProps): Promise<
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/interview/${slug}`
 
-  const ogImage =
-    interview.image === "/lena-gym-photo.png"
-      ? "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2825_edited-TItnaXlNqyoIoriOP3lxU4ebGua5uR.png"
-      : interview.image
-        ? `${baseUrl}${interview.image}`
-        : `${baseUrl}${getPlaceholderImage()}`
+  const ogImage = getImageUrl(interview.image, baseUrl)
 
   return {
     title: `${interview.title} | Juice Fitness Interviews`,
@@ -133,6 +146,9 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
   const fullUrl = `${baseUrl}/interview/${slug}`
   const relatedInterviews = await getRelatedInterviews(slug, 2)
 
+  // Calculate image URL for JSON-LD (same logic as in generateMetadata)
+  const imageUrl = getImageUrl(interview.image, baseUrl)
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -140,7 +156,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
     description: interview.excerpt,
     image: {
       "@type": "ImageObject",
-      url: interview.image ? `${baseUrl}${interview.image}` : `${baseUrl}${getPlaceholderImage()}`,
+      url: imageUrl,
       width: 1200,
       height: 630,
     },

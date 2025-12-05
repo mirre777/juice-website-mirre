@@ -159,8 +159,7 @@ export default async function BerlinTrainerDirectoryPage() {
           </h2>
           
           <p>
-            Berlin has a reputation for cheap rent, strong coffee, and creative chaos. Personal training, however, is not part of the bargain bin. The good news: you can find a trainer for almost any budget, as long as you know what you're paying for.
-          </p>
+          Personal training rates very a lot depending on experience. In Berlin you can already get good training for as low as €80 per session while in London it is not unusual to pay up to £160 (€180) for an experienced trainer in a top district. Many trainers offer package deals and online coaching at reduced rates.           </p>
           
           <p>
             This guide breaks down the typical personal training prices in Berlin, explains what affects the cost, and helps you find the best value for your goals.
