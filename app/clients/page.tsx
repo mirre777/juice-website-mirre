@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://juice.fitness/for-clients",
   },
+}
+
+export const viewport = {
   themeColor: "#000000",
 }
 
