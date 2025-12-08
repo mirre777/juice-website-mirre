@@ -102,11 +102,11 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
       <CardContent className="p-4 sm:p-6 h-full flex">
         <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
           <div className={`${profileBase} flex-shrink-0 ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
-            {isVerified ? (
+            {trainer.imageUrl ? (
               <img
-                src={trainer.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=4f46e5&color=fff&size=128&bold=true`}
+                src={trainer.imageUrl}
                 alt={trainer.name}
-                className={`w-full h-full object-cover ${trainer.imageUrl ? "rounded-full" : ""}`}
+                className="w-full h-full object-cover rounded-full"
                 onError={handleImageError}
               />
             ) : (
@@ -174,7 +174,10 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   )
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "")
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
-  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false)
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(() => {
+    const verifiedParam = searchParams.get("verified")
+    return verifiedParam === "true"
+  })
 
   // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
@@ -188,6 +191,9 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     if (!showAllDistricts && selectedDistricts.length > 0) {
       params.set("districts", selectedDistricts.join(","))
     }
+    if (showVerifiedOnly) {
+      params.set("verified", "true")
+    }
     const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
     const currentUrl = window.location.pathname + window.location.search
     
@@ -195,7 +201,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     if (newUrl !== currentUrl) {
       window.history.replaceState({}, "", newUrl)
     }
-  }, [selectedDistricts, searchQuery, showAllDistricts])
+  }, [selectedDistricts, searchQuery, showAllDistricts, showVerifiedOnly])
 
   const getDistrictLabel = (district: string) => district === "all" ? "All Districts" : district
   const matchesDistrict = (loc: string, selected: string) => {
