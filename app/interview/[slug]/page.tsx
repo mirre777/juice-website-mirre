@@ -185,7 +185,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ReadingProgress />
       <main className="min-h-screen bg-white text-black">
-        <Navbar isCoach={true} className="bg-white" />
+        <Navbar />
 
         <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
           <Link

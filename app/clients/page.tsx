@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import ClientHomePage from "./ClientHomePage"
 
 export const metadata: Metadata = {
@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://juice.fitness/for-clients",
   },
+}
+
+export const viewport: Viewport = {
   themeColor: "#000000",
 }
 

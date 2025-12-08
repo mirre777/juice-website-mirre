@@ -61,10 +61,9 @@ export const metadata: Metadata = {
 }
 
 export default function WorkoutPlannerPage() {
-  // Using isCoach=true for trainer-style (white background) navbar
   return (
     <main className="flex min-h-screen flex-col bg-white">
-      <Navbar isHomePage={false} isCoach={true} />
+      <Navbar />
       <WorkoutPlannerHero /> {/* Use the new hero component */}
       <Footer />
     </main>

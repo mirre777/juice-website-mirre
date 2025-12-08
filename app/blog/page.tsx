@@ -73,7 +73,7 @@ export default async function BlogPage() {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <Navbar isCoach={true} className="bg-white" />
+      <Navbar />
 
       <div className="container mx-auto px-4 md:px-6 py-20 pt-32">
         <div className="text-center mb-16">
