@@ -1,0 +1,1 @@
+package-lock.json is up to date with Next.js 15.2.6. SWC dependencies warnings are auto-patched during Vercel builds.
