@@ -3,6 +3,8 @@ import FindATrainerClientPage from "./FindATrainerClientPage"
 import { getArticlesByCategory } from "@/lib/blog"
 import { fetchTrainersForCity } from "@/app/(landing-pages)/utils/trainer-directory-utils"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Find a Trainer - Juice",
   description: "Find certified personal trainers in London, Berlin, Amsterdam, Vienna & across Europe. Browse verified fitness coaches specializing in strength training, nutrition, and body transformation. Book your trainer today.",
