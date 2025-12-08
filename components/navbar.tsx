@@ -154,8 +154,6 @@ export function Navbar() {
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/") ||
     pathname.startsWith("/findatrainer/") ||
-    pathname === "/blog" ||
-    pathname.startsWith("/blog/") ||
     whiteBackgroundClientPages.includes(pathname)
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
 
@@ -219,34 +217,19 @@ export function Navbar() {
                 </Link>
               )}
               {!isCoach ? (
-                <>
-                  <Link
-                    href="/findatrainer"
-                    className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-                    onClick={() =>
-                      trackEvent("nav_click", {
-                        section: "find-trainer",
-                        user_type: "client",
-                        location: "navbar",
-                      })
-                    }
-                  >
-                    Find A Trainer
-                  </Link>
-                  <Link
-                    href="/blog"
-                    className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
-                    onClick={() =>
-                      trackEvent("nav_click", {
-                        section: "blog",
-                        user_type: "client",
-                        location: "navbar",
-                      })
-                    }
-                  >
-                    Blog
-                  </Link>
-                </>
+                <Link
+                  href="/findatrainer"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("nav_click", {
+                      section: "find-trainer",
+                      user_type: "client",
+                      location: "navbar",
+                    })
+                  }
+                >
+                  Find A Trainer
+                </Link>
               ) : (
                 <Link
                   href="/getclients"
@@ -379,42 +362,28 @@ export function Navbar() {
               </Link>
             )}
             {!isCoach ? (
-              <>
-                <Link
-                  href="/findatrainer"
-                  className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                    trackEvent("nav_click", {
-                      section: "find-trainer",
-                      user_type: "client",
-                      location: "mobile-menu",
-                    })
-                  }}
-                >
-                  Find A Trainer
-                </Link>
-                <Link
-                  href="/blog"
-                  className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                    trackEvent("nav_click", {
-                      section: "blog",
-                      user_type: "client",
-                      location: "mobile-menu",
-                    })
-                  }}
-                >
-                  Blog
-                </Link>
-              </>
+              <Link
+                href="/findatrainer"
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  // Add click tracking for mobile menu find trainer link
+                  trackEvent("nav_click", {
+                    section: "find-trainer",
+                    user_type: "client",
+                    location: "mobile-menu",
+                  })
+                }}
+              >
+                Find A Trainer
+              </Link>
             ) : (
               <Link
                 href="/getclients"
                 className={`block px-3 py-2 text-base font-medium hover:bg-gray-600 rounded-md ${linkTextColorClass}`}
                 onClick={() => {
                   setIsMobileMenuOpen(false)
+                  // Add click tracking for mobile menu get clients link
                   trackEvent("nav_click", {
                     section: "get-clients",
                     user_type: "trainer",
