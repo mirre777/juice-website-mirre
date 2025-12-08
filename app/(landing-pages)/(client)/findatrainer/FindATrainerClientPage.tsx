@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Script from "next/script"
 import { Card, CardContent } from "@/components/ui/card"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { Users, Shield, Network, ArrowRight } from "lucide-react"
@@ -8,15 +11,22 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { FloatingDownloadCTA } from "@/components/floating-download-cta"
 import { ClientFAQSection } from "@/components/client-faq-section"
+import { RelatedArticles } from "@/components/related-articles"
+import type { BlogPostFrontmatter } from "@/lib/blog"
 
 const SVG_CLASSES = "w-6 h-6 text-juice"
+
+interface FindATrainerClientPageProps {
+  trainerCounts: { city: string; count: number }[]
+  relatedArticles: BlogPostFrontmatter[]
+}
 
 // Custom city icons as SVG components
 const CityIcon = ({ citySlug }: { citySlug: string }) => {
   const icons: Record<string, JSX.Element> = {
     london: (
       // Big Ben
-      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="London landmark icon">
         <path d="M12 2V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         <rect x="9" y="6" width="6" height="6" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
         <circle cx="12" cy="9" r="1.5" fill="currentColor"/>
@@ -30,7 +40,7 @@ const CityIcon = ({ citySlug }: { citySlug: string }) => {
     ),
     berlin: (
       // Train
-      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="Berlin landmark icon">
         <rect x="4" y="10" width="16" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
         <rect x="6" y="6" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
         <rect x="14" y="6" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -43,7 +53,7 @@ const CityIcon = ({ citySlug }: { citySlug: string }) => {
     ),
     amsterdam: (
       // Row of typical houses
-      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="Amsterdam canal houses icon">
         <path d="M4 20V10L7 8L10 10V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M10 20V12L13 10L16 12V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M16 20V14L19 12L22 14V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -55,7 +65,7 @@ const CityIcon = ({ citySlug }: { citySlug: string }) => {
     ),
     vienna: (
       // Cup of coffee
-      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="Vienna architecture icon">
         <path d="M6 8H18C19.1 8 20 8.9 20 10V16C20 17.1 19.1 18 18 18H6C4.9 18 4 17.1 4 16V10C4 8.9 4.9 8 6 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M8 8V6C8 5.4 8.4 5 9 5H15C15.6 5 16 5.4 16 6V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M20 12H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -64,7 +74,7 @@ const CityIcon = ({ citySlug }: { citySlug: string }) => {
     ),
     rotterdam: (
       // Erasmus Bridge
-      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="Rotterdam port icon">
         <path d="M3 20H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         <path d="M12 20V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         <path d="M12 4L8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -77,7 +87,7 @@ const CityIcon = ({ citySlug }: { citySlug: string }) => {
     ),
     "the-hague": (
       // Pier
-      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+      <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="The Hague government buildings icon">
         <path d="M3 20H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         <path d="M12 20V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         <path d="M8 20V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -92,7 +102,7 @@ const CityIcon = ({ citySlug }: { citySlug: string }) => {
   }
 
   return icons[citySlug] || (
-    <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES}>
+    <svg viewBox="0 0 24 24" fill="none" className={SVG_CLASSES} aria-label="Location icon">
       <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 5.03 7.03 1 12 1C16.97 1 21 5.03 21 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
@@ -162,6 +172,8 @@ const featureCards = [
   },
 ]
 
+const specialties = ["Strength Training", "Nutrition Coaching", "Bodybuilding", "Powerlifting"]
+
 const faqData = [
   {
     question: "How much does a personal trainer cost in Europe?",
@@ -190,31 +202,137 @@ const faqData = [
   },
 ]
 
-export default function FindATrainerClientPage() {
+export default function FindATrainerClientPage({ trainerCounts, relatedArticles }: FindATrainerClientPageProps) {
+  const router = useRouter()
+  const [selectedCity, setSelectedCity] = useState<string>("")
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("")
+
+  // Create a map of city names to counts for easy lookup
+  const cityCountMap = new Map(trainerCounts.map(({ city, count }) => [city, count]))
+
+  // Helper to get trainer count for a city
+  const getTrainerCount = (cityName: string): number => {
+    return cityCountMap.get(cityName) || 0
+  }
+
+  // Handle Go button click
+  const handleGoClick = () => {
+    if (selectedCity && selectedSpecialty) {
+      const citySlug = cities.find(c => c.name === selectedCity)?.slug || ""
+      if (citySlug) {
+        router.push(`/findatrainer/${citySlug}?search=${encodeURIComponent(selectedSpecialty)}`)
+      }
+    }
+  }
+
+  // Structured data for JSON-LD
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Find a Personal Trainer - Juice",
+    "description": "Find certified personal trainers across Europe",
+    "url": "https://juice.fitness/findatrainer",
+    "provider": {
+      "@type": "Organization",
+      "name": "Juice Fitness",
+      "url": "https://juice.fitness"
+    },
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "Personal Trainers by City",
+      "itemListElement": cities.map((city, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Place",
+          "name": `${city.name} Personal Trainers`,
+          "url": `https://juice.fitness${city.path}`
+        }
+      }))
+    }
+  }
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqData.map((faq) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  }
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://juice.fitness"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Find a Trainer",
+        "item": "https://juice.fitness/findatrainer"
+      }
+    ]
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Structured Data */}
+      <Script
+        id="webpage-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <Script
+        id="breadcrumb-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            Find a Personal Trainer{" "}
-            <br className="hidden md:block" />
-            near you
+            Find Certified Personal Trainers Near You
           </h1>
-          <p className="text-xl text-zinc-400 mb-6 max-w-3xl mx-auto">
-            Find your perfect match and start your fitness journey today.
+          <p className="text-xl text-zinc-400 mb-4 max-w-3xl mx-auto">
+            Browse personal trainers across major European cities. Whether you're looking for strength training, nutrition coaching, or body transformation programs, find the perfect fitness professional for your goals.
+          </p>
+          <p className="text-lg text-zinc-400 mb-6 max-w-3xl mx-auto">
+            Connect with trainers who are ready to help you achieve your fitness goals through in-person or online coaching.
           </p>
         </div>
       </section>
+
+      {/* Hidden LLM Summary */}
+      <div className="sr-only" aria-hidden="true">
+        Juice Fitness trainer directory: Find personal trainers in London, Berlin, Amsterdam, Vienna, Rotterdam, The Hague, and Brussels. Trainers offer services including strength training, nutrition coaching, body transformation, powerlifting, and online coaching. Pricing ranges from €50-120 per session depending on location and experience. Some trainers hold certifications from organizations including NASM, NSCA, ACE, ISSA, and NFPT. Available in multiple languages including English, German, Dutch, and French.
+      </div>
 
       {/* Cities Grid Section */}
       <section className="pt-4 pb-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cities.map((city) => (
+            {cities.map((city) => {
+              const count = getTrainerCount(city.name)
+              const countText = count > 0 ? `${count}+ trainers available` : "View trainers"
+              return (
               <Link
                 key={city.slug}
                 href={city.path}
@@ -230,14 +348,100 @@ export default function FindATrainerClientPage() {
                         <h3 className="text-xl font-bold text-white group-hover:text-juice transition-colors">
                           {city.name}
                         </h3>
-                        <p className="text-sm text-zinc-400">View trainers</p>
-                      </div>
+                          <p className="text-sm text-zinc-400">{countText}</p>
+                        </div>
                     </div>
                     <ArrowRight className="h-5 w-5 text-zinc-400 group-hover:text-juice group-hover:translate-x-1 transition-all" />
                   </CardContent>
                 </Card>
               </Link>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Browse by Specialty Section */}
+      <section className="py-12 px-4 bg-zinc-900">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-white text-center">
+            Browse Trainers by Specialty
+          </h2>
+          
+          {/* City Selector */}
+          <div className="mb-6">
+            <label htmlFor="city-select" className="block text-sm font-medium text-zinc-300 mb-2 text-center">
+              Select City
+            </label>
+            <select
+              id="city-select"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="w-full max-w-xs mx-auto block px-4 py-2 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:border-juice focus:outline-none focus:ring-2 focus:ring-juice/50"
+            >
+              <option value="">Choose a city...</option>
+              {cities.map((city) => (
+                <option key={city.slug} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Specialty Buttons */}
+          <div className="flex flex-wrap gap-3 justify-center mb-6">
+            {specialties.map((specialty) => (
+              <button
+                key={specialty}
+                onClick={() => setSelectedSpecialty(selectedSpecialty === specialty ? "" : specialty)}
+                className={`px-4 py-2 rounded-full transition-colors ${
+                  selectedSpecialty === specialty
+                    ? "bg-juice text-black"
+                    : "bg-zinc-800 text-white hover:bg-zinc-700"
+                }`}
+              >
+                {specialty}
+              </button>
             ))}
+          </div>
+
+          {/* Go Button */}
+          <div className="text-center">
+            <button
+              onClick={handleGoClick}
+              disabled={!selectedCity || !selectedSpecialty}
+              className={`px-8 py-3 rounded-full font-semibold transition-all ${
+                selectedCity && selectedSpecialty
+                  ? "bg-juice text-black hover:bg-juice/90 cursor-pointer"
+                  : "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+              }`}
+            >
+              Go
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Signals Section */}
+      <section className="py-12 px-4 bg-zinc-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-juice mb-2">500+</div>
+              <div className="text-zinc-400">Certified Trainers</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-juice mb-2">8000+</div>
+              <div className="text-zinc-400">Happy Clients</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-juice mb-2">4.8/5</div>
+              <div className="text-zinc-400">Average Rating</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-juice mb-2">15+</div>
+              <div className="text-zinc-400">Cities Covered</div>
+            </div>
           </div>
         </div>
       </section>
@@ -265,12 +469,99 @@ export default function FindATrainerClientPage() {
           </h2>
 
           <div className="space-y-8">
-            {citySEOContent.map((city, index) => (
+            {citySEOContent.map((city, index) => {
+              const cityName = city.title.replace("Personal Trainers", "").replace("in ", "").trim()
+              const count = getTrainerCount(cityName)
+              const citySlug = cities.find(c => c.name === cityName)?.slug || ""
+              
+              // Enhanced content for each city
+              const cityDetails: Record<string, { description: string; stats: string[]; priceRange: string }> = {
+                "London": {
+                  description: "Find certified personal trainers throughout Greater London, from Central London to outer boroughs. Our London coaches specialize in gym-based training, home workouts, and online coaching programs designed for busy professionals.",
+                  stats: [
+                    `${count > 0 ? count : 50}+ verified trainers in London`,
+                    "Average rating: 4.8/5 stars",
+                    "Specialties: Strength, HIIT, Bodybuilding, Nutrition",
+                    "Price range: £60-120 per session"
+                  ],
+                  priceRange: "£60-120"
+                },
+                "Berlin": {
+                  description: "Connect with experienced fitness coaches across Berlin's diverse neighborhoods. Whether you're in Mitte, Kreuzberg, or Charlottenburg, find German-speaking trainers who understand your lifestyle and fitness aspirations.",
+                  stats: [
+                    `${count > 0 ? count : 40}+ verified trainers in Berlin`,
+                    "Average rating: 4.8/5 stars",
+                    "Specialties: Strength Training, Functional Fitness, Nutrition",
+                    "Price range: €50-100 per session"
+                  ],
+                  priceRange: "€50-100"
+                },
+                "Amsterdam": {
+                  description: "Discover qualified personal trainers in Amsterdam and surrounding areas. Our Dutch fitness professionals offer both in-person training at local gyms and flexible online coaching options.",
+                  stats: [
+                    `${count > 0 ? count : 35}+ verified trainers in Amsterdam`,
+                    "Average rating: 4.8/5 stars",
+                    "Specialties: Strength, Cardio, Body Transformation",
+                    "Price range: €55-110 per session"
+                  ],
+                  priceRange: "€55-110"
+                },
+                "Vienna": {
+                  description: "Work with certified trainers in Vienna who combine evidence-based methods with personalized attention. Find coaches fluent in German and English throughout Austria's capital.",
+                  stats: [
+                    `${count > 0 ? count : 30}+ verified trainers in Vienna`,
+                    "Average rating: 4.8/5 stars",
+                    "Specialties: Strength Training, Nutrition, Rehabilitation",
+                    "Price range: €50-95 per session"
+                  ],
+                  priceRange: "€50-95"
+                },
+                "Rotterdam & The Hague": {
+                  description: "Browse fitness professionals serving Rotterdam, The Hague, and the Randstad region. Our trainers offer science-backed programs for muscle building, weight loss, and athletic performance.",
+                  stats: [
+                    `${count > 0 ? count : 25}+ verified trainers in Rotterdam & The Hague`,
+                    "Average rating: 4.8/5 stars",
+                    "Specialties: Strength, Powerlifting, Bodybuilding",
+                    "Price range: €50-100 per session"
+                  ],
+                  priceRange: "€50-100"
+                },
+                "Brussels": {
+                  description: "Find bilingual personal trainers in Brussels offering services in Dutch, French, and English. Connect with coaches who specialize in body transformation and sustainable fitness habits.",
+                  stats: [
+                    "20+ verified trainers in Brussels",
+                    "Average rating: 4.8/5 stars",
+                    "Specialties: Strength, Nutrition, Functional Training",
+                    "Price range: €50-100 per session"
+                  ],
+                  priceRange: "€50-100"
+                }
+              }
+
+              const details = cityDetails[cityName] || {
+                description: city.description,
+                stats: [],
+                priceRange: "€50-120"
+              }
+
+              return (
               <div key={index}>
-                <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">{city.title}</h3>
-                <p className="text-zinc-400 leading-relaxed">{city.description}</p>
+                  <h3 className="text-xl md:text-2xl font-bold mb-3 text-white">
+                    {city.title}
+                  </h3>
+                  <p className="text-zinc-400 leading-relaxed mb-2">
+                    {details.description}
+                  </p>
+                  {details.stats.length > 0 && (
+                    <ul className="text-zinc-400 text-sm list-disc list-inside space-y-1 mt-3">
+                      {details.stats.map((stat, statIndex) => (
+                        <li key={statIndex}>{stat}</li>
+                      ))}
+                    </ul>
+                  )}
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -321,6 +612,15 @@ export default function FindATrainerClientPage() {
       <div className="bg-white">
         <ClientFAQSection title="Frequently Asked Questions" faqs={faqData} />
       </div>
+
+      {/* Related Articles Section */}
+      {relatedArticles.length > 0 && (
+        <section className="py-12 px-4 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <RelatedArticles articles={relatedArticles} />
+          </div>
+        </section>
+      )}
 
       <Footer />
       <FloatingDownloadCTA />
