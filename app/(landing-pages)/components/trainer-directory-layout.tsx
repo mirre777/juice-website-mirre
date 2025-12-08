@@ -27,7 +27,7 @@ const cardVerified = "border-2 border-juice hover:border-juice/80 bg-gradient-to
 const cardUnverified = "border border-juice/30 hover:border-juice/50 bg-[#fafafa]"
 const profileBase = "flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center overflow-hidden"
 const badgeVerified = "bg-gradient-to-r from-green-500 to-green-600"
-const badgeCert = "bg-gradient-to-r from-blue-500 to-blue-600"
+const badgeCert = "bg-gradient-to-l from-[#1e0a57] to-[#5a2a9f]"
 const badgeReviews = "bg-gradient-to-r from-blue-400 to-blue-500"
 const badgeContainerMaxHeight = "1.375rem"
 
