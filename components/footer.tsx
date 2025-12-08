@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Instagram, Linkedin } from "lucide-react"
+import { Instagram, Linkedin } from "lucide-react"
 import { Logo } from "./logo"
 import { useTheme } from "@/components/theme-provider"
 import { usePathname } from "next/navigation"
@@ -36,6 +36,9 @@ export function Footer() {
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/") ||
     pathname.startsWith("/findatrainer/") ||
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/") ||
+    pathname.startsWith("/interview/") ||
     whiteBackgroundClientPages.includes(pathname)
     
   const isFooterDark =
@@ -67,14 +70,36 @@ export function Footer() {
           </Link>
           <p className={cn("text-sm", getTextColorClass())}>Make every workout count.</p>
           <div className="flex space-x-4">
-            <Link href="#" className={getTextColorClass()}>
-              <Facebook className="h-5 w-5" />
-            </Link>
-            <Link href="#" className={getTextColorClass()}>
+            <Link
+              href="https://www.instagram.com/juice_fitness_app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={getTextColorClass()}
+            >
               <Instagram className="h-5 w-5" />
             </Link>
-            <Link href="#" className={getTextColorClass()}>
+            <Link
+              href="https://www.linkedin.com/company/juice-fitness/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={getTextColorClass()}
+            >
               <Linkedin className="h-5 w-5" />
+            </Link>
+            <Link
+              href="https://www.tiktok.com/@juice_fitness_app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={getTextColorClass()}
+            >
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.07 6.07 0 0 0-1-.05A6.37 6.37 0 0 0 5 20.1a6.37 6.37 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+              </svg>
             </Link>
           </div>
         </div>
@@ -90,6 +115,21 @@ export function Footer() {
             <li>
               <Link href="/#pricing" className={cn("text-sm", getTextColorClass())}>
                 Pricing
+              </Link>
+            </li>
+            <li>
+              <Link href="/download-juice-app" className={cn("text-sm", getTextColorClass())}>
+                Download Workout App
+              </Link>
+            </li>
+            <li>
+              <Link href="/workout-planner" className={cn("text-sm", getTextColorClass())}>
+                Online Workout Planner
+              </Link>
+            </li>
+            <li>
+              <Link href="/getclients" className={cn("text-sm", getTextColorClass())}>
+                Get Clients
               </Link>
             </li>
           </ul>

@@ -154,6 +154,9 @@ export function Navbar() {
     pathname === "/workout-programs" ||
     pathname.startsWith("/workout-programs/") ||
     pathname.startsWith("/findatrainer/") ||
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/") ||
+    pathname.startsWith("/interview/") ||
     whiteBackgroundClientPages.includes(pathname)
   const shouldUseWhiteNavbar = isWhiteThemedPage || !isNavbarDark
 

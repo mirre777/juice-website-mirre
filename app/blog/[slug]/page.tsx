@@ -19,9 +19,9 @@ import type { BlogPostFrontmatter } from "@/lib/blog"
 export const dynamic = "force-dynamic"
 
 type BlogPostPageProps = {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export async function generateStaticParams() {
@@ -93,7 +93,8 @@ const generateKeywords = (title: string, category: string, excerpt: string) => {
 
 // Generate metadata for SEO - applies to ALL blog posts
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug)
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
 
   if (!post) {
     return {
@@ -103,7 +104,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
-  const fullUrl = `${baseUrl}/blog/${params.slug}`
+  const fullUrl = `${baseUrl}/blog/${slug}`
 
   const imageUrl = getImageUrl(post.image, post.category, baseUrl)
 
@@ -173,11 +174,12 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  console.log(`[v0] BlogPostPage: Starting to render page for slug: "${params.slug}"`)
+  const { slug } = await params
+  console.log(`[v0] BlogPostPage: Starting to render page for slug: "${slug}"`)
   let post
 
   try {
-    post = await getPostBySlug(params.slug)
+    post = await getPostBySlug(slug)
     console.log(`[v0] BlogPostPage: Post fetch result:`, post ? "SUCCESS" : "NOT FOUND")
     if (post) {
       console.log(`[v0] BlogPostPage: Post details:`, {
@@ -191,22 +193,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       })
     }
   } catch (error) {
-    console.error(`[v0] BlogPostPage: Error fetching post for slug "${params.slug}":`, error)
+    console.error(`[v0] BlogPostPage: Error fetching post for slug "${slug}":`, error)
     notFound()
   }
 
   if (!post) {
-    console.log(`[v0] BlogPostPage: Post not found for slug: "${params.slug}", calling notFound()`)
+    console.log(`[v0] BlogPostPage: Post not found for slug: "${slug}", calling notFound()`)
     notFound()
   }
 
   console.log(`[v0] BlogPostPage: Successfully loaded post "${post.title}", proceeding with render`)
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
-  const fullUrl = `${baseUrl}/blog/${params.slug}`
+  const fullUrl = `${baseUrl}/blog/${slug}`
 
   // Get related articles
-  const relatedArticles = await getRelatedArticles(params.slug, 2)
+  const relatedArticles = await getRelatedArticles(slug, 2)
 
   // Calculate image URL for JSON-LD (same logic as in generateMetadata)
   const imageUrl = getImageUrl(post.image, post.category, baseUrl)
@@ -257,7 +259,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ReadingProgress />
       <main className="min-h-screen bg-white text-black">
-        <Navbar isCoach={true} className="bg-white" />
+        <Navbar />
 
         <article className="container mx-auto px-4 md:px-6 py-20 pt-32 max-w-4xl">
           {/* Back to Blog */}
