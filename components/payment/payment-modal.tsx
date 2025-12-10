@@ -138,7 +138,9 @@ export function PaymentModal({
 
   // Function to reset the payment form
   const resetPaymentForm = () => {
-    console.log("Resetting payment form")
+    if (process.env.NODE_ENV === "development") {
+      console.log("Resetting payment form")
+    }
     setPaymentStatus("pending")
     setErrorMessage("")
     // Increment the counter to force re-render

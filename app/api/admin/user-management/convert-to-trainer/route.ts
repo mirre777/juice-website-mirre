@@ -2,12 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { convertPotentialUserToTrainer } from "@/actions/status-management"
 
 export async function POST(request: NextRequest) {
-  console.log("🌐 CONVERT TO TRAINER API CALLED")
-  console.log("🕐 Timestamp:", new Date().toISOString())
+  const isDev = process.env.NODE_ENV === "development"
+  if (isDev) {
+    console.log("🌐 CONVERT TO TRAINER API CALLED")
+    console.log("🕐 Timestamp:", new Date().toISOString())
+  }
 
   try {
     const { userId } = await request.json()
-    console.log("📊 User ID:", userId)
+    if (isDev) console.log("📊 User ID:", userId)
 
     if (!userId) {
       console.error("❌ User ID is required")
@@ -20,7 +23,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("🔄 Converting potential user to trainer...")
+    if (isDev) console.log("🔄 Converting potential user to trainer...")
 
     const result = await convertPotentialUserToTrainer(userId)
 
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("✅ Trainer created successfully:", result.trainerId)
+    if (isDev) console.log("✅ Trainer created successfully:", result.trainerId)
 
     return NextResponse.json({
       success: true,
