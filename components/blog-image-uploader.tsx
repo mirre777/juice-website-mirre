@@ -101,7 +101,6 @@ export function BlogImageUploader({
 
       const uploadResult = await uploadResponse.json()
 
-      const isDev = process.env.NODE_ENV === "development"
       if (isDev && uploadResult.compressionRatio) {
         console.log(
           `[v0] Image compressed: ${uploadResult.originalSize} → ${uploadResult.size} bytes (${uploadResult.compressionRatio} reduction)`,
