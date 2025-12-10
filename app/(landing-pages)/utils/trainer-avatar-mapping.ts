@@ -42,18 +42,20 @@ export const trainerAvatarMapping: TrainerAvatarMapping = {
 const BLOB_STORAGE_BASE_URL = "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com"
 
 /**
- * Available avatar filenames (avatar0.png through avatar8.png)
+ * Available avatar filenames (avatar20.png through avatar30.png)
  */
 const AVAILABLE_AVATARS = [
-  "avatar0.png", 
-  "avatar1.png", 
-  "avatar2.png", 
-  "avatar3.png", 
-  "avatar4.png",
-  "avatar5.png",
-  "avatar6.png",
-  "avatar7.png",
-  "avatar8.png"
+  "avatar20.png", 
+  "avatar21.png", 
+  "avatar22.png", 
+  "avatar23.png", 
+  "avatar24.png",
+  "avatar25.png",
+  "avatar26.png",
+  "avatar27.png",
+  "avatar28.png",
+  "avatar29.png",
+  "avatar30.png"
 ]
 
 /**
