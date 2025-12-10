@@ -1,4 +1,5 @@
 import { getFirebaseWebappAdminDb, isBuildTime } from "@/lib/firebase-global-guard"
+import { getTrainerAvatarUrl, trainerAvatarMapping } from "./trainer-avatar-mapping"
 
 export type Trainer = {
   id: string
@@ -46,17 +47,60 @@ function parseDistricts(district: string | undefined | null): string[] {
 }
 
 function mapTrainerFromDb(doc: any, hasReviews: boolean = false): Trainer {
-  const imageUrl = 
+  const trainerId = doc.id || ""
+  const trainerName = doc.fullName || ""
+  
+  // Check for database profileImageUrl first - if it exists, use it and don't replace with avatar
+  // Only check profileImageUrl fields, not imageUrl
+  const dbProfileImageUrl = 
     doc.photos?.profileImageUrl || 
     doc.profileImageUrl || 
     doc.photo?.profileImageUrl ||
-    doc.imageUrl ||
     undefined
-  const isVerified = doc.status === "claimed" || imageUrl !== undefined
+  
+  // Only apply avatars (manual or automatic) if there's NO database profileImageUrl
+  let mappedAvatarUrl: string | undefined = undefined
+  let isManualMapping = false
+  
+  if (!dbProfileImageUrl) {
+    // Check for manual avatar mapping first (by ID or name)
+    // Manual mappings indicate verified status
+    // Check manual mapping by ID
+    if (trainerAvatarMapping.byId?.[trainerId]) {
+      mappedAvatarUrl = trainerAvatarMapping.byId[trainerId]
+      isManualMapping = true
+    }
+    
+    // Check manual mapping by name (case-insensitive)
+    if (!isManualMapping && trainerAvatarMapping.byName) {
+      const normalizedName = trainerName.toLowerCase().trim()
+      for (const [name, url] of Object.entries(trainerAvatarMapping.byName)) {
+        if (name.toLowerCase().trim() === normalizedName) {
+          mappedAvatarUrl = url
+          isManualMapping = true
+          break
+        }
+      }
+    }
+    
+    // If no manual mapping and no database profileImageUrl, get automatic avatar
+    // This applies to ALL trainers without a profile image, regardless of verification status
+    if (!mappedAvatarUrl) {
+      mappedAvatarUrl = getTrainerAvatarUrl(trainerId, trainerName)
+    }
+  }
+  
+  // Use database profileImageUrl if available, otherwise use mapped avatar (manual or automatic)
+  // Never replace a database profileImageUrl with an avatar
+  const imageUrl = dbProfileImageUrl || mappedAvatarUrl || undefined
+  
+  // Trainer is verified ONLY if status is "claimed"
+  // profileImageUrl and avatar mappings do NOT affect verification status
+  const isVerified = doc.status === "claimed"
   
   return {
-    id: doc.id || "",
-    name: doc.fullName || "",
+    id: trainerId,
+    name: trainerName,
     imageUrl,
     isVerified,
     certifications: parseCertifications(doc.certifications),

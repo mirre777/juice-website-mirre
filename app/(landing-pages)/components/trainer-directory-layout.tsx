@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, MapPin, BadgeCheck, Award, MessageCircle, ArrowRight, User, ChevronDown } from "lucide-react"
+import { Search, MapPin, BadgeCheck, Award, MessageCircle, ChevronRight, User, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,11 +23,11 @@ const iconBase = "h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1"
 const btnBase = "rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
 const btnActive = "bg-juice text-gray-900 hover:bg-juice/90 border-juice"
 const btnInactive = "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-const cardVerified = "border-2 border-juice hover:border-juice/80 bg-gradient-to-br from-white to-[#f8fff0]"
-const cardUnverified = "border border-juice/30 hover:border-juice/50 bg-[#fafafa]"
+const cardVerified = "border-2 border-[#5a2a9f] hover:border-[#6d3ab8] bg-gradient-to-br from-white to-[#f0e8ff]"
+const cardUnverified = "border border-[#5a2a9f]/30 hover:border-[#5a2a9f]/50 bg-gradient-to-br from-white to-[#faf5ff]"
 const profileBase = "flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center overflow-hidden"
-const badgeVerified = "bg-gradient-to-r from-green-500 to-green-600"
-const badgeCert = "bg-gradient-to-r from-blue-500 to-blue-600"
+const badgeVerified = "bg-gradient-to-br from-[#d2ff28] via-[#9acd32] to-[#7cb342]"
+const badgeCert = "bg-gradient-to-l from-[#1e0a57] to-[#5a2a9f]"
 const badgeReviews = "bg-gradient-to-r from-blue-400 to-blue-500"
 const badgeContainerMaxHeight = "1.375rem"
 
@@ -82,9 +82,10 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
     if (type === "cert" && certIndex === undefined) return null
     const config = badgeConfig[type]
     const text = type === "cert" ? trainer.certifications[certIndex!] : (config as { text: string }).text
+    const isVerified = type === "verified"
     return (
-      <Badge key={type === "cert" ? `cert-${certIndex}` : type} className={`${badgeBase} ${config.className}`}>
-        <config.Icon className={iconBase} />
+      <Badge key={type === "cert" ? `cert-${certIndex}` : type} className={`${badgeBase} ${config.className} ${isVerified ? "text-black" : ""}`}>
+        <config.Icon className={`${iconBase} ${isVerified ? "text-black" : ""}`} />
         {type === "cert" ? <span className="truncate max-w-[120px]">{text}</span> : text}
       </Badge>
     )
@@ -102,11 +103,11 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
       <CardContent className="p-4 sm:p-6 h-full flex">
         <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
           <div className={`${profileBase} flex-shrink-0 ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
-            {isVerified ? (
+            {trainer.imageUrl ? (
               <img
-                src={trainer.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=4f46e5&color=fff&size=128&bold=true`}
+                src={trainer.imageUrl}
                 alt={trainer.name}
-                className={`w-full h-full object-cover ${trainer.imageUrl ? "rounded-full" : ""}`}
+                className="w-full h-full object-cover rounded-full"
                 onError={handleImageError}
               />
             ) : (
@@ -151,7 +152,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
                 </span>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2 md:ml-4" />
+            <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2 md:ml-4" />
           </div>
         </div>
       </CardContent>
@@ -174,7 +175,10 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   )
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "")
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
-  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false)
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(() => {
+    const verifiedParam = searchParams.get("verified")
+    return verifiedParam === "true"
+  })
 
   // Update URL when filters change (skip initial mount to avoid history entries)
   useEffect(() => {
@@ -188,6 +192,9 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     if (!showAllDistricts && selectedDistricts.length > 0) {
       params.set("districts", selectedDistricts.join(","))
     }
+    if (showVerifiedOnly) {
+      params.set("verified", "true")
+    }
     const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
     const currentUrl = window.location.pathname + window.location.search
     
@@ -195,7 +202,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
     if (newUrl !== currentUrl) {
       window.history.replaceState({}, "", newUrl)
     }
-  }, [selectedDistricts, searchQuery, showAllDistricts])
+  }, [selectedDistricts, searchQuery, showAllDistricts, showVerifiedOnly])
 
   const getDistrictLabel = (district: string) => district === "all" ? "All Districts" : district
   const matchesDistrict = (loc: string, selected: string) => {
