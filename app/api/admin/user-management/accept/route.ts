@@ -6,13 +6,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Route not available during build time" }, { status: 503 })
   }
 
-  console.log("📞 CONTACTED USER API CALLED")
-  console.log("🕐 Timestamp:", new Date().toISOString())
+  const isDev = process.env.NODE_ENV === "development"
+  if (isDev) {
+    console.log("📞 CONTACTED USER API CALLED")
+    console.log("🕐 Timestamp:", new Date().toISOString())
+  }
 
   try {
     const db = await getFirebaseClientDb()
     const { userId } = await request.json()
-    console.log("📊 User ID:", userId)
+    if (isDev) console.log("📊 User ID:", userId)
 
     if (!userId) {
       console.error("❌ User ID is required")
@@ -25,7 +28,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("🔄 Updating user status to contacted...")
+    if (isDev) console.log("🔄 Updating user status to contacted...")
 
     const { doc, updateDoc, Timestamp } = await import("firebase/firestore")
     const userRef = doc(db, "potential_users", userId)
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
       updatedAt: Timestamp.now(),
     })
 
-    console.log("✅ User status updated successfully")
+    if (isDev) console.log("✅ User status updated successfully")
 
     return NextResponse.json({
       success: true,

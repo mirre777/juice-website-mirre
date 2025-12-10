@@ -670,26 +670,27 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 
   const isBuildTime = process.env.NEXT_PHASE === "phase-production-build"
   const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
+  const isDev = process.env.NODE_ENV === "development"
 
   // Only skip blob storage if we're in build time AND don't have a token
   if (isBuildTime && !hasBlobToken) {
-    console.log("Build time detected without blob token - returning sample posts only")
+    if (isDev) console.log("Build time detected without blob token - returning sample posts only")
     return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
   // Skip blob storage if no token is available (but log the reason)
   if (!hasBlobToken) {
-    console.log("No BLOB_READ_WRITE_TOKEN available - returning sample posts only")
+    if (isDev) console.log("No BLOB_READ_WRITE_TOKEN available - returning sample posts only")
     return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  console.log(`[v0] getAllPosts: Starting blob fetch at ${new Date().toISOString()}`)
+  if (isDev) console.log(`[v0] getAllPosts: Starting blob fetch at ${new Date().toISOString()}`)
 
   try {
     const { list } = await import("@vercel/blob")
     const blobs = await list({ prefix: BLOG_CONTENT_PATH })
 
-    console.log(`[v0] getAllPosts: Found ${blobs.blobs.length} blobs in storage at ${new Date().toISOString()}`)
+    if (isDev) console.log(`[v0] getAllPosts: Found ${blobs.blobs.length} blobs in storage at ${new Date().toISOString()}`)
 
     for (const blob of blobs.blobs) {
       try {
@@ -711,15 +712,6 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
           }
 
           posts.push(post)
-          console.log(
-            `[v0] getAllPosts: Added blob post "${extractedTitle}" with slug "${cleanSlug}" from file "${blob.pathname}"`,
-          )
-
-          if (extractedTitle.toLowerCase().includes("strength training") || cleanSlug.includes("strength-training")) {
-            console.log(
-              `[v0] getAllPosts: *** STRENGTH TRAINING POST *** Title: "${extractedTitle}" | Slug: "${cleanSlug}" | File: "${blob.pathname}"`,
-            )
-          }
         }
       } catch (error) {
         const errorMessage = `Error processing blob ${blob.pathname}: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -731,22 +723,15 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
     const errorMessage = `Error fetching from blob storage: ${error instanceof Error ? error.message : "Unknown error"}`
     console.error(errorMessage)
     errors.push(errorMessage)
-    console.log("Falling back to sample posts due to blob storage error")
+    if (isDev) console.log("Falling back to sample posts due to blob storage error")
   }
   ;(getAllPosts as any).lastErrors = errors
 
   const finalPostCount = posts.length
   const blobPostCount = finalPostCount - 8 // 8 sample posts
-  console.log(
-    `[v0] getAllPosts: Completed at ${new Date().toISOString()} - Total posts: ${finalPostCount} (8 sample + ${blobPostCount} from blob)`,
-  )
-
-  const finalStrengthPost = posts.find(
-    (p) => p.title.toLowerCase().includes("strength training") || p.slug.includes("strength-training"),
-  )
-  if (finalStrengthPost) {
+  if (isDev) {
     console.log(
-      `[v0] getAllPosts: Final strength training post in results - Title: "${finalStrengthPost.title}" | Slug: "${finalStrengthPost.slug}"`,
+      `[v0] getAllPosts: Completed at ${new Date().toISOString()} - Total posts: ${finalPostCount} (8 sample + ${blobPostCount} from blob)`,
     )
   }
 
@@ -754,7 +739,8 @@ export async function getAllPosts(): Promise<BlogPostFrontmatter[]> {
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  console.log("[v0] getPostBySlug called with slug:", slug)
+  const isDev = process.env.NODE_ENV === "development"
+  if (isDev) console.log("[v0] getPostBySlug called with slug:", slug)
 
   const hasBlobToken = process.env.BLOB_READ_WRITE_TOKEN
 
@@ -768,7 +754,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
         const cleanSlug = cleanSlugFromFilename(rawSlug)
 
         if (cleanSlug === slug) {
-          console.log("[v0] Found blob post for slug:", slug)
+          if (isDev) console.log("[v0] Found blob post for slug:", slug)
           const content = await fetchBlobContent(blob.downloadUrl)
           if (content) {
             const { data: frontmatter, content: markdownContent } = matter(content)

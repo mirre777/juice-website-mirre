@@ -175,13 +175,15 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
-  console.log(`[v0] BlogPostPage: Starting to render page for slug: "${slug}"`)
+  const isDev = process.env.NODE_ENV === "development"
+  
+  if (isDev) console.log(`[v0] BlogPostPage: Starting to render page for slug: "${slug}"`)
   let post
 
   try {
     post = await getPostBySlug(slug)
-    console.log(`[v0] BlogPostPage: Post fetch result:`, post ? "SUCCESS" : "NOT FOUND")
-    if (post) {
+    if (isDev) console.log(`[v0] BlogPostPage: Post fetch result:`, post ? "SUCCESS" : "NOT FOUND")
+    if (isDev && post) {
       console.log(`[v0] BlogPostPage: Post details:`, {
         title: post.title,
         slug: post.slug,
@@ -198,11 +200,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   if (!post) {
-    console.log(`[v0] BlogPostPage: Post not found for slug: "${slug}", calling notFound()`)
+    if (isDev) console.log(`[v0] BlogPostPage: Post not found for slug: "${slug}", calling notFound()`)
     notFound()
   }
 
-  console.log(`[v0] BlogPostPage: Successfully loaded post "${post.title}", proceeding with render`)
+  if (isDev) console.log(`[v0] BlogPostPage: Successfully loaded post "${post.title}", proceeding with render`)
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/blog/${slug}`

@@ -8,9 +8,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { documentId } = await params
 
-  console.log("[v0] 📥 RELAY POTENTIAL USER FETCH API CALLED")
-  console.log("[v0] 🕐 Timestamp:", new Date().toISOString())
-  console.log("[v0] 📊 Document ID:", documentId)
+  const isDev = process.env.NODE_ENV === "development"
+  if (isDev) {
+    console.log("[v0] 📥 RELAY POTENTIAL USER FETCH API CALLED")
+    console.log("[v0] 🕐 Timestamp:", new Date().toISOString())
+    console.log("[v0] 📊 Document ID:", documentId)
+  }
 
   try {
     const db = await getFirebaseClientDb()
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    console.log("[v0] 🔄 Fetching user from potential_users collection...")
+    if (isDev) console.log("[v0] 🔄 Fetching user from potential_users collection...")
 
     const { doc, getDoc } = await import("firebase/firestore")
     const userRef = doc(db, "potential_users", documentId)
@@ -44,7 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const userData = userSnap.data()
-    console.log("[v0] ✅ User fetched successfully")
+    if (isDev) console.log("[v0] ✅ User fetched successfully")
 
     // Return the full user data with all fields
     return NextResponse.json({

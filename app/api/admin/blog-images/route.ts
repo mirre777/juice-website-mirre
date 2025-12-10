@@ -16,13 +16,16 @@ export async function POST(request: NextRequest) {
     const blogSlug = formData.get("blogSlug") as string
     const preserveOriginalName = formData.get("preserveOriginalName") === "true"
 
-    console.log("[v0] Blog image upload request received", {
-      hasFile: !!file,
-      blogSlug,
-      preserveOriginalName,
-      fileType: file?.type,
-      fileSize: file?.size,
-    })
+    const isDev = process.env.NODE_ENV === "development"
+    if (isDev) {
+      console.log("[v0] Blog image upload request received", {
+        hasFile: !!file,
+        blogSlug,
+        preserveOriginalName,
+        fileType: file?.type,
+        fileSize: file?.size,
+      })
+    }
 
     if (!file) {
       return NextResponse.json({ error: "File is required" }, { status: 400 })
@@ -43,7 +46,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    console.log("[v0] Original image size:", file.size, "bytes")
+    if (isDev) console.log("[v0] Original image size:", file.size, "bytes")
 
     const compressedBuffer = await sharp(buffer)
       .resize(1920, 1080, {
@@ -57,8 +60,10 @@ export async function POST(request: NextRequest) {
       .withMetadata() // Preserve EXIF metadata as requested
       .toBuffer()
 
-    console.log("[v0] Compressed image size:", compressedBuffer.length, "bytes")
-    console.log("[v0] Compression ratio:", ((1 - compressedBuffer.length / file.size) * 100).toFixed(1) + "%")
+    if (isDev) {
+      console.log("[v0] Compressed image size:", compressedBuffer.length, "bytes")
+      console.log("[v0] Compression ratio:", ((1 - compressedBuffer.length / file.size) * 100).toFixed(1) + "%")
+    }
 
     const timestamp = Date.now()
 
@@ -73,7 +78,7 @@ export async function POST(request: NextRequest) {
       fileName = blogSlug ? `blog-images/${blogSlug}-${timestamp}.webp` : `blog-images/general-${timestamp}.webp`
     }
 
-    console.log("[v0] Uploading compressed blog image to Vercel Blob", { fileName })
+    if (isDev) console.log("[v0] Uploading compressed blog image to Vercel Blob", { fileName })
 
     const blob = await put(fileName, compressedBuffer, {
       access: "public",
@@ -81,7 +86,7 @@ export async function POST(request: NextRequest) {
       contentType: "image/webp", // Set correct content type for WebP
     })
 
-    console.log("[v0] Blog image upload successful", { url: blob.url })
+    if (isDev) console.log("[v0] Blog image upload successful", { url: blob.url })
 
     return NextResponse.json({
       url: blob.url,

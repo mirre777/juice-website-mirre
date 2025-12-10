@@ -136,11 +136,14 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
     notFound()
   }
 
-  console.log(`[v0] Rendering interview: ${interview.slug}`)
-  console.log(`[v0] Interview title: ${interview.title}`)
-  console.log(`[v0] Content length: ${interview.content?.length || 0}`)
-  console.log(`[v0] Content type: ${typeof interview.content}`)
-  console.log(`[v0] Content preview:`, interview.content?.substring(0, 200))
+  const isDev = process.env.NODE_ENV === "development"
+  if (isDev) {
+    console.log(`[v0] Rendering interview: ${interview.slug}`)
+    console.log(`[v0] Interview title: ${interview.title}`)
+    console.log(`[v0] Content length: ${interview.content?.length || 0}`)
+    console.log(`[v0] Content type: ${typeof interview.content}`)
+    console.log(`[v0] Content preview:`, interview.content?.substring(0, 200))
+  }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness"
   const fullUrl = `${baseUrl}/interview/${slug}`

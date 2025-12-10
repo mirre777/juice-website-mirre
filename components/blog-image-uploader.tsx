@@ -41,7 +41,9 @@ export function BlogImageUploader({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    console.log("[v0] BlogImageUploader props received:", { blogSlug, contentType })
+    if (process.env.NODE_ENV === "development") {
+      console.log("[v0] BlogImageUploader props received:", { blogSlug, contentType })
+    }
   }, [blogSlug, contentType])
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,10 +74,13 @@ export function BlogImageUploader({
       }
       formData.append("preserveOriginalName", preserveOriginalName.toString())
 
-      console.log("[v0] Upload starting with:", {
-        blogSlug,
-        contentType,
-      })
+      const isDev = process.env.NODE_ENV === "development"
+      if (isDev) {
+        console.log("[v0] Upload starting with:", {
+          blogSlug,
+          contentType,
+        })
+      }
 
       const uploadResponse = await fetch("/api/admin/blog-images", {
         method: "POST",
@@ -96,18 +101,20 @@ export function BlogImageUploader({
 
       const uploadResult = await uploadResponse.json()
 
-      if (uploadResult.compressionRatio) {
+      if (isDev && uploadResult.compressionRatio) {
         console.log(
           `[v0] Image compressed: ${uploadResult.originalSize} → ${uploadResult.size} bytes (${uploadResult.compressionRatio} reduction)`,
         )
       }
 
       if (blogSlug && blogSlug !== "none" && contentType) {
-        console.log("[v0] Linking image to content:", {
-          contentType,
-          slug: blogSlug,
-          endpoint: contentType === "interview" ? "/api/admin/blog/interviews" : "/api/admin/blog/blogs",
-        })
+        if (isDev) {
+          console.log("[v0] Linking image to content:", {
+            contentType,
+            slug: blogSlug,
+            endpoint: contentType === "interview" ? "/api/admin/blog/interviews" : "/api/admin/blog/blogs",
+          })
+        }
 
         const endpoint = contentType === "interview" ? "/api/admin/blog/interviews" : "/api/admin/blog/blogs"
 
@@ -135,7 +142,7 @@ export function BlogImageUploader({
           throw new Error(linkErrorMessage)
         }
 
-        console.log("[v0] Successfully linked image to", contentType)
+        if (isDev) console.log("[v0] Successfully linked image to", contentType)
         alert(
           `Image successfully linked to ${contentType}!${uploadResult.compressionRatio ? `\n\nCompressed by ${uploadResult.compressionRatio}` : ""}`,
         )
