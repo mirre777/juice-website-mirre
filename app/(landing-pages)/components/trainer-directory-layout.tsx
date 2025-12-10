@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "next/navigation"
+import Image from "next/image"
 import { Search, MapPin, BadgeCheck, Award, MessageCircle, ChevronRight, User, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -104,11 +105,15 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
         <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
           <div className={`${profileBase} flex-shrink-0 ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
             {trainer.imageUrl ? (
-              <img
+              <Image
                 src={trainer.imageUrl}
                 alt={trainer.name}
+                width={64}
+                height={64}
+                quality={90}
                 className="w-full h-full object-cover rounded-full"
                 onError={handleImageError}
+                loading="lazy"
               />
             ) : (
               <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
