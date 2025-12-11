@@ -66,6 +66,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Trainer directory routes
   const trainerDirectoryRoutes: MetadataRoute.Sitemap = [
     {
+      url: `${baseUrl}/findatrainer`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/findatrainer/berlin`,
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -76,6 +82,144 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/findatrainer/amsterdam`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/findatrainer/vienna`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/findatrainer/rotterdam`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/findatrainer/the-hague`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+  ]
+
+  // Client-focused landing pages
+  const clientLandingPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/best-free-workout-app-uk`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/gratis-fitness-app-danmark`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/gratis-workout-app-met-trainer`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/trainingsplan-app-gratis`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/personal-training-amsterdam`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/personal-training-berlin`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/personal-training-koebenhavn`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/personal-training-muenchen`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/personal-training-wien`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/getfit`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/juice-raffle-win-free-personal-training`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+  ]
+
+  // Trainer-focused landing pages
+  const trainerLandingPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/getclients`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/personal-trainer-app`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/100trainers`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+  ]
+
+  // Other important pages
+  const otherPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/marketplace/personal-trainer-website`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/trainers`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/clients`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
     },
   ]
 
@@ -108,7 +252,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...workoutProgramRoutes,
     // Include trainer directory routes
     ...trainerDirectoryRoutes,
-    // Include other static pages as needed
+    // Include client landing pages
+    ...clientLandingPages,
+    // Include trainer landing pages
+    ...trainerLandingPages,
+    // Include other important pages
+    ...otherPages,
+    // Include blog posts
     ...blogPostEntries,
   ]
 }
