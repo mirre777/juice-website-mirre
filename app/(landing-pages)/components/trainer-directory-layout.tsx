@@ -24,8 +24,8 @@ const iconBase = "h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1"
 const btnBase = "rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
 const btnActive = "bg-juice text-gray-900 hover:bg-juice/90 border-juice"
 const btnInactive = "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-const cardVerified = "border-2 border-[#5a2a9f] hover:border-[#6d3ab8] bg-gradient-to-br from-white to-[#f0e8ff]"
-const cardUnverified = "border border-[#5a2a9f]/30 hover:border-[#5a2a9f]/50 bg-gradient-to-br from-white to-[#faf5ff]"
+const cardVerified = "border-0 shadow-[0_2px_12px_rgba(90,42,159,0.25)] hover:shadow-[0_4px_16px_rgba(109,58,184,0.30)] bg-gradient-to-br from-white to-[#f0e8ff]"
+const cardUnverified = "border-0 shadow-[0_2px_10px_rgba(90,42,159,0.18)] hover:shadow-[0_3px_14px_rgba(90,42,159,0.25)] bg-gradient-to-br from-white to-[#faf5ff]"
 const profileBase = "flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center overflow-hidden"
 const badgeVerified = "bg-gradient-to-br from-[#d2ff28] via-[#9acd32] to-[#7cb342]"
 const badgeCert = "bg-gradient-to-l from-[#1e0a57] to-[#5a2a9f]"
@@ -87,7 +87,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
     return (
       <Badge key={type === "cert" ? `cert-${certIndex}` : type} className={`${badgeBase} ${config.className} ${isVerified ? "text-black" : ""}`}>
         <config.Icon className={`${iconBase} ${isVerified ? "text-black" : ""}`} />
-        {type === "cert" ? <span className="truncate max-w-[120px]">{text}</span> : text}
+        {type === "cert" ? <span className="truncate max-w-[120px] md:max-w-[150px]">{text}</span> : text}
       </Badge>
     )
   }
