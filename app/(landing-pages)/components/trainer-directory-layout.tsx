@@ -11,6 +11,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Trainer } from "@/app/(landing-pages)/utils/trainer-directory-utils"
+import { TrainerFavoritesProvider, useTrainerFavorites } from "@/app/(landing-pages)/utils/trainer-favorites-context"
+import { TrainerFavoriteIcon } from "./trainer-favorite-icon"
+import { TrainerFavoritesSidebar } from "./trainer-favorites-sidebar"
 
 interface TrainerDirectoryLayoutProps {
   city: string
@@ -35,6 +38,7 @@ const badgeContainerMaxHeight = "1.375rem"
 function TrainerCard({ trainer }: { trainer: Trainer }) {
   const badgeRef = useRef<HTMLDivElement>(null)
   const [hiddenCount, setHiddenCount] = useState(0)
+  const { isFavorite, toggleFavorite, canAddMore } = useTrainerFavorites()
   
   const totalBadges = Number(trainer.isVerified) + trainer.certifications.length + Number(trainer.hasReviews)
   
@@ -98,9 +102,17 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
     trainer.hasReviews && { type: "reviews" as const }
   ].filter(Boolean).slice(0, 2) as Array<{ type: "verified" | "cert" | "reviews"; certIndex?: number }>
 
+  const isTrainerFavorite = isFavorite(trainer.id)
+
   return (
     <a href={trainerUrl} className="block no-underline w-full" target="_blank" rel="noopener noreferrer" onClick={(e) => !trainerUrl && e.preventDefault()}>
-    <Card className={`w-full rounded-lg transition-colors cursor-pointer h-[140px] md:h-auto overflow-hidden ${isVerified ? cardVerified : cardUnverified}`}>
+    <Card className={`relative w-full rounded-lg transition-colors cursor-pointer h-[140px] md:h-auto overflow-hidden ${isVerified ? cardVerified : cardUnverified}`}>
+      <TrainerFavoriteIcon
+        trainer={trainer}
+        isFavorite={isTrainerFavorite}
+        onToggle={() => toggleFavorite({ id: trainer.id, name: trainer.name, imageUrl: trainer.imageUrl, publicPath: trainer.publicPath })}
+        disabled={!canAddMore && !isTrainerFavorite}
+      />
       <CardContent className="p-4 sm:p-6 h-full flex">
         <div className="flex items-start gap-3 sm:gap-4 h-full flex-1 min-w-0">
           <div className={`${profileBase} flex-shrink-0 ${isVerified ? "bg-gradient-to-br from-blue-400 to-purple-500" : "bg-gray-200"}`}>
@@ -263,7 +275,8 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
   }, [trainers, selectedDistricts, searchQuery, showAllDistricts, showVerifiedOnly])
 
   return (
-    <>
+    <TrainerFavoritesProvider city={city}>
+      <TrainerFavoritesSidebar />
       <section className="px-4 md:px-6 py-12 md:py-16">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 text-center font-sen">
@@ -335,7 +348,7 @@ export function TrainerDirectoryLayout({ city, districts, trainers }: TrainerDir
           )}
         </div>
       </section>
-    </>
+    </TrainerFavoritesProvider>
   )
 }
 
