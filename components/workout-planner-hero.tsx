@@ -1,10 +1,4 @@
-"use client"
-
-import { useState } from "react"
-
 export default function WorkoutPlannerHero() {
-  const [videoError, setVideoError] = useState(false)
-
   return (
     <section className="relative py-8 md:py-16 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       <div className="mx-auto max-w-7xl">
@@ -54,31 +48,20 @@ export default function WorkoutPlannerHero() {
           {/* Video - Order 1 on mobile, 2 on desktop */}
           <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
             <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl">
-              {!videoError ? (
-                <video
-                  className="w-full h-full rounded-lg shadow-2xl object-cover"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  onError={() => setVideoError(true)}
-                  style={{ aspectRatio: "16/9" }}
-                >
-                  <source
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app%20%28online-video-cutter.com%29-i3nXqd4V9O1pZUnAozCN7JUJB8hORF.mp4"
-                    type="video/mp4"
-                  />
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <div className="w-full rounded-lg shadow-2xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                  <img
-                    src="/images/grouped-app-screens.png"
-                    alt="Juice Fitness App Screenshots"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              <video
+                className="w-full h-full rounded-lg shadow-2xl object-cover"
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ aspectRatio: "16/9" }}
+              >
+                <source
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app%20%28online-video-cutter.com%29-i3nXqd4V9O1pZUnAozCN7JUJB8hORF.mp4"
+                  type="video/mp4"
+                />
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         </div>
