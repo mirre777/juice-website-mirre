@@ -1,6 +1,7 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
+import { motion } from "framer-motion"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { HomePageFeaturesSection } from "@/components/homepage-features-section"
 import { HomePageHowItWorks } from "@/components/homepage-how-it-works"
@@ -9,7 +10,7 @@ import { BenefitsSection } from "@/components/benefits-section"
 import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, ShieldCheck, Lock, Check } from "lucide-react"
 // import { trackPageView } from "@/lib/analytics"
 
 const BLUR_DATA_URL =
@@ -60,6 +61,27 @@ export default function TrainerHomePage() {
               <span className="text-black">All-in-One Platform </span>
               <span className="text-black">for Personal Trainers</span>
             </h2>
+            
+            {/* Security Badges */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="flex justify-center items-center gap-3 mb-6 flex-wrap"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-juice/5 border border-juice/60 backdrop-blur-sm">
+                <ShieldCheck className="h-5 w-5 text-gray-700" />
+                <span className="text-sm font-semibold text-gray-700">Works with SOC certified vendors</span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-juice/5 border border-juice/60 backdrop-blur-sm">
+                <Lock className="h-5 w-5 text-gray-700" />
+                <span className="text-sm font-semibold text-gray-700">SSL Secure</span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-juice/5 border border-juice/60 backdrop-blur-sm">
+                <Check className="h-5 w-5 text-gray-700" />
+                <span className="text-sm font-semibold text-gray-700">Powered by Stripe</span>
+              </div>
+            </motion.div>
           </div>
 
           <h1 className="mb-6 max-w-4xl mx-auto text-center">

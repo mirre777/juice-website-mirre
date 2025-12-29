@@ -225,6 +225,9 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   These services may process some user data on our behalf. However, no third parties collect data
                   directly through our app without our oversight.
                 </p>
+                <p className="mt-2">
+                  <strong>Vendor Security Compliance:</strong> We use SOC 2 Type II certified vendors including Firebase (Google Cloud) and Stripe for data storage and payment processing, ensuring enterprise-grade security controls for your data.
+                </p>
               </section>
 
               <section>
@@ -311,6 +314,9 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>Regular security updates and monitoring</li>
                   <li>Error and crash monitoring with Sentry and Crashlytics</li>
                 </ul>
+                <p className="mt-2">
+                  We use SOC 2 Type II certified vendors including Firebase (Google Cloud) and Stripe for data storage and payment processing, ensuring enterprise-grade security controls for your data.
+                </p>
               </section>
 
               <section>
@@ -509,6 +515,9 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>Kept in a form which permits identification of data subjects for no longer than is necessary</li>
                   <li>Processed in a manner that ensures appropriate security of the personal data</li>
                 </ul>
+                <p className="mt-2">
+                  To ensure appropriate security, we use SOC 2 Type II certified vendors including Firebase (Google Cloud) and Stripe for data storage and payment processing, ensuring enterprise-grade security controls for your data.
+                </p>
               </section>
 
               <section>
