@@ -15,7 +15,7 @@ export function LegalContent({ initialTab }: LegalContentProps) {
 
   useEffect(() => {
     const tab = searchParams.get("tab")
-    if (tab && ["terms", "privacy", "cookie", "gdpr"].includes(tab)) {
+    if (tab && ["terms", "privacy", "cookie", "gdpr", "imprint"].includes(tab)) {
       setActiveTab(tab)
     }
   }, [searchParams])
@@ -30,7 +30,7 @@ export function LegalContent({ initialTab }: LegalContentProps) {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <div className="flex justify-center mb-8">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 bg-zinc-800">
+        <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 bg-zinc-800">
           <TabsTrigger value="terms" className="data-[state=active]:bg-juice data-[state=active]:text-black">
             Terms of Service
           </TabsTrigger>
@@ -42,6 +42,9 @@ export function LegalContent({ initialTab }: LegalContentProps) {
           </TabsTrigger>
           <TabsTrigger value="gdpr" className="data-[state=active]:bg-juice data-[state=active]:text-black">
             GDPR
+          </TabsTrigger>
+          <TabsTrigger value="imprint" className="data-[state=active]:bg-juice data-[state=active]:text-black">
+            Imprint
           </TabsTrigger>
         </TabsList>
       </div>
@@ -565,6 +568,15 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   contact us at crew@juice.fitness.
                 </p>
               </section>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="imprint" className="mt-0">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Imprint</h2>
+            <div className="space-y-6 text-zinc-300">
+              <p>Updating...</p>
             </div>
           </div>
         </TabsContent>

@@ -18,7 +18,7 @@ interface LegalPageProps {
 
 export default function LegalPage({ searchParams }: LegalPageProps) {
   const activeTab =
-    searchParams.tab && ["terms", "privacy", "cookie", "gdpr"].includes(searchParams.tab) ? searchParams.tab : "terms"
+    searchParams.tab && ["terms", "privacy", "cookie", "gdpr", "imprint"].includes(searchParams.tab) ? searchParams.tab : "terms"
 
   return (
     <div className="min-h-screen bg-black text-white">
