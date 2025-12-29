@@ -170,6 +170,11 @@ export function Footer() {
                 GDPR
               </Link>
             </li>
+            <li>
+              <Link href="/legal?tab=imprint" className={cn("text-sm", getTextColorClass())}>
+                Imprint
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

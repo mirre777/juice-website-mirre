@@ -154,12 +154,12 @@ export function LegalContent({ initialTab }: LegalContentProps) {
 
         <TabsContent value="privacy" className="mt-0">
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Privacy Policy for Juice Fitness App</h2>
-            <p className="text-zinc-300">Effective Date: May 19, 2025</p>
+            <h2 className="text-2xl font-bold">Privacy Policy for Juice Fitness App (and Trainer sites)</h2>
+            <p className="text-zinc-300">Effective Date: January 02, 2026</p>
 
             <div className="space-y-6 text-zinc-300">
               <p>
-                Thank you for using Juice Fitness App ("we," "our," or "us"). Your privacy is important to us. This
+                Thank you for using the Juice Fitness App ("we," "our," or "us"). Your privacy is important to us. This
                 Privacy Policy explains how we collect, use, and protect your personal information in compliance with
                 the General Data Protection Regulation (GDPR), the California Consumer Privacy Act (CCPA/CPRA), and
                 other applicable privacy laws.
@@ -172,6 +172,11 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   protection officer. He is located at Karl-Marx-Allee 53, 10243 Berlin, Germany. You can contact us at
                   crew@juice.fitness.
                 </p>
+                <p className="mt-2">This Privacy Policy applies to:</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>the Juice Fitness App, and</li>
+                  <li>Juice-hosted trainer profile pages, including their contact forms and scheduling features.</li>
+                </ul>
               </section>
 
               <section>
@@ -186,13 +191,37 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>Payment information</li>
                   <li>Health and biometric data (e.g., fitness activity, workout stats)</li>
                 </ul>
+                <p className="mt-2">
+                  If you choose to use a trainer site contact form or scheduling feature, we may also collect:
+                </p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>Name and email address</li>
+                  <li>Message content you submit</li>
+                  <li>
+                    Basic technical metadata associated with the submission (e.g., timestamp; and, where necessary for
+                    security/abuse prevention, IP address and device/browser information)
+                  </li>
+                </ul>
+                <p className="mt-2">Scheduling (where enabled on claimed trainer sites):</p>
+                <p className="mt-2">
+                  If appointment scheduling is offered, we may collect:
+                </p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>
+                    Scheduling/booking details (e.g., selected time slot, timezone, and information you enter into
+                    booking fields)
+                  </li>
+                </ul>
               </section>
 
               <section>
                 <h3 className="text-xl font-semibold mb-3">3. How We Collect Your Data</h3>
                 <p>We collect data:</p>
                 <ul className="list-disc pl-6 mt-2">
-                  <li>Directly from you via forms and user inputs</li>
+                  <li>
+                    Directly from you via forms and user inputs (including contact forms on trainer sites and, if
+                    enabled, scheduling/booking forms where enabled)
+                  </li>
                   <li>Automatically through analytics and device usage</li>
                   <li>From third-party sign-in services (e.g., Google, Facebook, Apple)</li>
                 </ul>
@@ -207,14 +236,24 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>For app analytics and improvements</li>
                   <li>For customer support</li>
                   <li>To process payments and subscriptions</li>
+                  <li>
+                    To handle "request an intro" / inquiry messages submitted via trainer site contact forms (these
+                    messages are submitted to Juice Fitness)
+                  </li>
+                  <li>
+                    To forward your inquiry to the selected trainer where a verified contact channel exists and the
+                    trainer can receive the request
+                  </li>
+                  <li>To enable appointment scheduling where offered (e.g., via Calendly on claimed trainer sites)</li>
                   <li>To send marketing communications (with your consent)</li>
                   <li>To comply with legal obligations</li>
+                  <li>To prevent fraud, abuse, and misuse of the platform (legitimate interests)</li>
                 </ul>
               </section>
 
               <section>
                 <h3 className="text-xl font-semibold mb-3">5. Third-Party Services</h3>
-                <p>We use trusted third-party services to operate our app:</p>
+                <p>We use trusted third-party services to operate our app and sites:</p>
                 <ul className="list-disc pl-6 mt-2">
                   <li>Firebase (Authentication, Firestore, Analytics)</li>
                   <li>Amplitude (User behavior analytics — hosted in EU data centers)</li>
@@ -224,20 +263,64 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>Apple HealthKit / Google Fit (Fitness Data Syncing)</li>
                   <li>OneSignal (Push Notifications)</li>
                 </ul>
+                <p className="mt-2">Data storage for trainer site contact requests:</p>
                 <p className="mt-2">
-                  These services may process some user data on our behalf. However, no third parties collect data
-                  directly through our app without our oversight.
+                  Messages submitted via trainer site contact forms are stored in our database using Google Firebase /
+                  Cloud Firestore.
                 </p>
                 <p className="mt-2">
-                  <strong>Vendor Security Compliance:</strong> We use SOC 2 Type II certified vendors including Firebase (Google Cloud) and Stripe for data storage and payment processing, ensuring enterprise-grade security controls for your data.
+                  Calendly (Appointment scheduling and booking, where enabled on a trainer site). Calendly processes
+                  booking data to provide the scheduling functionality and to deliver booking confirmations/updates. (
+                  <a href="https://calendly.com" className="text-juice hover:underline" target="_blank" rel="noopener noreferrer">
+                    Calendly.com
+                  </a>
+                  ). Only data you actively provide will be processed.
+                </p>
+                <p className="mt-2">
+                  These services may process some user data on our behalf. We aim to use third parties under appropriate
+                  contractual and technical safeguards.
                 </p>
               </section>
 
               <section>
                 <h3 className="text-xl font-semibold mb-3">6. Data Sharing and Transfers</h3>
-                <p>
-                  We do not share your personal data with third parties beyond those listed above. All user data is
-                  stored within the European Union, and no cross-border data transfers occur.
+                <p>We do not sell your personal data.</p>
+                <p className="mt-2">
+                  We share personal data only as needed to provide the services described above (e.g., hosting, analytics,
+                  crash reporting, payments, push notifications, and appointment scheduling where enabled).
+                </p>
+                <p className="mt-2">Trainer site contact requests (lead forwarding):</p>
+                <ul className="list-disc pl-6 mt-2">
+                  <li>Your contact request is submitted to Juice Fitness.</li>
+                  <li>
+                    We may share your name, contact details, and message content with the selected trainer only if we
+                    have a verified channel to reach them (e.g., a claimed profile or otherwise verified contact) and
+                    forwarding is feasible.
+                  </li>
+                  <li>
+                    Once a trainer receives your request, they process your data independently for the purpose of
+                    responding to you.
+                  </li>
+                </ul>
+                <p className="mt-2">International transfers:</p>
+                <p className="mt-2">
+                  Some third-party providers may process personal data outside the European Union/EEA, including in the
+                  United States. Where required, we rely on appropriate safeguards (such as adequacy decisions,
+                  certification frameworks, and/or Standard Contractual Clauses) to protect data transfers.
+                </p>
+                <p className="mt-2">Calendly transfers (where enabled):</p>
+                <p className="mt-2">
+                  Calendly participates in the EU–U.S. Data Privacy Framework (and related extensions where applicable),
+                  and its privacy materials describe reliance on these mechanisms for transfers. (
+                  <a
+                    href="https://www.dataprivacyframework.gov"
+                    className="text-juice hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Data Privacy Framework
+                  </a>
+                  )
                 </p>
               </section>
 
@@ -298,6 +381,11 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>While your account is active</li>
                   <li>Until you request deletion</li>
                 </ul>
+                <p className="mt-2">
+                  For inquiries submitted through site contact forms and scheduling requests, we retain the information as
+                  needed to respond and administer the relationship, unless a longer retention is required by law or
+                  necessary for legitimate business purposes (e.g., dispute prevention).
+                </p>
               </section>
 
               <section>
@@ -317,9 +405,6 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                   <li>Regular security updates and monitoring</li>
                   <li>Error and crash monitoring with Sentry and Crashlytics</li>
                 </ul>
-                <p className="mt-2">
-                  We use SOC 2 Type II certified vendors including Firebase (Google Cloud) and Stripe for data storage and payment processing, ensuring enterprise-grade security controls for your data.
-                </p>
               </section>
 
               <section>
@@ -574,9 +659,78 @@ export function LegalContent({ initialTab }: LegalContentProps) {
 
         <TabsContent value="imprint" className="mt-0">
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Imprint</h2>
+            <h2 className="text-2xl font-bold">LEGAL NOTICE (IMPRINT)</h2>
+            <p className="text-zinc-300">Last updated: January 02, 2026</p>
+
             <div className="space-y-6 text-zinc-300">
-              <p>Updating...</p>
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Service Provider / Publisher</h3>
+                <p>
+                  Juice Fitness App is operated by Folger Eduardo Fonseca Velasco. He is located at Karl-Marx-Allee 53,
+                  10243 Berlin, Germany.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Contact</h3>
+                <p>Email: You can contact us at crew@juice.fitness.</p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Business purpose</h3>
+                <p>
+                  Operation of an online platform that enables personal trainers to create and publish profile sites,
+                  and provides client training tools.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Trainer profiles (directory listing status)</h3>
+                <p>
+                  Trainer profile pages may be unclaimed/unverified directory listings. Juice Fitness does not guarantee
+                  the accuracy or completeness of information shown on unclaimed profiles.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Claims / profile removal</h3>
+                <p>
+                  If you are the profile owner and want to claim, correct, or remove a profile, contact:
+                  crew@juice.fitness.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Legal status note</h3>
+                <p>
+                  "Juice Fitness" is currently not incorporated or registered as a separate legal entity. The service
+                  provider and responsible party is the individual named above.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Liability for content</h3>
+                <p>
+                  We strive to keep information accurate and up to date. However, we do not guarantee completeness,
+                  accuracy, or timeliness.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Liability for links</h3>
+                <p>
+                  This site may contain links to external websites. We are not responsible for the content of external
+                  sites; the respective provider is responsible.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Copyright</h3>
+                <p>
+                  All content on this website is protected by copyright law. Any use beyond statutory permissions
+                  requires prior written consent.
+                </p>
+              </section>
             </div>
           </div>
         </TabsContent>
