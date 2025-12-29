@@ -574,9 +574,78 @@ export function LegalContent({ initialTab }: LegalContentProps) {
 
         <TabsContent value="imprint" className="mt-0">
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Imprint</h2>
+            <h2 className="text-2xl font-bold">LEGAL NOTICE (IMPRINT)</h2>
+            <p className="text-zinc-300">Last updated: January 02, 2026</p>
+
             <div className="space-y-6 text-zinc-300">
-              <p>Updating...</p>
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Service Provider / Publisher</h3>
+                <p>
+                  Juice Fitness App is operated by Folger Eduardo Fonseca Velasco. He is located at Karl-Marx-Allee 53,
+                  10243 Berlin, Germany.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Contact</h3>
+                <p>Email: You can contact us at crew@juice.fitness.</p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Business purpose</h3>
+                <p>
+                  Operation of an online platform that enables personal trainers to create and publish profile sites,
+                  and provides client training tools.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Trainer profiles (directory listing status)</h3>
+                <p>
+                  Trainer profile pages may be unclaimed/unverified directory listings. Juice Fitness does not guarantee
+                  the accuracy or completeness of information shown on unclaimed profiles.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Claims / profile removal</h3>
+                <p>
+                  If you are the profile owner and want to claim, correct, or remove a profile, contact:
+                  crew@juice.fitness.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Legal status note</h3>
+                <p>
+                  "Juice Fitness" is currently not incorporated or registered as a separate legal entity. The service
+                  provider and responsible party is the individual named above.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Liability for content</h3>
+                <p>
+                  We strive to keep information accurate and up to date. However, we do not guarantee completeness,
+                  accuracy, or timeliness.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Liability for links</h3>
+                <p>
+                  This site may contain links to external websites. We are not responsible for the content of external
+                  sites; the respective provider is responsible.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="text-xl font-semibold mb-3">Copyright</h3>
+                <p>
+                  All content on this website is protected by copyright law. Any use beyond statutory permissions
+                  requires prior written consent.
+                </p>
+              </section>
             </div>
           </div>
         </TabsContent>
