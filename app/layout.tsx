@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Sen } from "next/font/google"
+import { Inter, Sen, Roboto } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -11,6 +11,7 @@ import { Suspense } from "react"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const sen = Sen({ subsets: ["latin"], variable: "--font-sen" })
+const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-roboto" })
 
 export const metadata: Metadata = {
   title: "Juice - Fitness Tracking & Coaching Platform | Best Online Personal Trainer",
@@ -52,7 +53,7 @@ export default function RootLayout({
       <head>
         <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
       </head>
-      <body className={`${inter.className} ${inter.variable} ${sen.variable}`}>
+      <body className={`${inter.className} ${inter.variable} ${sen.variable} ${roboto.variable}`}>
         {/* Google Tag Manager (noscript) */}
         <noscript
           dangerouslySetInnerHTML={{
