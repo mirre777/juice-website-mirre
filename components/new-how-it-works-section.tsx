@@ -20,15 +20,14 @@ export function NewHowItWorksSection({ steps, onDemoClick, onTryItClick }: NewHo
     <section className="bg-white">
       {/* Green bar at top */}
       <div className="h-2 bg-juice w-full"></div>
-      <div className="py-24 md:py-32 lg:py-40">
+      <div className="pt-8 md:pt-12 pb-24 md:pb-32 lg:pb-40">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-[36px] font-semibold text-center mb-4 font-inter">How It Works</h2>
-            <p className="text-xl text-gray-600 text-center mb-12 font-inter">
-              Get found, deliver your program, and track progress → in three steps.
-            </p>
+          <h2 className="text-[36px] font-semibold text-center mb-4 font-inter">How It Works</h2>
+          <p className="text-xl text-gray-600 text-center mb-12 font-inter">
+            Get found, deliver your program, and track progress → in three steps.
+          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12 max-w-6xl mx-auto">
             {steps.map((step, index) => (
               <motion.div
                 key={index}
@@ -69,7 +68,6 @@ export function NewHowItWorksSection({ steps, onDemoClick, onTryItClick }: NewHo
 
           {/* Note */}
           <p className="text-sm text-gray-500 text-center font-inter">No credit card required. Get started in minutes.</p>
-          </div>
         </div>
       </div>
     </section>

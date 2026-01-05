@@ -20,20 +20,22 @@ interface EverythingYouNeedSectionProps {
 
 export function EverythingYouNeedSection({ features }: EverythingYouNeedSectionProps) {
   return (
-    <section className="pt-12 md:pt-16 pb-16 md:pb-20 bg-white">
+    <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="text-[36px] font-semibold text-center mb-12 font-inter">
           Everything You Need to Succeed
         </h2>
 
-        <div className="space-y-12 md:space-y-16">
+        <div className="space-y-0">
           {features.map((feature, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 md:gap-12 items-center`}
+              className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 md:gap-12 items-center py-12 md:py-16 ${
+                index % 2 === 0 ? "bg-[#F9FAFB]" : "bg-white"
+              }`}
             >
               {/* Content */}
               <div className="flex-1">

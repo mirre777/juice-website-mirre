@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Play } from "lucide-react"
@@ -25,26 +26,42 @@ export function NewHomepageHeroSection({
   onDemoClick,
   onStartFreeClick,
 }: NewHomepageHeroSectionProps) {
+  const headlineRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    if (headlineRef.current) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/559f5179-eeb5-4a0c-8112-9781b1ba32f2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'new-homepage-hero-section.tsx:useEffect',message:'Headline dimensions and line count',data:{width:headlineRef.current.offsetWidth,height:headlineRef.current.offsetHeight,scrollHeight:headlineRef.current.scrollHeight,lineHeight:parseFloat(getComputedStyle(headlineRef.current).lineHeight),computedLineCount:Math.round(headlineRef.current.scrollHeight/parseFloat(getComputedStyle(headlineRef.current).lineHeight)),textContent:headlineRef.current.textContent?.substring(0,50)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/559f5179-eeb5-4a0c-8112-9781b1ba32f2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'new-homepage-hero-section.tsx:useEffect',message:'Parent container dimensions',data:{parentWidth:headlineRef.current.parentElement?.offsetWidth,parentMaxWidth:headlineRef.current.parentElement ? getComputedStyle(headlineRef.current.parentElement).maxWidth : null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/559f5179-eeb5-4a0c-8112-9781b1ba32f2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'new-homepage-hero-section.tsx:useEffect',message:'Computed styles affecting wrapping',data:{whiteSpace:getComputedStyle(headlineRef.current).whiteSpace,wordBreak:getComputedStyle(headlineRef.current).wordBreak,overflowWrap:getComputedStyle(headlineRef.current).overflowWrap,display:getComputedStyle(headlineRef.current).display},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/559f5179-eeb5-4a0c-8112-9781b1ba32f2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'new-homepage-hero-section.tsx:useEffect',message:'BR tag presence check',data:{innerHTML:headlineRef.current.innerHTML.includes('<br'),childNodes:Array.from(headlineRef.current.childNodes).map(n=>({type:n.nodeType,nodeName:n.nodeName,textContent:n.textContent?.substring(0,20)}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
+    }
+  }, [])
+
   return (
     <section className="py-8 md:py-12 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
             {/* Left Side - Content */}
-            <div className="flex-1 w-full lg:w-auto max-w-[600px]">
+            <div className="flex-1 w-full lg:w-auto lg:min-w-[720px] max-w-[700px]">
               {/* Subheadline - Above headline */}
               <p className="text-lg md:text-xl text-black mb-4 font-inter text-left">
                 The All-In-One Tool for Personal Trainers
               </p>
 
               {/* Headline */}
-              <h1 className="text-[50px] leading-[60px] font-bold mb-4 font-sen text-left" style={{ letterSpacing: "0px" }}>
-                One place to manage your{" "}
-                <span className="text-black">
-                  clients
-                </span>{" "}
-                <span className="text-blue-400" style={{ color: "#60A5FA" }}>and</span>
-                <br />
+              <h1 ref={headlineRef} className="text-[50px] leading-[60px] font-bold mb-4 font-sen text-left" style={{ letterSpacing: "0px" }}>
+                <span className="block">One place to manage your</span>
+                <span className="text-black">clients</span>{" "}
+                <span className="text-blue-400" style={{ color: "#60A5FA" }}>and</span>{" "}
                 <span
                   className="inline-block"
                   style={{
@@ -59,7 +76,7 @@ export function NewHomepageHeroSection({
               </h1>
 
               {/* Subtext */}
-              <p className="text-[18px] leading-[29.3px] text-black mb-6 font-inter font-normal text-left" style={{ letterSpacing: "0px" }}>
+              <p className="text-[18px] leading-[29.3px] text-black mb-6 font-inter font-normal text-left max-w-[650px]" style={{ letterSpacing: "0px" }}>
                 Create a trainer page that gets you found, deliver programs in a client app, and track progress without
                 spreadsheet chaos.
               </p>

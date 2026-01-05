@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import NewHomePage from "./NewHomePage"
 
 export const metadata: Metadata = {
-  title: "Juice - The All-In-One Tool for Personal Trainers",
+  title: "Juice - All-in-One Platform for Personal Trainers | Get More Clients",
   description:
-    "Create a trainer page that gets you found, deliver programs in a client app, and track progress without spreadsheet chaos. Start free today.",
+    "The complete platform for personal trainers to get new clients and keep them. Build websites, create workout programs, and manage clients all in one place. Start free today.",
   keywords: [
     "personal trainer platform",
     "fitness coaching software",
@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     "personal training business",
     "fitness app for trainers",
     "get personal training clients",
+    "personal trainer software",
+    "online personal trainer platform",
+    "fitness coaching app",
+    "trainer client management",
+    "workout program builder",
+    "personal training website",
   ],
   authors: [{ name: "Juice" }],
   creator: "Juice",
@@ -26,24 +32,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "Juice - The All-In-One Tool for Personal Trainers",
+    title: "Juice - All-in-One Platform for Personal Trainers",
     description:
-      "Create a trainer page that gets you found, deliver programs in a client app, and track progress without spreadsheet chaos.",
+      "Get new clients and keep them with our complete platform for personal trainers. Website builder, workout programs, and client management in one place.",
     siteName: "Juice",
     images: [
       {
         url: "/images/juice-logo-og.png",
         width: 1200,
         height: 630,
-        alt: "Juice - The All-In-One Tool for Personal Trainers",
+        alt: "Juice - All-in-One Platform for Personal Trainers",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Juice - The All-In-One Tool for Personal Trainers",
+    title: "Juice - All-in-One Platform for Personal Trainers",
     description:
-      "Create a trainer page that gets you found, deliver programs in a client app, and track progress without spreadsheet chaos.",
+      "Get new clients and keep them. Complete platform with website builder, workout programs, and client management.",
     images: ["/images/juice-logo-og.png"],
     creator: "@juice_app",
   },

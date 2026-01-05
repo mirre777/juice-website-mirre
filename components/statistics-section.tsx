@@ -32,7 +32,7 @@ const getIcon = (label: string) => {
 
 export function StatisticsSection({ statistics }: StatisticsSectionProps) {
   return (
-    <section className="py-16 md:py-20 bg-juice">
+    <section className="py-10 md:py-14 bg-juice">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {statistics.map((stat, index) => {
@@ -46,8 +46,8 @@ export function StatisticsSection({ statistics }: StatisticsSectionProps) {
                 className="text-center"
               >
                 {icon && <div className="flex justify-center mb-3">{icon}</div>}
-                <div className="text-4xl md:text-5xl font-bold text-black mb-2 font-sen">{stat.number}</div>
-                <div className="text-black text-sm md:text-base font-inter">{stat.label}</div>
+                <div className="text-[48px] font-semibold text-black mb-2 font-inter">{stat.number}</div>
+                <div className="text-[20px] text-black font-normal font-inter">{stat.label}</div>
               </motion.div>
             )
           })}

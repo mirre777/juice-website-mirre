@@ -29,7 +29,7 @@ export function TestimonialsSection({ type, title, testimonials, cta }: Testimon
   const defaultRating = 5
 
   return (
-    <section className="pt-12 md:pt-16 pb-16 md:pb-20 bg-white">
+    <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="text-[36px] font-semibold text-center mb-12 font-inter">{title}</h2>
 

@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { ClipboardList, Video, Sparkles } from "lucide-react"
+import confetti from "canvas-confetti"
 
 interface Feature {
   icon: React.ReactNode
@@ -22,8 +24,47 @@ const iconMap = {
 }
 
 export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionProps) {
+  const [hasTriggered, setHasTriggered] = useState(false)
+
+  const triggerConfetti = () => {
+    if (hasTriggered) return // Only trigger once per hover
+    setHasTriggered(true)
+
+    const duration = 3000
+    const animationEnd = Date.now() + duration
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
+
+    function randomInRange(min: number, max: number) {
+      return Math.random() * (max - min) + min
+    }
+
+    const interval: NodeJS.Timeout = setInterval(function () {
+      const timeLeft = animationEnd - Date.now()
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval)
+      }
+
+      const particleCount = 50 * (timeLeft / duration)
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      })
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      })
+    }, 250)
+  }
+
+  const handleMouseLeave = () => {
+    setHasTriggered(false)
+  }
+
   return (
-    <section className="pt-12 md:pt-16 pb-16 md:pb-20 bg-white">
+    <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-12 items-center">
@@ -88,7 +129,11 @@ export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionPr
             {/* Phone Visual */}
             {phoneImageUrl && (
               <div className="flex-1 flex justify-center">
-                <div className="relative w-64 h-auto transform -rotate-3">
+                <div
+                  className="relative w-64 h-auto transform -rotate-3 cursor-pointer transition-transform hover:scale-105"
+                  onMouseEnter={triggerConfetti}
+                  onMouseLeave={handleMouseLeave}
+                >
                   <img
                     src={phoneImageUrl}
                     alt="Mobile app interface"
