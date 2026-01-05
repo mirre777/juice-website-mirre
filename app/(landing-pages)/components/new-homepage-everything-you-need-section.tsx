@@ -20,23 +20,25 @@ interface EverythingYouNeedSectionProps {
 
 export function EverythingYouNeedSection({ features }: EverythingYouNeedSectionProps) {
   return (
-    <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
-      <div className="container mx-auto px-4 md:px-6">
-        <h2 className="text-[36px] font-semibold text-center mb-12 font-inter">
-          Everything You Need to Succeed
-        </h2>
-
-        <div className="space-y-0">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 md:gap-12 items-center py-12 md:py-16 ${
-                index % 2 === 0 ? "bg-[#F9FAFB]" : "bg-white"
-              }`}
-            >
+    <section className="bg-white">
+      <div className="space-y-0">
+        {features.map((feature, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            className={`w-full py-12 md:py-16 ${
+              index % 2 === 0 ? "bg-[#F9FAFB]" : "bg-white"
+            }`}
+          >
+            <div className="container mx-auto px-4 md:px-6">
+              {index === 0 && (
+                <h2 className="text-[36px] font-semibold text-center mb-8 md:mb-12 font-inter">
+                  Everything You Need to Succeed
+                </h2>
+              )}
+              <div className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 md:gap-12 items-center`}>
               {/* Content */}
               <div className="flex-1">
                 <div className="flex items-center gap-4 mb-4">
@@ -70,9 +72,10 @@ export function EverythingYouNeedSection({ features }: EverythingYouNeedSectionP
                   />
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </section>
   )

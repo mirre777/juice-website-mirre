@@ -5,8 +5,8 @@ export const HOMEPAGE_IMAGES = {
   laptop: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Hero%20-%20Macbook%20Pro.svg",
   phone: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/hero-section-iphone",
   getMoreClients:
-    "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/Screenshot-MacBook%20Pro%20%2816inch%29.png",
-  keepClientsEngaged: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/Blue%201.png",
+    "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Screenshot-MacBook%20Pro%20%2816inch%29.png",
+  keepClientsEngaged: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Blue%201.png",
   cutAdminTime:
     "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Client%20stats%20-%20Macbook%20Pro.svg",
 } as const
@@ -15,19 +15,19 @@ export const HOMEPAGE_IMAGES = {
 export const trainerProfiles = [
   {
     name: "Kate",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/gym_outside_kate.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/gym_outside_kate.png",
   },
   {
     name: "Jackie",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/jackie%20copy.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/jackie%20copy.png",
   },
   {
     name: "Max",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/max88.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/max88.png",
   },
   {
     name: "Jonne",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/jonne%20trainer.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/jonne%20trainer.png",
   },
 ]
 
@@ -38,7 +38,7 @@ export const trainerTestimonials = [
     quote: "I love being able to change an exercise in the entire program with just a click. And add my own video links! ❤️ It only takes me about 20m to create a new program now.",
     name: "Jonas Ericsson",
     title: "Strongman Competitor & Coach",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/jonas%20ericsson.jpg",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/jonas%20ericsson.jpg",
     rating: 5,
   },
   {
@@ -46,7 +46,7 @@ export const trainerTestimonials = [
     quote: "For any exercise, I can see quickly how much they've progressed but also deep dive into the raw data to see the real numbers. Nothing better than that.",
     name: "Jonne de Bruijn",
     title: "Powerlifting Coach",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/jonne%20trainer.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/jonne%20trainer.png",
     rating: 5,
   },
   {
@@ -54,7 +54,7 @@ export const trainerTestimonials = [
     quote: "As a coach you get a great overview over your clients! The communication improved between my clients a lot since I know precisely how they are doing.",
     name: "Alex Fliger",
     title: "Health & Strength Coach",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/Screenshot%202025-12-14%20at%2017.31.17.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Screenshot%202025-12-14%20at%2017.31.17.png",
     rating: 5,
   },
 ]
@@ -66,7 +66,7 @@ export const clientTestimonials = [
     name: "Sara Grünberg",
     location: "Berlin, Germany",
     title: "Client",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/trainer%20showing%20a%20client%20something.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/trainer%20showing%20a%20client%20something.png",
     rating: 5,
   },
   {
@@ -75,7 +75,7 @@ export const clientTestimonials = [
     location: "London, United Kingdom",
     title: "Client",
     imageUrl:
-      "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/Juice_Fitness_two_people_talking_to_each_other_at_the_gym_blu_ea5b76bc-01e6-4498-87f5-1cfe18622f49_1.png",
+      "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Juice_Fitness_two_people_talking_to_each_other_at_the_gym_blu_ea5b76bc-01e6-4498-87f5-1cfe18622f49_1.png",
     rating: 5,
   },
   {
@@ -83,7 +83,7 @@ export const clientTestimonials = [
     name: "Maartje Verbeek",
     location: "Amsterdam, Netherlands",
     title: "Client",
-    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/Screenshot%202025-12-14%20at%2015.17.32.png",
+    imageUrl: "https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/Screenshot%202025-12-14%20at%2015.17.32.png",
     rating: 5,
   },
 ]

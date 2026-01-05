@@ -29,9 +29,9 @@ export function TestimonialsSection({ type, title, testimonials, cta }: Testimon
   const defaultRating = 5
 
   return (
-    <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
+    <section className="pt-4 md:pt-6 pb-8 md:pb-12 bg-white">
       <div className="container mx-auto px-4 md:px-6">
-        <h2 className="text-[36px] font-semibold text-center mb-12 font-inter">{title}</h2>
+        <h2 className="text-[36px] font-semibold text-center mb-6 md:mb-8 font-inter">{title}</h2>
 
         <div
           className={`grid grid-cols-1 ${

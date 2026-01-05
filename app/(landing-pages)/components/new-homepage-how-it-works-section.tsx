@@ -20,14 +20,14 @@ export function NewHowItWorksSection({ steps, onDemoClick, onTryItClick }: NewHo
     <section className="bg-white">
       {/* Green bar at top */}
       <div className="h-2 bg-juice w-full"></div>
-      <div className="pt-8 md:pt-12 pb-24 md:pb-32 lg:pb-40">
+      <div className="pt-8 md:pt-12 pb-8 md:pb-12">
         <div className="container mx-auto px-4 md:px-6">
           <h2 className="text-[36px] font-semibold text-center mb-4 font-inter">How It Works</h2>
           <p className="text-xl text-gray-600 text-center mb-12 font-inter">
             Get found, deliver your program, and track progress → in three steps.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-8 max-w-6xl mx-auto">
             {steps.map((step, index) => (
               <motion.div
                 key={index}
@@ -46,7 +46,7 @@ export function NewHowItWorksSection({ steps, onDemoClick, onTryItClick }: NewHo
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-2">
             {onDemoClick && (
               <button
                 onClick={onDemoClick}
@@ -67,7 +67,7 @@ export function NewHowItWorksSection({ steps, onDemoClick, onTryItClick }: NewHo
           </div>
 
           {/* Note */}
-          <p className="text-sm text-gray-500 text-center font-inter">No credit card required. Get started in minutes.</p>
+          <p className="text-sm text-gray-500 text-center font-inter mb-0">No credit card required. Get started in minutes.</p>
         </div>
       </div>
     </section>

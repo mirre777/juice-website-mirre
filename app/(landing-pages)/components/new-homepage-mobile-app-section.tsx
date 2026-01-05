@@ -63,6 +63,10 @@ export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionPr
     setHasTriggered(false)
   }
 
+  const handleImageClick = () => {
+    window.location.href = "/download-juice-app"
+  }
+
   return (
     <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
@@ -133,6 +137,7 @@ export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionPr
                   className="relative w-64 h-auto transform -rotate-3 cursor-pointer transition-transform hover:scale-105"
                   onMouseEnter={triggerConfetti}
                   onMouseLeave={handleMouseLeave}
+                  onClick={handleImageClick}
                 >
                   <img
                     src={phoneImageUrl}
