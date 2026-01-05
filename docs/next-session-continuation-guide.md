@@ -1,92 +1,105 @@
 # Next Session Continuation Guide
 
-## 🎯 Current Status (v219)
-The trainer website system is **90% complete** and fully functional. We successfully resolved merge conflicts and restored all core functionality.
+## 🎯 Current Status (Updated: 2025)
+**⚠️ IMPORTANT: This documentation was significantly out of date. The following reflects the ACTUAL current state of the codebase.**
 
-## ✅ What We Just Accomplished (v216-v219)
+## ✅ What Actually Exists
 
-### **Major Fixes:**
-- **Resolved merge conflicts** by reverting to stable v216 and restoring as v219
-- **Fixed TrainerProfilePage** - Live profiles now properly display edited content
-- **Stabilized API routes** - Content saving and retrieval works reliably
-- **Restored inline editing** - Full editing functionality with save/cancel
+### **Working Components:**
+- ✅ **Form submission** - `app/marketplace/(landing-page-onboarding-form)/personal-trainer-website/PersonalTrainerWebsitePage.tsx`
+- ✅ **Payment processing** - Stripe integration via `app/api/payments/create-payment-intent/route.ts`
+- ✅ **Payment webhook** - Trainer activation via `app/api/payments/stripe-webhook/route.ts`
+- ✅ **Payment success page** - `app/payment/success/page.tsx` (references `/marketplace/trainer/[id]` but route doesn't exist)
 
-### **What Works Now:**
-- ✅ Form submission and temp profile creation
-- ✅ AI website generation and preview
-- ✅ Payment processing (Stripe integration)
-- ✅ Content editor with real-time editing
-- ✅ Live trainer profiles with inline editing
-- ✅ Content persistence and retrieval
+### **What Does NOT Exist (Referenced in Old Docs):**
+- ❌ `app/marketplace/trainer/[id]/TrainerProfilePage.tsx` - **DOES NOT EXIST**
+- ❌ `app/marketplace/trainer/[id]/edit/page.tsx` - **DOES NOT EXIST**
+- ❌ `app/marketplace/trainer/[id]/edit/TrainerContentEditor.tsx` - **DOES NOT EXIST**
+- ❌ `app/api/trainer/content/[id]/route.ts` - **DOES NOT EXIST**
+- ❌ `app/marketplace/public-trainer-page/[id]/page.tsx` - **DOES NOT EXIST**
 
-## 🎯 Immediate Next Steps (1-2 hours)
+## 🎯 Immediate Next Steps
 
-### **PRIORITY 1: Implement "View Live" Button**
-The system needs a way for trainers to see their public profile without edit controls.
+### **PRIORITY 1: Implement Trainer Profile Pages**
+The payment success page redirects to `/marketplace/trainer/[id]` but this route doesn't exist.
 
 **What to do:**
-1. Add "View Live" button to the TrainerProfilePage header
-2. Create a public view mode that removes all editing controls
-3. Allow easy toggle between edit and public view modes
+1. Create `app/marketplace/trainer/[id]/page.tsx` - Main trainer profile page
+2. Fetch trainer data from Firebase using the trainer ID
+3. Display trainer information in a professional layout
+4. Handle cases where trainer doesn't exist or isn't active
 
-**Files to modify:**
-- `app/marketplace/trainer/[id]/TrainerProfilePage.tsx`
-- Add state for `viewMode` (edit/public)
-- Conditionally render edit controls based on mode
+### **PRIORITY 2: Implement Content Editor**
+Trainers need a way to edit their profile content after activation.
 
-### **PRIORITY 2: End-to-End Testing**
-Test the complete user flow to ensure everything works together.
+**What to do:**
+1. Create `app/marketplace/trainer/[id]/edit/page.tsx` - Content editor page
+2. Create `app/api/trainer/content/[id]/route.ts` - API for GET/PUT content
+3. Implement editing interface for:
+   - Hero section (title, subtitle, description)
+   - About section
+   - Services
+   - Contact information
+   - SEO settings
+
+### **PRIORITY 3: Complete the User Flow**
+Currently the flow breaks after payment success.
 
 **Test sequence:**
-1. Submit trainer form → temp profile created
-2. Preview website → payment page  
-3. Complete payment → activation triggered
-4. Access content editor → make changes
-5. View live profile → verify changes appear
-6. Test public view mode
+1. ✅ Submit trainer form → temp profile created
+2. ✅ Preview website → payment page  
+3. ✅ Complete payment → activation triggered
+4. ❌ **BROKEN**: Redirect to `/marketplace/trainer/[id]` - route doesn't exist
+5. ❌ **MISSING**: Content editor doesn't exist
+6. ❌ **MISSING**: Live profile display doesn't exist
 
 ## 🔧 Technical Context
 
 ### **Current Architecture:**
 \`\`\`
-Form → Temp Profile → Payment → Activation → Editor → Live Profile
-                                                    ↓
-                                              Public View Mode (MISSING)
+Form → Temp Profile → Payment → Activation → ❌ MISSING: Live Profile
+                                                    ❌ MISSING: Content Editor
 \`\`\`
 
-### **Key Files:**
-- `app/marketplace/trainer/[id]/TrainerProfilePage.tsx` - Main profile component (JUST FIXED)
-- `app/marketplace/public-trainer-page/[id]/page.tsx` - Standalone public profiles
-- `app/api/trainer/content/[id]/route.ts` - Content API (WORKING)
-- `app/marketplace/trainer/[id]/edit/` - Content editor (WORKING)
+### **Actual Key Files:**
+- `app/marketplace/(landing-page-onboarding-form)/personal-trainer-website/PersonalTrainerWebsitePage.tsx` - Form submission (EXISTS)
+- `app/api/payments/create-payment-intent/route.ts` - Payment creation (EXISTS)
+- `app/api/payments/stripe-webhook/route.ts` - Trainer activation (EXISTS)
+- `app/payment/success/page.tsx` - Payment success (EXISTS, but redirects to non-existent route)
 
 ### **Environment:**
-- Firebase integration working
-- Stripe payments working  
-- All API endpoints functional
+- ✅ Firebase integration working
+- ✅ Stripe payments working  
+- ❌ Trainer profile pages - **NOT IMPLEMENTED**
+- ❌ Content editor - **NOT IMPLEMENTED**
+- ❌ Content API - **NOT IMPLEMENTED**
 
 ## 🚨 Known Issues
-- **Public view mode missing** - Trainers can't see clean public view
-- **End-to-end flow needs testing** - Individual parts work, need full test
-- **Loading states could be better** - Minor UX improvements needed
+- **Trainer profile pages missing** - Payment success redirects to non-existent route
+- **Content editor missing** - No way for trainers to edit their content
+- **Content API missing** - No endpoints for fetching/updating trainer content
+- **Incomplete user flow** - System breaks after payment completion
 
-## 💡 Quick Wins Available
-1. **"View Live" button** - Easy 30-minute implementation
-2. **Public view toggle** - Remove edit controls conditionally
-3. **Loading improvements** - Add skeleton screens
+## 💡 Implementation Tasks
+1. **Create trainer profile page** - Display trainer information publicly
+2. **Create content editor** - Allow trainers to edit their profile
+3. **Create content API** - Backend for content management
+4. **Fix payment success redirect** - Ensure route exists before redirecting
+5. **Add authentication** - Verify trainers can only edit their own profiles
 
 ## 📋 Success Criteria for Next Session
-- [ ] "View Live" button implemented and working
-- [ ] Public view mode shows clean profile without edit controls
-- [ ] Easy toggle between edit and public modes
+- [ ] Trainer profile page created and accessible at `/marketplace/trainer/[id]`
+- [ ] Content editor created at `/marketplace/trainer/[id]/edit`
+- [ ] Content API endpoints created (`GET` and `PUT /api/trainer/content/[id]`)
+- [ ] Payment success redirect works correctly
+- [ ] Trainers can view and edit their profiles after activation
 - [ ] Complete user flow tested end-to-end
-- [ ] Any discovered issues resolved
 
 ## 🔄 If You Need to Debug
-The system is stable in v219. If issues arise:
-1. Check the TrainerProfilePage component first
-2. Verify API routes are responding correctly
-3. Test with a known working trainer ID
+1. Check if routes exist before referencing them
+2. Verify Firebase trainer documents are being created correctly
+3. Test payment webhook activation flow
 4. Use browser dev tools to check network requests
+5. Check Firebase console for trainer document structure
 
-**The foundation is solid - now we just need to add the final polish!**
+**⚠️ The system needs significant work to complete the trainer profile functionality.**
