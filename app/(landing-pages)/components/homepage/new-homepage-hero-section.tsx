@@ -127,23 +127,23 @@ export function NewHomepageHeroSection({
               >
                 {/* Composite image container - laptop behind, phone in front overlapping */}
                 {/* Based on design: laptop 642x423, phone 166x339 - laptop should be ~3.87x wider */}
-                <div className="relative w-full h-[400px] md:h-[450px] lg:h-[500px]">
+                <div className="relative w-full h-[280px] sm:h-[350px] md:h-[450px] lg:h-[500px] overflow-visible">
                   {/* Laptop - positioned behind, slightly to the right */}
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-full max-w-2xl lg:max-w-3xl">
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-full max-w-[90%] sm:max-w-2xl lg:max-w-3xl">
                     <div className="relative w-full aspect-[642/423]">
                       <Image
                         src={laptopImageUrl}
                         alt="MacBook Pro with dashboard"
                         fill
                         className="object-contain"
-                        sizes="(max-width: 1024px) 100vw, 60vw"
+                        sizes="(max-width: 640px) 90vw, (max-width: 1024px) 100vw, 60vw"
                         priority
                       />
                     </div>
                   </div>
                   {/* Phone - positioned in front, overlapping laptop's lower left corner */}
                   {/* Phone is ~26% of laptop width (166/642) */}
-                  <div className="absolute -left-8 md:-left-4 lg:left-0 bottom-0 md:bottom-4 lg:bottom-8 w-32 md:w-36 lg:w-40 z-20">
+                  <div className="absolute left-0 sm:left-2 md:-left-4 lg:left-0 bottom-0 md:bottom-4 lg:bottom-8 w-24 sm:w-32 md:w-36 lg:w-40 z-20">
                     <div className="relative w-full aspect-[166/339] drop-shadow-2xl">
                       {/* Use img tag for external SVG to avoid Next.js Image optimization issues */}
                       <img
