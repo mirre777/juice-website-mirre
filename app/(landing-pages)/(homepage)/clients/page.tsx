@@ -32,3 +32,4 @@ export const viewport: Viewport = {
 export default function ClientsPage() {
   return <ClientHomePage />
 }
+

@@ -103,29 +103,7 @@ export default function ClientHomePage() {
                 />
               </a>
             </div>
-            <button
-              onClick={handleWaitlistClick}
-              className="rounded-full px-6 py-3 border border-zinc-800 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
-            >
-              Get updates
-            </button>
           </div>
-
-          {/* Waitlist Form */}
-          {showWaitlist && (
-            <div ref={waitlistRef} className="max-w-md mx-auto mb-16 animate-fadeIn">
-              <div className="bg-zinc-900 border-2 border-[#D2FF28] rounded-xl overflow-hidden shadow-lg">
-                <div className="bg-zinc-800 py-3 px-4">
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-white">Get early access. Join the waitlist.</h3>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <ClientWaitlistForm selectedPlan={selectedPlan} />
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="max-w-6xl mx-auto">
             <div className="relative w-full overflow-hidden">
@@ -209,7 +187,7 @@ export default function ClientHomePage() {
             </p>
             <Link href="/blog">
               <button className="rounded-full px-6 py-3 font-medium client-gradient-btn transition-colors">
-                Go go gadget blog
+                Go to Blog
               </button>
             </Link>
           </div>
@@ -220,23 +198,44 @@ export default function ClientHomePage() {
       <section className="pb-20">
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4 text-white">Get ready to train.</h2>
+            <h2 className="text-3xl font-bold mb-4 text-white">Never miss any lifting news</h2>
             <p className="text-xl text-gray-400 mb-8">
               Join thousands of bicep babes who are elevating their training with Juice.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className="rounded-full px-6 py-3 font-medium client-gradient-btn transition-colors"
+                onClick={handleWaitlistClick}
+                className="rounded-full px-6 py-3 border border-zinc-800 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
               >
-                Start now
+                Get updates
               </button>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Waitlist Form */}
+      {showWaitlist && (
+        <section className="pb-20">
+          <div className="container mx-auto px-4 md:px-6">
+            <div ref={waitlistRef} className="max-w-md mx-auto animate-fadeIn">
+              <div className="bg-zinc-900 border-2 border-[#D2FF28] rounded-xl overflow-hidden shadow-lg">
+                <div className="bg-zinc-800 py-3 px-4">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-white">Get early access. Join the waitlist.</h3>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <ClientWaitlistForm selectedPlan={selectedPlan} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <Footer />
     </main>
   )
 }
+
