@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer-directory-layout"
+import { TrainerDirectoryLayout } from "@/app/(landing-pages)/components/trainer-dir/trainer-directory-layout"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { fetchTrainersForCity, getCityDistricts } from "@/app/(landing-pages)/utils/trainer-directory-utils"

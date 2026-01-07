@@ -20,13 +20,14 @@ This document tracks all image loading optimizations implemented across the Juic
 - **Result**: ⚠️ Partial success - blur shows but doesn't significantly improve perceived load time
 
 #### 2. Priority Loading
-- **What**: Added `priority` prop to first 6 images (above-the-fold content)
+- **What**: Added `priority` prop to all blog listing images
 - **Why**: Tells Next.js to preload these images immediately, preventing lazy loading delay
 - **Implementation**:
   \`\`\`tsx
-  priority={index < 6}
+  priority={true}
   \`\`\`
 - **Result**: ⚠️ Limited impact - images still load incrementally due to large file sizes
+- **Note**: Applied to all images in the blog listing grid, not just the first 6
 
 #### 3. Responsive Sizes
 - **What**: Added `sizes` attribute for responsive image optimization
@@ -37,18 +38,43 @@ This document tracks all image loading optimizations implemented across the Juic
   \`\`\`
 - **Result**: ✅ Working - reduces bandwidth on mobile devices
 
-#### 4. Object Positioning Fix
-- **What**: Removed problematic `object-[center_30%]` positioning
-- **Why**: Was causing black letterboxing on images
-- **Implementation**: Changed to standard `object-cover object-center`
-- **Result**: ✅ Fixed - no more black areas
+#### 4. Object Positioning
+- **What**: Uses `object-[center_30%]` positioning for blog listing images
+- **Why**: Focuses on the top 30% of images which typically contain the most important visual content
+- **Implementation**: 
+  \`\`\`tsx
+  className="object-cover object-[center_30%]"
+  \`\`\`
+- **Status**: ⚠️ Still using `object-[center_30%]` - docs previously indicated this was changed but it remains in code
+- **Note**: If black letterboxing occurs, consider changing to `object-center`
 
 ### Phase 1 Analysis
 
 **What Worked:**
 - Blur placeholders display correctly
 - Responsive sizing reduces mobile bandwidth
-- Object positioning fixed visual issues
+
+**What Didn't Work as Expected:**
+- Priority loading didn't eliminate incremental loading
+- Images still take 2-3 seconds to fully load
+- Perceived performance improvement is minimal
+
+**Root Cause:**
+The blog images stored in Vercel Blob are **large unoptimized files** (likely 500KB-2MB each). Even with Next.js Image optimization and priority loading, the browser still needs to download and decode these large files.
+
+#### 5. Blog Post Page Hero Image
+- **What**: Hero image on individual blog post pages (`/blog/[slug]`)
+- **Current Implementation**: 
+  - Has `priority` prop for immediate loading
+  - Missing blur placeholder (not yet implemented)
+- **File**: `app/blog/[slug]/page.tsx`
+- **Status**: ⚠️ Partial - priority loading implemented, blur placeholder missing
+
+### Phase 1 Analysis
+
+**What Worked:**
+- Blur placeholders display correctly
+- Responsive sizing reduces mobile bandwidth
 
 **What Didn't Work as Expected:**
 - Priority loading didn't eliminate incremental loading
@@ -303,8 +329,9 @@ Same as blog - source files are too large. Images and especially the video need 
 
 ### Immediate (High Priority):
 4. 🔄 Re-upload existing blog images to benefit from compression
-5. 🔄 Compress homepage video file
-6. 🔄 Compress static homepage images
+5. 🔄 Add blur placeholder to blog post page hero image (`/blog/[slug]`)
+6. 🔄 Compress homepage video file
+7. 🔄 Compress static homepage images
 
 ### Future (Medium Priority):
 7. Create migration script for existing blog images

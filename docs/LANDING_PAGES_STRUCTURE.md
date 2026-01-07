@@ -14,6 +14,9 @@ All landing pages are organized using Next.js route groups for clean file organi
       /findatrainer
         page.tsx
         FindATrainerClientPage.tsx
+      /getfit
+        page.tsx
+        GetFitClientPage.tsx
       /gratis-fitness-app-danmark
         page.tsx
         GratisFitnessAppClientPage.tsx
@@ -26,6 +29,9 @@ All landing pages are organized using Next.js route groups for clean file organi
       /trainingsplan-app-gratis
         page.tsx
         TrainingsplanAppClientPage.tsx
+      /juice-raffle-win-free-personal-training
+        page.tsx
+        JuiceRaffleWeeklyGoalClientPage.tsx
       /personal-training-amsterdam
         page.tsx
       /personal-training-berlin
@@ -36,10 +42,46 @@ All landing pages are organized using Next.js route groups for clean file organi
         page.tsx
       /personal-training-wien
         page.tsx
+      /workout-programs
+        page.tsx
+        /components
+          [component files]
+        /celebrity
+          /henry-cavill-superman-workout-routine
+          /jeff-nippard-free-minimalist-workout
+          /michael-b-jordan-creed-workout
+          /zac-efrons-baywatch-workout
+        /free
+          /3-day-full-body
+        /paid
+          /dumbbell-workout
     /(trainers)
       /getclients
         page.tsx
         GetClientsClientPage.tsx
+      /100trainers
+        page.tsx
+        HundredTrainersClientPage.tsx
+      /personal-trainer-app
+        page.tsx
+        PersonalTrainerAppClientPage.tsx
+      /sell-programs
+        page.tsx
+        SellProgramsClientPage.tsx
+    /(homepage)
+      NewHomePage.tsx
+      page.tsx
+    /components
+      [shared landing page components]
+    /utils
+      [shared utilities]
+    /findatrainer
+      /amsterdam
+      /berlin
+      /london
+      /rotterdam
+      /the-hague
+      /vienna
 \`\`\`
 
 ## 🎯 **Route Groups Explained**
@@ -59,6 +101,8 @@ All landing pages are organized using Next.js route groups for clean file organi
 Every landing page folder must contain:
 - `page.tsx` - Next.js page component with metadata
 - `[PageName]ClientPage.tsx` - Main client component (optional for simple pages)
+
+**Note:** Some landing pages like `/workout-programs` have nested subdirectories for organizing related content (e.g., `/workout-programs/celebrity/`, `/workout-programs/free/`, `/workout-programs/paid/`). Each subdirectory follows the same structure with its own `page.tsx` and client component.
 
 ### **3. File Naming Conventions**
 - **Folder names**: Use kebab-case (`download-juice-app`, `personal-training-berlin`)
@@ -218,21 +262,33 @@ export default function PageName() {
 
 ## 📊 **Current Landing Pages Inventory**
 
-### **Client Pages (11 total):**
+### **Client Pages (14 total):**
 1. `/download-juice-app` - Main app download page
 2. `/findatrainer` - Trainer discovery page
-3. `/gratis-fitness-app-danmark` - Danish fitness app page
-4. `/gratis-workout-app-met-trainer` - Dutch workout app page
-5. `/best-free-workout-app-uk` - UK fitness app page
-6. `/trainingsplan-app-gratis` - German training plan page
-7. `/personal-training-amsterdam` - Amsterdam personal training
-8. `/personal-training-berlin` - Berlin personal training
-9. `/personal-training-koebenhavn` - Copenhagen personal training
-10. `/personal-training-muenchen` - Munich personal training
-11. `/personal-training-wien` - Vienna personal training
+3. `/getfit` - Get fit with personal trainer matching
+4. `/gratis-fitness-app-danmark` - Danish fitness app page
+5. `/gratis-workout-app-met-trainer` - Dutch workout app page
+6. `/best-free-workout-app-uk` - UK fitness app page
+7. `/trainingsplan-app-gratis` - German training plan page
+8. `/juice-raffle-win-free-personal-training` - Raffle promotion page
+9. `/personal-training-amsterdam` - Amsterdam personal training
+10. `/personal-training-berlin` - Berlin personal training
+11. `/personal-training-koebenhavn` - Copenhagen personal training
+12. `/personal-training-muenchen` - Munich personal training
+13. `/personal-training-wien` - Vienna personal training
+14. `/workout-programs` - Workout programs collection page (with subdirectories for celebrity programs, free programs, and paid programs)
 
-### **Trainer Pages (1 total):**
+### **Trainer Pages (4 total):**
 1. `/getclients` - Trainer client acquisition page
+2. `/100trainers` - First 100 trainers exclusive program
+3. `/personal-trainer-app` - Personal trainer app features page
+4. `/sell-programs` - Marketplace program selling page
+
+### **Additional Structure:**
+- `/(homepage)` - Homepage route group
+- `/findatrainer/[city]` - City-specific trainer discovery pages (Amsterdam, Berlin, London, Rotterdam, The Hague, Vienna)
+- `/components` - Shared landing page components
+- `/utils` - Shared utilities for landing pages
 
 ## 🔧 **Maintenance**
 
@@ -253,6 +309,7 @@ export default function PageName() {
 
 ---
 
-**Last Updated:** Post-migration (all pages successfully organized)
+**Last Updated:** 2024 (documentation audit)
 **Structure Status:** ✅ Complete and functional
 **URL Preservation:** ✅ All original URLs maintained
+**Total Pages:** 18 landing pages (14 client + 4 trainer) + workout program subpages + city pages

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next"
 import { getAllPosts } from "@/lib/blog"
+import { getAllInterviews } from "@/app/interview/_lib/interview-data"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://juice.fitness" // Replace with your actual domain
@@ -11,6 +12,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: post.date, // Assuming 'date' in frontmatter is last modified date
     changeFrequency: "weekly",
     priority: 0.8,
+  }))
+
+  // Interview entries
+  const interviews = await getAllInterviews()
+  const interviewEntries: MetadataRoute.Sitemap = interviews.map((interview) => ({
+    url: `${baseUrl}/interview/${interview.slug}`,
+    lastModified: interview.date,
+    changeFrequency: "monthly",
+    priority: 0.7,
   }))
 
   // Workout program routes
@@ -260,5 +270,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...otherPages,
     // Include blog posts
     ...blogPostEntries,
+    // Include interview pages
+    ...interviewEntries,
   ]
 }

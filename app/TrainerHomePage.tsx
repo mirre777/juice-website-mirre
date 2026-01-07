@@ -51,7 +51,7 @@ export default function TrainerHomePage() {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <Navbar isHomePage={true} />
+      <Navbar />
 
       {/* Hero Section */}
       <section className="pt-20 pb-16 md:pb-16 md:pt-[50px]">
@@ -225,7 +225,7 @@ export default function TrainerHomePage() {
       {showWaitlist && (
         <section id="waitlist" ref={waitlistRef} className="scroll-mt-24 mb-20">
           <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
-            <WaitlistForm />
+            <WaitlistForm selectedPlan={selectedPlan} />
           </div>
         </section>
       )}
