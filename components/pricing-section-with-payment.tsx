@@ -96,7 +96,7 @@ export function PricingSectionWithPayment() {
           )}
           <p className="text-zinc-400 max-w-2xl">
             {
-              "You can use our platform for free with 3 clients. No hidden fees, no limitations - other than the 3 clients. The world is yours."
+              "You can use our platform for free with 3 clients. No hidden fees, no limitations. Go expand your business."
             }
           </p>
         </div>
