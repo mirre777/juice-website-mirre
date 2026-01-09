@@ -69,21 +69,8 @@ export function Navbar() {
     })
 
     if (isCoach) {
-      // Trainer view - redirect to homepage pricing section
-      const pagesWithPricing = ["/", "/trainers", "/personal-trainer-app"]
-      const currentPageHasSection = pagesWithPricing.includes(pathname)
-
-      if (currentPageHasSection) {
-        // We're on a page that has the pricing section, scroll to it
-        const pricingElement = document.getElementById("pricing")
-        if (pricingElement) {
-          pricingElement.scrollIntoView({ behavior: "smooth" })
-        }
-        window.history.pushState(null, "", "/#pricing")
-      } else {
-        // We're on a different page, redirect to homepage with anchor
-        router.push("/#pricing")
-      }
+      // Trainer view - redirect to dedicated pricing page
+      router.push("/pricing")
     } else {
       // Client view - redirect to clients page pricing section
       const pagesWithPricing = ["/clients", "/for-clients"]
