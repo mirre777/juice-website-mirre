@@ -20,7 +20,7 @@ export function PricingSectionWithPayment() {
   const router = useRouter()
   const [stripePreloaded, setStripePreloaded] = useState(false)
   const pathname = usePathname()
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app-demo"
 
   useEffect(() => {
     // Preload Stripe.js when the pricing section is visible

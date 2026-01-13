@@ -57,7 +57,7 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | Route | Description | Purpose |
 |-------|-------------|---------|
 | `/getclients` | Client acquisition for trainers | Lead generation |
-| `/personal-trainer-app` | Personal trainer app landing | App promotion |
+| `/personal-trainer-app-demo` | Personal trainer app landing | App promotion |
 
 ## Marketplace & Trainer System
 
@@ -149,7 +149,7 @@ app/
 │   │   └── workout-programs/
 │   └── (trainers)/
 │       ├── getclients/
-│       ├── personal-trainer-app/
+│       ├── personal-trainer-app-demo/
 │       ├── sell-programs/
 │       └── 100trainers/
 ├── marketplace/

@@ -15,6 +15,9 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
+import { TestimonialsSection } from "@/app/(landing-pages)/components/homepage/new-homepage-testimonials-section"
+import { trainerTestimonials } from "@/app/(landing-pages)/utils/new-homepage-data"
+import { X } from "lucide-react"
 
 export function PersonalTrainerAppClientPage() {
   const router = useRouter()
@@ -24,6 +27,7 @@ export function PersonalTrainerAppClientPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
   const waitlistRef = useRef<HTMLDivElement>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showVideoModal, setShowVideoModal] = useState(false)
 
   const handleWaitlistClick = () => {
     setShowWaitlist(true)
@@ -61,11 +65,12 @@ export function PersonalTrainerAppClientPage() {
     setIsCoach(true)
   }, [setIsCoach])
 
-  // Handle escape key to close mobile menu
+  // Handle escape key to close mobile menu and video modal
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMobileMenuOpen(false)
+        setShowVideoModal(false)
       }
     }
 
@@ -146,13 +151,6 @@ export function PersonalTrainerAppClientPage() {
                   >
                     Start now
                   </button>
-                  <button
-                    onClick={handleWaitlistClick}
-                    className="rounded-full px-6 py-3 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                    id="get_updates_trainer"
-                  >
-                    Get updates
-                  </button>
                 </div>
               ) : (
                 <div className="flex flex-col items-start gap-6 mb-4">
@@ -203,18 +201,35 @@ export function PersonalTrainerAppClientPage() {
               )}
             </div>
 
-            {/* Right side - Dashboard image */}
+            {/* Right side - Video with fallback image */}
             {isCoach && (
               <div className="flex-1 lg:flex-[1.2]">
-                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
-                  <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
-                    alt="Juice Dashboard Interface for Coaches"
-                    width={1200}
-                    height={675}
+                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg cursor-pointer group">
+                  <video
+                    src="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/productdemo%20%281%29.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
                     className="w-full h-auto"
-                  />
+                    onClick={() => setShowVideoModal(true)}
+                    poster="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
                   <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/50 rounded-full p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                      <svg
+                        className="w-12 h-12 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -304,6 +319,20 @@ export function PersonalTrainerAppClientPage() {
         <HowItWorks />
       </section>
 
+      {/* Testimonials Section */}
+      <section className="scroll-mt-20 mb-20">
+        <TestimonialsSection
+          type="trainer"
+          title="What Trainers Are Saying"
+          testimonials={trainerTestimonials}
+          cta={{
+            text: "Start now",
+            onClick: () => (window.location.href = "https://app.juice.fitness/"),
+            subText: "No credit card required. Get started in minutes.",
+          }}
+        />
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="scroll-mt-20 mb-20">
         <PricingSectionWithPayment />
@@ -372,6 +401,33 @@ export function PersonalTrainerAppClientPage() {
           </div>
         </div>
       </section>
+
+      {/* Video Modal */}
+      {showVideoModal && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowVideoModal(false)}
+        >
+          <div className="relative w-full max-w-6xl max-h-[90vh] bg-black rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowVideoModal(false)}
+              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 rounded-full p-2 text-white transition-colors"
+              aria-label="Close video"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <video
+              src="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/productdemo%20%281%29.mp4"
+              controls
+              autoPlay
+              className="w-full h-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <Footer />

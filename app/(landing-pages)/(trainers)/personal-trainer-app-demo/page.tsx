@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   description:
     "Kill the hassle. Keep the gains. Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate every PR—all in one easy-to-use platform.",
   alternates: {
-    canonical: "/personal-trainer-app",
+    canonical: "/personal-trainer-app-demo",
   },
   openGraph: {
     title: "Personal Trainer App - Juice Fitness",
     description:
       "Kill the hassle. Keep the gains. Juice helps personal trainers effortlessly track clients, manage workouts, billing, and celebrate every PR—all in one easy-to-use platform.",
-    url: "/personal-trainer-app",
+    url: "/personal-trainer-app-demo",
     siteName: "Juice Fitness",
     images: [
       {

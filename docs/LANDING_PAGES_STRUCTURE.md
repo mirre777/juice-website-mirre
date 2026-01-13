@@ -62,7 +62,7 @@ All landing pages are organized using Next.js route groups for clean file organi
       /100trainers
         page.tsx
         HundredTrainersClientPage.tsx
-      /personal-trainer-app
+      /personal-trainer-app-demo
         page.tsx
         PersonalTrainerAppClientPage.tsx
       /sell-programs
@@ -281,7 +281,7 @@ export default function PageName() {
 ### **Trainer Pages (4 total):**
 1. `/getclients` - Trainer client acquisition page
 2. `/100trainers` - First 100 trainers exclusive program
-3. `/personal-trainer-app` - Personal trainer app features page
+3. `/personal-trainer-app-demo` - Personal trainer app features page
 4. `/sell-programs` - Marketplace program selling page
 
 ### **Additional Structure:**

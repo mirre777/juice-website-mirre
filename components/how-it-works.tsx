@@ -12,7 +12,7 @@ export function HowItWorks() {
   const { isCoach, setIsCoach } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app-demo"
 
   const clientSteps = [
     {
