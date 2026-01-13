@@ -91,7 +91,7 @@ export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionPr
               </h2>
               <p className="text-base leading-6 text-gray-600 mb-8 font-inter">
                 Give clients a premium mobile experience. They see their plan, log workouts in seconds, track PRs and
-                progress, and stay connected to you.
+                progress, and stay connected to you. And all FOR FREE.
               </p>
 
               {/* Features */}
@@ -102,7 +102,7 @@ export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionPr
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex items-start gap-4"
+                    className="flex items-center gap-4"
                   >
                     <div className="w-12 h-12 rounded-full bg-juice flex items-center justify-center flex-shrink-0">
                       {feature.icon}
