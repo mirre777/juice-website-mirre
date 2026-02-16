@@ -180,6 +180,18 @@ export default function GetClientsClientPage() {
                 </div>
               </div>
             </div>
+
+            {/* Final CTA section */}
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Ready to Get More Clients?</h2>
+              <p className="text-lg text-zinc-300 mb-8 max-w-2xl mx-auto">
+                👉 Join the waitlist today and be one of the first trainers to connect with clients through Juice
+                Marketplace.
+              </p>
+              <div className="max-w-sm mx-auto">
+                <WaitlistForm selectedPlan="trainer-marketplace-interest" />
+              </div>
+            </div>
           </div>
         </main>
 

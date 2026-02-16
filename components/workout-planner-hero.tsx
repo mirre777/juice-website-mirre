@@ -54,19 +54,13 @@ export default function WorkoutPlannerHero() {
                 loop
                 muted
                 playsInline
-                poster="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/convertyourworkouts.png"
                 style={{ aspectRatio: "16/9" }}
               >
                 <source
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/convert%20a%20workout%20program%20from%20google%20sheets%20into%20client%20mobile%20app%20%28online-video-cutter.com%29-i3nXqd4V9O1pZUnAozCN7JUJB8hORF.mp4"
                   type="video/mp4"
                 />
-                <img
-                  src="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/convertyourworkouts.png"
-                  alt="Workout planner - Convert Google Sheets to workout programs"
-                  className="w-full h-full rounded-lg shadow-2xl object-cover"
-                  style={{ aspectRatio: "16/9" }}
-                />
+                Your browser does not support the video tag.
               </video>
             </div>
           </div>
