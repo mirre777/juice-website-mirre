@@ -50,9 +50,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
-      </head>
       <body className={`${inter.className} ${inter.variable} ${sen.variable} ${roboto.variable}`}>
         {/* Google Tag Manager (noscript) */}
         <noscript
@@ -103,72 +100,6 @@ export default function RootLayout({
             </AnalyticsProvider>
           </ThemeProvider>
         </Suspense>
-
-        {/* Calendly badge widget JS - Load the library */}
-        <Script
-          id="calendly-widget-script"
-          src="https://assets.calendly.com/assets/external/widget.js"
-          type="text/javascript"
-          strategy="afterInteractive"
-        />
-
-        <Script
-          id="calendly-init"
-          strategy="lazyOnload"
-          dangerouslySetInnerHTML={{
-            __html: `
-              function initCalendly() {
-                // Hide Calendly widget on client landing pages and admin pages
-                const clientLandingPages = [
-                  '/gratis-workout-app-met-trainer',
-                  '/trainingsplan-app-gratis', 
-                  '/best-free-workout-app-uk',
-                  '/gratis-fitness-app-danmark',
-                  '/juice-raffle-win-free-personal-training',
-                  '/download-juice-app',
-                  '/findatrainer',
-                  '/personal-training-amsterdam',
-                  '/personal-training-berlin', 
-                  '/personal-training-koebenhavn',
-                  '/personal-training-muenchen',
-                  '/personal-training-wien'
-                ];
-                
-                if (window.location.pathname.startsWith('/admin') || 
-                    clientLandingPages.includes(window.location.pathname) ||
-                    window.location.pathname.startsWith('/workout-programs')) {
-                  return;
-                }
-                
-                const consentBanner = document.querySelector('[data-consent-banner="true"]');
-                
-                if (consentBanner) {
-                  setTimeout(initCalendly, 1000);
-                  return;
-                }
-                
-                if (window.Calendly) {
-                  window.Calendly.initBadgeWidget({
-                    url: 'https://calendly.com/sofree-mirre/talk',
-                    text: 'Are you a Trainer? Let\\'s talk.',
-                    color: '#9fc5fb',
-                    textColor: '#ffffff'
-                  });
-                } else {
-                  setTimeout(initCalendly, 200);
-                }
-              }
-              
-              if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                  setTimeout(initCalendly, 500);
-                });
-              } else {
-                setTimeout(initCalendly, 500);
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   )
