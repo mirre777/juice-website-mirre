@@ -40,7 +40,6 @@ export function BenefitsSection() {
     <section id="how-it-works" className={`pt-20 pb-20 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center text-center mb-12">
-          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>HOW IT WORKS</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
             Getting Started
           </h2>
@@ -49,7 +48,8 @@ export function BenefitsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none hidden lg:block"
             viewBox="0 0 1000 200"
@@ -80,6 +80,7 @@ export function BenefitsSection() {
               <p className={`text-sm ${isCoach ? "text-gray-600" : "text-gray-400"}`}>{benefit.description}</p>
             </motion.div>
           ))}
+          </div>
         </div>
 
         <div className="flex justify-center mt-12">

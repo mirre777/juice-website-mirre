@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Instagram, Linkedin } from "lucide-react"
 import { Logo } from "./logo"
 import { useTheme } from "@/components/theme-provider"
@@ -184,13 +183,6 @@ export function Footer() {
           &copy; {new Date().getFullYear()} Juice Fitness. All rights reserved.
         </p>
         <div className="flex items-center gap-4 flex-wrap justify-center">
-          <Image
-            src="/images/Powered by Stripe - black.svg"
-            alt="Powered by Stripe"
-            width={150}
-            height={34}
-            className={isFooterDark ? "brightness-0 invert" : ""}
-          />
           <p className={cn("text-sm", getTextColorClass())}>Made with sweat in Vienna</p>
         </div>
       </div>
