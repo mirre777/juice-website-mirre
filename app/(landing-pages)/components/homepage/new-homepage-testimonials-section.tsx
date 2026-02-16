@@ -42,7 +42,7 @@ export function TestimonialsSection({ type, title, testimonials, cta }: Testimon
                 : testimonials.length === 4
                   ? "md:grid-cols-2 lg:grid-cols-4"
                   : "md:grid-cols-2 lg:grid-cols-4"
-          } gap-6 md:gap-8 max-w-6xl mx-auto`}
+          } gap-6 md:gap-8 max-w-5xl mx-auto`}
         >
           {testimonials.map((testimonial, index) => (
             <motion.div
