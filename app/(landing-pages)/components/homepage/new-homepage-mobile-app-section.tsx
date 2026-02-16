@@ -80,7 +80,7 @@ export function MobileAppSection({ features, phoneImageUrl }: MobileAppSectionPr
   }
 
   return (
-    <section className="pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
+    <section id="features" className="scroll-mt-24 pt-8 md:pt-12 pb-16 md:pb-20 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-12 items-center">

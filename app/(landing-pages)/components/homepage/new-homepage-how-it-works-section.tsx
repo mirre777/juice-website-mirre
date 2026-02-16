@@ -17,7 +17,7 @@ interface NewHowItWorksSectionProps {
 
 export function NewHowItWorksSection({ steps, onDemoClick, onTryItClick }: NewHowItWorksSectionProps) {
   return (
-    <section className="bg-white">
+    <section id="how-it-works" className="scroll-mt-24 bg-white">
       {/* Green bar at top */}
       <div className="h-2 bg-juice w-full"></div>
       <div className="pt-8 md:pt-12 pb-8 md:pb-12">
