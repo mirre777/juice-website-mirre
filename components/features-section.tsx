@@ -26,7 +26,7 @@ export function FeaturesSection() {
 
   const isTrainerPage = pathname === "/"
   const isClientPage = pathname === "/clients"
-  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app-demo"
+  const isPersonalTrainerAppPage = pathname === "/personal-trainer-app"
 
   const clientFeatures: Feature[] = [
     {
@@ -55,46 +55,46 @@ export function FeaturesSection() {
 
   const trainerFeatures: Feature[] = [
     {
-      icon: <Dumbbell className="h-6 w-6 text-juice" />,
-      title: "Upload your workout programs",
-      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
-    },
-    {
       icon: <Users className="h-6 w-6 text-juice" />,
-      title: "See all your clients in one place",
+      title: "Client management",
       description: "All your clients' details, goals, and progress in one fitness coaching app.",
     },
     {
-      icon: <Smartphone className="h-6 w-6 text-juice" />,
-      title: "Clients log their workouts",
-      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
+      icon: <BarChart3 className="h-6 w-6 text-juice" />,
+      title: "Instant performance insights",
+      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
     },
     {
-      icon: <BarChart3 className="h-6 w-6 text-juice" />,
-      title: "You get instant performance insights",
-      description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
+      icon: <Dumbbell className="h-6 w-6 text-juice" />,
+      title: "Workout builder app",
+      description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
+    },
+    {
+      icon: <Smartphone className="h-6 w-6 text-juice" />,
+      title: "Easy workout logging for clients",
+      description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
     },
   ]
 
   const trainerBenefits: Benefit[] = [
     {
       icon: <Dumbbell className="h-8 w-8" />,
-      title: "Upload your workout programs",
+      title: "Workout builder app",
       description: "Create customized workouts, import from Google Sheets, and update plans seamlessly.",
     },
     {
       icon: <Users className="h-8 w-8" />,
-      title: "See all your clients in one place",
+      title: "Client management",
       description: "All your clients' details, goals, and progress in one fitness coaching app.",
     },
     {
       icon: <Smartphone className="h-8 w-8" />,
-      title: "Clients log their workouts",
+      title: "Easy workout logging for clients",
       description: "Simpler than other training apps. Stay connected to clients anywhere, anytime, without the hassle.",
     },
     {
       icon: <BarChart3 className="h-8 w-8" />,
-      title: "You get instant performance insights",
+      title: "Instant performance insights",
       description: "Know exactly how your clients are doing, spot plateaus fast, and celebrate every milestone.",
     },
   ]
@@ -138,6 +138,7 @@ export function FeaturesSection() {
     <div className={`pt-8 pb-0 ${isCoach ? "bg-white" : "bg-black"} maintain-scroll`}>
       <div className="container px-4 md:px-6 pb-4">
         <div className="flex flex-col items-center text-center mb-12">
+          <span className={`${isCoach ? "text-black" : "text-white"} font-medium mb-3`}>{smallHeader}</span>
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>{header}</h2>
           <p className={`${isCoach ? "text-gray-600" : "text-gray-400"} max-w-2xl`}>{description}</p>
         </div>
@@ -249,7 +250,7 @@ export function FeaturesSection() {
             </div>
           </div>
         ) : (
-          <div className="w-full max-w-5xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {trainerBenefits.map((benefit, index) => (
                 <div key={index} className="flex items-center">

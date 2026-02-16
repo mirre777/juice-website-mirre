@@ -8,15 +8,8 @@ import { Logo } from "@/components/logo"
 import { UserToggle } from "@/components/user-toggle"
 import { useTheme } from "@/contexts/theme-context"
 import { useState, useEffect } from "react"
-import { Menu, X, ChevronDown, ChevronRight } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { trackEvent } from "@/lib/analytics"
-import { cn } from "@/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export function Navbar() {
   const pathname = usePathname()
@@ -28,7 +21,7 @@ export function Navbar() {
     if (
       pathname === "/" ||
       pathname === "/trainers" ||
-      pathname === "/personal-trainer-app-demo"
+      pathname === "/personal-trainer-app"
     ) {
       setIsCoach(true)
     } else if (pathname === "/clients" || pathname === "/for-clients") {
@@ -51,7 +44,7 @@ export function Navbar() {
       if (
         pathname === "/" ||
         pathname === "/trainers" ||
-        pathname === "/personal-trainer-app-demo" ||
+        pathname === "/personal-trainer-app" ||
         pathname === "/download-juice-app"
       ) {
         router.push("/clients" + currentHash)
@@ -68,25 +61,19 @@ export function Navbar() {
       location: "navbar",
     })
 
-    if (isCoach) {
-      // Trainer view - redirect to dedicated pricing page
-      router.push("/pricing")
-    } else {
-      // Client view - redirect to clients page pricing section
-      const pagesWithPricing = ["/clients", "/for-clients"]
-      const currentPageHasSection = pagesWithPricing.includes(pathname)
+    const pagesWithPricing = ["/", "/trainers", "/personal-trainer-app"]
+    const currentPageHasSection = pagesWithPricing.includes(pathname)
 
-      if (currentPageHasSection) {
-        // We're on a page that has the pricing section, scroll to it
-        const pricingElement = document.getElementById("pricing")
-        if (pricingElement) {
-          pricingElement.scrollIntoView({ behavior: "smooth" })
-        }
-        window.history.pushState(null, "", "/clients#pricing")
-      } else {
-        // We're on a different page, redirect to clients page with anchor
-        router.push("/clients#pricing")
+    if (currentPageHasSection) {
+      // We're on a page that has the pricing section, scroll to it
+      const pricingElement = document.getElementById("pricing")
+      if (pricingElement) {
+        pricingElement.scrollIntoView({ behavior: "smooth" })
       }
+      window.history.pushState(null, "", "/#pricing")
+    } else {
+      // We're on a different page, redirect to homepage with anchor
+      router.push("/#pricing")
     }
   }
 
@@ -192,121 +179,75 @@ export function Navbar() {
             <div className="ml-10 flex items-baseline space-x-8">
               <button
                 onClick={handleHowItWorksClick}
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
               >
-                How it works
+                How It Works
               </button>
-              <button
-                onClick={handlePricingClick}
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
-              >
-                Pricing
-              </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors flex items-center gap-1 whitespace-nowrap ${linkTextColorClass}`}
+              {isCoach && (
+                <button
+                  onClick={handlePricingClick}
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 >
-                  Products
-                  <ChevronDown className="h-4 w-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className={cn(
-                    shouldUseWhiteNavbar ? "bg-white border-gray-200 text-black" : "bg-black border-gray-800 text-white",
-                    "data-[state=open]:animate-in data-[state=closed]:animate-out",
-                    "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-                    "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-                    "data-[side=bottom]:slide-in-from-top-2",
-                    "duration-200"
-                  )}
-                  align="start"
-                  sideOffset={8}
-                >
-                  <DropdownMenuItem
-                    className={shouldUseWhiteNavbar ? "text-black hover:bg-gray-100" : "text-white hover:bg-gray-800"}
-                    asChild
-                  >
-                    <Link
-                      href="/download-juice-app"
-                      className="flex items-center justify-between w-full"
-                      onClick={() => {
-                        trackEvent("nav_click", {
-                          section: "download-app",
-                          user_type: isCoach ? "trainer" : "client",
-                          location: "navbar",
-                        })
-                      }}
-                    >
-                      <span>Download Workout App</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </DropdownMenuItem>
-                  {isCoach && (
-                    <DropdownMenuItem
-                      className={shouldUseWhiteNavbar ? "text-black hover:bg-gray-100" : "text-white hover:bg-gray-800"}
-                      asChild
-                    >
-                      <Link
-                        href="/workout-planner"
-                        className="flex items-center justify-between w-full"
-                        onClick={() =>
-                          trackEvent("nav_click", {
-                            section: "workout-planner",
-                            user_type: "trainer",
-                            location: "navbar",
-                          })
-                        }
-                      >
-                        <span>Workout Planner</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  Pricing
+                </button>
+              )}
               <Link
-                href="/blog"
-                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
+                href="/download-juice-app"
+                className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
                 onClick={() =>
                   trackEvent("nav_click", {
-                    section: "blog",
+                    section: "download-app",
                     user_type: isCoach ? "trainer" : "client",
                     location: "navbar",
                   })
                 }
               >
-                Blog
+                Download Workout App
               </Link>
-              <div className="min-w-[120px]">
-                {!isCoach ? (
-                  <Link
-                    href="/findatrainer"
-                    className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
-                    onClick={() =>
-                      trackEvent("nav_click", {
-                        section: "find-trainer",
-                        user_type: "client",
-                        location: "navbar",
-                      })
-                    }
-                  >
-                    Find A Trainer
-                  </Link>
-                ) : (
-                  <Link
-                    href="/getclients"
-                    className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors whitespace-nowrap ${linkTextColorClass}`}
-                    onClick={() =>
-                      trackEvent("nav_click", {
-                        section: "get-clients",
-                        user_type: "trainer",
-                        location: "navbar",
-                      })
-                    }
-                  >
-                    Get Clients
-                  </Link>
-                )}
-              </div>
+              {isCoach && (
+                <Link
+                  href="/workout-planner"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("nav_click", {
+                      section: "workout-planner",
+                      user_type: "trainer",
+                      location: "navbar",
+                    })
+                  }
+                >
+                  Online Workout Planner
+                </Link>
+              )}
+              {!isCoach ? (
+                <Link
+                  href="/findatrainer"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("nav_click", {
+                      section: "find-trainer",
+                      user_type: "client",
+                      location: "navbar",
+                    })
+                  }
+                >
+                  Find A Trainer
+                </Link>
+              ) : (
+                <Link
+                  href="/getclients"
+                  className={`px-3 py-2 text-sm font-medium hover:text-gray-600 transition-colors ${linkTextColorClass}`}
+                  onClick={() =>
+                    trackEvent("nav_click", {
+                      section: "get-clients",
+                      user_type: "trainer",
+                      location: "navbar",
+                    })
+                  }
+                >
+                  Get Clients
+                </Link>
+              )}
             </div>
           </div>
 
@@ -315,7 +256,7 @@ export function Navbar() {
             <div className="flex-shrink-0">
               <UserToggle isCoach={isCoach} onChange={handleToggleChange} isDarkBackground={!shouldUseWhiteNavbar} />
             </div>
-            <div className="flex-shrink-0 min-w-[130px] flex justify-center" suppressHydrationWarning>
+            <div className="flex-shrink-0" suppressHydrationWarning>
               {isCoach ? (
                 <Link
                   href="https://app.juice.fitness/"
@@ -379,66 +320,50 @@ export function Navbar() {
               }}
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
             >
-              How it works
+              How It Works
             </button>
-            <button
-              onClick={(e) => {
-                handlePricingClick(e)
-                setIsMobileMenuOpen(false)
-              }}
-              className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
-            >
-              Pricing
-            </button>
-            <div className="px-3 py-2 text-base font-medium">
-              <span className={linkTextColorClass}>Products</span>
-              <div className="mt-1 space-y-1 pl-4">
-                <Link
-                  href="/download-juice-app"
-                  className={`block px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                    trackEvent("nav_click", {
-                      section: "download-app",
-                      user_type: isCoach ? "trainer" : "client",
-                      location: "mobile-menu",
-                    })
-                  }}
-                >
-                  Download Workout App
-                </Link>
-                {isCoach && (
-                  <Link
-                    href="/workout-planner"
-                    className={`block px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      trackEvent("nav_click", {
-                        section: "workout-planner",
-                        user_type: "trainer",
-                        location: "mobile-menu",
-                      })
-                    }}
-                  >
-                    Workout Planner
-                  </Link>
-                )}
-              </div>
-            </div>
+            {isCoach && (
+              <button
+                onClick={(e) => {
+                  handlePricingClick(e)
+                  setIsMobileMenuOpen(false)
+                }}
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass} w-full text-left`}
+              >
+                Pricing
+              </button>
+            )}
             <Link
-              href="/blog"
+              href="/download-juice-app"
               className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
               onClick={() => {
                 setIsMobileMenuOpen(false)
                 trackEvent("nav_click", {
-                  section: "blog",
+                  section: "download-app",
                   user_type: isCoach ? "trainer" : "client",
                   location: "mobile-menu",
                 })
               }}
             >
-              Blog
+              Download Workout App
             </Link>
+            {isCoach && (
+              <Link
+                href="/workout-planner"
+                className={`block px-3 py-2 text-base font-medium hover:bg-gray-100 rounded-md ${linkTextColorClass}`}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  // Add click tracking for mobile menu workout planner link
+                  trackEvent("nav_click", {
+                    section: "workout-planner",
+                    user_type: "trainer",
+                    location: "mobile-menu",
+                  })
+                }}
+              >
+                Online Workout Planner
+              </Link>
+            )}
             {!isCoach ? (
               <Link
                 href="/findatrainer"
