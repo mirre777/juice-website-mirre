@@ -5,10 +5,6 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { ClientWaitlistForm } from "@/components/client-waitlist-form"
-import { FeaturesSection } from "@/components/features-section"
-import { HowItWorks } from "@/components/how-it-works"
-import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
-import { BenefitsSection } from "@/components/benefits-section"
 import { scrollToSection } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
@@ -325,16 +321,6 @@ export function PersonalTrainerAppClientPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mb-20">
-        <FeaturesSection />
-      </section>
-
-      {/* How It Works Section */}
-      <section id="how-it-works" className="scroll-mt-20 mb-20">
-        <HowItWorks />
-      </section>
-
       {/* Testimonials Section */}
       <section className="scroll-mt-20 mb-20">
         <TestimonialsSection
@@ -347,55 +333,6 @@ export function PersonalTrainerAppClientPage() {
             subText: "No credit card required. Get started in minutes.",
           }}
         />
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-20 mb-20">
-        <PricingSectionWithPayment />
-      </section>
-
-      {/* Divider */}
-      <div className="w-full flex justify-center mb-20">
-        <div className="w-2/3 h-2 bg-juice"></div>
-      </div>
-
-      {/* Benefits Section */}
-      <section id="benefits" className="scroll-mt-20 mb-20">
-        <BenefitsSection />
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-10 mb-20">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-5xl mx-auto">
-            <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-              {isCoach ? "Best coaching app for personal trainers" : "Get ready to train."}
-            </h2>
-            <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8`}>
-              {isCoach
-                ? "Ready to transform your coaching business?"
-                : "Join thousands of bicep babes who are elevating their training with Juice."}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className={`rounded-full px-6 py-3 font-medium transition-colors flex items-center justify-center gap-2 ${
-                  isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
-                }`}
-                id={isCoach ? "early_access_trainer_bottom" : "early_access_client_bottom"}
-              >
-                Start now
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-            {/* Only show this line for trainer view */}
-            {isCoach && (
-              <p className="text-sm text-gray-500 mt-4">
-                No credit card required. No lock-in. Works with Google Sheets.
-              </p>
-            )}
-          </div>
-        </div>
       </section>
 
       {/* Video Modal */}

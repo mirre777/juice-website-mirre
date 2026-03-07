@@ -132,7 +132,7 @@ export function TestimonialsSection({ type, title, testimonials, cta }: Testimon
 
         {/* CTA Button */}
         {cta && (
-          <div className="flex flex-col items-center mt-8">
+          <div className="flex flex-col items-center mt-10 md:mt-14">
             <button
               onClick={cta.onClick}
               className="bg-black text-white px-6 py-3 rounded-full font-medium hover:opacity-90 transition-opacity flex items-center gap-2 font-inter"

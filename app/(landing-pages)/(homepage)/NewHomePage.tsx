@@ -33,7 +33,7 @@ export default function NewHomePage() {
   }, [setIsCoach])
 
   const handleDemoClick = () => {
-    window.location.href = "/demo"
+    window.location.href = "/personal-trainer-app-demo"
   }
 
   const handleAppRedirect = () => {

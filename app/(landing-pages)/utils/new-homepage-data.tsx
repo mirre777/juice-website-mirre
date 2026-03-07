@@ -144,7 +144,7 @@ export const features = [
     description:
       "Juice handles tracking, analytics, check-ins, and updates → so you can focus on coaching, not spreadsheets, messages, or weekly summaries.",
     ctaText: "See Demo Video",
-    ctaLink: "/demo",
+    ctaLink: "/personal-trainer-app-demo",
     imageUrl: HOMEPAGE_IMAGES.cutAdminTime,
   },
 ]
