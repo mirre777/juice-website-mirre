@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { PersonalTrainerAppClientPage } from "./PersonalTrainerAppClientPage"
+import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
   title: "Personal Trainer App - Juice Fitness",
@@ -28,5 +28,5 @@ export const metadata: Metadata = {
 }
 
 export default function PersonalTrainerApp() {
-  return <PersonalTrainerAppClientPage />
+  redirect("/personal-trainer-app-demo")
 }
