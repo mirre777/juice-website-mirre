@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import TrainerHomePage from "./TrainerHomePage"
+import NewHomePage from "./(landing-pages)/(homepage)/NewHomePage"
 
 export const metadata: Metadata = {
   title: "Juice - All-in-One Platform for Personal Trainers | Get More Clients",
@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     "personal training business",
     "fitness app for trainers",
     "get personal training clients",
+    "personal trainer software",
+    "online personal trainer platform",
+    "fitness coaching app",
+    "trainer client management",
+    "workout program builder",
+    "personal training website",
   ],
   authors: [{ name: "Juice" }],
   creator: "Juice",
@@ -61,5 +67,5 @@ export const metadata: Metadata = {
 }
 
 export default function HomePage() {
-  return <TrainerHomePage />
+  return <NewHomePage />
 }
