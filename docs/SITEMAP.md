@@ -1,6 +1,6 @@
 # JUICE FITNESS PLATFORM SITEMAP
 
-*Last Updated: January 2025*
+*Last Updated: August 21, 2025*
 
 ## Overview
 Complete site structure for the Juice Fitness Platform, including all pages, routes, and API endpoints.
@@ -16,13 +16,8 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | `/blog` | Blog listing | Both |
 | `/blog/[slug]` | Individual blog posts | Both |
 | `/workout-planner` | Workout planning tool | Both |
-| `/workout-programs` | Workout programs collection page | Both |
-| `/workout-programs/free/[slug]` | Free workout programs | Both |
-| `/workout-programs/paid/[slug]` | Paid workout programs | Both |
-| `/workout-programs/celebrity/[slug]` | Celebrity workout programs | Both |
 | `/100trainers` | Special trainer showcase | Clients |
 | `/legal` | Legal/terms page | Both |
-| `/interview/[slug]` | Trainer interview articles | Both |
 
 ## Landing Pages
 
@@ -32,16 +27,8 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | `/best-free-workout-app-uk` | UK fitness app landing | UK Clients |
 | `/download-juice-app` | App download page | Global Clients |
 | `/findatrainer` | Find a trainer landing | Clients |
-| `/findatrainer/amsterdam` | Find trainers in Amsterdam | Netherlands Clients |
-| `/findatrainer/berlin` | Find trainers in Berlin | German Clients |
-| `/findatrainer/london` | Find trainers in London | UK Clients |
-| `/findatrainer/rotterdam` | Find trainers in Rotterdam | Netherlands Clients |
-| `/findatrainer/the-hague` | Find trainers in The Hague | Netherlands Clients |
-| `/findatrainer/vienna` | Find trainers in Vienna | Austrian Clients |
-| `/getfit` | Get fit with personal trainer matching | Global Clients |
 | `/gratis-fitness-app-danmark` | Danish fitness app landing | Danish Clients |
 | `/gratis-workout-app-met-trainer` | Dutch workout app landing | Dutch Clients |
-| `/juice-raffle-win-free-personal-training` | Raffle promotion page | Global Clients |
 | `/trainingsplan-app-gratis` | German training plan app landing | German Clients |
 
 ### City-Specific Personal Training Pages
@@ -57,7 +44,7 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | Route | Description | Purpose |
 |-------|-------------|---------|
 | `/getclients` | Client acquisition for trainers | Lead generation |
-| `/personal-trainer-app-demo` | Personal trainer app landing | App promotion |
+| `/personal-trainer-app` | Personal trainer app landing | App promotion |
 
 ## Marketplace & Trainer System
 
@@ -86,16 +73,6 @@ Complete site structure for the Juice Fitness Platform, including all pages, rou
 | `/payment` | Payment processing | Authenticated |
 | `/payment/success` | Payment confirmation | Authenticated |
 
-## Non-Indexed Routes
-
-These routes exist but are **not indexed** by search engines (robots: noindex, nofollow):
-
-| Route | Description | Reason |
-|-------|-------------|--------|
-| `/home` | Backup/homepage route | Internal use only, not for public indexing |
-| `/legal` | Legal/terms page | Disallowed in robots.txt |
-| `/sell-programs` | Marketplace program selling page | Not for public indexing |
-
 ## Admin Panel
 
 | Route | Description | Access |
@@ -103,7 +80,7 @@ These routes exist but are **not indexed** by search engines (robots: noindex, n
 | `/admin/blog` | Blog management | Admin |
 | `/admin/user-management` | User administration | Admin |
 | `/admin/waitlist` | Waitlist management | Admin |
-| `/admin/firebase-rules` | Firebase rules viewer | Admin |
+| `/admin/firebase-debug` | Firebase debugging | Admin |
 
 ## Development & Testing
 
@@ -136,21 +113,17 @@ app/
 │   │   ├── best-free-workout-app-uk/
 │   │   ├── download-juice-app/
 │   │   ├── findatrainer/
-│   │   ├── getfit/
 │   │   ├── gratis-fitness-app-danmark/
 │   │   ├── gratis-workout-app-met-trainer/
-│   │   ├── juice-raffle-win-free-personal-training/
 │   │   ├── trainingsplan-app-gratis/
 │   │   ├── personal-training-amsterdam/
 │   │   ├── personal-training-berlin/
 │   │   ├── personal-training-koebenhavn/
 │   │   ├── personal-training-muenchen/
-│   │   ├── personal-training-wien/
-│   │   └── workout-programs/
+│   │   └── personal-training-wien/
 │   └── (trainers)/
 │       ├── getclients/
-│       ├── personal-trainer-app-demo/
-│       ├── sell-programs/
+│       ├── personal-trainer-app/
 │       └── 100trainers/
 ├── marketplace/
 │   ├── (marketplace)/
@@ -164,12 +137,11 @@ app/
 
 ## Statistics
 
-- **Total Pages:** ~60+ including dynamic routes
+- **Total Pages:** ~50+ including dynamic routes
 - **Languages Supported:** English, Dutch, German, Danish
 - **Main Audiences:** Personal Trainers, Fitness Clients
-- **Core Features:** Marketplace, Landing Pages, Payment Processing, Admin Panel, Workout Programs, Interviews
+- **Core Features:** Marketplace, Landing Pages, Payment Processing, Admin Panel
 - **Route Groups:** Client Landing Pages, Trainer Landing Pages, Marketplace, Admin
-- **City-Specific Pages:** 6 cities (Amsterdam, Berlin, London, Rotterdam, The Hague, Vienna)
 
 ## SEO Strategy
 

@@ -2,14 +2,13 @@
 
 ## Overview
 
-This document outlines the comprehensive Google Analytics 4 (GA4) and Google Tag Manager (GTM) implementation for the Juice fitness app website, including GDPR compliance, performance optimization, and detailed event tracking with enhanced user properties and lead quality scoring.
+This document outlines the comprehensive Google Analytics 4 (GA4) implementation for the Juice fitness app website, including GDPR compliance, performance optimization, and detailed event tracking with enhanced user properties and lead quality scoring.
 
 ## Implementation Summary
 
 ### Core Features Implemented
 
 - **Production-Only Loading**: GA only loads in production environment to keep development data clean
-- **Google Tag Manager**: GTM container (GTM-5375W2FZ) loaded alongside GA4 for advanced tag management
 - **GDPR Compliance**: Cookie consent banner with user choice persistence
 - **Performance Optimized**: Uses Next.js Script component with `afterInteractive` strategy
 - **Type-Safe Event Tracking**: TypeScript utilities for consistent event tracking
@@ -45,16 +44,6 @@ No additional GA4 configuration required - events will automatically appear in:
 - **Real-time reports**: Immediate data
 - **Standard reports**: 24-48 hours processing time
 
-### Google Tag Manager Setup
-
-Google Tag Manager (GTM) is also implemented with container ID `GTM-5375W2FZ`. GTM loads alongside GA4 and can be used for:
-- Advanced tag management and configuration
-- Additional third-party integrations
-- A/B testing and experimentation
-- Custom event triggers
-
-GTM is loaded with `afterInteractive` strategy and does not require user consent (as it's a tag management container, not a tracking script itself).
-
 ## Enhanced Event Tracking Implementation
 
 ### Core Event Types
@@ -84,19 +73,7 @@ export type AnalyticsEvent =
   | "form_submit_error"
   | "scroll_depth"
   | "cta_click"
-  | "nav_click"
-  | "waitlist_submit"
-  | "get_early_access_click"
-  | "talk_to_founders_click"
-  | "early_access_valid_form_submission"
-  | "login_button_clicked"
-  | "login_button"
-  | "signup_button"
-  | "play_around_button"
-  | "tab_click"
 \`\`\`
-
-**Note**: The event `download_intent` is used in the codebase (e.g., `download-hero-section.tsx`) but is not currently included in the TypeScript type definition. This should be added to the `AnalyticsEvent` type for type safety.
 
 ### Enhanced User Properties
 
@@ -188,38 +165,24 @@ Automatic lead scoring (0-100) based on:
 ### Tracked Events by Category
 
 #### Form Events
-- `join_waitlist` - Waitlist form submissions (defined in type but not actively used - see `waitlist_submit` instead)
+- `join_waitlist` - Waitlist form submissions
   - Parameters: `user_type`, `plan_type`, `form_location`, `lead_quality_score`
-- `form_validation_error` - Form validation failures (used in multi-step forms)
-  - Parameters: `field_name`, `error_message`, `step_number`, `form_name`
+- `form_error` - Form validation failures
+  - Parameters: `error_type`, `user_type`, `form_location`
 
 #### Navigation Events  
-- `nav_click` - Menu and section navigation (used in navbar component)
+- `navigation_click` - Menu and section navigation
   - Parameters: `link_text`, `destination`, `user_type`
 - `cta_click` - Call-to-action button clicks
   - Parameters: `button_text`, `location`, `user_type`
 
 #### Download Events
-- `download_app` - General download intent
-  - Parameters: `platform`, `location`, `user_type`
-- `download_intent` - App download attempts (used in download-hero-section)
+- `download_intent` - App download attempts
   - Parameters: `platform` (ios/android), `location`, `user_type`
-  - **Note**: This event is used in code but not in TypeScript type definition
-
-#### Waitlist & Form Events
-- `waitlist_submit` - Waitlist form submission initiated
-  - Parameters: `user_type`, `plan`, `client_count`
-- `early_access_valid_form_submission` - Successful waitlist form submission
-  - Parameters: `user_type`, `plan`, `success`, `error_message` (if failed)
 
 #### Engagement Events
-- `get_early_access_click` - Early access button clicks
-- `talk_to_founders_click` - "Talk to founders" button clicks
-- `play_around_button` - "Play around" button clicks
-- `login_button_clicked` - Login button clicks
-- `login_button` - Login button interaction
-- `signup_button` - Signup button clicks
-- `tab_click` - Tab navigation clicks
+- `user_type_toggle` - Trainer/Client mode switches
+  - Parameters: `from_type`, `to_type`, `location`
 - `scroll_depth` - Page scroll milestones
   - Parameters: `depth_percentage`, `page_section`
 
@@ -239,22 +202,6 @@ onClick={() => {
   })
 }}
 
-// Navigation tracking
-onClick={() => {
-  trackEvent('nav_click', {
-    link_text: 'About',
-    destination: '/about',
-    // user_type added automatically
-  })
-}}
-
-// Waitlist form submission
-trackEvent('waitlist_submit', {
-  user_type: isCoach ? 'trainer' : 'client',
-  plan: selectedPlan || 'basic',
-  client_count: clientCount
-})
-
 // Multi-step form tracking
 formAnalytics.formStart('trainer_website', 'marketplace', 6)
 formAnalytics.stepComplete('trainer_website', 1, 'basic_info', 6)
@@ -267,8 +214,6 @@ formAnalytics.submitSuccess('trainer_website', completionTime, leadScore)
 - **Script Loading**: `afterInteractive` strategy prevents blocking page render
 - **Conditional Loading**: Only loads in production (`NODE_ENV === 'production'`)
 - **Consent-Based Init**: GA only initializes after user consent
-- **GTM Loading**: Google Tag Manager loads unconditionally (tag management container)
-- **Page View Control**: GA4 configured with `send_page_view: false` to prevent automatic page views (handled by AnalyticsProvider)
 
 ### Code Splitting
 - Analytics utilities are tree-shakeable
@@ -316,8 +261,8 @@ formAnalytics.submitSuccess('trainer_website', completionTime, leadScore)
 
 ### Regular Monitoring
 - **Event Volume**: Monitor for unusual spikes or drops
-- **Error Tracking**: Watch for `form_validation_error` and `form_submit_error` events to identify UX issues
-- **Conversion Funnels**: Track waitlist signup completion rates (`waitlist_submit` → `early_access_valid_form_submission`)
+- **Error Tracking**: Watch for form_error events to identify UX issues
+- **Conversion Funnels**: Track waitlist signup completion rates
 - **Lead Quality Trends**: Monitor scoring patterns over time
 
 ### Debugging
@@ -363,15 +308,9 @@ All events use TypeScript interfaces for consistency and error prevention.
 ✅ **User Actions**: `sign_up`, `join_waitlist`, `contact_trainer`
 ✅ **App Downloads**: `download_app`, `app_store_click`
 ✅ **Form Interactions**: `form_start`, `form_step_complete`, `form_field_focus`, `form_field_blur`, `form_validation_error`, `form_abandon`, `form_submit_attempt`, `form_submit_success`, `form_submit_error`
-✅ **Waitlist Events**: `waitlist_submit`, `early_access_valid_form_submission`
-✅ **Navigation**: `nav_click`, `cta_click`, `tab_click`
-✅ **Engagement**: `view_pricing`, `scroll_depth`, `get_early_access_click`, `talk_to_founders_click`, `play_around_button`
-✅ **Authentication**: `login_button_clicked`, `login_button`, `signup_button`
+✅ **Engagement**: `view_pricing`, `cta_click`, `scroll_depth`
 ✅ **Fitness**: `start_workout`, `complete_workout`
 ✅ **E-commerce**: `purchase`
-
-### Events Used But Not in Type Definition:
-⚠️ **Download Intent**: `download_intent` - Used in `download-hero-section.tsx` but missing from `AnalyticsEvent` type (should be added for type safety)
 
 ### Custom Properties Included in All Events:
 ✅ **User Context**: `user_type`, `session_id`

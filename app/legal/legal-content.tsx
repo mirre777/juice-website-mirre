@@ -271,7 +271,7 @@ export function LegalContent({ initialTab }: LegalContentProps) {
                 <p className="mt-2">
                   Calendly (Appointment scheduling and booking, where enabled on a trainer site). Calendly processes
                   booking data to provide the scheduling functionality and to deliver booking confirmations/updates. (
-                  <a href="https://calendly.com/legal/privacy-notice" className="text-juice hover:underline" target="_blank" rel="noopener noreferrer">
+                  <a href="https://calendly.com" className="text-juice hover:underline" target="_blank" rel="noopener noreferrer">
                     Calendly.com
                   </a>
                   ). Only data you actively provide will be processed.

@@ -587,11 +587,11 @@ export default function PersonalTrainerWebsitePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Create
+                  Create for free
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </a>
               </Button>
-              <p className="text-sm text-gray-800 mt-3 max-w-md">We won't charge you for creating the page, only for publishing it.</p>
+              <p className="text-sm text-gray-800 mt-3 max-w-md">We won't charge you for creating the page.</p>
             </div>
           </div>
         </div>

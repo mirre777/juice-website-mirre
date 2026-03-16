@@ -20,7 +20,6 @@ const config: Config = {
       fontFamily: {
         sen: ["var(--font-sen)", "sans-serif"],
         inter: ["var(--font-inter)", "sans-serif"],
-        roboto: ["var(--font-roboto)", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
