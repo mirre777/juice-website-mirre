@@ -5,16 +5,14 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { ClientWaitlistForm } from "@/components/client-waitlist-form"
-import { FeaturesSection } from "@/components/features-section"
-import { HowItWorks } from "@/components/how-it-works"
-import { PricingSectionWithPayment } from "@/components/pricing-section-with-payment"
-import { BenefitsSection } from "@/components/benefits-section"
 import { scrollToSection } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
+import { TestimonialsSection } from "@/app/(landing-pages)/components/homepage/new-homepage-testimonials-section"
+import { trainerTestimonials } from "@/app/(landing-pages)/utils/new-homepage-data"
+import { X, Maximize2, ChevronRight } from "lucide-react"
 
 export function PersonalTrainerAppClientPage() {
   const router = useRouter()
@@ -24,6 +22,9 @@ export function PersonalTrainerAppClientPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("basic")
   const waitlistRef = useRef<HTMLDivElement>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showVideoModal, setShowVideoModal] = useState(false)
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const handleWaitlistClick = () => {
     setShowWaitlist(true)
@@ -61,11 +62,19 @@ export function PersonalTrainerAppClientPage() {
     setIsCoach(true)
   }, [setIsCoach])
 
-  // Handle escape key to close mobile menu
+  // Set video playing state on mount since video auto-plays
+  useEffect(() => {
+    if (videoRef.current) {
+      setIsVideoPlaying(!videoRef.current.paused)
+    }
+  }, [])
+
+  // Handle escape key to close mobile menu and video modal
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMobileMenuOpen(false)
+        setShowVideoModal(false)
       }
     }
 
@@ -115,7 +124,7 @@ export function PersonalTrainerAppClientPage() {
                     <span className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-tight">
                       Kill the hassle.
                     </span>
-                    <span className="text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-bold tracking-tight juice-text-gradient pb-2 md:pb-4">
+                    <span className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight juice-text-gradient pb-2 md:pb-4">
                       Keep the gains.
                     </span>
                   </div>
@@ -141,17 +150,11 @@ export function PersonalTrainerAppClientPage() {
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <button
                     onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                    className="rounded-full px-6 py-3 font-medium trainer-gradient-btn transition-colors"
+                    className="rounded-full px-6 py-3 font-medium trainer-gradient-btn transition-colors flex items-center justify-center gap-2"
                     id="early_access_trainer_hero"
                   >
                     Start now
-                  </button>
-                  <button
-                    onClick={handleWaitlistClick}
-                    className="rounded-full px-6 py-3 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                    id="get_updates_trainer"
-                  >
-                    Get updates
+                    <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               ) : (
@@ -203,18 +206,42 @@ export function PersonalTrainerAppClientPage() {
               )}
             </div>
 
-            {/* Right side - Dashboard image */}
+            {/* Right side - Video with fallback image */}
             {isCoach && (
               <div className="flex-1 lg:flex-[1.2]">
-                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg">
-                  <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
-                    alt="Juice Dashboard Interface for Coaches"
-                    width={1200}
-                    height={675}
+                <div className="relative w-full rounded-xl border border-gray-200 overflow-hidden shadow-lg cursor-pointer group">
+                  <video
+                    ref={videoRef}
+                    src="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/productdemo%20%281%29.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
                     className="w-full h-auto"
-                  />
+                    onClick={() => setShowVideoModal(true)}
+                    onPlay={() => setIsVideoPlaying(true)}
+                    onPause={() => setIsVideoPlaying(false)}
+                    poster="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-06-03%20at%2012.39.50-cfIFHS6YKyNnMPuAhh0sXLnLmHeabm.png"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
                   <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/50 rounded-full p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                      {isVideoPlaying ? (
+                        <Maximize2 className="w-12 h-12 text-white" />
+                      ) : (
+                        <svg
+                          className="w-12 h-12 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -294,87 +321,50 @@ export function PersonalTrainerAppClientPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="scroll-mt-20 mb-20">
-        <FeaturesSection />
+      {/* Testimonials Section */}
+      <section className="scroll-mt-20 mb-20">
+        <TestimonialsSection
+          type="trainer"
+          title="What Trainers Are Saying"
+          testimonials={trainerTestimonials}
+          cta={{
+            text: "Start now",
+            onClick: () => (window.location.href = "https://app.juice.fitness/"),
+            subText: "No credit card required. Get started in minutes.",
+          }}
+        />
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="scroll-mt-20 mb-20">
-        <HowItWorks />
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-20 mb-20">
-        <PricingSectionWithPayment />
-      </section>
-
-      {/* Divider */}
-      <div className="w-full flex justify-center mb-20">
-        <div className="w-2/3 h-2 bg-juice"></div>
-      </div>
-
-      {/* Benefits Section */}
-      <section id="benefits" className="scroll-mt-20 mb-20">
-        <BenefitsSection />
-      </section>
-
-      {/* Blog Call to Action Section */}
-      <section className="py-16 mb-20">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className={`rounded-3xl p-8 md:p-12 shadow-lg ${isCoach ? "bg-gray-50" : "bg-zinc-900"}`}>
-            <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-              Stay Updated with the Juice Blog
-            </h2>
-            <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8`}>
-              Discover insights, tips, and the latest trends in fitness coaching and technology.
-            </p>
-            <Link href="/blog">
-              <button
-                className={`rounded-full px-6 py-3 font-medium bg-white text-black border border-black transition-colors hover:bg-gray-100`}
-              >
-                Go go gadget blog
-              </button>
-            </Link>
+      {/* Video Modal */}
+      {showVideoModal && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowVideoModal(false)}
+        >
+          <div className="relative w-full max-w-6xl max-h-[90vh] bg-black rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowVideoModal(false)}
+              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 rounded-full p-2 text-white transition-colors"
+              aria-label="Close video"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <video
+              src="https://rhyfig0wjvgmsqpt.public.blob.vercel-storage.com/website-images/productdemo%20%281%29.mp4"
+              controls
+              autoPlay
+              className="w-full h-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-10 mb-20">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-4xl mx-auto">
-            <h2 className={`text-3xl font-bold mb-4 ${isCoach ? "text-black" : "text-white"}`}>
-              {isCoach ? "Best coaching app for personal trainers" : "Get ready to train."}
-            </h2>
-            <p className={`text-xl ${isCoach ? "text-gray-600" : "text-gray-400"} mb-8`}>
-              {isCoach
-                ? "Ready to transform your coaching business?"
-                : "Join thousands of bicep babes who are elevating their training with Juice."}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => (window.location.href = "https://app.juice.fitness/")}
-                className={`rounded-full px-6 py-3 font-medium transition-colors ${
-                  isCoach ? "trainer-gradient-btn" : "client-gradient-btn"
-                }`}
-                id={isCoach ? "early_access_trainer_bottom" : "early_access_client_bottom"}
-              >
-                Start now
-              </button>
-            </div>
-            {/* Only show this line for trainer view */}
-            {isCoach && (
-              <p className="text-sm text-gray-500 mt-4">
-                No credit card required. No lock-in. Works with Google Sheets.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
+      )}
 
       {/* Footer */}
       <Footer />
     </main>
   )
 }
+
